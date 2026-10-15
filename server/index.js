@@ -4,9 +4,16 @@ import cors from "cors";
 import pool from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import { sessionMiddleware } from "./config/session.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import productRoutes from "./routes/productRoutes.js";
+import publicProductRoutes from "./routes/publicProductRoutes.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -18,6 +25,18 @@ app.use(express.json());
 app.use(sessionMiddleware);
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/admin", adminRoutes);
+
+app.use(
+  "/uploads/products",
+  express.static(path.join(__dirname, "uploads/products")),
+);
+
+app.use("/api/admin/products", productRoutes);
+
+app.use("/api/products", publicProductRoutes);
+
 
 app.get("/", (req, res) => {
   res.json({

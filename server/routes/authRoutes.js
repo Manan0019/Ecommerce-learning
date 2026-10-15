@@ -451,4 +451,93 @@ router.post("/logout", (req, res) => {
   });
 });
 
+router.post(
+  "/admin/login",
+  loginLimiter,
+  async (req, res) => {
+    try {
+      const { email, password } = req.body ?? {};
+
+      if (
+        typeof email !== "string" ||
+        typeof password !== "string" ||
+        !email.trim() ||
+        !password
+      ) {
+        return res.status(400).json({
+          message: "Email and password are required."
+        });
+      }
+
+      const cleanEmail = email.trim().toLowerCase();
+
+      const result = await pool.query(
+        `SELECT id, full_name, email, password_hash, role
+         FROM users
+         WHERE LOWER(email) = $1`,
+        [cleanEmail]
+      );
+
+      const user = result.rows[0];
+
+      if (!user) {
+        return res.status(401).json({
+          message: "Invalid email or password."
+        });
+      }
+
+      const passwordMatches = await bcrypt.compare(
+        password,
+        user.password_hash
+      );
+
+      if (!passwordMatches || user.role !== "admin") {
+        return res.status(401).json({
+          message: "Invalid email or password."
+        });
+      }
+
+      req.session.regenerate((error) => {
+        if (error) {
+          console.error("Session regeneration error:", error);
+
+          return res.status(500).json({
+            message: "Could not start admin session."
+          });
+        }
+
+        req.session.userId = String(user.id);
+        req.session.role = "admin";
+
+        req.session.save((saveError) => {
+          if (saveError) {
+            console.error("Session save error:", saveError);
+
+            return res.status(500).json({
+              message: "Could not save admin session."
+            });
+          }
+
+          return res.json({
+            message: "Admin login successful.",
+            user: {
+              id: String(user.id),
+              fullName: user.full_name,
+              email: user.email,
+              role: user.role
+            }
+          });
+        });
+      });
+
+    } catch (error) {
+      console.error("Admin login error:", error);
+
+      return res.status(500).json({
+        message: "Admin login failed."
+      });
+    }
+  }
+);
+
 export default router;
