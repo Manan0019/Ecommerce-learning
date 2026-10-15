@@ -1,9 +1,10 @@
-
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import pool from "./config/db.js";
 
 const app = express();
+const PORT = Number(process.env.PORT) || 4000;
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -18,8 +19,43 @@ app.get("/", (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 4000;
+app.get("/api/db-test", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT NOW() AS database_time"
+    );
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    res.json({
+      success: true,
+      message: "PostgreSQL connected successfully",
+      databaseTime: result.rows[0].database_time
+    });
+
+  } catch (error) {
+    console.error("Database connection failed:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Database connection failed"
+    });
+  }
 });
+
+async function startServer() {
+  try {
+    await pool.query("SELECT 1");
+
+    console.log("PostgreSQL connection verified");
+
+    app.listen(PORT, () => {
+      console.log(`Express running on port ${PORT}`);
+    });
+
+  } catch (error) {
+    console.error("Startup database check failed:", error);
+    process.exitCode = 1;
+    await pool.end();
+  }
+}
+
+startServer();
