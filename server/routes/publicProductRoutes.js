@@ -2,99 +2,40 @@ import { Router } from "express";
 import pool from "../config/db.js";
 
 const router = Router();
+const mapProduct = p => ({
+  id: String(p.id), name: p.name, description: p.description,
+  category: p.category, price: p.price, stock: p.stock,
+  imageUrl: p.image_url, createdAt: p.created_at
+});
 
-// GET ALL PRODUCTS
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT
-         id,
-         name,
-         description,
-         category,
-         price,
-         stock,
-         image_url,
-         created_at
-       FROM products
-       ORDER BY created_at DESC, id DESC
-       LIMIT 100`
-    );
-
-    const products = result.rows.map((product) => ({
-      id: String(product.id),
-      name: product.name,
-      description: product.description,
-      category: product.category,
-      price: product.price,
-      stock: product.stock,
-      imageUrl: product.image_url,
-      createdAt: product.created_at
-    }));
-
-    res.json({ products });
-
+    const result = await pool.query(`
+      SELECT id, name, description, category, price, stock, image_url, created_at
+      FROM products WHERE is_active = TRUE
+      ORDER BY created_at DESC, id DESC LIMIT 100
+    `);
+    return res.json({ products: result.rows.map(mapProduct) });
   } catch (error) {
-    console.error("Get products error:", error);
-
-    res.status(500).json({
-      message: "Could not load products."
-    });
+    console.error("Public product list failed:", error);
+    return res.status(500).json({ message: "Could not load products." });
   }
 });
 
-// GET SINGLE PRODUCT
 router.get("/:id", async (req, res) => {
+  if (!/^[1-9]\d*$/.test(req.params.id)) {
+    return res.status(400).json({ message: "Invalid product ID." });
+  }
   try {
-    const { id } = req.params;
-
-    if (!/^[1-9]\d*$/.test(id)) {
-      return res.status(400).json({
-        message: "Invalid product ID."
-      });
-    }
-
-    const result = await pool.query(
-      `SELECT
-         id,
-         name,
-         description,
-         category,
-         price,
-         stock,
-         image_url
-       FROM products
-       WHERE id = $1`,
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        message: "Product not found."
-      });
-    }
-
-    const product = result.rows[0];
-
-    res.json({
-      product: {
-        id: String(product.id),
-        name: product.name,
-        description: product.description,
-        category: product.category,
-        price: product.price,
-        stock: product.stock,
-        imageUrl: product.image_url
-      }
-    });
-
+    const result = await pool.query(`
+      SELECT id, name, description, category, price, stock, image_url, created_at
+      FROM products WHERE id=$1 AND is_active=TRUE
+    `, [req.params.id]);
+    if (!result.rows.length) return res.status(404).json({ message: "Product not found." });
+    return res.json({ product: mapProduct(result.rows[0]) });
   } catch (error) {
-    console.error("Get product error:", error);
-
-    res.status(500).json({
-      message: "Could not load product."
-    });
+    console.error("Public product details failed:", error);
+    return res.status(500).json({ message: "Could not load product." });
   }
 });
-
 export default router;
