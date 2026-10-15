@@ -135,6 +135,8 @@ export default function AdminDashboard() {
 
         <Link to="/admin/products/new">Add New Product</Link>
 
+        <Link to="/admin/products">Manage Products</Link>
+
         <div className="table-wrapper">
           <table className="customer-table">
             <thead>

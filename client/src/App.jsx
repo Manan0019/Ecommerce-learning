@@ -15,6 +15,8 @@ import AddProduct from "./pages/AddProduct";
 import Home from "./pages/Home";
 import ProductList from "./pages/ProductList";
 import ProductDetails from "./pages/ProductDetails";
+import AdminProducts from "./pages/AdminProducts";
+import EditProduct from "./pages/EditProduct";
 
 import "./App.css";
 
@@ -41,6 +43,10 @@ export default function App() {
         <Route path="/products" element={<ProductList />} />
 
         <Route path="/products/:id" element={<ProductDetails />} />
+
+        <Route path="/admin/products" element={<AdminProducts />} />
+
+        <Route path="/admin/products/:id/edit" element={<EditProduct />} />
       </Routes>
     </BrowserRouter>
   );

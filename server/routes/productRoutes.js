@@ -161,6 +161,41 @@ console.log("Image received:", {
   }
 });
 
+
+router.get("/", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, description, category,
+              price, stock, image_url,
+              is_active, created_at, updated_at
+       FROM products
+       ORDER BY created_at DESC, id DESC
+       LIMIT 100`
+    );
+
+    res.json({
+      products: result.rows.map((p) => ({
+        id: String(p.id),
+        name: p.name,
+        description: p.description,
+        category: p.category,
+        price: p.price,
+        stock: p.stock,
+        imageUrl: p.image_url,
+        isActive: p.is_active,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at
+      }))
+    });
+  } catch (error) {
+    console.error("Admin product list error:", error);
+    res.status(500).json({
+      message: "Could not load products."
+    });
+  }
+});
+
+
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     return res.status(400).json({
