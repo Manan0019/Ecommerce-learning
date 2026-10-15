@@ -6,6 +6,8 @@ import rateLimit from "express-rate-limit";
 import pool from "../config/db.js";
 import { sendOtpEmail } from "../config/mailer.js";
 
+import { requireCustomer } from "../middleware/authMiddleware.js";
+
 const router = Router();
 
 const OTP_LIFETIME_MS = 5 * 60 * 1000;
@@ -301,5 +303,152 @@ router.post(
     }
   }
 );
+
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    message: "Too many login attempts. Try again later."
+  }
+});
+
+router.post("/login", loginLimiter, async (req, res) => {
+  try {
+    const { email, password } = req.body ?? {};
+
+    if (
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      !email.trim() ||
+      !password
+    ) {
+      return res.status(400).json({
+        message: "Email and password are required."
+      });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    const result = await pool.query(
+      `SELECT id, full_name, email, password_hash, role
+       FROM users
+       WHERE LOWER(email) = $1`,
+      [cleanEmail]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email or password."
+      });
+    }
+
+    const passwordMatches = await bcrypt.compare(
+      password,
+      user.password_hash
+    );
+
+    if (!passwordMatches) {
+      return res.status(401).json({
+        message: "Invalid email or password."
+      });
+    }
+
+    if (user.role !== "customer") {
+      return res.status(403).json({
+        message: "This login is for customers only."
+      });
+    }
+
+    req.session.regenerate((error) => {
+      if (error) {
+        console.error("Session regeneration failed:", error);
+        return res.status(500).json({
+          message: "Could not create login session."
+        });
+      }
+
+      req.session.userId = String(user.id);
+      req.session.role = user.role;
+
+      req.session.save((saveError) => {
+        if (saveError) {
+          console.error("Session save failed:", saveError);
+          return res.status(500).json({
+            message: "Could not save login session."
+          });
+        }
+
+        return res.status(200).json({
+          message: "Login successful.",
+          user: {
+            id: String(user.id),
+            fullName: user.full_name,
+            email: user.email,
+            role: user.role
+          }
+        });
+      });
+    });
+
+  } catch (error) {
+    console.error("Login error:", error);
+
+    return res.status(500).json({
+      message: "Login failed."
+    });
+  }
+});
+
+
+// CURRENT LOGGED-IN CUSTOMER
+
+router.get("/me", requireCustomer, (req, res) => {
+  res.json({
+    user: {
+      id: String(req.user.id),
+      fullName: req.user.full_name,
+      email: req.user.email,
+      role: req.user.role
+    }
+  });
+});
+
+// CUSTOMER LOGOUT
+
+router.post("/logout", (req, res) => {
+  const hadSession = Boolean(req.session?.userId);
+
+  if (!hadSession) {
+    return res.status(401).json({
+      message: "Not logged in."
+    });
+  }
+
+  req.session.destroy((error) => {
+    if (error) {
+      console.error("Logout failed:", error);
+
+      return res.status(500).json({
+        message: "Could not log out."
+      });
+    }
+
+    res.clearCookie("ecommerce.sid", {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production"
+    });
+
+    return res.json({
+      message: "Logged out successfully."
+    });
+  });
+});
 
 export default router;
