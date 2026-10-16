@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import CartProvider from "./context/CartProvider";
 import AddProduct from "./pages/admin/AddProduct";
 import AdminComingSoon from "./pages/admin/AdminComingSoon";
+import AdminCategories from "./pages/admin/AdminCategories";
 import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -32,12 +33,13 @@ export default function App() {
     <Route path="/admin/products/new" element={<AddProduct />} />
     <Route path="/admin/products/:id/edit" element={<EditProduct />} />
     <Route path="/admin/customers" element={<AdminCustomers />} />
-    <Route path="/admin/categories" element={<AdminComingSoon title="Manage Categories" />} />
+    <Route path="/admin/categories" element={<AdminCategories />} />
     <Route path="/admin/orders" element={<AdminComingSoon title="Orders" />} />
     <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />
     <Route path="/admin/settings" element={<AdminComingSoon title="Settings" />} />
     <Route path="/products" element={<ProductList />} />
     <Route path="/products/:id" element={<ProductDetails />} />
+    <Route path="/categories/:slug" element={<ProductList />} />
     <Route path="/cart" element={<CartPage />} />
     <Route path="/about" element={<About />} />
     <Route path="/contact" element={<Contact />} />

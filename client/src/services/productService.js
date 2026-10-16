@@ -1,7 +1,8 @@
 import { apiRequest } from "./apiClient";
 
-export function getProducts(signal) {
-  return apiRequest("/api/products", { signal });
+export function getProducts({ signal, category } = {}) {
+  const query = category ? `?category=${encodeURIComponent(category)}` : "";
+  return apiRequest(`/api/products${query}`, { signal });
 }
 
 export function getProduct(id, signal) {

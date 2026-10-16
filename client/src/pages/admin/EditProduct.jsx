@@ -3,11 +3,13 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import { getAdminProduct, updateProduct, updateProductImage } from "../../services/productService";
+import { useActiveCategories } from "../../hooks/useActiveCategories";
 
 export default function EditProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
   const imageFormRef = useRef(null);
+  const { categories, categoriesLoading, categoriesError } = useActiveCategories();
   const [form, setForm] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const [newImage, setNewImage] = useState(null);
@@ -24,7 +26,7 @@ export default function EditProduct() {
         const data = await getAdminProduct(id, controller.signal);
         if (controller.signal.aborted) return;
         const product = data.product;
-        setForm({ name: product.name, description: product.description, category: product.category,
+        setForm({ name: product.name, description: product.description, categoryId: product.categoryId,
           price: product.price, stock: String(product.stock) });
         setImageUrl(product.imageUrl);
       } catch (requestError) {
@@ -103,13 +105,19 @@ export default function EditProduct() {
           <label>Name<input name="name" value={form.name} onChange={handleChange} required /></label>
           <label>Description<textarea name="description" value={form.description} onChange={handleChange} required /></label>
           <div className="admin-form-grid">
-            <label>Category<input name="category" value={form.category} onChange={handleChange} required /></label>
+            <label>Category<select name="categoryId" value={form.categoryId} onChange={handleChange}
+              disabled={categoriesLoading || categories.length === 0} required>
+              <option value="">{categoriesLoading ? "Loading categories…" : "Select a category"}</option>
+              {categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}
+            </select></label>
             <label>Price (₹)<input name="price" type="number" min="0.01" step="0.01" value={form.price} onChange={handleChange} required /></label>
             <label>Stock<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
           </div>
           <button className="admin-primary-action" type="submit" disabled={saving}>{saving ? "Saving…" : "Save Details"}</button>
         </form>
         {error && <p className="admin-alert" role="alert">{error}</p>}
+        {categoriesError && <p className="admin-alert" role="alert">{categoriesError}</p>}
+        {!categoriesLoading && categories.length === 0 && <p className="admin-alert">Create or activate a category before saving this product.</p>}
       </section>
       <section className="admin-panel admin-image-panel">
         <div className="admin-panel-heading"><div><h2>Product image</h2><p>JPG, PNG, or WebP up to 5 MB.</p></div></div>

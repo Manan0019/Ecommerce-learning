@@ -3,11 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { createProduct } from "../../services/productService";
 import { isAuthenticationError } from "../../services/apiClient";
+import { useActiveCategories } from "../../hooks/useActiveCategories";
 
 export default function AddProduct() {
   const navigate = useNavigate();
   const formRef = useRef(null);
-  const [form, setForm] = useState({ name: "", description: "", category: "", price: "", stock: "" });
+  const { categories, categoriesLoading, categoriesError } = useActiveCategories();
+  const [form, setForm] = useState({ name: "", description: "", categoryId: "", price: "", stock: "" });
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -31,7 +33,7 @@ export default function AddProduct() {
     try {
       await createProduct(formData);
       setMessage("Product created successfully.");
-      setForm({ name: "", description: "", category: "", price: "", stock: "" });
+      setForm({ name: "", description: "", categoryId: "", price: "", stock: "" });
       setImage(null);
       formRef.current?.reset();
     } catch (requestError) {
@@ -52,7 +54,11 @@ export default function AddProduct() {
         <label>Product name<input name="name" placeholder="Product name" value={form.name} onChange={handleChange} required /></label>
         <label>Description<textarea name="description" placeholder="Product description" value={form.description} onChange={handleChange} required /></label>
         <div className="admin-form-grid">
-          <label>Category<input name="category" placeholder="Category" value={form.category} onChange={handleChange} required /></label>
+          <label>Category<select name="categoryId" value={form.categoryId} onChange={handleChange}
+            disabled={categoriesLoading || categories.length === 0} required>
+            <option value="">{categoriesLoading ? "Loading categories…" : "Select a category"}</option>
+            {categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}
+          </select></label>
           <label>Price (₹)<input type="number" name="price" placeholder="Price" min="0.01" step="0.01" value={form.price} onChange={handleChange} required /></label>
           <label>Stock<input type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
         </div>
@@ -61,6 +67,8 @@ export default function AddProduct() {
         <button className="admin-primary-action" type="submit" disabled={loading}>{loading ? "Creating…" : "Create Product"}</button>
       </form>
       {message && <p className="admin-form-message" role="status">{message}</p>}
+      {categoriesError && <p className="admin-alert" role="alert">{categoriesError}</p>}
+      {!categoriesLoading && categories.length === 0 && <p className="admin-alert">Create an active category before adding products.</p>}
     </section>
   </AdminLayout>;
 }

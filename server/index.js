@@ -10,6 +10,8 @@ import adminRoutes from "./routes/adminRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import publicProductRoutes from "./routes/publicProductRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
+import publicCategoryRoutes from "./routes/publicCategoryRoutes.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -29,10 +31,13 @@ app.get("/api/db-test", async (_req, res) => {
 });
 app.use("/uploads/products", express.static(path.join(__dirname, "uploads/products")));
 app.use("/uploads/profiles", express.static(path.join(__dirname, "uploads/profiles")));
+app.use("/uploads/categories", express.static(path.join(__dirname, "uploads/categories")));
 app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/admin/products", productRoutes);
+app.use("/api/admin/categories", categoryRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/products", publicProductRoutes);
+app.use("/api/categories", publicCategoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use((error, _req, res, _next) => {
   console.error("Unhandled Express error:", error);

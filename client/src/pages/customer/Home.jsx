@@ -4,10 +4,12 @@ import heroImage from "../../assets/hero.png";
 import ProductCard from "../../components/common/ProductCard";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import { apiAssetUrl } from "../../services/apiClient";
+import { getCategories } from "../../services/categoryService";
 import { getProducts } from "../../services/productService";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -15,8 +17,12 @@ export default function Home() {
     const controller = new AbortController();
     async function loadProducts() {
       try {
-        const data = await getProducts(controller.signal);
-        setProducts(Array.isArray(data.products) ? data.products : []);
+        const [productData, categoryData] = await Promise.all([
+          getProducts({ signal: controller.signal }),
+          getCategories(controller.signal)
+        ]);
+        setProducts(Array.isArray(productData.products) ? productData.products : []);
+        setCategories(Array.isArray(categoryData.categories) ? categoryData.categories : []);
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
       } finally {
@@ -28,7 +34,7 @@ export default function Home() {
   }, []);
 
   const featured = products.slice(0, 4);
-  const categories = [...new Map(products.map((product) => [product.category, product])).values()].slice(0, 4);
+  const featuredCategories = categories.slice(0, 4);
 
   return <CustomerLayout>
       <section className="hero-section">
@@ -71,15 +77,15 @@ export default function Home() {
         <div className="section-heading">
           <div><p className="eyebrow">Find your edit</p><h2 id="categories-heading">Browse by category</h2></div>
         </div>
-        {categories.length > 0 ? <div className="category-grid">
-          {categories.map((product, index) => <Link
+        {featuredCategories.length > 0 ? <div className="category-grid">
+          {featuredCategories.map((category, index) => <Link
             className="category-card"
-            to={`/products?category=${encodeURIComponent(product.category)}`}
-            key={product.category}
+            to={`/categories/${encodeURIComponent(category.slug)}`}
+            key={category.id}
           >
-            {product.imageUrl && <img src={apiAssetUrl(product.imageUrl)} alt="" loading="lazy" />}
+            {category.imageUrl && <img src={apiAssetUrl(category.imageUrl)} alt="" loading="lazy" />}
             <span className="category-number">0{index + 1}</span>
-            <div><h3>{product.category}</h3><span>Explore collection →</span></div>
+            <div><h3>{category.name}</h3><span>{category.productCount} products · Explore collection →</span></div>
           </Link>)}
         </div> : !loading && <p className="store-empty">Categories will appear as products are added.</p>}
       </section>

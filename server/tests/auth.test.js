@@ -7,6 +7,7 @@ import pool from "../config/db.js";
 import authRoutes from "../routes/authRoutes.js";
 import adminRoutes from "../routes/adminRoutes.js";
 import productRoutes from "../routes/productRoutes.js";
+import categoryRoutes from "../routes/categoryRoutes.js";
 import { requireCustomer } from "../middleware/authMiddleware.js";
 
 process.env.NODE_ENV = "test";
@@ -62,8 +63,9 @@ if (postgres) {
   app.use(session({ store, name: "ecommerce.sid", secret: "isolated-test-secret", resave: false, saveUninitialized: false }));
 }
 app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/admin/products", productRoutes);
+app.use("/api/admin/categories", categoryRoutes);
+app.use("/api/admin", adminRoutes);
 app.get("/customer-only", requireCustomer, (_req, res) => res.json({ ok: true }));
 const server = app.listen(0, "127.0.0.1");
 await new Promise(resolve => server.once("listening", resolve));
@@ -113,10 +115,13 @@ test("unified login, persisted identity, session rotation, role boundaries and l
   try {
     assert.equal((await request("/api/auth/me", { cookie: customerAgain.cookie })).data.user.role, "customer");
     assert.equal((await request("/customer-only", { cookie: customerAgain.cookie })).status, 200);
-    for (const path of ["/api/admin/me", "/api/admin/customers", "/api/admin/products", "/api/admin/products/1"]) {
+    for (const path of ["/api/admin/me", "/api/admin/customers", "/api/admin/products", "/api/admin/products/1", "/api/admin/categories"]) {
       assert.equal((await request(path, { cookie: customerAgain.cookie })).status, 403);
     }
     for (const [method, path] of [["POST", "/api/admin/products"], ["PUT", "/api/admin/products/1"], ["PATCH", "/api/admin/products/1/status"], ["PUT", "/api/admin/products/1/image"]]) {
+      assert.equal((await request(path, { cookie: customerAgain.cookie, method, body: {} })).status, 403);
+    }
+    for (const [method, path] of [["POST", "/api/admin/categories"], ["PUT", "/api/admin/categories/1"], ["PATCH", "/api/admin/categories/1/status"]]) {
       assert.equal((await request(path, { cookie: customerAgain.cookie, method, body: {} })).status, 403);
     }
   } finally {

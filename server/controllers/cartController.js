@@ -30,8 +30,11 @@ export async function quoteCart(req, res) {
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, name, price, stock, is_active, image_url FROM products
-       WHERE id = ANY($1::bigint[])`,
+      `SELECT product.id, product.name, product.price, product.stock,
+              product.is_active, product.image_url, category.is_active AS category_active
+       FROM products AS product
+       JOIN categories AS category ON category.id = product.category_id
+       WHERE product.id = ANY($1::bigint[])`,
       [items.map((item) => item.productId)]
     );
     const products = new Map(rows.map((row) => [String(row.id), row]));
@@ -43,7 +46,7 @@ export async function quoteCart(req, res) {
         valid = false;
         return { productId: item.productId, quantity: item.quantity, available: false, reason: "Product not found." };
       }
-      const available = product.is_active && product.stock >= item.quantity;
+      const available = product.is_active && product.category_active && product.stock >= item.quantity;
       if (!available) valid = false;
       const unit = toPaise(product.price);
       const line = unit * BigInt(item.quantity);
@@ -57,7 +60,8 @@ export async function quoteCart(req, res) {
         lineTotal: money(line),
         availableStock: product.stock,
         available,
-        reason: !product.is_active ? "Product inactive." :
+        reason: !product.category_active ? "Category inactive." :
+          !product.is_active ? "Product inactive." :
           product.stock < item.quantity ? "Not enough stock." : null
       };
     });
