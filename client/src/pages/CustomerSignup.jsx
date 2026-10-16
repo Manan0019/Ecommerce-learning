@@ -7,8 +7,11 @@ export default function CustomerSignup() {
   const [form, setForm] = useState({
     fullName: "",
     email: "",
-    password: ""
+    mobileNumber: "",
+    password: "",
+    confirmPassword: ""
   });
+  const [profileImage, setProfileImage] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -29,16 +32,20 @@ export default function CustomerSignup() {
     setMessage("");
 
     try {
+      if (form.password !== form.confirmPassword) {
+        throw new Error("Passwords do not match.");
+      }
+
+      const body = new FormData();
+      Object.entries(form).forEach(([key, value]) => body.append(key, value));
+      if (profileImage) body.append("profileImage", profileImage);
+
       const response = await fetch(
         "http://localhost:4000/api/auth/signup",
         {
           method: "POST",
 
-          headers: {
-            "Content-Type": "application/json"
-          },
-
-          body: JSON.stringify(form)
+          body
         }
       );
 
@@ -64,7 +71,7 @@ export default function CustomerSignup() {
 
   return (
     <div className="auth-container">
-      <h1>Create Customer Account</h1>
+      <h1>Create your account</h1>
 
       <form onSubmit={handleSubmit}>
         <input
@@ -86,14 +93,45 @@ export default function CustomerSignup() {
         />
 
         <input
+          type="tel"
+          name="mobileNumber"
+          placeholder="Mobile number"
+          value={form.mobileNumber}
+          onChange={handleChange}
+          autoComplete="tel"
+          required
+        />
+
+        <input
           type="password"
           name="password"
           placeholder="Password (minimum 12 characters)"
           value={form.password}
           onChange={handleChange}
           minLength={12}
+          autoComplete="new-password"
           required
         />
+
+        <input
+          type="password"
+          name="confirmPassword"
+          placeholder="Confirm password"
+          value={form.confirmPassword}
+          onChange={handleChange}
+          minLength={12}
+          autoComplete="new-password"
+          required
+        />
+
+        <label>
+          Profile image (optional)
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(event) => setProfileImage(event.target.files?.[0] ?? null)}
+          />
+        </label>
 
         <button type="submit" disabled={loading}>
           {loading ? "Sending OTP..." : "Sign Up"}

@@ -49,7 +49,7 @@ export default function CustomerLogin() {
         );
       }
 
-      navigate("/dashboard", { replace: true });
+      navigate(data.user.role === "admin" ? "/admin/dashboard" : "/", { replace: true });
 
     } catch (error) {
       setMessage(error.message);
@@ -61,7 +61,7 @@ export default function CustomerLogin() {
 
   return (
     <div className="auth-container">
-      <h1>Customer Login</h1>
+      <h1>Login</h1>
 
       <form onSubmit={handleLogin}>
         <input

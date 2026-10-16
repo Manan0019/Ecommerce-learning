@@ -14,7 +14,7 @@ export default function AdminProducts() {
         credentials: "include", signal
       });
       if (response.status === 401 || response.status === 403) {
-        navigate("/admin/login", { replace: true }); return;
+        navigate("/login", { replace: true }); return;
       }
       if (!response.ok) throw new Error("Failed to load products.");
       const data = await response.json();
@@ -40,7 +40,7 @@ export default function AdminProducts() {
         body: JSON.stringify({ isActive: nextStatus })
       });
       if (response.status === 401 || response.status === 403) {
-        navigate("/admin/login", { replace: true }); return;
+        navigate("/login", { replace: true }); return;
       }
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not change status.");

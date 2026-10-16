@@ -70,7 +70,7 @@ export default function AddProduct() {
 
       if (response.status === 401 ||
           response.status === 403) {
-        navigate("/admin/login", { replace: true });
+        navigate("/login", { replace: true });
         return;
       }
 

@@ -20,5 +20,9 @@ It expires in 5 minutes.
 If you did not request this code, ignore this email.`
   };
 
+  if (process.env.NODE_ENV === "test") {
+    return { messageId: "test-otp-not-sent" };
+  }
+
   return transporter.sendMail(mailOptions);
 }

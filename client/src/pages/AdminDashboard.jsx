@@ -15,13 +15,13 @@ export default function AdminDashboard() {
         const config = { credentials: "include", signal: controller.signal };
         const profile = await fetch(`${API}/api/admin/me`, config);
         if (profile.status === 401 || profile.status === 403) {
-          navigate("/admin/login", { replace: true }); return;
+          navigate("/login", { replace: true }); return;
         }
         if (!profile.ok) throw new Error("Failed to load admin profile.");
         const adminData = await profile.json();
         const response = await fetch(`${API}/api/admin/customers`, config);
         if (response.status === 401 || response.status === 403) {
-          navigate("/admin/login", { replace: true }); return;
+          navigate("/login", { replace: true }); return;
         }
         if (!response.ok) throw new Error("Failed to load customers.");
         const data = await response.json();
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
         method: "POST", credentials: "include"
       });
       if (!response.ok) throw new Error("Logout failed.");
-      navigate("/admin/login", { replace: true });
+      navigate("/login", { replace: true });
     } catch (err) { setError(err.message); }
   }
   if (loading) return <p>Loading admin dashboard...</p>;

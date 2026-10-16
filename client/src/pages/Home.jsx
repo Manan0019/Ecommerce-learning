@@ -10,11 +10,7 @@ export default function Home() {
 
       <div className="login-options">
         <Link to="/login" className="login-link">
-          Customer Login
-        </Link>
-
-        <Link to="/admin/login" className="login-link">
-          Admin Login
+          Login
         </Link>
 
 <Link to="/products" className="login-link">

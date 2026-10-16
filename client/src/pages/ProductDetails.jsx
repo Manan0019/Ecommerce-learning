@@ -5,6 +5,10 @@ import StoreHeader from "../components/StoreHeader";
 const API = "http://localhost:4000";
 export default function ProductDetails() {
   const { id } = useParams();
+  return <ProductDetailsContent key={id} id={id} />;
+}
+
+function ProductDetailsContent({ id }) {
   const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,7 +17,6 @@ export default function ProductDetails() {
   const [added, setAdded] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true); setProduct(null); setError(""); setQuantity(1); setAdded(false);
     async function load() {
       try {
         const response = await fetch(`${API}/api/products/${id}`, { signal: controller.signal });

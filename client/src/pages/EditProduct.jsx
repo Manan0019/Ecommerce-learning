@@ -23,7 +23,7 @@ export default function EditProduct() {
           credentials: "include", signal: controller.signal
         });
         if (response.status === 401 || response.status === 403) {
-          navigate("/admin/login", { replace: true }); return;
+          navigate("/login", { replace: true }); return;
         }
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || "Could not load product.");
@@ -55,7 +55,7 @@ export default function EditProduct() {
         body: JSON.stringify({ ...form, stock: Number(form.stock) })
       });
       if (response.status === 401 || response.status === 403) {
-        navigate("/admin/login", { replace: true }); return;
+        navigate("/login", { replace: true }); return;
       }
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not save changes.");
@@ -74,7 +74,7 @@ export default function EditProduct() {
         method: "PUT", credentials: "include", body: formData
       });
       if (response.status === 401 || response.status === 403) {
-        navigate("/admin/login", { replace: true }); return;
+        navigate("/login", { replace: true }); return;
       }
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Image replacement failed.");

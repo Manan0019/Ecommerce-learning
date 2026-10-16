@@ -28,6 +28,7 @@ app.get("/api/db-test", async (_req, res) => {
   }
 });
 app.use("/uploads/products", express.static(path.join(__dirname, "uploads/products")));
+app.use("/uploads/profiles", express.static(path.join(__dirname, "uploads/profiles")));
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/products", productRoutes);

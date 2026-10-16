@@ -6,19 +6,55 @@ import rateLimit from "express-rate-limit";
 import pool from "../config/db.js";
 import { sendOtpEmail } from "../config/mailer.js";
 
-import { requireCustomer } from "../middleware/authMiddleware.js";
+import { requireAuthenticated, requireCustomer } from "../middleware/authMiddleware.js";
+import {
+  handleProfileImageError,
+  profileImageDiskPath,
+  profileImageUpload,
+  removeProfileImage,
+  saveProfileImage
+} from "../utils/profileImage.js";
 
 const router = Router();
 
 const OTP_LIFETIME_MS = 5 * 60 * 1000;
 const OTP_RESEND_WAIT_MS = 60 * 1000;
 const MAX_OTP_ATTEMPTS = 5;
+const PASSWORD_MIN_LENGTH = 12;
+
+function validPassword(password) {
+  return typeof password === "string" &&
+    password.length >= PASSWORD_MIN_LENGTH &&
+    Buffer.byteLength(password, "utf8") <= 72;
+}
+
+function normalizeMobile(value) {
+  if (typeof value !== "string") return null;
+  const mobile = value.trim().replace(/[\s()-]/g, "");
+  return /^\+?[1-9]\d{7,14}$/.test(mobile) ? mobile : null;
+}
+
+function hasOnlyKeys(body, allowed) {
+  return body && Object.keys(body).every((key) => allowed.has(key));
+}
+
+function safeUser(user) {
+  return {
+    id: String(user.id),
+    fullName: user.full_name,
+    email: user.email,
+    mobileNumber: user.mobile_number ?? null,
+    profileImageUrl: user.profile_image_url ?? null,
+    role: user.role
+  };
+}
 
 const signupLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 5,
   standardHeaders: "draft-8",
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === "test",
   message: {
     message: "Too many signup requests. Try again later."
   }
@@ -29,6 +65,7 @@ const verifyLimiter = rateLimit({
   limit: 10,
   standardHeaders: "draft-8",
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === "test",
   message: {
     message: "Too many verification requests."
   }
@@ -36,34 +73,45 @@ const verifyLimiter = rateLimit({
 
 // STEP 1: CUSTOMER SIGNUP
 
-router.post("/signup", signupLimiter, async (req, res) => {
+router.post("/signup", signupLimiter, profileImageUpload.single("profileImage"), async (req, res) => {
+  let savedImage = null;
+  let registrationSaved = false;
   try {
-    const { fullName, email, password } = req.body ?? {};
+    const { fullName, email, mobileNumber, password, confirmPassword } = req.body ?? {};
 
     if (
+      !hasOnlyKeys(req.body, new Set([
+        "fullName", "email", "mobileNumber", "password", "confirmPassword"
+      ])) ||
       typeof fullName !== "string" ||
       typeof email !== "string" ||
-      typeof password !== "string"
+      typeof password !== "string" ||
+      typeof confirmPassword !== "string"
     ) {
       return res.status(400).json({
-        message: "Name, email and password are required."
+        message: "Name, email, mobile number, password and confirmation are required."
       });
     }
 
     const cleanName = fullName.trim();
     const cleanEmail = email.trim().toLowerCase();
+    const cleanMobile = normalizeMobile(mobileNumber);
 
     if (
       cleanName.length < 2 ||
       cleanName.length > 100 ||
       cleanEmail.length > 255 ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) ||
-      password.length < 12 ||
-      Buffer.byteLength(password, "utf8") > 72
+      !cleanMobile ||
+      !validPassword(password)
     ) {
       return res.status(400).json({
-        message: "Check your name, email and password. Password must be at least 12 characters and at most 72 UTF-8 bytes."
+        message: "Check your name, email, mobile number and password. Password must be at least 12 characters and at most 72 UTF-8 bytes."
       });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match." });
     }
 
     const existingUser = await pool.query(
@@ -78,7 +126,7 @@ router.post("/signup", signupLimiter, async (req, res) => {
     }
 
     const existingPending = await pool.query(
-      `SELECT last_otp_sent_at
+      `SELECT last_otp_sent_at, profile_image_url
        FROM pending_registrations
        WHERE LOWER(email) = $1`,
       [cleanEmail]
@@ -106,21 +154,28 @@ router.post("/signup", signupLimiter, async (req, res) => {
       Date.now() + OTP_LIFETIME_MS
     );
 
+    savedImage = await saveProfileImage(req.file);
+    const previousImageUrl = existingPending.rows[0]?.profile_image_url ?? null;
+
     await pool.query(
       `INSERT INTO pending_registrations
        (
          full_name,
          email,
+         mobile_number,
+         profile_image_url,
          password_hash,
          otp_hash,
          otp_expires_at,
          otp_attempts,
          last_otp_sent_at
        )
-       VALUES ($1, $2, $3, $4, $5, 0, NOW())
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 0, NOW())
        ON CONFLICT (email)
        DO UPDATE SET
          full_name = EXCLUDED.full_name,
+         mobile_number = EXCLUDED.mobile_number,
+         profile_image_url = COALESCE(EXCLUDED.profile_image_url, pending_registrations.profile_image_url),
          password_hash = EXCLUDED.password_hash,
          otp_hash = EXCLUDED.otp_hash,
          otp_expires_at = EXCLUDED.otp_expires_at,
@@ -129,11 +184,18 @@ router.post("/signup", signupLimiter, async (req, res) => {
       [
         cleanName,
         cleanEmail,
+        cleanMobile,
+        savedImage?.url ?? null,
         passwordHash,
         otpHash,
         expiresAt
       ]
     );
+    registrationSaved = true;
+
+    if (savedImage && previousImageUrl && previousImageUrl !== savedImage.url) {
+      await removeProfileImage(profileImageDiskPath(previousImageUrl));
+    }
 
     await sendOtpEmail(cleanEmail, otp);
 
@@ -142,6 +204,7 @@ router.post("/signup", signupLimiter, async (req, res) => {
     });
 
   } catch (error) {
+    if (savedImage && !registrationSaved) await removeProfileImage(savedImage);
     if (error.code === "23505") {
       return res.status(409).json({
         message: "Unable to start registration for this email."
@@ -253,11 +316,13 @@ router.post(
 
       await client.query(
         `INSERT INTO users
-         (full_name, email, password_hash, role)
-         VALUES ($1, $2, $3, 'customer')`,
+         (full_name, email, mobile_number, profile_image_url, password_hash, role)
+         VALUES ($1, $2, $3, $4, $5, 'customer')`,
         [
           pending.full_name,
           pending.email,
+          pending.mobile_number,
+          pending.profile_image_url,
           pending.password_hash
         ]
       );
@@ -310,12 +375,14 @@ const loginLimiter = rateLimit({
   limit: 10,
   standardHeaders: "draft-8",
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === "test",
   message: {
     message: "Too many login attempts. Try again later."
   }
 });
 
-router.post("/login", loginLimiter, async (req, res) => {
+// Retain the old API URL as an alias of the unified handler.
+router.post(["/login", "/admin/login"], loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body ?? {};
 
@@ -333,7 +400,7 @@ router.post("/login", loginLimiter, async (req, res) => {
     const cleanEmail = email.trim().toLowerCase();
 
     const result = await pool.query(
-      `SELECT id, full_name, email, password_hash, role
+      `SELECT id, full_name, email, mobile_number, profile_image_url, password_hash, role
        FROM users
        WHERE LOWER(email) = $1`,
       [cleanEmail]
@@ -358,9 +425,9 @@ router.post("/login", loginLimiter, async (req, res) => {
       });
     }
 
-    if (user.role !== "customer") {
+    if (!["admin", "customer"].includes(user.role)) {
       return res.status(403).json({
-        message: "This login is for customers only."
+        message: "Access denied."
       });
     }
 
@@ -378,6 +445,8 @@ router.post("/login", loginLimiter, async (req, res) => {
       req.session.save((saveError) => {
         if (saveError) {
           console.error("Session save failed:", saveError);
+          // Prevent Express from retrying a failed save while sending the error.
+          req.session = null;
           return res.status(500).json({
             message: "Could not save login session."
           });
@@ -385,12 +454,7 @@ router.post("/login", loginLimiter, async (req, res) => {
 
         return res.status(200).json({
           message: "Login successful.",
-          user: {
-            id: String(user.id),
-            fullName: user.full_name,
-            email: user.email,
-            role: user.role
-          }
+          user: safeUser(user)
         });
       });
     });
@@ -405,20 +469,78 @@ router.post("/login", loginLimiter, async (req, res) => {
 });
 
 
-// CURRENT LOGGED-IN CUSTOMER
+// CURRENT AUTHENTICATED USER
 
-router.get("/me", requireCustomer, (req, res) => {
+router.get("/me", requireAuthenticated, (req, res) => {
   res.json({
-    user: {
-      id: String(req.user.id),
-      fullName: req.user.full_name,
-      email: req.user.email,
-      role: req.user.role
-    }
+    user: safeUser(req.user)
   });
 });
 
-// CUSTOMER LOGOUT
+router.patch("/profile/name", requireCustomer, async (req, res) => {
+  if (!hasOnlyKeys(req.body, new Set(["fullName"])) ||
+      typeof req.body.fullName !== "string") {
+    return res.status(400).json({ message: "Only fullName can be changed here." });
+  }
+
+  const fullName = req.body.fullName.trim();
+  if (fullName.length < 2 || fullName.length > 100) {
+    return res.status(400).json({ message: "Full name must be 2 to 100 characters." });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET full_name = $1 WHERE id = $2 AND role = 'customer'
+       RETURNING id, full_name, email, mobile_number, profile_image_url, role`,
+      [fullName, req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ message: "Customer not found." });
+    return res.json({ message: "Name updated successfully.", user: safeUser(rows[0]) });
+  } catch (error) {
+    console.error("Name update error:", error);
+    return res.status(500).json({ message: "Could not update name." });
+  }
+});
+
+router.patch("/profile/password", requireCustomer, async (req, res) => {
+  const allowed = new Set(["currentPassword", "newPassword", "confirmPassword"]);
+  const { currentPassword, newPassword, confirmPassword } = req.body ?? {};
+  if (!hasOnlyKeys(req.body, allowed) ||
+      typeof currentPassword !== "string" ||
+      typeof newPassword !== "string" ||
+      typeof confirmPassword !== "string") {
+    return res.status(400).json({ message: "Current, new and confirmed passwords are required." });
+  }
+  if (!validPassword(newPassword)) {
+    return res.status(400).json({
+      message: "New password must be at least 12 characters and at most 72 UTF-8 bytes."
+    });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ message: "New passwords do not match." });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      "SELECT password_hash FROM users WHERE id = $1 AND role = 'customer'",
+      [req.user.id]
+    );
+    if (!rows.length || !await bcrypt.compare(currentPassword, rows[0].password_hash)) {
+      return res.status(401).json({ message: "Current password is incorrect." });
+    }
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await pool.query(
+      "UPDATE users SET password_hash = $1 WHERE id = $2 AND role = 'customer'",
+      [passwordHash, req.user.id]
+    );
+    return res.json({ message: "Password updated successfully." });
+  } catch (error) {
+    console.error("Password update error:", error);
+    return res.status(500).json({ message: "Could not update password." });
+  }
+});
+
+// LOGOUT
 
 router.post("/logout", (req, res) => {
   const hadSession = Boolean(req.session?.userId);
@@ -451,93 +573,6 @@ router.post("/logout", (req, res) => {
   });
 });
 
-router.post(
-  "/admin/login",
-  loginLimiter,
-  async (req, res) => {
-    try {
-      const { email, password } = req.body ?? {};
-
-      if (
-        typeof email !== "string" ||
-        typeof password !== "string" ||
-        !email.trim() ||
-        !password
-      ) {
-        return res.status(400).json({
-          message: "Email and password are required."
-        });
-      }
-
-      const cleanEmail = email.trim().toLowerCase();
-
-      const result = await pool.query(
-        `SELECT id, full_name, email, password_hash, role
-         FROM users
-         WHERE LOWER(email) = $1`,
-        [cleanEmail]
-      );
-
-      const user = result.rows[0];
-
-      if (!user) {
-        return res.status(401).json({
-          message: "Invalid email or password."
-        });
-      }
-
-      const passwordMatches = await bcrypt.compare(
-        password,
-        user.password_hash
-      );
-
-      if (!passwordMatches || user.role !== "admin") {
-        return res.status(401).json({
-          message: "Invalid email or password."
-        });
-      }
-
-      req.session.regenerate((error) => {
-        if (error) {
-          console.error("Session regeneration error:", error);
-
-          return res.status(500).json({
-            message: "Could not start admin session."
-          });
-        }
-
-        req.session.userId = String(user.id);
-        req.session.role = "admin";
-
-        req.session.save((saveError) => {
-          if (saveError) {
-            console.error("Session save error:", saveError);
-
-            return res.status(500).json({
-              message: "Could not save admin session."
-            });
-          }
-
-          return res.json({
-            message: "Admin login successful.",
-            user: {
-              id: String(user.id),
-              fullName: user.full_name,
-              email: user.email,
-              role: user.role
-            }
-          });
-        });
-      });
-
-    } catch (error) {
-      console.error("Admin login error:", error);
-
-      return res.status(500).json({
-        message: "Admin login failed."
-      });
-    }
-  }
-);
+router.use(handleProfileImageError);
 
 export default router;

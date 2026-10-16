@@ -7,8 +7,8 @@ export default function StoreHeader() {
     <nav className="store-nav">
       <Link to="/products">Products</Link>
       <Link to="/cart">Cart ({itemCount})</Link>
-      <Link to="/login">Customer Login</Link>
-      <Link to="/admin/login">Admin</Link>
+      <Link to="/dashboard">Profile</Link>
+      <Link to="/login">Login</Link>
     </nav>
   </header>;
 }

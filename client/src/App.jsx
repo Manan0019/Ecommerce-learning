@@ -1,11 +1,10 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import Home from "./pages/Home";
 import CustomerSignup from "./pages/CustomerSignup";
 import VerifyOTP from "./pages/VerifyOTP";
 import CustomerLogin from "./pages/CustomerLogin";
 import CustomerDashboard from "./pages/CustomerDashboard";
-import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AddProduct from "./pages/AddProduct";
 import AdminProducts from "./pages/AdminProducts";
@@ -22,7 +21,7 @@ export default function App() {
     <Route path="/verify-otp" element={<VerifyOTP />} />
     <Route path="/login" element={<CustomerLogin />} />
     <Route path="/dashboard" element={<CustomerDashboard />} />
-    <Route path="/admin/login" element={<AdminLogin />} />
+    <Route path="/admin/login" element={<Navigate to="/login" replace />} />
     <Route path="/admin/dashboard" element={<AdminDashboard />} />
     <Route path="/admin/products" element={<AdminProducts />} />
     <Route path="/admin/products/new" element={<AddProduct />} />
