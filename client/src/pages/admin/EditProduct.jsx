@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import AdminLayout from "../components/AdminLayout";
-import { API_BASE_URL } from "../config/api";
+import AdminLayout from "../../components/layout/AdminLayout";
+import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
+import { getAdminProduct, updateProduct, updateProductImage } from "../../services/productService";
 
 export default function EditProduct() {
   const { id } = useParams();
@@ -20,20 +21,17 @@ export default function EditProduct() {
     const controller = new AbortController();
     async function loadProduct() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/products/${id}`, {
-          credentials: "include", signal: controller.signal
-        });
-        if (response.status === 401 || response.status === 403) {
-          navigate("/login", { replace: true }); return;
-        }
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Could not load product.");
+        const data = await getAdminProduct(id, controller.signal);
         if (controller.signal.aborted) return;
         const product = data.product;
         setForm({ name: product.name, description: product.description, category: product.category,
           price: product.price, stock: String(product.stock) });
         setImageUrl(product.imageUrl);
       } catch (requestError) {
+        if (isAuthenticationError(requestError)) {
+          navigate("/login", { replace: true });
+          return;
+        }
         if (requestError.name !== "AbortError") setError(requestError.message);
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -53,18 +51,13 @@ export default function EditProduct() {
     setSaving(true);
     setError("");
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/products/${id}`, {
-        method: "PUT", credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, stock: Number(form.stock) })
-      });
-      if (response.status === 401 || response.status === 403) {
-        navigate("/login", { replace: true }); return;
-      }
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Could not save changes.");
+      await updateProduct(id, { ...form, stock: Number(form.stock) });
       navigate("/admin/products", { replace: true });
     } catch (requestError) {
+      if (isAuthenticationError(requestError)) {
+        navigate("/login", { replace: true });
+        return;
+      }
       setError(requestError.message);
     } finally {
       setSaving(false);
@@ -82,19 +75,16 @@ export default function EditProduct() {
     setUploading(true);
     setImageMessage("");
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/products/${id}/image`, {
-        method: "PUT", credentials: "include", body: formData
-      });
-      if (response.status === 401 || response.status === 403) {
-        navigate("/login", { replace: true }); return;
-      }
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Image replacement failed.");
+      const data = await updateProductImage(id, formData);
       setImageUrl(data.imageUrl);
       setNewImage(null);
       imageFormRef.current?.reset();
       setImageMessage("Image updated successfully.");
     } catch (requestError) {
+      if (isAuthenticationError(requestError)) {
+        navigate("/login", { replace: true });
+        return;
+      }
       setImageMessage(requestError.message);
     } finally {
       setUploading(false);
@@ -123,7 +113,7 @@ export default function EditProduct() {
       </section>
       <section className="admin-panel admin-image-panel">
         <div className="admin-panel-heading"><div><h2>Product image</h2><p>JPG, PNG, or WebP up to 5 MB.</p></div></div>
-        {imageUrl && <img src={`${API_BASE_URL}${imageUrl}`} alt="Current product" />}
+        {imageUrl && <img src={apiAssetUrl(imageUrl)} alt="Current product" />}
         <form className="admin-form" ref={imageFormRef} onSubmit={uploadImage}>
           <label>Replacement image<input type="file" accept="image/jpeg,image/png,image/webp"
             onChange={(event) => setNewImage(event.target.files?.[0] || null)} required /></label>

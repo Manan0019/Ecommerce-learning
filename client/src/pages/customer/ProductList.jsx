@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
-import ProductCard from "../components/ProductCard";
-import StoreFooter from "../components/StoreFooter";
-import StoreHeader from "../components/StoreHeader";
+import ProductCard from "../../components/common/ProductCard";
+import CustomerLayout from "../../components/layout/CustomerLayout";
+import { getProducts } from "../../services/productService";
 
 export default function ProductList() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,9 +16,7 @@ export default function ProductList() {
     const controller = new AbortController();
     async function loadProducts() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/products`, { signal: controller.signal });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
+        const data = await getProducts(controller.signal);
         if (!Array.isArray(data.products)) throw new Error("The product catalogue could not be read.");
         setProducts(data.products);
       } catch (requestError) {
@@ -46,9 +43,7 @@ export default function ProductList() {
     setSearchParams(next);
   }
 
-  return <div className="storefront">
-    <StoreHeader />
-    <main className="catalogue-page">
+  return <CustomerLayout mainClassName="catalogue-page">
       <header className="page-hero compact-hero">
         <p className="eyebrow">The complete collection</p>
         <h1>Shop</h1>
@@ -73,7 +68,5 @@ export default function ProductList() {
       {!loading && !error && visibleProducts.length > 0 && <div className="product-grid">
         {visibleProducts.map((product) => <ProductCard product={product} key={product.id} />)}
       </div>}
-    </main>
-    <StoreFooter />
-  </div>;
+  </CustomerLayout>;
 }

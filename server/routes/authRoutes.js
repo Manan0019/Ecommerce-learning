@@ -13,7 +13,7 @@ import {
   profileImageUpload,
   removeProfileImage,
   saveProfileImage
-} from "../utils/profileImage.js";
+} from "../services/profileImageService.js";
 
 const router = Router();
 

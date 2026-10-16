@@ -80,16 +80,16 @@ and `/cart`.
 - `server/routes/authRoutes.js`: shared login handler, both-role me, save failure handling.
 - `server/middleware/authMiddleware.js`: common identity lookup plus role guards.
 - `server/package.json`, `server/tests/auth.test.js`: Node HTTP auth tests and test script.
-- `client/src/pages/CustomerLogin.jsx`: unified form heading and role redirect.
-- `client/src/App.jsx`, `client/src/pages/AdminLogin.jsx`: old URL compatibility.
-- `client/src/pages/Home.jsx`, `client/src/components/StoreHeader.jsx`: one login link.
-- `client/src/pages/AdminDashboard.jsx`, `AdminProducts.jsx`, `AddProduct.jsx`,
+- `client/src/pages/auth/CustomerLogin.jsx`: unified form heading and role redirect.
+- `client/src/App.jsx`, `client/src/pages/admin/AdminLogin.jsx`: old URL compatibility.
+- `client/src/pages/customer/Home.jsx`, `client/src/components/layout/StoreHeader.jsx`: one login link.
+- `client/src/pages/admin/AdminDashboard.jsx`, `AdminProducts.jsx`, `AddProduct.jsx`,
   `EditProduct.jsx`: auth/logout redirects to unified login.
-- `client/src/pages/CustomerDashboard.jsx`: admin routing after shared identity lookup.
+- `client/src/pages/customer/CustomerDashboard.jsx`: admin routing after shared identity lookup.
 - `AUTH_FLOW.md`: inspection, flows and validation record.
 
-Pre-existing user edits in `client/src/App.css` and
-`client/src/pages/ProductDetails.jsx` were not changed by this work.
+Pre-existing user edits now live in `client/src/styles/app.css` and
+`client/src/pages/customer/ProductDetails.jsx`.
 
 ## Validation
 

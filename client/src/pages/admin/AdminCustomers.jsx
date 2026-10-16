@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AdminLayout from "../components/AdminLayout";
-import { API_BASE_URL } from "../config/api";
+import AdminLayout from "../../components/layout/AdminLayout";
+import { getCustomers } from "../../services/adminService";
+import { isAuthenticationError } from "../../services/apiClient";
 
 export default function AdminCustomers() {
   const navigate = useNavigate();
@@ -13,18 +14,13 @@ export default function AdminCustomers() {
     const controller = new AbortController();
     async function loadCustomers() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/customers`, {
-          credentials: "include",
-          signal: controller.signal
-        });
-        if (response.status === 401 || response.status === 403) {
+        const data = await getCustomers(controller.signal);
+        setCustomers(data.customers);
+      } catch (requestError) {
+        if (isAuthenticationError(requestError)) {
           navigate("/login", { replace: true });
           return;
         }
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Could not load customers.");
-        setCustomers(data.customers);
-      } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
       } finally {
         if (!controller.signal.aborted) setLoading(false);

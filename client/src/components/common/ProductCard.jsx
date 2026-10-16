@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
+import { apiAssetUrl } from "../../services/apiClient";
 
 export default function ProductCard({ product }) {
   return <article className="product-card">
     <Link className="product-image-link" to={`/products/${product.id}`} aria-label={`View ${product.name}`}>
       {product.imageUrl
-        ? <img src={`${API_BASE_URL}${product.imageUrl}`} alt={product.name} loading="lazy" />
+        ? <img src={apiAssetUrl(product.imageUrl)} alt={product.name} loading="lazy" />
         : <div className="missing-image">Image coming soon</div>}
       {product.stock === 0 && <span className="product-badge">Sold out</span>}
     </Link>

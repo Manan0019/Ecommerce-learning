@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AdminLayout from "../components/AdminLayout";
-import { API_BASE_URL } from "../config/api";
+import AdminLayout from "../../components/layout/AdminLayout";
+import { createProduct } from "../../services/productService";
+import { isAuthenticationError } from "../../services/apiClient";
 
 export default function AddProduct() {
   const navigate = useNavigate();
@@ -28,26 +29,16 @@ export default function AddProduct() {
     setLoading(true);
     setMessage("");
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/products`, {
-        method: "POST", credentials: "include", body: formData
-      });
-      const responseText = await response.text();
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch {
-        throw new Error(`Server returned HTTP ${response.status}: ${responseText.slice(0, 150)}`);
-      }
-      if (response.status === 401 || response.status === 403) {
-        navigate("/login", { replace: true });
-        return;
-      }
-      if (!response.ok) throw new Error(data.message || "Product creation failed.");
+      await createProduct(formData);
       setMessage("Product created successfully.");
       setForm({ name: "", description: "", category: "", price: "", stock: "" });
       setImage(null);
       formRef.current?.reset();
     } catch (requestError) {
+      if (isAuthenticationError(requestError)) {
+        navigate("/login", { replace: true });
+        return;
+      }
       setMessage(requestError.message);
     } finally {
       setLoading(false);

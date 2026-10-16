@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
+import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
+import { getCurrentUser, logout, updateCustomerName, updateCustomerPassword } from "../../services/authService";
 
 export default function CustomerDashboard() {
   const navigate = useNavigate();
@@ -24,25 +25,7 @@ export default function CustomerDashboard() {
 
     async function loadProfile() {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/auth/me`,
-          {
-            credentials: "include",
-            signal: controller.signal
-          }
-        );
-
-        if (response.status === 401 ||
-            response.status === 403) {
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error("Could not load profile.");
-        }
-
-        const data = await response.json();
+        const data = await getCurrentUser(controller.signal);
         if (data.user.role === "admin") {
           navigate("/admin/dashboard", { replace: true });
           return;
@@ -51,6 +34,10 @@ export default function CustomerDashboard() {
         setFullName(data.user.fullName);
 
       } catch (err) {
+        if (isAuthenticationError(err)) {
+          navigate("/login", { replace: true });
+          return;
+        }
         if (err.name !== "AbortError") {
           setError(err.message);
         }
@@ -72,22 +59,15 @@ export default function CustomerDashboard() {
     setSavingName(true);
     setNameMessage("");
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/profile/name`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName })
-      });
-      const data = await response.json();
-      if (response.status === 401 || response.status === 403) {
-        navigate("/login", { replace: true });
-        return;
-      }
-      if (!response.ok) throw new Error(data.message || "Could not update name.");
+      const data = await updateCustomerName(fullName);
       setUser(data.user);
       setFullName(data.user.fullName);
       setNameMessage(data.message);
     } catch (err) {
+      if (isAuthenticationError(err)) {
+        navigate("/login", { replace: true });
+        return;
+      }
       setNameMessage(err.message);
     } finally {
       setSavingName(false);
@@ -102,25 +82,18 @@ export default function CustomerDashboard() {
       if (passwords.newPassword !== passwords.confirmPassword) {
         throw new Error("New passwords do not match.");
       }
-      const response = await fetch(`${API_BASE_URL}/api/auth/profile/password`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(passwords)
-      });
-      const data = await response.json();
-      if (response.status === 401 && data.message === "Please log in.") {
-        navigate("/login", { replace: true });
-        return;
-      }
-      if (response.status === 403) {
-        navigate("/login", { replace: true });
-        return;
-      }
-      if (!response.ok) throw new Error(data.message || "Could not update password.");
+      const data = await updateCustomerPassword(passwords);
       setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setPasswordMessage(data.message);
     } catch (err) {
+      if (isAuthenticationError(err) && err.data?.message === "Please log in.") {
+        navigate("/login", { replace: true });
+        return;
+      }
+      if (err.status === 403) {
+        navigate("/login", { replace: true });
+        return;
+      }
       setPasswordMessage(err.message);
     } finally {
       setSavingPassword(false);
@@ -129,17 +102,7 @@ export default function CustomerDashboard() {
 
   async function handleLogout() {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/logout`,
-        {
-          method: "POST",
-          credentials: "include"
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Logout failed.");
-      }
+      await logout();
 
       navigate("/login", { replace: true });
 
@@ -167,7 +130,7 @@ export default function CustomerDashboard() {
       {user.profileImageUrl ? (
         <img
           className="profile-image"
-          src={`${API_BASE_URL}${user.profileImageUrl}`}
+          src={apiAssetUrl(user.profileImageUrl)}
           alt={`${user.fullName}'s profile`}
         />
       ) : <div className="profile-image profile-placeholder" aria-label="No profile image">No image</div>}

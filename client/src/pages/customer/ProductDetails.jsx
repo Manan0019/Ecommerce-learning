@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
-import StoreFooter from "../components/StoreFooter";
-import StoreHeader from "../components/StoreHeader";
-import { useCart } from "../context/CartContext";
+import CustomerLayout from "../../components/layout/CustomerLayout";
+import { apiAssetUrl } from "../../services/apiClient";
+import { getProduct } from "../../services/productService";
+import { useCart } from "../../hooks/useCart";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -22,9 +22,7 @@ function ProductDetailsContent({ id }) {
     const controller = new AbortController();
     async function loadProduct() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/products/${id}`, { signal: controller.signal });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
+        const data = await getProduct(id, controller.signal);
         setProduct(data.product);
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -41,9 +39,7 @@ function ProductDetailsContent({ id }) {
     setAdded(true);
   }
 
-  return <div className="storefront">
-    <StoreHeader />
-    <main className="product-page">
+  return <CustomerLayout mainClassName="product-page">
       <nav className="breadcrumbs" aria-label="Breadcrumb">
         <Link to="/">Home</Link><span aria-hidden="true">/</span><Link to="/products">Shop</Link>
         {product && <><span aria-hidden="true">/</span><span>{product.name}</span></>}
@@ -53,7 +49,7 @@ function ProductDetailsContent({ id }) {
       {product && <article className="product-detail">
         <div className="product-detail-media">
           {product.imageUrl
-            ? <img src={`${API_BASE_URL}${product.imageUrl}`} alt={product.name} />
+            ? <img src={apiAssetUrl(product.imageUrl)} alt={product.name} />
             : <div className="missing-image">Image coming soon</div>}
         </div>
         <div className="product-detail-copy">
@@ -94,7 +90,5 @@ function ProductDetailsContent({ id }) {
           </ul>
         </div>
       </article>}
-    </main>
-    <StoreFooter />
-  </div>;
+  </CustomerLayout>;
 }

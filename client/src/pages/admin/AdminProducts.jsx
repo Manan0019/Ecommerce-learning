@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AdminLayout from "../components/AdminLayout";
-import { API_BASE_URL } from "../config/api";
+import AdminLayout from "../../components/layout/AdminLayout";
+import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
+import { getAdminProducts, updateProductStatus } from "../../services/productService";
 
 export default function AdminProducts() {
   const navigate = useNavigate();
@@ -14,16 +15,13 @@ export default function AdminProducts() {
     const controller = new AbortController();
     async function loadProducts() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/products`, {
-          credentials: "include", signal: controller.signal
-        });
-        if (response.status === 401 || response.status === 403) {
-          navigate("/login", { replace: true }); return;
-        }
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Failed to load products.");
+        const data = await getAdminProducts(controller.signal);
         if (!controller.signal.aborted) setProducts(data.products);
       } catch (requestError) {
+        if (isAuthenticationError(requestError)) {
+          navigate("/login", { replace: true });
+          return;
+        }
         if (requestError.name !== "AbortError") setError(requestError.message);
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -38,19 +36,14 @@ export default function AdminProducts() {
     setBusyId(product.id);
     setError("");
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/products/${product.id}/status`, {
-        method: "PATCH", credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: nextStatus })
-      });
-      if (response.status === 401 || response.status === 403) {
-        navigate("/login", { replace: true }); return;
-      }
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Could not change status.");
+      const data = await updateProductStatus(product.id, nextStatus);
       setProducts((previous) => previous.map((item) => item.id === product.id
         ? { ...item, isActive: data.product.isActive } : item));
     } catch (requestError) {
+      if (isAuthenticationError(requestError)) {
+        navigate("/login", { replace: true });
+        return;
+      }
       setError(requestError.message);
     } finally {
       setBusyId(null);
@@ -66,7 +59,7 @@ export default function AdminProducts() {
         <table className="admin-table admin-product-table">
           <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th><span className="sr-only">Actions</span></th></tr></thead>
           <tbody>{products.length === 0 ? <tr><td colSpan={6}>No products found.</td></tr> : products.map((product) => <tr key={product.id}>
-            <td><div className="admin-product-cell"><img src={`${API_BASE_URL}${product.imageUrl}`} alt="" /><strong>{product.name}</strong></div></td>
+            <td><div className="admin-product-cell"><img src={apiAssetUrl(product.imageUrl)} alt="" /><strong>{product.name}</strong></div></td>
             <td className="admin-muted">{product.category}</td>
             <td>₹{Number(product.price).toFixed(2)}</td>
             <td>{product.stock}</td>

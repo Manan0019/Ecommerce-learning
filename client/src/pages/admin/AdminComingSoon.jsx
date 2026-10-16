@@ -1,4 +1,4 @@
-import AdminLayout from "../components/AdminLayout";
+import AdminLayout from "../../components/layout/AdminLayout";
 
 export default function AdminComingSoon({ title }) {
   return <AdminLayout title={title} subtitle="This area is reserved for a future administration feature.">

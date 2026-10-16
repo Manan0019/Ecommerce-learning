@@ -4,7 +4,7 @@ import {
   useLocation,
   Link
 } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
+import { login } from "../../services/authService";
 
 export default function CustomerLogin() {
   const navigate = useNavigate();
@@ -24,31 +24,7 @@ export default function CustomerLogin() {
     setMessage("");
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/login`,
-        {
-          method: "POST",
-
-          credentials: "include",
-
-          headers: {
-            "Content-Type": "application/json"
-          },
-
-          body: JSON.stringify({
-            email,
-            password
-          })
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Login failed."
-        );
-      }
+      const data = await login({ email, password });
 
       navigate(data.user.role === "admin" ? "/admin/dashboard" : "/", { replace: true });
 

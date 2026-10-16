@@ -1,22 +1,23 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { CartProvider } from "./context/CartContext";
-import Home from "./pages/Home";
-import CustomerSignup from "./pages/CustomerSignup";
-import VerifyOTP from "./pages/VerifyOTP";
-import CustomerLogin from "./pages/CustomerLogin";
-import CustomerDashboard from "./pages/CustomerDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-import AddProduct from "./pages/AddProduct";
-import AdminProducts from "./pages/AdminProducts";
-import EditProduct from "./pages/EditProduct";
-import ProductList from "./pages/ProductList";
-import ProductDetails from "./pages/ProductDetails";
-import CartPage from "./pages/CartPage";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import AdminCustomers from "./pages/AdminCustomers";
-import AdminComingSoon from "./pages/AdminComingSoon";
-import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import CartProvider from "./context/CartProvider";
+import AddProduct from "./pages/admin/AddProduct";
+import AdminComingSoon from "./pages/admin/AdminComingSoon";
+import AdminCustomers from "./pages/admin/AdminCustomers";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminProducts from "./pages/admin/AdminProducts";
+import EditProduct from "./pages/admin/EditProduct";
+import CustomerLogin from "./pages/auth/CustomerLogin";
+import CustomerSignup from "./pages/auth/CustomerSignup";
+import VerifyOTP from "./pages/auth/VerifyOTP";
+import CartPage from "./pages/customer/CartPage";
+import CustomerDashboard from "./pages/customer/CustomerDashboard";
+import Home from "./pages/customer/Home";
+import ProductDetails from "./pages/customer/ProductDetails";
+import ProductList from "./pages/customer/ProductList";
+import About from "./pages/public/About";
+import Contact from "./pages/public/Contact";
+import "./styles/app.css";
 
 export default function App() {
   return <CartProvider><BrowserRouter><Routes>
@@ -25,7 +26,7 @@ export default function App() {
     <Route path="/verify-otp" element={<VerifyOTP />} />
     <Route path="/login" element={<CustomerLogin />} />
     <Route path="/dashboard" element={<CustomerDashboard />} />
-    <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+    <Route path="/admin/login" element={<AdminLogin />} />
     <Route path="/admin/dashboard" element={<AdminDashboard />} />
     <Route path="/admin/products" element={<AdminProducts />} />
     <Route path="/admin/products/new" element={<AddProduct />} />

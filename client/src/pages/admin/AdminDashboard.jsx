@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AdminLayout from "../components/AdminLayout";
-import { API_BASE_URL } from "../config/api";
+import AdminLayout from "../../components/layout/AdminLayout";
+import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
+import { getAdminSummary } from "../../services/adminService";
+import { getAdminProducts } from "../../services/productService";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -14,23 +16,17 @@ export default function AdminDashboard() {
     const controller = new AbortController();
     async function loadDashboard() {
       try {
-        const options = { credentials: "include", signal: controller.signal };
-        const [productsResponse, summaryResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/admin/products`, options),
-          fetch(`${API_BASE_URL}/api/admin/summary`, options)
-        ]);
-        if ([productsResponse.status, summaryResponse.status].some((status) => status === 401 || status === 403)) {
-          navigate("/login", { replace: true });
-          return;
-        }
         const [productsData, summaryData] = await Promise.all([
-          productsResponse.json(), summaryResponse.json()
+          getAdminProducts(controller.signal),
+          getAdminSummary(controller.signal)
         ]);
-        if (!productsResponse.ok) throw new Error(productsData.message || "Could not load products.");
-        if (!summaryResponse.ok) throw new Error(summaryData.message || "Could not load dashboard summary.");
         setProducts(productsData.products);
         setSummary(summaryData.summary);
       } catch (requestError) {
+        if (isAuthenticationError(requestError)) {
+          navigate("/login", { replace: true });
+          return;
+        }
         if (requestError.name !== "AbortError") setError(requestError.message);
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -67,7 +63,7 @@ export default function AdminDashboard() {
         {loading ? <div className="admin-empty">Loading products…</div> : products.length === 0
           ? <div className="admin-empty">No products have been created yet.</div>
           : <div className="admin-product-list">{products.slice(0, 5).map((product) => <Link to={`/admin/products/${product.id}/edit`} key={product.id}>
-            <img src={`${API_BASE_URL}${product.imageUrl}`} alt="" />
+            <img src={apiAssetUrl(product.imageUrl)} alt="" />
             <div><strong>{product.name}</strong><small>{product.category} · ₹{Number(product.price).toFixed(2)}</small></div>
             <span className={product.isActive ? "is-active" : "is-inactive"}>{product.isActive ? "Active" : "Inactive"}</span>
           </Link>)}</div>}

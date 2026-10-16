@@ -6,7 +6,7 @@ import {
   profileImageDiskPath,
   removeProfileImage,
   saveProfileImage
-} from "../utils/profileImage.js";
+} from "../services/profileImageService.js";
 
 test("profile images are decoded, resized and re-encoded as WebP", async () => {
   const buffer = await sharp({

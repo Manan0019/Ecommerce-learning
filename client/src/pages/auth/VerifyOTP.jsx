@@ -4,7 +4,7 @@ import {
   useNavigate,
   Link
 } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
+import { verifyRegistration } from "../../services/authService";
 
 export default function VerifyOTP() {
   const location = useLocation();
@@ -23,29 +23,7 @@ export default function VerifyOTP() {
     setMessage("");
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/verify-otp`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json"
-          },
-
-          body: JSON.stringify({
-            email,
-            otp
-          })
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Verification failed"
-        );
-      }
+      await verifyRegistration({ email, otp });
 
       setOtp("");
 

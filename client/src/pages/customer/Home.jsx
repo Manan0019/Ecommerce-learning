@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import heroImage from "../assets/hero.png";
-import { API_BASE_URL } from "../config/api";
-import ProductCard from "../components/ProductCard";
-import StoreFooter from "../components/StoreFooter";
-import StoreHeader from "../components/StoreHeader";
+import heroImage from "../../assets/hero.png";
+import ProductCard from "../../components/common/ProductCard";
+import CustomerLayout from "../../components/layout/CustomerLayout";
+import { apiAssetUrl } from "../../services/apiClient";
+import { getProducts } from "../../services/productService";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -15,9 +15,7 @@ export default function Home() {
     const controller = new AbortController();
     async function loadProducts() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/products`, { signal: controller.signal });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Could not load products.");
+        const data = await getProducts(controller.signal);
         setProducts(Array.isArray(data.products) ? data.products : []);
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -32,9 +30,7 @@ export default function Home() {
   const featured = products.slice(0, 4);
   const categories = [...new Map(products.map((product) => [product.category, product])).values()].slice(0, 4);
 
-  return <div className="storefront">
-    <StoreHeader />
-    <main>
+  return <CustomerLayout>
       <section className="hero-section">
         <div className="hero-copy">
           <p className="eyebrow">New season · Thoughtfully selected</p>
@@ -81,7 +77,7 @@ export default function Home() {
             to={`/products?category=${encodeURIComponent(product.category)}`}
             key={product.category}
           >
-            {product.imageUrl && <img src={`${API_BASE_URL}${product.imageUrl}`} alt="" loading="lazy" />}
+            {product.imageUrl && <img src={apiAssetUrl(product.imageUrl)} alt="" loading="lazy" />}
             <span className="category-number">0{index + 1}</span>
             <div><h3>{product.category}</h3><span>Explore collection →</span></div>
           </Link>)}
@@ -94,7 +90,5 @@ export default function Home() {
         <p>We select useful, enduring products and present them with honest details, so every choice feels considered.</p>
         <Link className="button button-light" to="/about">Discover our approach</Link>
       </section>
-    </main>
-    <StoreFooter />
-  </div>;
+  </CustomerLayout>;
 }

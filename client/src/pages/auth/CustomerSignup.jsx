@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
+import { registerCustomer } from "../../services/authService";
 
 export default function CustomerSignup() {
   const navigate = useNavigate();
@@ -41,20 +41,7 @@ export default function CustomerSignup() {
       Object.entries(form).forEach(([key, value]) => body.append(key, value));
       if (profileImage) body.append("profileImage", profileImage);
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/signup`,
-        {
-          method: "POST",
-
-          body
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Signup failed");
-      }
+      await registerCustomer(body);
 
       navigate("/verify-otp", {
         state: {

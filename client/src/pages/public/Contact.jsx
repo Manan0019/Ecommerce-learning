@@ -1,10 +1,7 @@
-import StoreFooter from "../components/StoreFooter";
-import StoreHeader from "../components/StoreHeader";
+import CustomerLayout from "../../components/layout/CustomerLayout";
 
 export default function Contact() {
-  return <div className="storefront">
-    <StoreHeader />
-    <main className="content-page contact-page">
+  return <CustomerLayout mainClassName="content-page contact-page">
       <header className="page-hero">
         <p className="eyebrow">Contact us</p>
         <h1>We’d love to hear from you.</h1>
@@ -26,7 +23,5 @@ export default function Contact() {
           <button className="button button-primary" type="submit">Send message</button>
         </form>
       </div>
-    </main>
-    <StoreFooter />
-  </div>;
+  </CustomerLayout>;
 }

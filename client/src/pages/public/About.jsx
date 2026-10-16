@@ -1,11 +1,8 @@
 import { Link } from "react-router-dom";
-import StoreFooter from "../components/StoreFooter";
-import StoreHeader from "../components/StoreHeader";
+import CustomerLayout from "../../components/layout/CustomerLayout";
 
 export default function About() {
-  return <div className="storefront">
-    <StoreHeader />
-    <main className="content-page">
+  return <CustomerLayout mainClassName="content-page">
       <header className="page-hero">
         <p className="eyebrow">About Store</p>
         <h1>Good design should feel effortless.</h1>
@@ -17,7 +14,5 @@ export default function About() {
         <article><span>03</span><h2>Our promise</h2><p>Add your service promise here, including the experience customers can expect before and after every purchase.</p></article>
       </section>
       <section className="content-callout"><div><p className="eyebrow">Explore the edit</p><h2>Find something made for your everyday.</h2></div><Link className="button button-light" to="/products">Shop now</Link></section>
-    </main>
-    <StoreFooter />
-  </div>;
+  </CustomerLayout>;
 }

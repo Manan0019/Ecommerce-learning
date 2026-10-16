@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
-import { useCart } from "../context/CartContext";
+import { SITE_NAME } from "../../config/site";
+import { useCart } from "../../hooks/useCart";
+import { apiAssetUrl } from "../../services/apiClient";
+import { getCurrentUser, logout as endSession } from "../../services/authService";
 
 function SearchIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" /></svg>;
@@ -25,12 +27,7 @@ export default function StoreHeader() {
     const controller = new AbortController();
     async function loadUser() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          credentials: "include",
-          signal: controller.signal
-        });
-        if (!response.ok) return;
-        const data = await response.json();
+        const data = await getCurrentUser(controller.signal);
         if (data.user?.role === "customer") setUser(data.user);
       } catch (error) {
         if (error.name !== "AbortError") setAuthError("Account status is unavailable.");
@@ -69,11 +66,7 @@ export default function StoreHeader() {
   async function logout() {
     setAuthError("");
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include"
-      });
-      if (!response.ok) throw new Error("Could not log out.");
+      await endSession();
       setUser(null);
       setProfileOpen(false);
       navigate("/", { replace: true });
@@ -91,9 +84,9 @@ export default function StoreHeader() {
 
   return <header className="store-header">
     <div className="navbar">
-      <Link className="brand" to="/" aria-label="Manan's Store home">
+      <Link className="brand" to="/" aria-label={`${SITE_NAME} home`}>
         <span className="brand-mark">M</span>
-        <span>Manan's Store</span>
+        <span>{SITE_NAME}</span>
       </Link>
 
       <button
@@ -135,7 +128,7 @@ export default function StoreHeader() {
             aria-haspopup="menu" aria-expanded={profileOpen}
             onClick={() => setProfileOpen((open) => !open)}>
             {user.profileImageUrl
-              ? <img src={`${API_BASE_URL}${user.profileImageUrl}`} alt="" />
+              ? <img src={apiAssetUrl(user.profileImageUrl)} alt="" />
               : <span>{initials || "U"}</span>}
           </button>
           {profileOpen && <div className="profile-dropdown" role="menu">

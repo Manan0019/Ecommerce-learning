@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { API_BASE_URL } from "../config/api";
-import StoreFooter from "../components/StoreFooter";
-import StoreHeader from "../components/StoreHeader";
-import { useCart } from "../context/CartContext";
+import CustomerLayout from "../../components/layout/CustomerLayout";
+import { apiAssetUrl } from "../../services/apiClient";
+import { quoteCart } from "../../services/cartService";
+import { useCart } from "../../hooks/useCart";
 
 export default function CartPage() {
   const { items, updateQuantity, removeFromCart, clearCart } = useCart();
@@ -18,14 +18,7 @@ export default function CartPage() {
       setError("");
       setQuote(null);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/cart/quote`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items }),
-          signal: controller.signal
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
+        const data = await quoteCart(items, controller.signal);
         if (!controller.signal.aborted) setQuote(data);
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -37,9 +30,7 @@ export default function CartPage() {
     return () => controller.abort();
   }, [items]);
 
-  return <div className="storefront">
-    <StoreHeader />
-    <main className="cart-page">
+  return <CustomerLayout mainClassName="cart-page">
       <header className="page-hero compact-hero">
         <p className="eyebrow">Your selection</p><h1>Shopping cart</h1>
       </header>
@@ -54,7 +45,7 @@ export default function CartPage() {
           {quote.items.map((item) => <article className="cart-item" key={item.productId}>
             <div className="cart-item-image">
               {item.imageUrl
-                ? <img src={`${API_BASE_URL}${item.imageUrl}`} alt={item.name || "Product"} />
+                ? <img src={apiAssetUrl(item.imageUrl)} alt={item.name || "Product"} />
                 : <span>No image</span>}
             </div>
             <div className="cart-item-copy">
@@ -87,7 +78,5 @@ export default function CartPage() {
           <Link className="text-link" to="/products">← Continue shopping</Link>
         </aside>
       </div>}
-    </main>
-    <StoreFooter />
-  </div>;
+  </CustomerLayout>;
 }
