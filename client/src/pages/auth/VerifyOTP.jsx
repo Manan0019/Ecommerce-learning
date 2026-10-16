@@ -5,6 +5,7 @@ import {
   Link
 } from "react-router-dom";
 import { verifyRegistration } from "../../services/authService";
+import AuthLayout from "../../components/auth/AuthLayout";
 
 export default function VerifyOTP() {
   const location = useLocation();
@@ -43,28 +44,25 @@ export default function VerifyOTP() {
   }
 
   if (!email) {
-    return (
-      <div className="auth-container">
-        <h2>No pending signup found</h2>
-        <Link to="/signup">Go to Signup</Link>
-      </div>
-    );
+    return <AuthLayout eyebrow="Verification" title="No pending signup found."
+      description="Start registration again to request a new verification code." compact>
+      <Link className="auth-submit auth-link-button" to="/signup">Create your account</Link>
+      <p className="auth-switch"><Link to="/login">Return to sign in</Link></p>
+    </AuthLayout>;
   }
 
-  return (
-    <div className="auth-container">
-      <h1>Verify Email</h1>
+  return <AuthLayout eyebrow="Email verification" title="One quick verification."
+    description="A world of technology awaits." compact>
+      <p className="auth-verification-note">Enter the six-digit code sent to <strong>{email}</strong>.</p>
 
-      <p>
-        Enter the 6-digit code sent to {email}
-      </p>
-
-      <form onSubmit={handleVerify}>
-        <input
+      <form className="auth-form" onSubmit={handleVerify}>
+        <label className="auth-field" htmlFor="verification-code"><span>Verification code</span>
+          <input id="verification-code" className="auth-otp-input"
           type="text"
           inputMode="numeric"
+          autoComplete="one-time-code"
           maxLength={6}
-          placeholder="Enter OTP"
+          placeholder="000000"
           value={otp}
           onChange={(event) => {
             const digits = event.target.value
@@ -74,17 +72,20 @@ export default function VerifyOTP() {
             setOtp(digits);
           }}
           required
-        />
+          />
+        </label>
 
-        <button
+        {message && <p className="auth-message auth-message-error" role="alert">{message}</p>}
+
+        <button className="auth-submit"
           type="submit"
           disabled={loading || otp.length !== 6}
         >
-          {loading ? "Verifying..." : "Verify OTP"}
+          {loading && <span className="auth-spinner" aria-hidden="true" />}
+          {loading ? "Verifying…" : "Verify email"}
         </button>
       </form>
 
-      {message && <p role="status">{message}</p>}
-    </div>
-  );
+      <p className="auth-switch">Wrong email? <Link to="/signup">Start again</Link></p>
+    </AuthLayout>;
 }

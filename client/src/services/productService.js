@@ -1,7 +1,12 @@
 import { apiRequest } from "./apiClient";
 
-export function getProducts({ signal, category } = {}) {
-  const query = category ? `?category=${encodeURIComponent(category)}` : "";
+export function getProducts({ signal, category, params } = {}) {
+  const searchParams = params instanceof URLSearchParams
+    ? new URLSearchParams(params)
+    : new URLSearchParams();
+  if (category) searchParams.set("category", category);
+  const queryString = searchParams.toString();
+  const query = queryString ? `?${queryString}` : "";
   return apiRequest(`/api/products${query}`, { signal });
 }
 

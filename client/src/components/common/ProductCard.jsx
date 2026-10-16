@@ -11,6 +11,7 @@ export default function ProductCard({ product }) {
     </Link>
     <div className="product-info">
       <p className="product-category">{product.category}</p>
+      {(product.brand || product.model) && <p className="product-brand">{[product.brand, product.model].filter(Boolean).join(" · ")}</p>}
       <h3><Link to={`/products/${product.id}`}>{product.name}</Link></h3>
       <div className="product-meta">
         <p className="product-price">₹{Number(product.price).toFixed(2)}</p>

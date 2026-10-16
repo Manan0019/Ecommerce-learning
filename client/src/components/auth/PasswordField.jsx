@@ -1,0 +1,16 @@
+import { useState } from "react";
+
+export default function PasswordField({ id, label, ...inputProps }) {
+  const [visible, setVisible] = useState(false);
+
+  return <label className="auth-field" htmlFor={id}>
+    <span>{label}</span>
+    <span className="auth-password-control">
+      <input id={id} type={visible ? "text" : "password"} {...inputProps} />
+      <button type="button" aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`}
+        aria-pressed={visible} onClick={() => setVisible((current) => !current)}>
+        {visible ? "Hide" : "Show"}
+      </button>
+    </span>
+  </label>;
+}

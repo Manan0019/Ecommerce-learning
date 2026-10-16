@@ -111,7 +111,7 @@ export default function StoreHeader() {
 
         <form className="nav-search" role="search" onSubmit={submitSearch}>
           <label className="sr-only" htmlFor="nav-search-input">Search products</label>
-          <input id="nav-search-input" type="search" placeholder="Search" value={query}
+          <input id="nav-search-input" type="search" placeholder="Search tech" value={query}
             onChange={(event) => setQuery(event.target.value)} />
           <button type="submit" aria-label="Search"><SearchIcon /></button>
         </form>

@@ -6,6 +6,10 @@ import {
   normalizeCategoryName
 } from "../services/categoryService.js";
 import { saveCatalogImage } from "../services/catalogImageService.js";
+import {
+  buildSpecificationFacets,
+  validateSpecifications
+} from "../services/productSpecificationService.js";
 
 test("category names are normalized without losing capitalization", () => {
   assert.equal(normalizeCategoryName("  Home   Decor  "), "Home Decor");
@@ -31,4 +35,33 @@ test("catalog images reject content that is not a decodable image", async () => 
     saveCatalogImage({ buffer: Buffer.from("not-an-image") }, "categories"),
     /INVALID_IMAGE/
   );
+});
+
+test("electronics specifications are category-specific and typed", () => {
+  const category = { name: "Smartphones", slug: "electronics-smartphones" };
+  const result = validateSpecifications(category, {
+    chipset: "Snapdragon 8 Elite",
+    ramGb: "12",
+    storageGb: ["256", "512"],
+    os: "Android",
+    features: ["NFC", "eSIM"]
+  });
+  assert.equal(result.definition.type, "smartphone");
+  assert.equal(result.specifications.ramGb, 12);
+  assert.deepEqual(result.specifications.storageGb, ["256", "512"]);
+  assert.throws(() => validateSpecifications(category, { unknownKey: "value" }), /INVALID_SPECIFICATIONS/);
+  assert.throws(() => validateSpecifications(category, { os: "Windows" }), /INVALID_SPECIFICATIONS/);
+});
+
+test("filter facets only use validated definitions and existing product values", () => {
+  const category = { name: "Laptops", slug: "electronics-laptops" };
+  const { facets } = buildSpecificationFacets(category, [
+    { brand: "Framework", specifications: { ramGb: 16, os: "Linux", features: ["Wi-Fi 6E"] } },
+    { brand: "Framework", specifications: { ramGb: 32, os: "Linux" } }
+  ]);
+  assert.deepEqual(facets.find((facet) => facet.key === "brand").options, [
+    { value: "Framework", label: "Framework", count: 2 }
+  ]);
+  assert.deepEqual(facets.find((facet) => facet.key === "ramGb").options.map((item) => item.value), ["16", "32"]);
+  assert.equal(facets.some((facet) => facet.key === "unknownKey"), false);
 });

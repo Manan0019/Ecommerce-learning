@@ -8,6 +8,13 @@ export function getAdminCategories(signal) {
   return apiRequest("/api/admin/categories", { credentials: "include", signal });
 }
 
+export function getAdminSpecificationDefinition(categoryId, signal) {
+  return apiRequest(`/api/admin/categories/${categoryId}/specifications`, {
+    credentials: "include",
+    signal
+  });
+}
+
 export function createCategory(formData) {
   return apiRequest("/api/admin/categories", {
     method: "POST",

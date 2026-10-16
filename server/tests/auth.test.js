@@ -115,7 +115,7 @@ test("unified login, persisted identity, session rotation, role boundaries and l
   try {
     assert.equal((await request("/api/auth/me", { cookie: customerAgain.cookie })).data.user.role, "customer");
     assert.equal((await request("/customer-only", { cookie: customerAgain.cookie })).status, 200);
-    for (const path of ["/api/admin/me", "/api/admin/customers", "/api/admin/products", "/api/admin/products/1", "/api/admin/categories"]) {
+    for (const path of ["/api/admin/me", "/api/admin/customers", "/api/admin/products", "/api/admin/products/1", "/api/admin/categories", "/api/admin/categories/1/specifications"]) {
       assert.equal((await request(path, { cookie: customerAgain.cookie })).status, 403);
     }
     for (const [method, path] of [["POST", "/api/admin/products"], ["PUT", "/api/admin/products/1"], ["PATCH", "/api/admin/products/1/status"], ["PUT", "/api/admin/products/1/image"]]) {

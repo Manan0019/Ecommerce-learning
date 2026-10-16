@@ -4,6 +4,7 @@ import {
   normalizeCategoryName
 } from "../services/categoryService.js";
 import { removeCatalogImage, saveCatalogImage } from "../services/catalogImageService.js";
+import { getSpecificationDefinition, resolveSpecificationType } from "../config/productSpecifications.js";
 
 function validId(id) {
   return /^[1-9]\d*$/.test(id);
@@ -14,6 +15,7 @@ function mapCategory(category) {
     id: String(category.id),
     name: category.name,
     slug: category.slug,
+    specificationType: resolveSpecificationType(category),
     imageUrl: category.image_url,
     isActive: category.is_active,
     productCount: Number(category.product_count || 0),
@@ -158,5 +160,33 @@ export async function listPublicCategories(_req, res) {
     return res.json({ categories: rows.map(mapCategory) });
   } catch (error) {
     return categoryError(res, error, "Loading categories");
+  }
+}
+
+export async function getPublicSpecificationDefinition(req, res) {
+  if (!validId(req.params.id)) return res.status(400).json({ message: "Invalid category ID." });
+  try {
+    const { rows } = await pool.query(
+      "SELECT id, name, slug FROM categories WHERE id = $1 AND is_active = TRUE",
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ message: "Active category not found." });
+    return res.json({ definition: getSpecificationDefinition(rows[0]) });
+  } catch (error) {
+    return categoryError(res, error, "Loading specification definition");
+  }
+}
+
+export async function getAdminSpecificationDefinition(req, res) {
+  if (!validId(req.params.id)) return res.status(400).json({ message: "Invalid category ID." });
+  try {
+    const { rows } = await pool.query(
+      "SELECT id, name, slug FROM categories WHERE id = $1",
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ message: "Category not found." });
+    return res.json({ definition: getSpecificationDefinition(rows[0]) });
+  } catch (error) {
+    return categoryError(res, error, "Loading specification definition");
   }
 }

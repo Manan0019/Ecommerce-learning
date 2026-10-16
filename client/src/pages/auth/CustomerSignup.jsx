@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { registerCustomer } from "../../services/authService";
+import AuthLayout from "../../components/auth/AuthLayout";
+import PasswordField from "../../components/auth/PasswordField";
 
 export default function CustomerSignup() {
   const navigate = useNavigate();
@@ -57,41 +59,46 @@ export default function CustomerSignup() {
     }
   }
 
-  return (
-    <div className="auth-container">
-      <h1>Create your account</h1>
-
-      <form onSubmit={handleSubmit}>
-        <input
+  return <AuthLayout eyebrow="Create your account" title="Join the future of tech."
+    description="Create your account.">
+      <form className="auth-form auth-signup-form" onSubmit={handleSubmit}>
+        <label className="auth-field" htmlFor="signup-name"><span>Full name</span>
+          <input id="signup-name"
           type="text"
           name="fullName"
-          placeholder="Full name"
+          placeholder="Your full name"
           value={form.fullName}
           onChange={handleChange}
+          autoComplete="name"
           required
-        />
+          />
+        </label>
 
-        <input
+        <label className="auth-field" htmlFor="signup-email"><span>Email address</span>
+          <input id="signup-email"
           type="email"
           name="email"
-          placeholder="Email address"
+          placeholder="you@example.com"
           value={form.email}
           onChange={handleChange}
+          autoComplete="email"
           required
-        />
+          />
+        </label>
 
-        <input
+        <label className="auth-field" htmlFor="signup-mobile"><span>Mobile number</span>
+          <input id="signup-mobile"
           type="tel"
           name="mobileNumber"
-          placeholder="Mobile number"
+          placeholder="Your mobile number"
           value={form.mobileNumber}
           onChange={handleChange}
           autoComplete="tel"
           required
-        />
+          />
+        </label>
 
-        <input
-          type="password"
+        <PasswordField id="signup-password" label="Password"
           name="password"
           placeholder="Password (minimum 12 characters)"
           value={form.password}
@@ -101,8 +108,7 @@ export default function CustomerSignup() {
           required
         />
 
-        <input
-          type="password"
+        <PasswordField id="signup-confirm-password" label="Confirm password"
           name="confirmPassword"
           placeholder="Confirm password"
           value={form.confirmPassword}
@@ -112,21 +118,24 @@ export default function CustomerSignup() {
           required
         />
 
-        <label>
-          Profile image (optional)
+        <label className="auth-field auth-file-field" htmlFor="signup-image">
+          <span>Profile image <small>Optional · JPG, PNG or WebP</small></span>
           <input
+            id="signup-image"
             type="file"
             accept="image/jpeg,image/png,image/webp"
             onChange={(event) => setProfileImage(event.target.files?.[0] ?? null)}
           />
         </label>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Sending OTP..." : "Sign Up"}
+        {message && <p className="auth-message auth-message-error" role="alert">{message}</p>}
+
+        <button className="auth-submit" type="submit" disabled={loading}>
+          {loading && <span className="auth-spinner" aria-hidden="true" />}
+          {loading ? "Sending verification code…" : "Create account"}
         </button>
       </form>
 
-      {message && <p role="alert">{message}</p>}
-    </div>
-  );
+      <p className="auth-switch">Already have an account? <Link to="/login">Sign in</Link></p>
+    </AuthLayout>;
 }

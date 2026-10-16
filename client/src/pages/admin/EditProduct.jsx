@@ -4,6 +4,8 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import { getAdminProduct, updateProduct, updateProductImage } from "../../services/productService";
 import { useActiveCategories } from "../../hooks/useActiveCategories";
+import { useSpecificationDefinition } from "../../hooks/useSpecificationDefinition";
+import ProductSpecificationFields from "../../components/admin/ProductSpecificationFields";
 
 export default function EditProduct() {
   const { id } = useParams();
@@ -11,6 +13,8 @@ export default function EditProduct() {
   const imageFormRef = useRef(null);
   const { categories, categoriesLoading, categoriesError } = useActiveCategories();
   const [form, setForm] = useState(null);
+  const [specifications, setSpecifications] = useState({});
+  const specification = useSpecificationDefinition(form?.categoryId);
   const [imageUrl, setImageUrl] = useState("");
   const [newImage, setNewImage] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,8 +30,10 @@ export default function EditProduct() {
         const data = await getAdminProduct(id, controller.signal);
         if (controller.signal.aborted) return;
         const product = data.product;
-        setForm({ name: product.name, description: product.description, categoryId: product.categoryId,
+        setForm({ name: product.name, brand: product.brand || "", model: product.model || "",
+          description: product.description, categoryId: product.categoryId,
           price: product.price, stock: String(product.stock) });
+        setSpecifications(product.specifications || {});
         setImageUrl(product.imageUrl);
       } catch (requestError) {
         if (isAuthenticationError(requestError)) {
@@ -45,7 +51,12 @@ export default function EditProduct() {
 
   function handleChange(event) {
     const { name, value } = event.target;
+    if (name === "categoryId") setSpecifications({});
     setForm((previous) => ({ ...previous, [name]: value }));
+  }
+
+  function updateSpecification(key, value) {
+    setSpecifications((previous) => ({ ...previous, [key]: value }));
   }
 
   async function saveDetails(event) {
@@ -53,7 +64,7 @@ export default function EditProduct() {
     setSaving(true);
     setError("");
     try {
-      await updateProduct(id, { ...form, stock: Number(form.stock) });
+      await updateProduct(id, { ...form, stock: Number(form.stock), specifications });
       navigate("/admin/products", { replace: true });
     } catch (requestError) {
       if (isAuthenticationError(requestError)) {
@@ -103,6 +114,10 @@ export default function EditProduct() {
         <div className="admin-panel-heading"><div><h2>Product details</h2><p>Changes apply to the live catalogue record.</p></div></div>
         <form className="admin-form" onSubmit={saveDetails}>
           <label>Name<input name="name" value={form.name} onChange={handleChange} required /></label>
+          <div className="admin-form-grid two-column">
+            <label>Brand<input name="brand" value={form.brand} onChange={handleChange} maxLength={80} /></label>
+            <label>Model<input name="model" value={form.model} onChange={handleChange} maxLength={120} /></label>
+          </div>
           <label>Description<textarea name="description" value={form.description} onChange={handleChange} required /></label>
           <div className="admin-form-grid">
             <label>Category<select name="categoryId" value={form.categoryId} onChange={handleChange}
@@ -113,6 +128,9 @@ export default function EditProduct() {
             <label>Price (₹)<input name="price" type="number" min="0.01" step="0.01" value={form.price} onChange={handleChange} required /></label>
             <label>Stock<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
           </div>
+          <ProductSpecificationFields definition={specification.definition} specifications={specifications}
+            onChange={updateSpecification} loading={specification.loading} />
+          {specification.error && <p className="admin-alert" role="alert">{specification.error}</p>}
           <button className="admin-primary-action" type="submit" disabled={saving}>{saving ? "Saving…" : "Save Details"}</button>
         </form>
         {error && <p className="admin-alert" role="alert">{error}</p>}

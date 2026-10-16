@@ -124,7 +124,7 @@ export default function CustomerDashboard() {
   }
 
   return (
-    <div className="auth-container">
+    <div className="profile-container">
       <h1>Customer Profile</h1>
 
       {user.profileImageUrl ? (

@@ -53,7 +53,8 @@ function ProductDetailsContent({ id }) {
             : <div className="missing-image">Image coming soon</div>}
         </div>
         <div className="product-detail-copy">
-          <p className="eyebrow">{product.category}</p>
+          <Link className="eyebrow detail-category-link" to={`/categories/${product.categorySlug}`}>{product.category}</Link>
+          {(product.brand || product.model) && <p className="detail-model">{[product.brand, product.model].filter(Boolean).join(" · ")}</p>}
           <h1>{product.name}</h1>
           <p className="detail-price">₹{Number(product.price).toFixed(2)}</p>
           <p className="detail-description">{product.description}</p>
@@ -90,5 +91,19 @@ function ProductDetailsContent({ id }) {
           </ul>
         </div>
       </article>}
+      {product?.specificationDisplay?.groups?.length > 0 && <section className="technical-specifications" aria-labelledby="technical-specifications-heading">
+        <div className="section-heading"><div><p className="eyebrow">Product data</p><h2 id="technical-specifications-heading">Technical specifications</h2></div></div>
+        <div className="specification-groups">
+          {product.specificationDisplay.groups.map((group) => <article key={group.label}>
+            <h3>{group.label}</h3>
+            <dl>{group.items.map((item) => <div key={item.key}>
+              <dt>{item.label}</dt>
+              <dd>{Array.isArray(item.value) ? item.value.join(", ")
+                : item.type === "boolean" ? (item.value ? "Yes" : "No")
+                  : `${item.value}${item.unit ? ` ${item.unit}` : ""}`}</dd>
+            </div>)}</dl>
+          </article>)}
+        </div>
+      </section>}
   </CustomerLayout>;
 }

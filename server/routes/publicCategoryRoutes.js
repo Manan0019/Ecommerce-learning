@@ -1,8 +1,12 @@
 import { Router } from "express";
-import { listPublicCategories } from "../controllers/categoryController.js";
+import {
+  getPublicSpecificationDefinition,
+  listPublicCategories
+} from "../controllers/categoryController.js";
 
 const router = Router();
 
 router.get("/", listPublicCategories);
+router.get("/:id/specifications", getPublicSpecificationDefinition);
 
 export default router;
