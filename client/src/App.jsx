@@ -14,6 +14,8 @@ import ProductDetails from "./pages/ProductDetails";
 import CartPage from "./pages/CartPage";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import AdminCustomers from "./pages/AdminCustomers";
+import AdminComingSoon from "./pages/AdminComingSoon";
 import "./App.css";
 
 export default function App() {
@@ -28,6 +30,11 @@ export default function App() {
     <Route path="/admin/products" element={<AdminProducts />} />
     <Route path="/admin/products/new" element={<AddProduct />} />
     <Route path="/admin/products/:id/edit" element={<EditProduct />} />
+    <Route path="/admin/customers" element={<AdminCustomers />} />
+    <Route path="/admin/categories" element={<AdminComingSoon title="Manage Categories" />} />
+    <Route path="/admin/orders" element={<AdminComingSoon title="Orders" />} />
+    <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />
+    <Route path="/admin/settings" element={<AdminComingSoon title="Settings" />} />
     <Route path="/products" element={<ProductList />} />
     <Route path="/products/:id" element={<ProductDetails />} />
     <Route path="/cart" element={<CartPage />} />

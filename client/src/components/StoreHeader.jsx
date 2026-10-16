@@ -91,9 +91,9 @@ export default function StoreHeader() {
 
   return <header className="store-header">
     <div className="navbar">
-      <Link className="brand" to="/" aria-label="Aurelia home">
-        <span className="brand-mark">A</span>
-        <span>AURELIA</span>
+      <Link className="brand" to="/" aria-label="Manan's Store home">
+        <span className="brand-mark">M</span>
+        <span>Manan's Store</span>
       </Link>
 
       <button

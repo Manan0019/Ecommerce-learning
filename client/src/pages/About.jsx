@@ -7,7 +7,7 @@ export default function About() {
     <StoreHeader />
     <main className="content-page">
       <header className="page-hero">
-        <p className="eyebrow">About Aurelia</p>
+        <p className="eyebrow">About Store</p>
         <h1>Good design should feel effortless.</h1>
         <p>This editable placeholder introduces your brand, its point of view, and the care behind every product in the collection.</p>
       </header>

@@ -8,14 +8,13 @@ export default function Contact() {
       <header className="page-hero">
         <p className="eyebrow">Contact us</p>
         <h1>We’d love to hear from you.</h1>
-        <p>This page uses editable placeholder details. Replace them with your support channels, business hours, and location before launch.</p>
       </header>
       <div className="contact-layout">
         <section className="contact-details">
-          <div><p className="eyebrow">Email</p><a href="mailto:hello@example.com">hello@example.com</a></div>
-          <div><p className="eyebrow">Phone</p><a href="tel:+910000000000">+91 00000 00000</a></div>
-          <div><p className="eyebrow">Studio</p><address>Your business address<br />City, State, PIN</address></div>
-          <div><p className="eyebrow">Hours</p><p>Monday–Friday<br />9:00 AM–6:00 PM</p></div>
+          <div><p className="eyebrow">Email</p><a href="mailto:mananbhayani4@gmail.com">mananbhayani4@gmail.com</a></div>
+          <div><p className="eyebrow">Phone</p><a href="tel:+918799315529">+91 87993 15529</a></div>
+          <div><p className="eyebrow">Location</p><address>S-02, Shree Nilkanth Business Hub, Near D-mart, Singanpore, Causeway Rd, Katargam, Surat, Gujarat, 395004</address></div>
+          <div><p className="eyebrow">Hours</p><p>Monday – Saturday<br />9:30 AM – 6:30 PM</p></div>
         </section>
         <form className="contact-form" onSubmit={(event) => event.preventDefault()}>
           <h2>Send a message</h2>

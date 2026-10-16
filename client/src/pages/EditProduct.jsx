@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import AdminLayout from "../components/AdminLayout";
 import { API_BASE_URL } from "../config/api";
 
 export default function EditProduct() {
@@ -17,7 +18,7 @@ export default function EditProduct() {
 
   useEffect(() => {
     const controller = new AbortController();
-    async function load() {
+    async function loadProduct() {
       try {
         const response = await fetch(`${API_BASE_URL}/api/admin/products/${id}`, {
           credentials: "include", signal: controller.signal
@@ -28,26 +29,29 @@ export default function EditProduct() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || "Could not load product.");
         if (controller.signal.aborted) return;
-        const p = data.product;
-        setForm({ name: p.name, description: p.description, category: p.category,
-          price: p.price, stock: String(p.stock) });
-        setImageUrl(p.imageUrl);
-      } catch (err) {
-        if (err.name !== "AbortError") setError(err.message);
+        const product = data.product;
+        setForm({ name: product.name, description: product.description, category: product.category,
+          price: product.price, stock: String(product.stock) });
+        setImageUrl(product.imageUrl);
+      } catch (requestError) {
+        if (requestError.name !== "AbortError") setError(requestError.message);
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
     }
-    load();
+    loadProduct();
     return () => controller.abort();
   }, [id, navigate]);
 
   function handleChange(event) {
     const { name, value } = event.target;
-    setForm(previous => ({ ...previous, [name]: value }));
+    setForm((previous) => ({ ...previous, [name]: value }));
   }
+
   async function saveDetails(event) {
-    event.preventDefault(); setSaving(true); setError("");
+    event.preventDefault();
+    setSaving(true);
+    setError("");
     try {
       const response = await fetch(`${API_BASE_URL}/api/admin/products/${id}`, {
         method: "PUT", credentials: "include",
@@ -60,15 +64,23 @@ export default function EditProduct() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not save changes.");
       navigate("/admin/products", { replace: true });
-    } catch (err) { setError(err.message); }
-    finally { setSaving(false); }
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSaving(false);
+    }
   }
+
   async function uploadImage(event) {
     event.preventDefault();
-    if (!newImage) { setImageMessage("Choose an image first."); return; }
+    if (!newImage) {
+      setImageMessage("Choose an image first.");
+      return;
+    }
     const formData = new FormData();
     formData.append("image", newImage);
-    setUploading(true); setImageMessage("");
+    setUploading(true);
+    setImageMessage("");
     try {
       const response = await fetch(`${API_BASE_URL}/api/admin/products/${id}/image`, {
         method: "PUT", credentials: "include", body: formData
@@ -82,32 +94,43 @@ export default function EditProduct() {
       setNewImage(null);
       imageFormRef.current?.reset();
       setImageMessage("Image updated successfully.");
-    } catch (err) { setImageMessage(err.message); }
-    finally { setUploading(false); }
+    } catch (requestError) {
+      setImageMessage(requestError.message);
+    } finally {
+      setUploading(false);
+    }
   }
-  if (loading) return <p>Loading product...</p>;
-  if (!form) return <p role="alert">{error || "Product not found."}</p>;
-  return (
-    <main className="auth-container">
-      <p><Link to="/admin/products">← Back to Products</Link></p>
-      <h1>Edit Product</h1>
-      <form onSubmit={saveDetails}>
-        <label>Name<input name="name" value={form.name} onChange={handleChange} required /></label>
-        <label>Description<textarea name="description" value={form.description} onChange={handleChange} required /></label>
-        <label>Category<input name="category" value={form.category} onChange={handleChange} required /></label>
-        <label>Price (₹)<input name="price" type="number" min="0.01" step="0.01" value={form.price} onChange={handleChange} required /></label>
-        <label>Stock<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
-        <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Details"}</button>
-      </form>
-      {error && <p role="alert">{error}</p>}
-      <hr />
-      <h2>Replace Image</h2>
-      {imageUrl && <img src={`${API_BASE_URL}${imageUrl}`} alt="Current product" width={200} />}
-      <form ref={imageFormRef} onSubmit={uploadImage}>
-        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setNewImage(e.target.files?.[0] || null)} required />
-        <button type="submit" disabled={uploading}>{uploading ? "Uploading..." : "Replace Image"}</button>
-      </form>
-      {imageMessage && <p role="status">{imageMessage}</p>}
-    </main>
-  );
+
+  if (loading) return <AdminLayout title="Edit Product"><div className="admin-empty">Loading product…</div></AdminLayout>;
+  if (!form) return <AdminLayout title="Edit Product"><p className="admin-alert" role="alert">{error || "Product not found."}</p></AdminLayout>;
+
+  return <AdminLayout title="Edit Product" subtitle="Update product details, stock, and catalogue imagery."
+    actions={<Link className="admin-secondary-action" to="/admin/products">Back to products</Link>}>
+    <div className="admin-edit-grid">
+      <section className="admin-panel admin-form-panel">
+        <div className="admin-panel-heading"><div><h2>Product details</h2><p>Changes apply to the live catalogue record.</p></div></div>
+        <form className="admin-form" onSubmit={saveDetails}>
+          <label>Name<input name="name" value={form.name} onChange={handleChange} required /></label>
+          <label>Description<textarea name="description" value={form.description} onChange={handleChange} required /></label>
+          <div className="admin-form-grid">
+            <label>Category<input name="category" value={form.category} onChange={handleChange} required /></label>
+            <label>Price (₹)<input name="price" type="number" min="0.01" step="0.01" value={form.price} onChange={handleChange} required /></label>
+            <label>Stock<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
+          </div>
+          <button className="admin-primary-action" type="submit" disabled={saving}>{saving ? "Saving…" : "Save Details"}</button>
+        </form>
+        {error && <p className="admin-alert" role="alert">{error}</p>}
+      </section>
+      <section className="admin-panel admin-image-panel">
+        <div className="admin-panel-heading"><div><h2>Product image</h2><p>JPG, PNG, or WebP up to 5 MB.</p></div></div>
+        {imageUrl && <img src={`${API_BASE_URL}${imageUrl}`} alt="Current product" />}
+        <form className="admin-form" ref={imageFormRef} onSubmit={uploadImage}>
+          <label>Replacement image<input type="file" accept="image/jpeg,image/png,image/webp"
+            onChange={(event) => setNewImage(event.target.files?.[0] || null)} required /></label>
+          <button className="admin-secondary-action" type="submit" disabled={uploading}>{uploading ? "Uploading…" : "Replace Image"}</button>
+        </form>
+        {imageMessage && <p className="admin-form-message" role="status">{imageMessage}</p>}
+      </section>
+    </div>
+  </AdminLayout>;
 }

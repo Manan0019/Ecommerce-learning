@@ -89,7 +89,7 @@ export default function Home() {
       </section>
 
       <section className="editorial-banner">
-        <p className="eyebrow">The Aurelia standard</p>
+        <p className="eyebrow">The Manan's Store standard</p>
         <h2>Fewer, better things.</h2>
         <p>We select useful, enduring products and present them with honest details, so every choice feels considered.</p>
         <Link className="button button-light" to="/about">Discover our approach</Link>

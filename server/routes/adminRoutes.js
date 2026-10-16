@@ -7,6 +7,28 @@ const router = Router();
 // Every route below requires an admin account.
 router.use(requireAdmin);
 
+// EXACT READ-ONLY DASHBOARD COUNTS
+router.get("/summary", async (_req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT
+         (SELECT COUNT(*)::int FROM products) AS product_count,
+         (SELECT COUNT(*)::int FROM products WHERE is_active = TRUE) AS active_product_count,
+         (SELECT COUNT(*)::int FROM users WHERE role = 'customer') AS customer_count`
+    );
+    return res.json({
+      summary: {
+        productCount: rows[0].product_count,
+        activeProductCount: rows[0].active_product_count,
+        customerCount: rows[0].customer_count
+      }
+    });
+  } catch (error) {
+    console.error("Admin summary error:", error);
+    return res.status(500).json({ message: "Could not load dashboard summary." });
+  }
+});
+
 // GET REGISTERED CUSTOMERS
 router.get("/customers", async (req, res) => {
   try {
