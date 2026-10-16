@@ -4,6 +4,7 @@ import {
   useLocation,
   Link
 } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 export default function CustomerLogin() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export default function CustomerLogin() {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/api/auth/login",
+        `${API_BASE_URL}/api/auth/login`,
         {
           method: "POST",
 

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+import { API_BASE_URL } from "../config/api";
+import StoreFooter from "../components/StoreFooter";
 import StoreHeader from "../components/StoreHeader";
-const API = "http://localhost:4000";
+import { useCart } from "../context/CartContext";
+
 export default function ProductDetails() {
   const { id } = useParams();
   return <ProductDetailsContent key={id} id={id} />;
@@ -15,39 +17,84 @@ function ProductDetailsContent({ id }) {
   const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+
   useEffect(() => {
     const controller = new AbortController();
-    async function load() {
+    async function loadProduct() {
       try {
-        const response = await fetch(`${API}/api/products/${id}`, { signal: controller.signal });
+        const response = await fetch(`${API_BASE_URL}/api/products/${id}`, { signal: controller.signal });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
         setProduct(data.product);
-      } catch (err) { if (err.name !== "AbortError") setError(err.message); }
-      finally { if (!controller.signal.aborted) setLoading(false); }
+      } catch (requestError) {
+        if (requestError.name !== "AbortError") setError(requestError.message);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
     }
-    load(); return () => controller.abort();
+    loadProduct();
+    return () => controller.abort();
   }, [id]);
-  return <main className="store-container"><StoreHeader /><p><Link to="/products">← Back to Products</Link></p>
-    {loading && <p>Loading product...</p>}
-    {error && <p role="alert" className="store-alert">{error}</p>}
-    {product && <div className="product-detail">
-      {product.imageUrl ? <img src={`${API}${product.imageUrl}`} alt={product.name} /> : <div>No image</div>}
-      <div><small>{product.category}</small><h1>{product.name}</h1>
-        <h2>₹{Number(product.price).toFixed(2)}</h2><p>{product.description}</p>
-        <p>Available stock: {product.stock}</p>
-        <label htmlFor="product-quantity">Quantity </label>
-        <input id="product-quantity" type="number" min="1" max={Math.min(99, product.stock)}
-          value={quantity} disabled={product.stock === 0}
-          onChange={event => {
-            const n = Number(event.target.value);
-            if (Number.isInteger(n) && n >= 1 && n <= Math.min(99, product.stock)) setQuantity(n);
-          }} />
-        <button type="button" disabled={product.stock === 0} onClick={() => { addToCart(product.id, quantity); setAdded(true); }}>
-          {product.stock === 0 ? "Out of stock" : "Add to cart"}
-        </button>
-        {added && <p role="status">Added to cart! <Link to="/cart">View cart</Link></p>}
-      </div>
-    </div>}
-  </main>;
+
+  function addProduct() {
+    addToCart(product.id, quantity);
+    setAdded(true);
+  }
+
+  return <div className="storefront">
+    <StoreHeader />
+    <main className="product-page">
+      <nav className="breadcrumbs" aria-label="Breadcrumb">
+        <Link to="/">Home</Link><span aria-hidden="true">/</span><Link to="/products">Shop</Link>
+        {product && <><span aria-hidden="true">/</span><span>{product.name}</span></>}
+      </nav>
+      {loading && <div className="detail-skeleton" aria-label="Loading product" />}
+      {error && <p role="alert" className="store-alert">{error}</p>}
+      {product && <article className="product-detail">
+        <div className="product-detail-media">
+          {product.imageUrl
+            ? <img src={`${API_BASE_URL}${product.imageUrl}`} alt={product.name} />
+            : <div className="missing-image">Image coming soon</div>}
+        </div>
+        <div className="product-detail-copy">
+          <p className="eyebrow">{product.category}</p>
+          <h1>{product.name}</h1>
+          <p className="detail-price">₹{Number(product.price).toFixed(2)}</p>
+          <p className="detail-description">{product.description}</p>
+          <div className={`stock-status ${product.stock > 0 ? "in-stock" : "out-of-stock"}`}>
+            <span />{product.stock > 0 ? `${product.stock} available` : "Currently unavailable"}
+          </div>
+          <div className="purchase-panel">
+            <label htmlFor="product-quantity">Quantity</label>
+            <div className="purchase-row">
+              <div className="quantity-picker">
+                <button type="button" aria-label="Decrease quantity" disabled={quantity <= 1}
+                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</button>
+                <input id="product-quantity" type="number" min="1" max={Math.min(99, product.stock)}
+                  value={quantity} disabled={product.stock === 0}
+                  onChange={(event) => {
+                    const next = Number(event.target.value);
+                    if (Number.isInteger(next) && next >= 1 && next <= Math.min(99, product.stock)) setQuantity(next);
+                  }} />
+                <button type="button" aria-label="Increase quantity"
+                  disabled={product.stock === 0 || quantity >= Math.min(99, product.stock)}
+                  onClick={() => setQuantity((value) => Math.min(product.stock, 99, value + 1))}>+</button>
+              </div>
+              <button className="button button-primary add-cart-button" type="button"
+                disabled={product.stock === 0} onClick={addProduct}>
+                {product.stock === 0 ? "Out of stock" : "Add to cart"}
+              </button>
+            </div>
+            {added && <p className="added-message" role="status">Added to your cart. <Link to="/cart">View cart →</Link></p>}
+          </div>
+          <ul className="product-assurances">
+            <li><span>✓</span> Secure customer session</li>
+            <li><span>✓</span> Live price and stock</li>
+            <li><span>✓</span> Carefully selected quality</li>
+          </ul>
+        </div>
+      </article>}
+    </main>
+    <StoreFooter />
+  </div>;
 }

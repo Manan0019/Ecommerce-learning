@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 export default function CustomerDashboard() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export default function CustomerDashboard() {
     async function loadProfile() {
       try {
         const response = await fetch(
-          "http://localhost:4000/api/auth/me",
+          `${API_BASE_URL}/api/auth/me`,
           {
             credentials: "include",
             signal: controller.signal
@@ -71,7 +72,7 @@ export default function CustomerDashboard() {
     setSavingName(true);
     setNameMessage("");
     try {
-      const response = await fetch("http://localhost:4000/api/auth/profile/name", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile/name`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -101,7 +102,7 @@ export default function CustomerDashboard() {
       if (passwords.newPassword !== passwords.confirmPassword) {
         throw new Error("New passwords do not match.");
       }
-      const response = await fetch("http://localhost:4000/api/auth/profile/password", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile/password`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -129,7 +130,7 @@ export default function CustomerDashboard() {
   async function handleLogout() {
     try {
       const response = await fetch(
-        "http://localhost:4000/api/auth/logout",
+        `${API_BASE_URL}/api/auth/logout`,
         {
           method: "POST",
           credentials: "include"
@@ -166,7 +167,7 @@ export default function CustomerDashboard() {
       {user.profileImageUrl ? (
         <img
           className="profile-image"
-          src={`http://localhost:4000${user.profileImageUrl}`}
+          src={`${API_BASE_URL}${user.profileImageUrl}`}
           alt={`${user.fullName}'s profile`}
         />
       ) : <div className="profile-image profile-placeholder" aria-label="No profile image">No image</div>}

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 export default function AddProduct() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export default function AddProduct() {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/api/admin/products",
+        `${API_BASE_URL}/api/admin/products`,
         {
           method: "POST",
           credentials: "include",

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
-const API = "http://localhost:4000";
 export default function EditProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export default function EditProduct() {
     const controller = new AbortController();
     async function load() {
       try {
-        const response = await fetch(`${API}/api/admin/products/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/admin/products/${id}`, {
           credentials: "include", signal: controller.signal
         });
         if (response.status === 401 || response.status === 403) {
@@ -49,7 +49,7 @@ export default function EditProduct() {
   async function saveDetails(event) {
     event.preventDefault(); setSaving(true); setError("");
     try {
-      const response = await fetch(`${API}/api/admin/products/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/products/${id}`, {
         method: "PUT", credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, stock: Number(form.stock) })
@@ -70,7 +70,7 @@ export default function EditProduct() {
     formData.append("image", newImage);
     setUploading(true); setImageMessage("");
     try {
-      const response = await fetch(`${API}/api/admin/products/${id}/image`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/products/${id}/image`, {
         method: "PUT", credentials: "include", body: formData
       });
       if (response.status === 401 || response.status === 403) {
@@ -102,7 +102,7 @@ export default function EditProduct() {
       {error && <p role="alert">{error}</p>}
       <hr />
       <h2>Replace Image</h2>
-      {imageUrl && <img src={`${API}${imageUrl}`} alt="Current product" width={200} />}
+      {imageUrl && <img src={`${API_BASE_URL}${imageUrl}`} alt="Current product" width={200} />}
       <form ref={imageFormRef} onSubmit={uploadImage}>
         <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setNewImage(e.target.files?.[0] || null)} required />
         <button type="submit" disabled={uploading}>{uploading ? "Uploading..." : "Replace Image"}</button>

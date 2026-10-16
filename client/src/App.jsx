@@ -12,6 +12,8 @@ import EditProduct from "./pages/EditProduct";
 import ProductList from "./pages/ProductList";
 import ProductDetails from "./pages/ProductDetails";
 import CartPage from "./pages/CartPage";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 import "./App.css";
 
 export default function App() {
@@ -29,6 +31,8 @@ export default function App() {
     <Route path="/products" element={<ProductList />} />
     <Route path="/products/:id" element={<ProductDetails />} />
     <Route path="/cart" element={<CartPage />} />
+    <Route path="/about" element={<About />} />
+    <Route path="/contact" element={<Contact />} />
     <Route path="*" element={<p>Page not found.</p>} />
   </Routes></BrowserRouter></CartProvider>;
 }

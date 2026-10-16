@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
-const API = "http://localhost:4000";
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [admin, setAdmin] = useState(null);
@@ -13,13 +13,13 @@ export default function AdminDashboard() {
     async function load() {
       try {
         const config = { credentials: "include", signal: controller.signal };
-        const profile = await fetch(`${API}/api/admin/me`, config);
+        const profile = await fetch(`${API_BASE_URL}/api/admin/me`, config);
         if (profile.status === 401 || profile.status === 403) {
           navigate("/login", { replace: true }); return;
         }
         if (!profile.ok) throw new Error("Failed to load admin profile.");
         const adminData = await profile.json();
-        const response = await fetch(`${API}/api/admin/customers`, config);
+        const response = await fetch(`${API_BASE_URL}/api/admin/customers`, config);
         if (response.status === 401 || response.status === 403) {
           navigate("/login", { replace: true }); return;
         }
@@ -41,7 +41,7 @@ export default function AdminDashboard() {
   async function logout() {
     setError("");
     try {
-      const response = await fetch(`${API}/api/auth/logout`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: "POST", credentials: "include"
       });
       if (!response.ok) throw new Error("Logout failed.");

@@ -41,6 +41,8 @@ export function CartProvider({ children }) {
     {children}
   </Context.Provider>;
 }
+// Kept beside the provider to preserve the existing public CartContext API.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCart() {
   const cart = useContext(Context);
   if (!cart) throw new Error("useCart must be inside CartProvider");

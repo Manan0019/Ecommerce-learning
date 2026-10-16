@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 export default function CustomerSignup() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export default function CustomerSignup() {
       if (profileImage) body.append("profileImage", profileImage);
 
       const response = await fetch(
-        "http://localhost:4000/api/auth/signup",
+        `${API_BASE_URL}/api/auth/signup`,
         {
           method: "POST",
 
