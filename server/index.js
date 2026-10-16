@@ -4,6 +4,7 @@ import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pool from "./config/db.js";
+import { runMigrations } from "./config/migrations.js";
 import { sessionMiddleware } from "./config/session.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -45,6 +46,7 @@ app.use((error, _req, res, _next) => {
 });
 async function start() {
   try {
+    await runMigrations(pool);
     await pool.query("SELECT 1");
     app.listen(PORT, () => console.log(`Express running at http://localhost:${PORT}`));
   } catch (error) {
