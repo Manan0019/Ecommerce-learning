@@ -1,18 +1,18 @@
 import { Link } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
+import { SITE_NAME } from "../../config/site";
 
 export default function About() {
   return <CustomerLayout mainClassName="content-page">
-      <header className="page-hero">
-        <p className="eyebrow">About Manan&apos;s Electronics</p>
-        <h1>Technology should be easier to understand.</h1>
-        <p>We organize electronics around clear specifications, current availability, and practical product information.</p>
-      </header>
-      <section className="story-grid">
-        <article><span>01</span><h2>Clear comparisons</h2><p>Structured specifications help customers compare compatible devices and meaningful features.</p></article>
-        <article><span>02</span><h2>Real inventory</h2><p>Every listing, image, price, and stock value comes directly from the live store catalogue.</p></article>
-        <article><span>03</span><h2>Focused support</h2><p>Our catalogue is designed to make product research straightforward before and after purchase.</p></article>
-      </section>
-      <section className="content-callout"><div><p className="eyebrow">Explore the edit</p><h2>Find something made for your everyday.</h2></div><Link className="button button-light" to="/products">Shop now</Link></section>
+    <header className="page-hero"><p className="eyebrow">Welcome to {SITE_NAME}</p>
+      <h1>Discover more, every day.</h1>
+      <p>From everyday essentials to the things you love, our demo marketplace brings different product categories into one easy-to-browse experience.</p>
+    </header>
+    <section className="story-grid">
+      <article><span>01</span><h2>Explore by category</h2><p>Find clothing, electronics, home goods, beauty and more through one organized catalogue.</p></article>
+      <article><span>02</span><h2>Useful product details</h2><p>See configurations, photos and prices directly from our local store database.</p></article>
+      <article><span>03</span><h2>Clear cart totals</h2><p>Build a cart and see current prices and stock. Checkout and payments are not enabled in this demo.</p></article>
+    </section>
+    <section className="content-callout"><div><p className="eyebrow">Shop your way</p><h2>A collection for all your interests.</h2></div><Link className="button button-light" to="/products">Explore products</Link></section>
   </CustomerLayout>;
 }

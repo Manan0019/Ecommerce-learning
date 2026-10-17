@@ -59,7 +59,7 @@ export default function CustomerSignup() {
     }
   }
 
-  return <AuthLayout eyebrow="Create your account" title="Join the future of tech."
+  return <AuthLayout eyebrow="Create your account" title="A little of everything starts here."
     description="Create your account.">
       <form className="auth-form auth-signup-form" onSubmit={handleSubmit}>
         <label className="auth-field" htmlFor="signup-name"><span>Full name</span>

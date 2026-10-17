@@ -17,7 +17,7 @@ export default function AdminSidebar({ admin, isOpen, onClose, onLogout }) {
 
   return <aside id="admin-sidebar" className={`admin-sidebar ${isOpen ? "is-open" : ""}`}>
     <Link className="admin-brand" to="/admin/dashboard" onClick={onClose}>
-      <span className="admin-brand-mark">M</span>
+      <span className="admin-brand-mark">N</span>
       <span><strong>{SITE_NAME}</strong><small>Administration</small></span>
     </Link>
     <nav className="admin-nav" aria-label="Admin navigation">

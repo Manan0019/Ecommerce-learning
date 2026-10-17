@@ -10,18 +10,12 @@ export default function AuthLayout({ eyebrow, title, description, children, comp
       </Link>
 
       <div className="auth-visual-copy">
-        <p>Designed for what&apos;s next</p>
-        <h2>Your next tech upgrade starts here.</h2>
-        <span>Discover devices with clear specifications and live availability.</span>
+        <p>Curated for everyday life</p>
+        <h2>Discover something you’ll love.</h2>
+        <span>Explore styles, gadgets, home essentials and more—all in one place.</span>
       </div>
 
-      <div className="auth-tech-scene" aria-hidden="true">
-        <span className="auth-orbit auth-orbit-one" />
-        <span className="auth-orbit auth-orbit-two" />
-        <div className="auth-device auth-device-screen"><span /></div>
-        <div className="auth-device auth-device-phone"><span /><i /></div>
-        <span className="auth-glow" />
-      </div>
+      <div className="nx-auth-art" aria-hidden="true"><span>find.</span><span>love.</span><span>repeat.</span></div>
     </section>
 
     <section className="auth-form-panel">

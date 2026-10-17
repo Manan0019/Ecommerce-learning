@@ -3,25 +3,14 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { SITE_NAME } from "../../config/site";
 import { useCart } from "../../hooks/useCart";
 import { apiAssetUrl } from "../../services/apiClient";
-import {
-  getCurrentUser,
-  logout as endSession,
-} from "../../services/authService";
+import { getCurrentUser, logout as endSession } from "../../services/authService";
 
 function SearchIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24">
-      <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
-    </svg>
-  );
+  return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" /></svg>;
 }
 
 function CartIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24">
-      <path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20 8H6m4 12h.01M17 20h.01" />
-    </svg>
-  );
+  return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20 8H6m4 12h.01M17 20h.01" /></svg>;
 }
 
 export default function StoreHeader() {
@@ -39,11 +28,9 @@ export default function StoreHeader() {
     async function loadUser() {
       try {
         const data = await getCurrentUser(controller.signal);
-        if (data.user?.role === "customer" || data.user?.role === "admin")
-          setUser(data.user);
+        if (data.user?.role === "customer" || data.user?.role === "admin") setUser(data.user);
       } catch (error) {
-        if (error.name !== "AbortError")
-          setAuthError("Account status is unavailable.");
+        if (error.name !== "AbortError") setAuthError("Account status is unavailable.");
       }
     }
     loadUser();
@@ -56,11 +43,8 @@ export default function StoreHeader() {
         setProfileOpen(false);
         setMobileOpen(false);
       }
-      if (
-        event.type === "pointerdown" &&
-        profileRef.current &&
-        !profileRef.current.contains(event.target)
-      ) {
+      if (event.type === "pointerdown" && profileRef.current &&
+          !profileRef.current.contains(event.target)) {
         setProfileOpen(false);
       }
     }
@@ -75,11 +59,7 @@ export default function StoreHeader() {
   function submitSearch(event) {
     event.preventDefault();
     const cleanQuery = query.trim();
-    navigate(
-      cleanQuery
-        ? `/products?q=${encodeURIComponent(cleanQuery)}`
-        : "/products",
-    );
+    navigate(cleanQuery ? `/products?q=${encodeURIComponent(cleanQuery)}` : "/products");
     setMobileOpen(false);
   }
 
@@ -102,149 +82,66 @@ export default function StoreHeader() {
     .join("")
     .toUpperCase();
 
-  return (
-    <header className="store-header">
-      <div className="navbar">
-        <Link className="brand" to="/" aria-label={`${SITE_NAME} home`}>
-          <span className="brand-mark">M</span>
-          <span>{SITE_NAME}</span>
+  return <header className="store-header">
+    <div className="navbar">
+      <Link className="brand" to="/" aria-label={`${SITE_NAME} home`}>
+        <span className="brand-mark">N</span>
+        <span>{SITE_NAME}</span>
+      </Link>
+
+      <button
+        className="mobile-menu-button"
+        type="button"
+        aria-label="Toggle navigation"
+        aria-expanded={mobileOpen}
+        aria-controls="store-navigation"
+        onClick={() => setMobileOpen((open) => !open)}
+      >
+        <span /><span /><span />
+      </button>
+
+      <div id="store-navigation" className={`nav-panel ${mobileOpen ? "is-open" : ""}`}>
+        <nav className="store-nav" aria-label="Primary navigation">
+          <NavLink to="/" end onClick={() => setMobileOpen(false)}>Home</NavLink>
+          <NavLink to="/products" onClick={() => setMobileOpen(false)}>Shop</NavLink>
+          <Link to="/#categories" onClick={() => setMobileOpen(false)}>Categories</Link>
+          <NavLink to="/about" onClick={() => setMobileOpen(false)}>About Us</NavLink>
+          <NavLink to="/contact" onClick={() => setMobileOpen(false)}>Contact Us</NavLink>
+        </nav>
+
+        <form className="nav-search" role="search" onSubmit={submitSearch}>
+          <label className="sr-only" htmlFor="nav-search-input">Search products</label>
+          <input id="nav-search-input" type="search" placeholder="Search products" value={query}
+            onChange={(event) => setQuery(event.target.value)} />
+          <button type="submit" aria-label="Search"><SearchIcon /></button>
+        </form>
+      </div>
+
+      <div className="nav-actions">
+        {user?.role === "admin" && <Link className="admin-return-link" to="/admin/dashboard">Admin Dashboard</Link>}
+        <Link className="wishlist-header-link" to="/wishlist" aria-label="Wishlist">♡ <span>Wishlist</span></Link>
+        <Link className="cart-link" to="/cart" aria-label={`Cart with ${itemCount} items`}>
+          <CartIcon />
+          {itemCount > 0 && <span className="cart-count">{itemCount > 99 ? "99+" : itemCount}</span>}
         </Link>
 
-        <button
-          className="mobile-menu-button"
-          type="button"
-          aria-label="Toggle navigation"
-          aria-expanded={mobileOpen}
-          aria-controls="store-navigation"
-          onClick={() => setMobileOpen((open) => !open)}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
-
-        <div
-          id="store-navigation"
-          className={`nav-panel ${mobileOpen ? "is-open" : ""}`}
-        >
-          <nav className="store-nav" aria-label="Primary navigation">
-            <NavLink to="/" end onClick={() => setMobileOpen(false)}>
-              Home
-            </NavLink>
-            <NavLink to="/products" onClick={() => setMobileOpen(false)}>
-              Shop
-            </NavLink>
-            <Link to="/#categories" onClick={() => setMobileOpen(false)}>
-              Categories
-            </Link>
-            <NavLink to="/about" onClick={() => setMobileOpen(false)}>
-              About Us
-            </NavLink>
-            <NavLink to="/contact" onClick={() => setMobileOpen(false)}>
-              Contact Us
-            </NavLink>
-          </nav>
-
-          <form className="nav-search" role="search" onSubmit={submitSearch}>
-            <label className="sr-only" htmlFor="nav-search-input">
-              Search products
-            </label>
-            <input
-              id="nav-search-input"
-              type="search"
-              placeholder="Search products"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-            <button type="submit" aria-label="Search">
-              <SearchIcon />
-            </button>
-          </form>
-        </div>
-
-        <div className="nav-actions">
-          {user?.role === "admin" && (
-            <Link className="admin-return-link" to="/admin/dashboard">
-              Admin Dashboard
-            </Link>
-          )}
-          <Link
-            className="wishlist-header-link"
-            to="/wishlist"
-            aria-label="Wishlist"
-          >
-            ♡ <span>Wishlist</span>
-          </Link>
-          <Link
-            className="cart-link"
-            to="/cart"
-            aria-label={`Cart with ${itemCount} items`}
-          >
-            <CartIcon />
-            {itemCount > 0 && (
-              <span className="cart-count">
-                {itemCount > 99 ? "99+" : itemCount}
-              </span>
-            )}
-          </Link>
-
-          {user ? (
-            <div className="profile-menu" ref={profileRef}>
-              <button
-                className="avatar-button"
-                type="button"
-                aria-label="Open account menu"
-                aria-haspopup="menu"
-                aria-expanded={profileOpen}
-                onClick={() => setProfileOpen((open) => !open)}
-              >
-                {user.profileImageUrl ? (
-                  <img src={apiAssetUrl(user.profileImageUrl)} alt="" />
-                ) : (
-                  <span>{initials || "U"}</span>
-                )}
-              </button>
-              {profileOpen && (
-                <div className="profile-dropdown" role="menu">
-                  <p>{user.fullName}</p>
-                  {user.role === "admin" ? (
-                    <Link
-                      role="menuitem"
-                      to="/admin/dashboard"
-                      onClick={() => setProfileOpen(false)}
-                    >
-                      Back to Admin Dashboard
-                    </Link>
-                  ) : (
-                    <Link
-                      role="menuitem"
-                      to="/dashboard"
-                      onClick={() => setProfileOpen(false)}
-                    >
-                      My Profile
-                    </Link>
-                  )}
-                  <Link
-                    role="menuitem"
-                    to="/wishlist"
-                    onClick={() => setProfileOpen(false)}
-                  >
-                    Wishlist
-                  </Link>
-                  <button role="menuitem" type="button" onClick={logout}>
-                    Logout
-                  </button>
-                  {authError && <small role="alert">{authError}</small>}
-                </div>
-              )}
-            </div>
-          ) : (
-            <Link className="login-button" to="/login">
-              Login
-            </Link>
-          )}
-        </div>
+        {user ? <div className="profile-menu" ref={profileRef}>
+          <button className="avatar-button" type="button" aria-label="Open account menu"
+            aria-haspopup="menu" aria-expanded={profileOpen}
+            onClick={() => setProfileOpen((open) => !open)}>
+            {user.profileImageUrl
+              ? <img src={apiAssetUrl(user.profileImageUrl)} alt="" />
+              : <span>{initials || "U"}</span>}
+          </button>
+          {profileOpen && <div className="profile-dropdown" role="menu">
+            <p>{user.fullName}</p>
+            {user.role === "admin" ? <Link role="menuitem" to="/admin/dashboard" onClick={() => setProfileOpen(false)}>Back to Admin Dashboard</Link> : <Link role="menuitem" to="/dashboard" onClick={() => setProfileOpen(false)}>My Profile</Link>}
+            <Link role="menuitem" to="/wishlist" onClick={() => setProfileOpen(false)}>Wishlist</Link>
+            <button role="menuitem" type="button" onClick={logout}>Logout</button>
+            {authError && <small role="alert">{authError}</small>}
+          </div>}
+        </div> : <Link className="login-button" to="/login">Login</Link>}
       </div>
-    </header>
-  );
+    </div>
+  </header>;
 }

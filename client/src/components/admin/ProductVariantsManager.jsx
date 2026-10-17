@@ -1,57 +1,115 @@
-import {useEffect,useState} from "react";
-import {createVariant,getVariants,updateVariant} from "../../services/variantService";
-import {validateVariantDrafts} from "./variantDraftValidation";
-import {updatePricingDraft,discountFromPrices} from "./variantPricing";
+import { useEffect, useState } from "react";
+import Modal from "../common/Modal";
+import { createVariant, getVariants, updateVariant } from "../../services/variantService";
+import { validateVariantDrafts } from "./variantDraftValidation";
+import { updatePricingDraft, discountFromPrices } from "./variantPricing";
 import DraftVariants from "./DraftVariants";
 import VariantPriceFields from "./VariantPriceFields";
-const empty=()=>({sku:"",attributesText:"",mrp:"",price:"",stock:"0",isActive:true,pricingMode:"price"});
-function parseAttributes(text){const attrs={};for(const line of text.split("\n")){
- if(!line.trim())continue;const pos=line.indexOf(":");if(pos<1)throw Error("Use Option: Value on every line.");
- const key=line.slice(0,pos).trim().toLowerCase().replace(/\s+/g,"_");const value=line.slice(pos+1).trim();
- if(!/^[a-z][a-z0-9_]{0,39}$/.test(key)||!value||key in attrs)throw Error("Invalid or duplicate option group.");attrs[key]=value;
- }return attrs;}
-export default function ProductVariantsManager({productId}){
- const [variants,setVariants]=useState([]),[form,setForm]=useState(empty),[editing,setEditing]=useState(null);
- const [drafts,setDrafts]=useState([]),[message,setMessage]=useState(""),[busy,setBusy]=useState(false);
- async function refresh(){const result=await getVariants(productId,true);setVariants(result.variants);}
- useEffect(()=>{let active=true;getVariants(productId,true).then(d=>{if(active)setVariants(d.variants);}).catch(e=>{if(active)setMessage(e.message);});return()=>{active=false};},[productId]);
- function edit(v){setEditing(v.id);setForm({sku:v.sku,price:String(v.price),mrp:String(v.mrp??v.price),
-  discount:discountFromPrices(String(v.mrp??v.price),String(v.price)),pricingMode:"price",stock:String(v.stock),isActive:v.isActive,
-  attributesText:Object.entries(v.attributes).map(([k,value])=>`${k}: ${value}`).join("\n")});}
- async function save(event){event.preventDefault();setBusy(true);setMessage("");try{
-  const attributes=parseAttributes(form.attributesText);
-  const data=validateVariantDrafts([{...form,key:"edited" ,attributesText:form.attributesText,attributes}])[0];
-  const body={sku:data.sku,attributes:data.attributes,mrp:data.mrp,price:data.price,stock:Number(data.stock),isActive:data.isActive};
-  if(editing)await updateVariant(productId,editing,body);else await createVariant(productId,body);
-  await refresh();setForm(empty());setEditing(null);setMessage("SKU saved.");
- }catch(e){setMessage(e.message);}finally{setBusy(false);}}
- async function saveDrafts(){setMessage("");let validated;try{validated=validateVariantDrafts(drafts);}catch(e){setMessage(e.message);return;}
-  setBusy(true);const failed=[];
-  for(const row of validated){try{await createVariant(productId,{sku:row.sku,attributes:row.attributes,mrp:row.mrp,price:row.price,
-    stock:Number(row.stock),isActive:row.isActive});}catch(e){failed.push({...row,error:e.message});}}
-  setDrafts(failed);try{await refresh();}catch(e){setMessage(e.message);}
-  setMessage(failed.length?`${validated.length-failed.length} saved; ${failed.length} failed. Please correct the remaining drafts.`:`${validated.length} SKU(s) saved.`);
-  setBusy(false);
- }
- return <section className="admin-panel"><div className="admin-panel-heading"><div><h2>Product variants</h2><p>Every SKU has its own option combination, MRP, selling price and stock.</p></div></div>
-  <div className="variant-admin-list">{variants.map(v=><div key={v.id} className="variant-admin-row">
-    <strong>{v.sku}</strong><span>{Object.entries(v.attributes).map(([k,val])=>`${k}: ${val}`).join(" · ")}</span>
-    <span>₹{v.price} <s>₹{v.mrp}</s></span><span>Stock {v.stock}</span><span>{v.isActive?"Active":"Inactive"}</span>
-    <button type="button" disabled={busy} onClick={()=>edit(v)}>Edit SKU</button></div>)}</div>
-  <form className="admin-form" onSubmit={save}>
-   <h3>{editing?"Edit existing SKU":"Add one SKU"}</h3>
-   <div className="admin-form-grid two-column">
-    <label>SKU<input required value={form.sku} onChange={e=>setForm(x=>({...x,sku:e.target.value}))}/></label>
-    <label>Stock<input type="number" min="0" step="1" required value={form.stock} onChange={e=>setForm(x=>({...x,stock:e.target.value}))}/></label>
-   </div>
-   <VariantPriceFields row={form} disabled={busy} onFieldChange={(field,value)=>setForm(x=>updatePricingDraft(x,field,value))}/>
-   <label>Options (one per line, e.g. Color: Black)<textarea value={form.attributesText} onChange={e=>setForm(x=>({...x,attributesText:e.target.value}))}/></label>
-   <label><input type="checkbox" checked={form.isActive} onChange={e=>setForm(x=>({...x,isActive:e.target.checked}))}/> Active</label>
-   <button type="submit" disabled={busy}>{busy?"Saving...":editing?"Update SKU":"Add SKU"}</button>
-   {editing&&<button type="button" onClick={()=>{setEditing(null);setForm(empty());}}>Cancel edit</button>}
-  </form>
-  <DraftVariants variants={drafts} onChange={setDrafts} disabled={busy} existingVariants={variants}/>
-  {drafts.length>0&&<button type="button" disabled={busy} onClick={saveDrafts}>{busy?"Saving...":`Save ${drafts.length} generated SKU(s)`}</button>}
-  {message&&<p role="status" className="admin-form-message">{message}</p>}
- </section>;
+
+const newForm = () => ({ sku: "", attributesText: "", mrp: "", price: "", stock: "0", isActive: true, pricingMode: "price" });
+const money = value => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+function parseAttributes(text) {
+  const attrs = {};
+  for (const line of text.split("\n")) {
+    if (!line.trim()) continue;
+    const colon = line.indexOf(":");
+    if (colon < 1) throw new Error("Enter one option per line as Option: Value.");
+    const key = line.slice(0, colon).trim().toLowerCase().replace(/\s+/g, "_");
+    const value = line.slice(colon + 1).trim();
+    if (!/^[a-z][a-z0-9_]{0,39}$/.test(key) || !value || key in attrs) throw new Error("Invalid or repeated option value.");
+    attrs[key] = value;
+  }
+  return attrs;
+}
+
+export default function ProductVariantsManager({ productId }) {
+  const [variants, setVariants] = useState([]);
+  const [form, setForm] = useState(newForm);
+  const [editing, setEditing] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [drafts, setDrafts] = useState([]);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function refresh() { const result = await getVariants(productId, true); setVariants(result.variants || []); }
+  useEffect(() => {
+    let active = true;
+    getVariants(productId, true).then(d => { if (active) setVariants(d.variants || []); })
+      .catch(e => { if (active) setError(e.message); });
+    return () => { active = false; };
+  }, [productId]);
+
+  function beginEdit(variant) {
+    setEditing(variant.id);
+    setForm({ sku: variant.sku, price: String(variant.price), mrp: String(variant.mrp ?? variant.price),
+      discount: discountFromPrices(String(variant.mrp ?? variant.price), String(variant.price)),
+      pricingMode: "price", stock: String(variant.stock), isActive: variant.isActive,
+      attributesText: Object.entries(variant.attributes || {}).map(([key,value]) => `${key}: ${value}`).join("\n") });
+    setError(""); setModalOpen(true);
+  }
+  function beginAdd() { setEditing(null); setForm(newForm()); setError(""); setModalOpen(true); }
+
+  async function saveOne(event) {
+    event.preventDefault(); setBusy(true); setError("");
+    try {
+      const attributes = parseAttributes(form.attributesText);
+      const data = validateVariantDrafts([{ ...form, key: "edited", attributes }])[0];
+      const body = { sku: data.sku, attributes: data.attributes, mrp: data.mrp, price: data.price, stock: Number(data.stock), isActive: data.isActive };
+      if (editing) await updateVariant(productId, editing, body);
+      else await createVariant(productId, body);
+      await refresh(); setModalOpen(false); setEditing(null); setForm(newForm());
+      setMessage("SKU saved successfully.");
+    } catch (err) { setError(err.message); }
+    finally { setBusy(false); }
+  }
+
+  async function saveDrafts() {
+    setError(""); setMessage(""); let checked;
+    try { checked = validateVariantDrafts(drafts); } catch (err) { setError(err.message); return; }
+    setBusy(true);
+    const failed = [];
+    for (const row of checked) {
+      try { await createVariant(productId, { sku: row.sku, attributes: row.attributes, mrp: row.mrp, price: row.price, stock: Number(row.stock), isActive: row.isActive }); }
+      catch (err) { failed.push({ ...row, error: err.message }); }
+    }
+    setDrafts(failed);
+    try { await refresh(); } catch (err) { setError(err.message); }
+    setMessage(failed.length ? `${checked.length - failed.length} saved, ${failed.length} failed. Review the remaining drafts.` : `${checked.length} SKU(s) created successfully.`);
+    setBusy(false);
+  }
+
+  return <section className="admin-panel nx-variant-panel">
+    <div className="admin-panel-heading"><div><h2>SKUs & inventory</h2><p>Each configuration has independent pricing and stock.</p></div>
+      <button type="button" className="admin-primary-action" onClick={beginAdd}>+ Add a SKU</button></div>
+    {message && <p role="status" className="admin-form-message">{message}</p>}
+    {error && !modalOpen && <p role="alert" className="admin-alert">{error}</p>}
+    {variants.length === 0 ? <div className="admin-empty">No saved SKUs yet. Add one manually or generate a collection below.</div> :
+      <div className="nx-sku-list">
+        <div className="nx-sku-head"><span>Configuration</span><span>Pricing</span><span>Inventory</span><span></span></div>
+        {variants.map(v => <div className="nx-sku-row" key={v.id}>
+          <div><strong>{v.sku}</strong><small>{Object.entries(v.attributes || {}).map(([k,value]) => `${k.replaceAll("_", " ")}: ${value}`).join(" · ") || "Default configuration"}</small></div>
+          <div><strong>{money(v.price)}</strong><small>MRP {money(v.mrp ?? v.price)}</small></div>
+          <div><strong>{v.stock} units</strong><small>{v.isActive ? "Active" : "Inactive"}</small></div>
+          <button className="nx-edit-button" type="button" onClick={() => beginEdit(v)}>Edit ↗</button>
+        </div>)}
+      </div>}
+    <details className="nx-generator-details"><summary><span><strong>Generate multiple SKU combinations</strong><small>Colors × sizes × storage, and any other option groups</small></span><span>Expand ↓</span></summary>
+      <DraftVariants variants={drafts} onChange={setDrafts} disabled={busy} existingVariants={variants} />
+      {drafts.length > 0 && <button type="button" className="admin-primary-action" disabled={busy} onClick={saveDrafts}>{busy ? "Saving…" : `Save ${drafts.length} generated SKU(s)`}</button>}
+    </details>
+    {modalOpen && <Modal title={editing ? "Edit SKU" : "Add a SKU"} subtitle="Change this configuration without scrolling through other variants." size="medium"
+      onClose={() => { if (!busy) { setModalOpen(false); setError(""); } }} closeDisabled={busy}>
+      <form className="admin-form nx-sku-form" onSubmit={saveOne}>
+        <div className="admin-form-grid two-column"><label>SKU<input required maxLength={80} value={form.sku} onChange={e => setForm(old => ({ ...old, sku: e.target.value }))}/></label>
+          <label>Stock units<input type="number" min="0" step="1" required value={form.stock} onChange={e => setForm(old => ({ ...old, stock: e.target.value }))}/></label></div>
+        <VariantPriceFields row={form} disabled={busy} onFieldChange={(field,value) => setForm(old => updatePricingDraft(old, field, value))}/>
+        <label>Option values <small>One per line, like Color: Midnight</small><textarea rows={4} value={form.attributesText} onChange={e => setForm(old => ({ ...old, attributesText: e.target.value }))} placeholder={"Color: Midnight\nRAM: 16 GB\nStorage: 1 TB"}/></label>
+        <label className="nx-inline-checkbox"><input type="checkbox" checked={form.isActive} onChange={e => setForm(old => ({ ...old, isActive: e.target.checked }))}/> SKU active for customers</label>
+        {error && <p className="admin-alert" role="alert">{error}</p>}
+        <div className="nx-sticky-actions"><button className="admin-primary-action" type="submit" disabled={busy}>{busy ? "Saving…" : "Save SKU"}</button>
+          <button type="button" className="admin-secondary-action" disabled={busy} onClick={() => setModalOpen(false)}>Cancel</button></div>
+      </form>
+    </Modal>}
+  </section>;
 }

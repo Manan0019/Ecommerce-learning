@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
+import Modal from "../../components/common/Modal";
+import ProductEditorWorkspace from "../../components/admin/ProductEditorWorkspace";
 import { createProduct, addProductImage, addProductVideo, updateFeatured } from "../../services/productService";
-import ProductMediaManager from "../../components/admin/ProductMediaManager";
-import ProductVariantsManager from "../../components/admin/ProductVariantsManager";
 import DraftVariants from "../../components/admin/DraftVariants";
 import { validateVariantDrafts } from "../../components/admin/variantDraftValidation";
 import { createVariant } from "../../services/variantService";
@@ -30,6 +30,7 @@ export default function AddProduct() {
   const [variantFailures, setVariantFailures] = useState([]);
   const [uploadReport, setUploadReport] = useState("");
   const [loading, setLoading] = useState(false);
+  const [savedPanel, setSavedPanel] = useState(null);
   const [message, setMessage] = useState("");
 
   function handleChange(event) {
@@ -141,25 +142,30 @@ export default function AddProduct() {
 
   return <AdminLayout title="Add Product" subtitle="Create a product with its gallery, videos and featured status."
     actions={<Link className="admin-secondary-action" to="/admin/products">Cancel</Link>}>
-    {createdProduct ? <section className="admin-panel admin-form-panel">
-      <h2>Product saved</h2>
+    {createdProduct ? <section className="admin-panel admin-form-panel nx-saved-product">
+      <div className="nx-saved-mark" aria-hidden="true">✓</div>
+      <h2>Product created</h2>
       <p role="status">{uploadReport}</p>
-      <p>The gallery below is connected to the saved product. You can add more images, videos or change their order.</p>
-      <ProductMediaManager productId={createdProduct.id} initialFeatured={Boolean(featured)} />
-      <ProductVariantsManager productId={createdProduct.id} />
-      {variantFailures.length > 0 && <section className="admin-panel" aria-label="Failed variants">
-        <h3>Some variants could not be saved</h3>
-        <p role="alert">The product is saved. The following SKUs need correction. Use the variant manager above or open Edit Product; do not create the parent product again.</p>
-        <ul>{variantFailures.map((v) => <li key={v.key}>{v.sku}: {v.error}</li>)}</ul>
-      </section>}
+      <p>The product is saved. Continue editing from these focused popups—you do not need to scroll through every section.</p>
+      {variantFailures.length > 0 && <p className="admin-alert" role="alert">{variantFailures.length} SKU(s) need correction. Open Manage SKUs and save the missing configurations; do not create the product again.</p>}
+      <div className="nx-saved-actions">
+        <button type="button" className="admin-primary-action" onClick={() => setSavedPanel("gallery")}>Manage gallery & visibility</button>
+        <button type="button" className="admin-secondary-action" onClick={() => setSavedPanel("variants")}>Manage SKUs & prices</button>
+        <button type="button" className="admin-secondary-action" onClick={() => setSavedPanel("details")}>Edit product details</button>
+      </div>
       <div className="admin-form-actions">
-        <Link className="admin-secondary-action" to={`/admin/products/${createdProduct.id}/edit`}>Edit product details</Link>
+        <Link className="admin-secondary-action" to="/admin/products">Back to products</Link>
         <button type="button" className="admin-primary-action" onClick={() => {
-          setCreatedProduct(null); setQueuedMedia([]); setFeatured(false); setUploadReport(""); setVariantDrafts([]); setVariantFailures([]);
-          setForm({ name:"", brand:"", model:"", description:"", categoryId:"", price:"", stock:"" });
+          setCreatedProduct(null); setSavedPanel(null); setQueuedMedia([]); setFeatured(false);
+          setUploadReport(""); setVariantDrafts([]); setVariantFailures([]);
+          setForm({ name:"", brand:"", model:"", description:"", categoryId:"", mrp:"", price:"", stock:"", pricingMode:"price" });
           setSpecifications({}); setImage(null); formRef.current?.reset();
         }}>Create another product</button>
       </div>
+      {savedPanel && <Modal title={`Product #${createdProduct.id} · ${savedPanel === "gallery" ? "Gallery" : savedPanel === "variants" ? "SKUs" : "Details"}`}
+        subtitle="Edit the saved product without leaving this page." size="large" onClose={() => setSavedPanel(null)}>
+        <ProductEditorWorkspace key={`${createdProduct.id}-${savedPanel}`} productId={createdProduct.id} initialTab={savedPanel}/>
+      </Modal>}
     </section> : <section className="admin-panel admin-form-panel">
       <form className="admin-form" ref={formRef} onSubmit={handleSubmit}>
         <label>Product name<input name="name" placeholder="Product name" value={form.name} onChange={handleChange} required /></label>
@@ -185,7 +191,7 @@ export default function AddProduct() {
           onChange={(event) => setImage(event.target.files?.[0] || null)} required /></label>
         <section className="admin-media-draft" aria-label="New product gallery">
           <h2>Gallery and videos</h2>
-          <p>The primary image above is the initial cover. Queue up to 15 more images/videos; adjust their order before saving.</p>
+          <p>Start with your cover image and up to 15 more images or YouTube videos. They upload as <strong>Shared</strong> by default. After creating the product, use <strong>Manage gallery & visibility</strong> to assign a specific color or SKU. Local MP4/WebM uploads are available there too.</p>
           <label>Additional gallery images (JPG, PNG, WebP; 5 MB each)
             <input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={queueImages}/>
           </label>
@@ -196,7 +202,7 @@ export default function AddProduct() {
           <label className="admin-featured-toggle"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)}/> Feature this product on the homepage</label>
           <ol className="media-manager-list">
             {queuedMedia.map((item, index) => <li className="media-manager-item" key={item.key}>
-              <span>{index + 2}. {item.type === "image" ? item.file.name : item.url}</span>
+              <span><strong>{index + 2}. {item.type === "image" ? "Image" : "YouTube video"}</strong> · {item.type === "image" ? item.file.name : item.url}<small> · Shared (you can change this after saving)</small></span>
               <button type="button" disabled={index === 0 || loading} onClick={() => moveQueued(index, -1)}>↑</button>
               <button type="button" disabled={index === queuedMedia.length - 1 || loading} onClick={() => moveQueued(index, 1)}>↓</button>
               <button type="button" disabled={loading} onClick={() => setQueuedMedia((previous) => previous.filter((candidate) => candidate.key !== item.key))}>Remove</button>

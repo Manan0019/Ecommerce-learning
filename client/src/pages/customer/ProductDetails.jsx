@@ -114,7 +114,7 @@ function ProductDetailsContent({ id }) {
         </div>
       </article>}
       {product?.specificationDisplay?.groups?.length > 0 && <section className="technical-specifications" aria-labelledby="technical-specifications-heading">
-        <div className="section-heading"><div><p className="eyebrow">Product data</p><h2 id="technical-specifications-heading">Technical specifications</h2></div></div>
+        <div className="section-heading"><div><p className="eyebrow">Product data</p><h2 id="technical-specifications-heading">Product specifications</h2></div></div>
         <div className="specification-groups">
           {product.specificationDisplay.groups.map((group) => <article key={group.label}>
             <h3>{group.label}</h3>

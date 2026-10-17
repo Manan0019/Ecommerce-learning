@@ -39,7 +39,7 @@ export default function CustomerLogin() {
   }
 
   return <AuthLayout eyebrow="Unified account access" title="Welcome back."
-    description="Sign in to explore the latest technology.">
+    description="Sign in to continue discovering products you love.">
       <form className="auth-form" onSubmit={handleLogin}>
         <label className="auth-field" htmlFor="login-email">
           <span>Email address</span>

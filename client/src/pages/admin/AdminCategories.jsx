@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
+import Modal from "../../components/common/Modal";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import {
   createCategory,
@@ -17,6 +18,7 @@ export default function AdminCategories() {
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState(null);
@@ -54,6 +56,7 @@ export default function AdminCategories() {
     setName("");
     setImage(null);
     setEditing(null);
+    setModalOpen(false);
     formRef.current?.reset();
   }
 
@@ -63,7 +66,7 @@ export default function AdminCategories() {
     setImage(null);
     setError("");
     setMessage("");
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setModalOpen(true);
   }
 
   async function saveCategory(event) {
@@ -118,8 +121,10 @@ export default function AdminCategories() {
   }
 
   return <AdminLayout title="Manage Categories"
-    subtitle="Organize the catalogue with reusable, customer-facing categories.">
-    <div className="admin-category-layout">
+    subtitle="Organize the catalogue with reusable, customer-facing categories."
+    actions={<button type="button" className="admin-primary-action" onClick={() => { setEditing(null); setName(""); setImage(null); setError(""); setMessage(""); setModalOpen(true); }}>+ Add category</button>}>
+    <div className="admin-category-layout nx-category-layout">
+      {modalOpen && <Modal title={editing ? "Edit category" : "Add category"} subtitle="Give this category a clear name and an optional cover image." size="medium" closeDisabled={saving} onClose={resetForm}>
       <section className="admin-panel admin-form-panel admin-category-form" ref={formRef}>
         <div className="admin-panel-heading">
           <div>
@@ -144,6 +149,7 @@ export default function AdminCategories() {
         {message && <p className="admin-form-message" role="status">{message}</p>}
         {error && <p className="admin-alert" role="alert">{error}</p>}
       </section>
+      </Modal>}
 
       <section className="admin-panel admin-category-list">
         <div className="admin-panel-heading admin-category-heading">
