@@ -49,6 +49,7 @@ function mapProduct(product) {
     stock: product.stock,
     imageUrl: product.image_url,
     isActive: product.is_active,
+    isFeatured: product.is_featured,
     createdAt: product.created_at,
     updatedAt: product.updated_at
   };
@@ -58,7 +59,7 @@ const productSelect = `
   SELECT p.id, p.name, p.description, p.category_id, c.name AS category_name,
          c.slug AS category_slug, c.is_active AS category_active, p.brand, p.model,
          p.specifications, p.price, p.stock,
-         p.image_url, p.is_active, p.created_at, p.updated_at
+         p.image_url, p.is_active, p.is_featured, p.created_at, p.updated_at
   FROM products p
   JOIN categories c ON c.id = p.category_id`;
 
@@ -122,7 +123,7 @@ export async function createProduct(req, res) {
              category.name AS category_name, category.slug AS category_slug,
              category.is_active AS category_active, inserted.brand, inserted.model,
              inserted.specifications, inserted.price, inserted.stock,
-             inserted.image_url, inserted.is_active, inserted.created_at, inserted.updated_at
+             inserted.image_url, inserted.is_active, inserted.is_featured, inserted.created_at, inserted.updated_at
       FROM inserted
       JOIN categories AS category ON category.id = inserted.category_id
     `, [fields.name, fields.description, fields.categoryId, fields.brand, fields.model,
@@ -164,7 +165,7 @@ export async function updateProduct(req, res) {
              category.name AS category_name, category.slug AS category_slug,
              category.is_active AS category_active, updated.brand, updated.model,
              updated.specifications, updated.price, updated.stock,
-             updated.image_url, updated.is_active, updated.created_at, updated.updated_at
+             updated.image_url, updated.is_active, updated.is_featured, updated.created_at, updated.updated_at
       FROM updated
       JOIN categories AS category ON category.id = updated.category_id
     `, [fields.name, fields.description, fields.categoryId, fields.brand, fields.model,

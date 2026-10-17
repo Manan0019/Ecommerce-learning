@@ -10,7 +10,7 @@ const selectFields = `
   product.id, product.name, product.description, product.category_id,
   category.name AS category_name, category.slug AS category_slug,
   product.brand, product.model, product.specifications,
-  product.price, product.stock, product.image_url, product.created_at`;
+  product.price, product.stock, product.image_url, product.is_featured, product.created_at`;
 
 const searchDocument = `to_tsvector(
   'simple'::regconfig,
@@ -33,6 +33,7 @@ function asPublicProduct(product) {
     price: product.price,
     stock: product.stock,
     imageUrl: product.image_url,
+    isFeatured: product.is_featured,
     createdAt: product.created_at
   };
 }

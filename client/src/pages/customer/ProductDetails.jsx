@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
-import { apiAssetUrl } from "../../services/apiClient";
+import ProductMediaGallery from "../../components/customer/ProductMediaGallery";
 import { getProduct } from "../../services/productService";
 import { useCart } from "../../hooks/useCart";
 
@@ -48,9 +48,7 @@ function ProductDetailsContent({ id }) {
       {error && <p role="alert" className="store-alert">{error}</p>}
       {product && <article className="product-detail">
         <div className="product-detail-media">
-          {product.imageUrl
-            ? <img src={apiAssetUrl(product.imageUrl)} alt={product.name} />
-            : <div className="missing-image">Image coming soon</div>}
+          <ProductMediaGallery product={product} />
         </div>
         <div className="product-detail-copy">
           <Link className="eyebrow detail-category-link" to={`/categories/${product.categorySlug}`}>{product.category}</Link>
