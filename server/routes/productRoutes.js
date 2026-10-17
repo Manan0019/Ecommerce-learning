@@ -22,9 +22,17 @@ import {
   changeFeatured,
   setMediaCover,
 } from "../controllers/productMediaController.js";
+import {
+  listVariants,
+  createVariant,
+  updateVariant,
+} from "../controllers/variantController.js";
 const router = Router();
 
 router.use(requireAdmin);
+router.get("/:id/variants", listVariants);
+router.post("/:id/variants", createVariant);
+router.put("/:id/variants/:variantId", updateVariant);
 router.get("/", listAdminProducts);
 router.get("/:id", getAdminProduct);
 router.post("/", catalogImageUpload.single("image"), createProduct);

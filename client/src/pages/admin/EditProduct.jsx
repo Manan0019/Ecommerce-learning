@@ -11,6 +11,7 @@ import { useActiveCategories } from "../../hooks/useActiveCategories";
 import { useSpecificationDefinition } from "../../hooks/useSpecificationDefinition";
 import ProductSpecificationFields from "../../components/admin/ProductSpecificationFields";
 import ProductMediaManager from "../../components/admin/ProductMediaManager";
+import ProductVariantsManager from "../../components/admin/ProductVariantsManager";
 
 export default function EditProduct() {
   const { id } = useParams();
@@ -147,6 +148,7 @@ export default function EditProduct() {
         </Link>
       }
     >
+      <ProductVariantsManager productId={id} />
       <div className="admin-edit-grid">
         <section className="admin-panel admin-form-panel">
           <div className="admin-panel-heading">
