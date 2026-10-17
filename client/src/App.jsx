@@ -12,6 +12,7 @@ import CustomerLogin from "./pages/auth/CustomerLogin";
 import CustomerSignup from "./pages/auth/CustomerSignup";
 import VerifyOTP from "./pages/auth/VerifyOTP";
 import CartPage from "./pages/customer/CartPage";
+import Wishlist from "./pages/customer/Wishlist";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import Home from "./pages/customer/Home";
 import ProductDetails from "./pages/customer/ProductDetails";
@@ -19,30 +20,47 @@ import ProductList from "./pages/customer/ProductList";
 import About from "./pages/public/About";
 import Contact from "./pages/public/Contact";
 import "./styles/app.css";
+import "./styles/wishlist.css";
 
 export default function App() {
-  return <CartProvider><BrowserRouter><Routes>
-    <Route path="/" element={<Home />} />
-    <Route path="/signup" element={<CustomerSignup />} />
-    <Route path="/verify-otp" element={<VerifyOTP />} />
-    <Route path="/login" element={<CustomerLogin />} />
-    <Route path="/dashboard" element={<CustomerDashboard />} />
-    <Route path="/admin/login" element={<AdminLogin />} />
-    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-    <Route path="/admin/products" element={<AdminProducts />} />
-    <Route path="/admin/products/new" element={<AddProduct />} />
-    <Route path="/admin/products/:id/edit" element={<EditProduct />} />
-    <Route path="/admin/customers" element={<AdminCustomers />} />
-    <Route path="/admin/categories" element={<AdminCategories />} />
-    <Route path="/admin/orders" element={<AdminComingSoon title="Orders" />} />
-    <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />
-    <Route path="/admin/settings" element={<AdminComingSoon title="Settings" />} />
-    <Route path="/products" element={<ProductList />} />
-    <Route path="/products/:id" element={<ProductDetails />} />
-    <Route path="/categories/:slug" element={<ProductList />} />
-    <Route path="/cart" element={<CartPage />} />
-    <Route path="/about" element={<About />} />
-    <Route path="/contact" element={<Contact />} />
-    <Route path="*" element={<p>Page not found.</p>} />
-  </Routes></BrowserRouter></CartProvider>;
+  return (
+    <CartProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/signup" element={<CustomerSignup />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/login" element={<CustomerLogin />} />
+          <Route path="/dashboard" element={<CustomerDashboard />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/products/new" element={<AddProduct />} />
+          <Route path="/admin/products/:id/edit" element={<EditProduct />} />
+          <Route path="/admin/customers" element={<AdminCustomers />} />
+          <Route path="/admin/categories" element={<AdminCategories />} />
+          <Route
+            path="/admin/orders"
+            element={<AdminComingSoon title="Orders" />}
+          />
+          <Route
+            path="/admin/analytics"
+            element={<AdminComingSoon title="Analytics" />}
+          />
+          <Route
+            path="/admin/settings"
+            element={<AdminComingSoon title="Settings" />}
+          />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/products/:id" element={<ProductDetails />} />
+          <Route path="/categories/:slug" element={<ProductList />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="*" element={<p>Page not found.</p>} />
+        </Routes>
+      </BrowserRouter>
+    </CartProvider>
+  );
 }

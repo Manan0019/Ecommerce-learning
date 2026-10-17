@@ -10,6 +10,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import publicProductRoutes from "./routes/publicProductRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import publicCategoryRoutes from "./routes/publicCategoryRoutes.js";
 
@@ -39,6 +40,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/products", publicProductRoutes);
 app.use("/api/categories", publicCategoryRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 app.use((error, _req, res, _next) => {
   console.error("Unhandled Express error:", error);
   res.status(500).json({ message: "Internal server error." });

@@ -1,3 +1,4 @@
+import WishlistButton from "../../components/customer/WishlistButton";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
@@ -130,6 +131,7 @@ function ProductDetailsContent({ id }) {
                 </select>
               </div>
             )}
+            <WishlistButton productId={product.id} />
             <div className="purchase-panel">
               <label htmlFor="product-quantity">Quantity</label>
               <div className="purchase-row">
