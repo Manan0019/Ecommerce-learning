@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import ProductMediaGallery from "../../components/customer/ProductMediaGallery";
+import RelatedProducts from "../../components/customer/RelatedProducts";
 import { getProduct } from "../../services/productService";
 import { getVariants } from "../../services/variantService";
 import { useCart } from "../../hooks/useCart";
@@ -243,6 +244,7 @@ function ProductDetailsContent({ id }) {
           </div>
         </section>
       )}
+      {product && <RelatedProducts productId={product.id} />}
     </CustomerLayout>
   );
 }
