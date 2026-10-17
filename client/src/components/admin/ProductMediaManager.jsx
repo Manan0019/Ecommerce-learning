@@ -7,6 +7,8 @@ import {
   reorderProductMedia,
   removeProductMedia,
   updateFeatured,
+  addProductLocalVideo,
+  setProductCover,
 } from "../../services/productService";
 export default function ProductMediaManager({
   productId,
@@ -14,13 +16,13 @@ export default function ProductMediaManager({
 }) {
   const [media, setMedia] = useState([]),
     [image, setImage] = useState(null),
+    [videoFile, setVideoFile] = useState(null),
     [url, setUrl] = useState("");
-  const [featured, setFeatured] = useState(initialFeatured),
+  const [featuredOverride, setFeaturedOverride] = useState(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
-  useEffect(() => {
-    setFeatured(initialFeatured);
-  }, [initialFeatured]);
+  const [coverUrl, setCoverUrl] = useState(null);
+  const featured = featuredOverride ?? initialFeatured;
   useEffect(() => {
     let active = true;
     getProductMedia(productId, true)
@@ -81,7 +83,7 @@ export default function ProductMediaManager({
             setBusy(true);
             try {
               await updateFeatured(productId, v);
-              setFeatured(v);
+              setFeaturedOverride(v);
             } catch (err) {
               setMessage(err.message);
             } finally {
@@ -110,6 +112,26 @@ export default function ProductMediaManager({
           }
         >
           Add image
+        </button>
+        <label>
+          Add local video (MP4 / WebM; 25 MB maximum)
+          <input
+            type="file"
+            accept="video/mp4,video/webm"
+            onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+          />
+        </label>
+        <button
+          type="button"
+          disabled={busy || !videoFile}
+          onClick={() =>
+            perform(async () => {
+              await addProductLocalVideo(productId, videoFile);
+              setVideoFile(null);
+            })
+          }
+        >
+          Upload video
         </button>
         <label>
           Add YouTube video URL
@@ -142,12 +164,34 @@ export default function ProductMediaManager({
                 alt={`Gallery ${i + 1}`}
                 loading="lazy"
               />
+            ) : m.type === "video" ? (
+              <video
+                src={apiAssetUrl(m.url)}
+                muted
+                preload="metadata"
+                controls
+                width="150"
+              />
             ) : (
-              <span>Video {i + 1} ▶</span>
+              <span>YouTube video {i + 1} ▶</span>
             )}
             <span>
               {i + 1}. {m.type}
             </span>
+            {m.type === "image" && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                  perform(async () => {
+                    const d = await setProductCover(productId, m.id);
+                    setCoverUrl(d.imageUrl);
+                  })
+                }
+              >
+                Set as cover
+              </button>
+            )}
             <button
               type="button"
               disabled={busy || i === 0}
@@ -172,6 +216,9 @@ export default function ProductMediaManager({
           </div>
         ))}
       </div>
+      {coverUrl && (
+        <p role="status">Cover image updated for product cards: {coverUrl}</p>
+      )}
       {message && (
         <p role="status" className="admin-form-message">
           {message}

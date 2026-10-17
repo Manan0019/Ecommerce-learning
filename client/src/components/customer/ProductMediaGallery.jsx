@@ -33,6 +33,14 @@ export default function ProductMediaGallery({ product }) {
             src={apiAssetUrl(current.url)}
             alt={`${product.name} view ${selected + 1}`}
           />
+        ) : current.type === "video" ? (
+          <video
+            key={current.id}
+            src={apiAssetUrl(current.url)}
+            controls
+            preload="metadata"
+            playsInline
+          />
         ) : (
           <iframe
             src={current.url}
@@ -57,7 +65,7 @@ export default function ProductMediaGallery({ product }) {
               {m.type === "image" ? (
                 <img src={apiAssetUrl(m.url)} alt="" />
               ) : (
-                <span>▶ Video</span>
+                <span>▶ {m.type === "video" ? "Local video" : "YouTube"}</span>
               )}
             </button>
           ))}
