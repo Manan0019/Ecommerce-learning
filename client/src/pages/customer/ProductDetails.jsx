@@ -79,7 +79,11 @@ function ProductDetailsContent({ id }) {
       {product && (
         <article className="product-detail">
           <div className="product-detail-media">
-            <ProductMediaGallery product={product} />
+            <ProductMediaGallery
+              key={variantId || "shared"}
+              product={product}
+              variantId={variantId || null}
+            />
           </div>
           <div className="product-detail-copy">
             <Link

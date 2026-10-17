@@ -21,6 +21,7 @@ import {
   deleteProductMedia,
   changeFeatured,
   setMediaCover,
+  assignMediaVariant,
 } from "../controllers/productMediaController.js";
 import {
   listVariants,
@@ -63,6 +64,7 @@ router.post(
   addProductMedia,
 );
 router.put("/:id/media/:mediaId/cover", setMediaCover);
+router.patch("/:id/media/:mediaId/variant", assignMediaVariant);
 router.post("/:id/media", catalogImageUpload.single("image"), addProductMedia);
 router.put("/:id/media/order", reorderProductMedia);
 router.delete("/:id/media/:mediaId", deleteProductMedia);

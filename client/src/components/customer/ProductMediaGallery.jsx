@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { apiAssetUrl } from "../../services/apiClient";
 import { getProductMedia } from "../../services/productService";
-export default function ProductMediaGallery({ product }) {
+export default function ProductMediaGallery({ product, variantId = null }) {
   const [items, setItems] = useState([]),
     [selected, setSelected] = useState(0);
   useEffect(() => {
@@ -21,8 +21,14 @@ export default function ProductMediaGallery({ product }) {
   const fallback = product.imageUrl
     ? [{ id: "cover", type: "image", url: product.imageUrl }]
     : [];
-  const gallery = items.length ? items : fallback;
-  const current = gallery[selected] || gallery[0];
+  const gallery = useMemo(() => {
+    const applicable = items.filter(
+      (item) => !item.variantId || item.variantId === variantId,
+    );
+    return applicable.length ? applicable : fallback;
+  }, [items, variantId, product.imageUrl]);
+  const safeSelected = Math.min(selected, Math.max(0, gallery.length - 1));
+  const current = gallery[safeSelected] || gallery[0];
   return (
     <div className="product-gallery">
       <div className="gallery-main">
@@ -31,7 +37,7 @@ export default function ProductMediaGallery({ product }) {
         ) : current.type === "image" ? (
           <img
             src={apiAssetUrl(current.url)}
-            alt={`${product.name} view ${selected + 1}`}
+            alt={`${product.name} view ${safeSelected + 1}`}
           />
         ) : current.type === "video" ? (
           <video
@@ -58,7 +64,7 @@ export default function ProductMediaGallery({ product }) {
             <button
               type="button"
               key={m.id}
-              className={selected === i ? "selected" : ""}
+              className={safeSelected === i ? "selected" : ""}
               onClick={() => setSelected(i)}
               aria-label={`Show media ${i + 1}`}
             >

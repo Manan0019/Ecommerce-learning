@@ -50,6 +50,7 @@ const present = (r) => ({
   type: r.media_type,
   url: r.media_url,
   order: r.sort_order,
+  variantId: r.variant_id == null ? null : String(r.variant_id),
 });
 export async function getProductMedia(req, res) {
   if (!idOK(req.params.id))
@@ -142,6 +143,32 @@ export async function addProductMedia(req, res) {
     }
     console.error("Add media", e);
     return res.status(500).json({ message: "Unable to add media" });
+  }
+}
+export async function assignMediaVariant(req, res) {
+  if (!idOK(req.params.id) || !idOK(req.params.mediaId))
+    return res.status(400).json({ message: "Invalid ID" });
+  const variantId = req.body?.variantId;
+  if (variantId !== null && !idOK(variantId))
+    return res
+      .status(400)
+      .json({ message: "Choose a valid variant or Shared" });
+  try {
+    const result = await pool.query(
+      `UPDATE product_media AS m SET variant_id=$3
+   WHERE m.id=$1 AND m.product_id=$2 AND ($3::bigint IS NULL OR EXISTS
+    (SELECT 1 FROM product_variants v WHERE v.id=$3 AND v.product_id=$2))
+   RETURNING m.*`,
+      [req.params.mediaId, req.params.id, variantId],
+    );
+    if (!result.rows.length)
+      return res
+        .status(404)
+        .json({ message: "Media or product variant not found" });
+    return res.json({ media: present(result.rows[0]) });
+  } catch (e) {
+    console.error("Assign media", e);
+    return res.status(500).json({ message: "Unable to assign media" });
   }
 }
 export async function reorderProductMedia(req, res) {

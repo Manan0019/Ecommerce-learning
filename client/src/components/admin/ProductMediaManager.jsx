@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getVariants } from "../../services/variantService";
 import { apiAssetUrl } from "../../services/apiClient";
 import {
   getProductMedia,
@@ -9,6 +10,7 @@ import {
   updateFeatured,
   addProductLocalVideo,
   setProductCover,
+  assignProductMediaVariant,
 } from "../../services/productService";
 export default function ProductMediaManager({
   productId,
@@ -22,7 +24,19 @@ export default function ProductMediaManager({
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const [coverUrl, setCoverUrl] = useState(null);
+  const [variants, setVariants] = useState([]);
   const featured = featuredOverride ?? initialFeatured;
+  useEffect(() => {
+    let active = true;
+    getVariants(productId, true)
+      .then((d) => {
+        if (active) setVariants(d.variants || []);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [productId]);
   useEffect(() => {
     let active = true;
     getProductMedia(productId, true)
@@ -69,8 +83,9 @@ export default function ProductMediaManager({
     >
       <h2>Media gallery</h2>
       <p>
-        Upload up to 16 images/videos. Use arrows to change display order. The
-        first item is shown first to customers.
+        Upload up to 16 images/videos. Use arrows to change display order.
+        Assign a gallery item to an SKU or keep it shared. The first applicable
+        item is shown first to customers.
       </p>
       <label>
         Featured on storefront{" "}
@@ -178,6 +193,33 @@ export default function ProductMediaManager({
             <span>
               {i + 1}. {m.type}
             </span>
+            <label>
+              Media for SKU
+              <select
+                value={m.variantId || ""}
+                disabled={busy}
+                aria-label={`Variant assignment for media ${i + 1}`}
+                onChange={(e) =>
+                  perform(() =>
+                    assignProductMediaVariant(
+                      productId,
+                      m.id,
+                      e.target.value || null,
+                    ),
+                  )
+                }
+              >
+                <option value="">Shared (all variants)</option>
+                {variants.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.sku} —{" "}
+                    {Object.entries(v.attributes || {})
+                      .map(([k, val]) => `${k}: ${val}`)
+                      .join(" · ")}
+                  </option>
+                ))}
+              </select>
+            </label>
             {m.type === "image" && (
               <button
                 type="button"

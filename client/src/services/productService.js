@@ -121,3 +121,15 @@ export function setProductCover(id, mediaId) {
     credentials: "include",
   });
 }
+
+export function assignProductMediaVariant(productId, mediaId, variantId) {
+  return apiRequest(
+    `/api/admin/products/${productId}/media/${mediaId}/variant`,
+    {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ variantId }),
+    },
+  );
+}
