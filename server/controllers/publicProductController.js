@@ -75,6 +75,8 @@ export async function listProducts(req, res) {
   try {
     const q = queryString(req.query.q, 120);
     const categoryValue = queryString(req.query.category, 100);
+    const featuredOnly = req.query.featured === "true";
+    if (req.query.featured !== undefined && req.query.featured !== "true" && req.query.featured !== "false") throw new Error("INVALID_PUBLIC_QUERY");
     const sort = queryString(req.query.sort, 30) || (q ? "relevance" : "newest");
     const page = positiveInteger(req.query.page, 1, 10_000);
     const limit = positiveInteger(req.query.limit, 12, 48);
@@ -102,7 +104,7 @@ export async function listProducts(req, res) {
     const filterSchemas = new Map(
       definition ? definitionFields(definition).filter((item) => item.filter).map((item) => [item.key, item]) : []
     );
-    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand"]);
+    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "featured"]);
     const requestedFilters = [];
     for (const [key, value] of Object.entries(req.query)) {
       if (baseKeys.has(key)) continue;
@@ -124,6 +126,7 @@ export async function listProducts(req, res) {
 
     const values = [];
     const where = ["product.is_active = TRUE", "category.is_active = TRUE"];
+    if (featuredOnly) where.push("product.is_featured = TRUE");
     const parameter = (value) => {
       values.push(value);
       return `$${values.length}`;
