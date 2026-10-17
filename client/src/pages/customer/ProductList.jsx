@@ -17,14 +17,21 @@ export default function ProductList() {
   const [categories, setCategories] = useState([]);
   const [facets, setFacets] = useState([]);
   const [category, setCategory] = useState(null);
-  const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, pages: 0 });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 12,
+    total: 0,
+    pages: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
     getCategories(controller.signal)
-      .then((data) => setCategories(Array.isArray(data.categories) ? data.categories : []))
+      .then((data) =>
+        setCategories(Array.isArray(data.categories) ? data.categories : []),
+      )
       .catch((requestError) => {
         if (requestError.name !== "AbortError") setError(requestError.message);
       });
@@ -44,7 +51,9 @@ export default function ProductList() {
           setProducts(data.products || []);
           setFacets(data.facets || []);
           setCategory(data.category || null);
-          setPagination(data.pagination || { page: 1, limit: 12, total: 0, pages: 0 });
+          setPagination(
+            data.pagination || { page: 1, limit: 12, total: 0, pages: 0 },
+          );
         }
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -104,74 +113,167 @@ export default function ProductList() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  return <CustomerLayout mainClassName="catalogue-page electronics-catalogue">
-    <header className="catalogue-hero">
-      <p className="eyebrow">Verified specifications · Live inventory</p>
-      <h1>{category?.name || "Find your next device"}</h1>
-      <CatalogueSearch key={searchQuery} query={searchQuery} onSubmit={submitSearch} />
-    </header>
+  return (
+    <CustomerLayout mainClassName="catalogue-page">
+      <header className="catalogue-hero">
+        <p className="eyebrow">Discover products across every category</p>
+        <h1>{category?.name || "Explore our collection"}</h1>
+        <CatalogueSearch
+          key={searchQuery}
+          query={searchQuery}
+          onSubmit={submitSearch}
+        />
+      </header>
 
-    <div className="category-filters category-tabs" aria-label="Browse categories">
-      <button className={!selectedCategory ? "is-active" : ""} type="button" onClick={() => chooseCategory("")}>All electronics</button>
-      {categories.map((item) => <button className={selectedCategory === item.slug ? "is-active" : ""}
-        type="button" onClick={() => chooseCategory(item.slug)} key={item.id}>{item.name}</button>)}
-    </div>
+      <div
+        className="category-filters category-tabs"
+        aria-label="Browse categories"
+      >
+        <button
+          className={!selectedCategory ? "is-active" : ""}
+          type="button"
+          onClick={() => chooseCategory("")}
+        >
+          All products
+        </button>
+        {categories.map((item) => (
+          <button
+            className={selectedCategory === item.slug ? "is-active" : ""}
+            type="button"
+            onClick={() => chooseCategory(item.slug)}
+            key={item.id}
+          >
+            {item.name}
+          </button>
+        ))}
+      </div>
 
-    <div className="catalogue-results-bar">
-      <p>{loading ? "Searching…" : `${pagination.total} ${pagination.total === 1 ? "product" : "products"}`}</p>
-      <label>Sort by
-        <select value={searchParams.get("sort") || (searchParams.get("q") ? "relevance" : "newest")}
-          onChange={(event) => updateParams((next) => next.set("sort", event.target.value))}>
-          <option value="relevance">Relevance</option>
-          <option value="newest">Newest</option>
-          <option value="price_asc">Price: low to high</option>
-          <option value="price_desc">Price: high to low</option>
-          <option value="name">Name</option>
-        </select>
-      </label>
-    </div>
+      <div className="catalogue-results-bar">
+        <p>
+          {loading
+            ? "Searching…"
+            : `${pagination.total} ${pagination.total === 1 ? "product" : "products"}`}
+        </p>
+        <label>
+          Sort by
+          <select
+            value={
+              searchParams.get("sort") ||
+              (searchParams.get("q") ? "relevance" : "newest")
+            }
+            onChange={(event) =>
+              updateParams((next) => next.set("sort", event.target.value))
+            }
+          >
+            <option value="relevance">Relevance</option>
+            <option value="newest">Newest</option>
+            <option value="price_asc">Price: low to high</option>
+            <option value="price_desc">Price: high to low</option>
+            <option value="name">Name</option>
+          </select>
+        </label>
+      </div>
 
-    <div className="catalogue-layout">
-      <ProductFilters facets={facets} params={searchParams} disabled={loading}
-        onFilterChange={changeFilter}
-        onPriceChange={(min, max) => updateParams((next) => {
-          if (min) next.set("minPrice", min); else next.delete("minPrice");
-          if (max) next.set("maxPrice", max); else next.delete("maxPrice");
-        })} />
-      <section className="catalogue-results" aria-live="polite">
-        {loading && <div className="product-grid">{Array.from({ length: 6 }, (_, index) =>
-          <div className="product-skeleton" key={index} />)}</div>}
-        {error && <p role="alert" className="store-alert">{error}</p>}
-        {!loading && !error && selectedCategory && !category && <div className="store-empty">
-          <h2>Category unavailable</h2><p>This category is inactive or does not exist.</p>
-        </div>}
-        {!loading && !error && products.length === 0 && (!selectedCategory || category) && <div className="store-empty">
-          <h2>No matching electronics</h2><p>Remove a filter or try a broader search.</p>
-        </div>}
-        {!loading && !error && products.length > 0 && <div className="product-grid">
-          {products.map((product) => <ProductCard product={product} key={product.id} />)}
-        </div>}
-        {!loading && !error && pagination.pages > 1 && <nav className="pagination" aria-label="Product pages">
-          <button type="button" disabled={pagination.page <= 1} onClick={() => changePage(pagination.page - 1)}>Previous</button>
-          <span>Page {pagination.page} of {pagination.pages}</span>
-          <button type="button" disabled={pagination.page >= pagination.pages} onClick={() => changePage(pagination.page + 1)}>Next</button>
-        </nav>}
-      </section>
-    </div>
-  </CustomerLayout>;
+      <div className="catalogue-layout">
+        <ProductFilters
+          facets={facets}
+          params={searchParams}
+          disabled={loading}
+          onFilterChange={changeFilter}
+          onPriceChange={(min, max) =>
+            updateParams((next) => {
+              if (min) next.set("minPrice", min);
+              else next.delete("minPrice");
+              if (max) next.set("maxPrice", max);
+              else next.delete("maxPrice");
+            })
+          }
+        />
+        <section className="catalogue-results" aria-live="polite">
+          {loading && (
+            <div className="product-grid">
+              {Array.from({ length: 6 }, (_, index) => (
+                <div className="product-skeleton" key={index} />
+              ))}
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="store-alert">
+              {error}
+            </p>
+          )}
+          {!loading && !error && selectedCategory && !category && (
+            <div className="store-empty">
+              <h2>Category unavailable</h2>
+              <p>This category is inactive or does not exist.</p>
+            </div>
+          )}
+          {!loading &&
+            !error &&
+            products.length === 0 &&
+            (!selectedCategory || category) && (
+              <div className="store-empty">
+                <h2>No matching products</h2>
+                <p>Remove a filter or try a broader search.</p>
+              </div>
+            )}
+          {!loading && !error && products.length > 0 && (
+            <div className="product-grid">
+              {products.map((product) => (
+                <ProductCard product={product} key={product.id} />
+              ))}
+            </div>
+          )}
+          {!loading && !error && pagination.pages > 1 && (
+            <nav className="pagination" aria-label="Product pages">
+              <button
+                type="button"
+                disabled={pagination.page <= 1}
+                onClick={() => changePage(pagination.page - 1)}
+              >
+                Previous
+              </button>
+              <span>
+                Page {pagination.page} of {pagination.pages}
+              </span>
+              <button
+                type="button"
+                disabled={pagination.page >= pagination.pages}
+                onClick={() => changePage(pagination.page + 1)}
+              >
+                Next
+              </button>
+            </nav>
+          )}
+        </section>
+      </div>
+    </CustomerLayout>
+  );
 }
 
 function CatalogueSearch({ query, onSubmit }) {
   const [searchDraft, setSearchDraft] = useState(query);
 
-  return <form className="catalogue-search" role="search" onSubmit={(event) => {
-    event.preventDefault();
-    onSubmit(searchDraft);
-  }}>
-    <label className="sr-only" htmlFor="catalogue-search">Search electronics</label>
-    <input id="catalogue-search" type="search" value={searchDraft}
-      placeholder="Search by product, brand, model or specification"
-      onChange={(event) => setSearchDraft(event.target.value)} />
-    <button type="submit">Search</button>
-  </form>;
+  return (
+    <form
+      className="catalogue-search"
+      role="search"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit(searchDraft);
+      }}
+    >
+      <label className="sr-only" htmlFor="catalogue-search">
+        Search products
+      </label>
+      <input
+        id="catalogue-search"
+        type="search"
+        value={searchDraft}
+        placeholder="Search by product, brand, model or specification"
+        onChange={(event) => setSearchDraft(event.target.value)}
+      />
+      <button type="submit">Search</button>
+    </form>
+  );
 }

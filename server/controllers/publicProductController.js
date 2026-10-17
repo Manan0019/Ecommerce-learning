@@ -10,7 +10,7 @@ const selectFields = `
   product.id, product.name, product.description, product.category_id,
   category.name AS category_name, category.slug AS category_slug,
   product.brand, product.model, product.specifications,
-  product.price, product.stock, product.image_url, product.is_featured, product.created_at`;
+  product.price, product.stock, product.image_url, product.created_at`;
 
 const searchDocument = `to_tsvector(
   'simple'::regconfig,
@@ -33,7 +33,6 @@ function asPublicProduct(product) {
     price: product.price,
     stock: product.stock,
     imageUrl: product.image_url,
-    isFeatured: product.is_featured,
     createdAt: product.created_at
   };
 }
@@ -75,13 +74,13 @@ export async function listProducts(req, res) {
   try {
     const q = queryString(req.query.q, 120);
     const categoryValue = queryString(req.query.category, 100);
-    const featuredOnly = req.query.featured === "true";
-    if (req.query.featured !== undefined && req.query.featured !== "true" && req.query.featured !== "false") throw new Error("INVALID_PUBLIC_QUERY");
     const sort = queryString(req.query.sort, 30) || (q ? "relevance" : "newest");
     const page = positiveInteger(req.query.page, 1, 10_000);
     const limit = positiveInteger(req.query.limit, 12, 48);
     const minPrice = priceValue(req.query.minPrice);
     const maxPrice = priceValue(req.query.maxPrice);
+    const inStock = req.query.inStock === "true";
+    if (req.query.inStock !== undefined && !["true", "false"].includes(req.query.inStock)) throw new Error("INVALID_PUBLIC_QUERY");
     if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) throw new Error("INVALID_PUBLIC_QUERY");
     if (!new Set(["relevance", "newest", "price_asc", "price_desc", "name"]).has(sort)) {
       throw new Error("INVALID_PUBLIC_QUERY");
@@ -104,7 +103,7 @@ export async function listProducts(req, res) {
     const filterSchemas = new Map(
       definition ? definitionFields(definition).filter((item) => item.filter).map((item) => [item.key, item]) : []
     );
-    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "featured"]);
+    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock"]);
     const requestedFilters = [];
     for (const [key, value] of Object.entries(req.query)) {
       if (baseKeys.has(key)) continue;
@@ -126,16 +125,18 @@ export async function listProducts(req, res) {
 
     const values = [];
     const where = ["product.is_active = TRUE", "category.is_active = TRUE"];
-    if (featuredOnly) where.push("product.is_featured = TRUE");
     const parameter = (value) => {
       values.push(value);
       return `$${values.length}`;
     };
     if (category) where.push(`category.id = ${parameter(category.id)}`);
+    if (inStock) where.push("product.stock > 0");
     let searchParameter = null;
     if (q) {
       searchParameter = parameter(q);
-      where.push(`${searchDocument} @@ websearch_to_tsquery('simple'::regconfig, ${searchParameter})`);
+      const escapedLike = q.replace(/[\\%_]/g, (match) => `\\${match}`);
+      const likeParameter = parameter(`%${escapedLike}%`);
+      where.push(`(${searchDocument} @@ websearch_to_tsquery('simple'::regconfig, ${searchParameter}) OR product.name ILIKE ${likeParameter} ESCAPE '\\' OR product.brand ILIKE ${likeParameter} ESCAPE '\\' OR product.model ILIKE ${likeParameter} ESCAPE '\\')`);
     }
     if (minPrice !== null) where.push(`product.price >= ${parameter(minPrice)}`);
     if (maxPrice !== null) where.push(`product.price <= ${parameter(maxPrice)}`);
