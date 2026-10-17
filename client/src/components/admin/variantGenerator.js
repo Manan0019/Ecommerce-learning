@@ -1,126 +1,60 @@
-// Pure helper: generates editable React draft rows, never writes to the server.
-const MAX_VALUE_LENGTH = 80;
-function parseValues(input, label) {
-  const entries = input
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-  if (!entries.length) throw Error(`${label} needs at least one value.`);
-  if (entries.some((v) => v.length > MAX_VALUE_LENGTH || /[:\n\r]/.test(v)))
-    throw Error(`${label} contains an invalid value.`);
-  const normalized = new Set(entries.map((v) => v.toLocaleLowerCase()));
-  if (normalized.size !== entries.length)
-    throw Error(`${label} contains duplicate values.`);
-  return entries;
+import { parsePaise } from "./variantPricing";
+
+export const newOptionGroup = () => ({ id: crypto.randomUUID(), name:"", values:"" });
+const normalizeName = (name) => {
+ const result=String(name).trim().toLowerCase().replace(/\s+/g,"_");
+ if(!/^[a-z][a-z0-9_]{0,39}$/.test(result)) throw Error("Option name must start with a letter (e.g. Color, RAM, Storage).");
+ return result;
+};
+const skuToken=(value)=>String(value).trim().toUpperCase().replace(/[^A-Z0-9]+/g,"-").replace(/^-|-$/g,"");
+export function canonicalAttributes(attributes){
+ return JSON.stringify(Object.entries(attributes).sort(([a],[b])=>a.localeCompare(b)));
 }
-function normalizeName(value) {
-  const name = value.trim().toLowerCase().replace(/\s+/g, "_");
-  if (!/^[a-z][a-z0-9_]{0,39}$/.test(name))
-    throw Error(
-      "Attribute names must start with a letter and contain letters, numbers or underscores.",
-    );
-  return name;
+function parseGroup(group) {
+ const name=normalizeName(group.name);
+ const values=String(group.values).split(",").map(v=>v.trim()).filter(Boolean);
+ if(!values.length || values.length>30 || values.some(v=>v.length>80)) throw Error(`${group.name}: enter 1–30 comma-separated values (max 80 characters each).`);
+ if(new Set(values.map(v=>v.toLowerCase())).size!==values.length) throw Error(`${group.name}: repeated option value.`);
+ return {name,values};
 }
-function skuToken(value) {
-  return value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+export function generateVariantMatrix({groups,skuPrefix,defaultMrp,defaultPrice,defaultStock,existing=[],limit=120}){
+ if(!Array.isArray(groups)||!groups.length||groups.length>8)throw Error("Choose 1–8 option groups.");
+ const normalized=groups.map(parseGroup);
+ if(new Set(normalized.map(g=>g.name)).size!==normalized.length)throw Error("Option group names must be different.");
+ const count=normalized.reduce((acc,g)=>acc*g.values.length,1);
+ if(count+existing.length>limit)throw Error(`Maximum ${limit} SKU rows. Reduce option values or remove drafts.`);
+ const prefix=skuToken(skuPrefix);
+ if(!prefix||prefix.length>40)throw Error("Enter a valid SKU prefix up to 40 characters.");
+ if(parsePaise(defaultMrp)===null||parsePaise(defaultPrice)===null||parsePaise(defaultPrice)<=0||parsePaise(defaultMrp)<parsePaise(defaultPrice))throw Error("Default MRP must be greater than or equal to a positive selling price.");
+ if(!/^(?:0|[1-9]\d*)$/.test(String(defaultStock))||Number(defaultStock)>2147483647)throw Error("Invalid stock quantity.");
+ const usedSKUs=new Set(existing.map(x=>x.sku?.trim().toLowerCase()).filter(Boolean));
+ const usedOptions=new Set(existing.map(x=>x.attributes?canonicalAttributes(x.attributes):canonicalText(x.attributesText)).filter(Boolean));
+ let combinations=[{}];
+ for(const group of normalized){
+   combinations=combinations.flatMap(base=>group.values.map(value=>({...base,[group.name]:value})));
+ }
+ const output=[];
+ for(const attributes of combinations){
+  const canon=canonicalAttributes(attributes);
+  if(usedOptions.has(canon))continue;
+  const sku=[prefix,...Object.values(attributes).map(skuToken)].join("-");
+  if(!/^[A-Z0-9][A-Z0-9_-]{1,79}$/.test(sku))throw Error(`Generated SKU ${sku} is invalid or too long; shorten your prefix/values.`);
+  if(usedSKUs.has(sku.toLowerCase()))throw Error(`SKU collision: ${sku}. Adjust prefix or values.`);
+  usedSKUs.add(sku.toLowerCase());usedOptions.add(canon);
+  output.push({key:crypto.randomUUID(),sku,attributesText:Object.entries(attributes).map(([k,v])=>`${k}: ${v}`).join("\n"),
+    mrp:String(defaultMrp),price:String(defaultPrice),stock:String(defaultStock),
+    discount:"",pricingMode:"price",isActive:true});
+ }
+ return output;
 }
-function canonical(attributesText) {
-  const pairs = attributesText
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => {
-      const at = line.indexOf(":");
-      if (at < 1) return null;
-      return [
-        line.slice(0, at).trim().toLowerCase().replace(/\s+/g, "_"),
-        line
-          .slice(at + 1)
-          .trim()
-          .toLowerCase(),
-      ];
-    });
-  if (pairs.some((x) => !x)) return null;
-  return JSON.stringify(pairs.sort(([a], [b]) => a.localeCompare(b)));
+function canonicalText(text) {
+ if(typeof text!=="string")return null;
+ const attributes={};
+ for(const line of text.split("\n")){if(!line.trim())continue;const at=line.indexOf(":");if(at<1)return null;attributes[line.slice(0,at).trim().toLowerCase().replace(/\s+/g,"_")]=line.slice(at+1).trim();}
+ return Object.keys(attributes).length?canonicalAttributes(attributes):null;
 }
-export function buildVariantDrafts({
-  nameA,
-  valuesA,
-  nameB,
-  valuesB,
-  skuPrefix,
-  defaultPrice,
-  defaultStock,
-  existing = [],
-  limit = 30,
-}) {
-  const keyA = normalizeName(nameA);
-  const first = parseValues(valuesA, "First attribute");
-  const hasSecond = Boolean(valuesB.trim());
-  const keyB = hasSecond ? normalizeName(nameB) : null;
-  if (hasSecond && keyA === keyB)
-    throw Error("The two attribute names must be different.");
-  const second = hasSecond ? parseValues(valuesB, "Second attribute") : [null];
-  const count = first.length * second.length;
-  if (count > limit || existing.length + count > limit)
-    throw Error(
-      `Too many combinations. Limit: ${limit} variant drafts including existing rows.`,
-    );
-  const prefix = skuToken(skuPrefix);
-  if (!prefix || prefix.length > 40)
-    throw Error(
-      "Enter a valid SKU prefix (max 40 characters after normalization).",
-    );
-  if (
-    !/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(String(defaultPrice)) ||
-    Number(defaultPrice) <= 0
-  )
-    throw Error("Enter a valid default price greater than zero.");
-  if (
-    !/^(?:0|[1-9]\d*)$/.test(String(defaultStock)) ||
-    Number(defaultStock) > 2147483647
-  )
-    throw Error("Enter a valid non-negative stock quantity.");
-  const seenSkus = new Set(
-    existing.map((v) => v.sku.trim().toLowerCase()).filter(Boolean),
-  );
-  const seenCombinations = new Set(
-    existing.map((v) => canonical(v.attributesText)).filter(Boolean),
-  );
-  const drafts = [];
-  for (const a of first)
-    for (const b of second) {
-      const attributesText =
-        `${keyA}: ${a}` + (b === null ? "" : `\n${keyB}: ${b}`);
-      const combination = canonical(attributesText);
-      if (seenCombinations.has(combination)) continue;
-      const sku = [
-        prefix,
-        skuToken(a),
-        ...(b === null ? [] : [skuToken(b)]),
-      ].join("-");
-      if (!/^[A-Z0-9][A-Z0-9_-]{1,79}$/.test(sku))
-        throw Error(
-          `Cannot make a valid SKU for ${a}${b === null ? "" : ` / ${b}`}. Edit the values or prefix.`,
-        );
-      if (seenSkus.has(sku.toLowerCase()))
-        throw Error(
-          `Generated SKU collision: ${sku}. Edit existing entries or use another prefix.`,
-        );
-      seenSkus.add(sku.toLowerCase());
-      seenCombinations.add(combination);
-      drafts.push({
-        key: crypto.randomUUID(),
-        sku,
-        attributesText,
-        price: String(defaultPrice),
-        stock: String(defaultStock),
-        isActive: true,
-      });
-    }
-  return drafts;
+// Backward-compatible API for callers using the old two-group generator.
+export function buildVariantDrafts({nameA,valuesA,nameB,valuesB,skuPrefix,defaultPrice,defaultStock,existing=[],limit=30}){
+ return generateVariantMatrix({groups:[{name:nameA,values:valuesA},...(String(valuesB||"").trim()?[{name:nameB,values:valuesB}]:[])],
+   skuPrefix,defaultMrp:defaultPrice,defaultPrice,defaultStock,existing,limit});
 }

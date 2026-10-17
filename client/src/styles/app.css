@@ -3093,135 +3093,45 @@ button.admin-secondary-action {
     transition-duration: 0.01ms !important;
   }
 }
+
 /* Product galleries: local image uploads + YouTube embeds */
-.product-gallery {
-  width: 100%;
-  min-width: 0
-}
-
-.gallery-main {
-  aspect-ratio: 1/1;
-  background: #f7f7f7;
-  border-radius: 12px;
-  overflow: hidden
-}
-
-.gallery-main img,
-.gallery-main iframe {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border: 0
-}
-
-.gallery-thumbnails {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 12px 0
-}
-
-.gallery-thumbnails button {
-  width: 76px;
-  height: 76px;
-  min-width: 76px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer
-}
-
-.gallery-thumbnails button.selected {
-  border: 2px solid #111
-}
-
-.gallery-thumbnails img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover
-}
-
-.media-manager-list {
-  display: grid;
-  gap: 10px;
-  margin-top: 15px
-}
-
-.media-manager-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid #eee;
-  padding: 8px
-}
-
-.media-manager-item img {
-  width: 70px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 6px
-}
+.product-gallery{width:100%;min-width:0}.gallery-main{aspect-ratio:1/1;background:#f7f7f7;border-radius:12px;overflow:hidden}.gallery-main img,.gallery-main iframe{width:100%;height:100%;object-fit:contain;border:0}.gallery-thumbnails{display:flex;gap:10px;overflow-x:auto;padding:12px 0}.gallery-thumbnails button{width:76px;height:76px;min-width:76px;border:1px solid #ccc;border-radius:8px;background:white;cursor:pointer}.gallery-thumbnails button.selected{border:2px solid #111}.gallery-thumbnails img{width:100%;height:100%;object-fit:cover}.media-manager-list{display:grid;gap:10px;margin-top:15px}.media-manager-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #eee;padding:8px}.media-manager-item img{width:70px;height:70px;object-fit:cover;border-radius:6px}
 
 /* Universal storefront / new product gallery draft */
-.admin-media-draft {
-  margin-top: 1.5rem;
-  padding: 1.25rem;
-  border: 1px solid var(--border-color, #d7dce4);
-  border-radius: 1rem;
-  display: grid;
-  gap: 1rem;
-}
+.admin-media-draft { margin-top: 1.5rem; padding: 1.25rem; border: 1px solid var(--border-color, #d7dce4); border-radius: 1rem; display: grid; gap: 1rem; }
+.admin-media-draft label { display: grid; gap: .5rem; }
+.admin-media-draft .admin-featured-toggle { display: flex; align-items: center; gap: .65rem; }
+.admin-media-draft .media-manager-list { list-style: none; margin: 0; padding: 0; }
+.admin-media-draft .media-manager-item { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; overflow-wrap: anywhere; }
+.admin-media-draft .media-manager-item span { flex: 1; min-width: 160px; }
+.admin-form-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+.generic-store-showcase { width: 100%; min-height: 230px; display: grid; place-items: center; text-align: center; font-size: clamp(1.5rem, 4vw, 3.5rem); font-weight: 800; letter-spacing: -.04em; background: linear-gradient(130deg, #dceaf2, #faf0e8, #d9e8db); border-radius: 1.5rem; padding: 1.5rem; color: #243044; }
 
-.admin-media-draft label {
-  display: grid;
-  gap: .5rem;
-}
-
-.admin-media-draft .admin-featured-toggle {
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-}
-
-.admin-media-draft .media-manager-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.admin-media-draft .media-manager-item {
-  display: flex;
-  gap: .6rem;
-  align-items: center;
-  flex-wrap: wrap;
-  overflow-wrap: anywhere;
-}
-
-.admin-media-draft .media-manager-item span {
-  flex: 1;
-  min-width: 160px;
-}
-
-.admin-form-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 1rem;
-}
-
-.generic-store-showcase {
-  width: 100%;
-  min-height: 230px;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  font-size: clamp(1.5rem, 4vw, 3.5rem);
-  font-weight: 800;
-  letter-spacing: -.04em;
-  background: linear-gradient(130deg, #dceaf2, #faf0e8, #d9e8db);
-  border-radius: 1.5rem;
-  padding: 1.5rem;
-  color: #243044;
-}
+/* Phase 13 — choice cards, dynamic price and gallery motion */
+.variant-option-group{border:0;padding:0;margin:22px 0;min-width:0}
+.variant-option-group legend{display:block;width:100%;margin-bottom:12px;font-size:15px}
+.variant-option-group legend span{font-weight:400;color:#555}
+.variant-choice-row{display:flex;gap:10px;flex-wrap:wrap}
+.variant-option{appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid #d3d5d9;border-radius:13px;background:#fff;color:#222;min-width:76px;min-height:48px;padding:10px 13px;cursor:pointer;transition:border-color .18s,background-color .18s,transform .18s;line-height:1.35}
+.variant-option:hover:not(:disabled){border-color:#555;transform:translateY(-1px)}
+.variant-option.is-selected{border-color:#191c22;box-shadow:0 0 0 1px #191c22;background:#f4f5f6;font-weight:700}
+.variant-option.is-sold-out{opacity:.66}
+.variant-option:disabled{cursor:not-allowed;opacity:.45}
+.variant-option img{width:74px;height:64px;object-fit:contain}
+.variant-option.is-image-option{min-width:96px;min-height:110px}
+.variant-option small{color:#656973;font-size:12px}
+.variant-selection-summary{font-size:14px;color:#434954;border-top:1px solid #e5e7eb;padding-top:13px}
+.detail-price-block{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px;margin:17px 0}
+.detail-price-block .detail-price{font-size:clamp(24px,3vw,34px);font-weight:800}
+.detail-mrp{color:#777;font-size:21px}
+.detail-discount{color:#00844a;font-size:22px}
+.gallery-main{position:relative}
+.gallery-main video{width:100%;height:100%;object-fit:contain}
+.gallery-transition{animation:galleryFade .28s ease both}
+@keyframes galleryFade{from{opacity:.15;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+.variant-admin-list{display:grid;gap:8px;margin:16px 0}
+.variant-admin-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid #e5e7eb;padding:9px;border-radius:9px}
+.admin-danger-action{background:#fff;color:#991b1b;border:1px solid #fda4af;border-radius:7px;padding:8px 12px;cursor:pointer}
+.admin-delete-confirm{border:1px solid #fda4af;padding:16px;border-radius:11px;margin-top:12px;background:#fff7f7}
+.admin-delete-confirm input{width:100%;margin:8px 0 12px}
+@media(prefers-reduced-motion:reduce){.gallery-transition{animation:none}.variant-option{transition:none}}

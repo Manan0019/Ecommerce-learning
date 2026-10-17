@@ -14,7 +14,7 @@ export default function ProductCard({ product }) {
       {(product.brand || product.model) && <p className="product-brand">{[product.brand, product.model].filter(Boolean).join(" · ")}</p>}
       <h3><Link to={`/products/${product.id}`}>{product.name}</Link></h3>
       <div className="product-meta">
-        <p className="product-price">₹{Number(product.price).toFixed(2)}</p>
+        <p className="product-price">{Number(product.mrp)>Number(product.price)&&<><span className="detail-discount">↓{Math.round((Number(product.mrp)-Number(product.price))/Number(product.mrp)*100)}% </span><s className="detail-mrp">₹{Number(product.mrp).toLocaleString("en-IN")}</s> </>}₹{Number(product.price).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
         <span>{product.stock > 0 ? "Available" : "Out of stock"}</span>
       </div>
     </div>

@@ -1,250 +1,54 @@
 import { useState } from "react";
 import { validateVariantDrafts } from "./variantDraftValidation";
-import { buildVariantDrafts } from "./variantGenerator";
+import { generateVariantMatrix, newOptionGroup } from "./variantGenerator";
+import { updatePricingDraft } from "./variantPricing";
+import VariantPriceFields from "./VariantPriceFields";
 
-const blank = () => ({
-  key: crypto.randomUUID(),
-  sku: "",
-  attributesText: "",
-  price: "",
-  stock: "0",
-  isActive: true,
-});
-
-export default function DraftVariants({
-  variants,
-  onChange,
-  disabled = false,
-}) {
-  const [error, setError] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [nameA, setNameA] = useState("Color");
-  const [valuesA, setValuesA] = useState("");
-  const [nameB, setNameB] = useState("Size");
-  const [valuesB, setValuesB] = useState("");
-  const [skuPrefix, setSkuPrefix] = useState("ITEM");
-  const [defaultPrice, setDefaultPrice] = useState("");
-  const [defaultStock, setDefaultStock] = useState("0");
-
-  function change(next) {
-    onChange(next);
-    setError("");
-    setFeedback("");
-  }
-  function update(key, field, value) {
-    change(variants.map((v) => (v.key === key ? { ...v, [field]: value } : v)));
-  }
-  function generate() {
-    try {
-      const additions = buildVariantDrafts({
-        nameA,
-        valuesA,
-        nameB,
-        valuesB,
-        skuPrefix,
-        defaultPrice,
-        defaultStock,
-        existing: variants,
-        limit: 30,
-      });
-      if (additions.length) onChange([...variants, ...additions]);
-      setFeedback(
-        additions.length
-          ? `Generated ${additions.length} editable variant(s). Review all SKUs before saving.`
-          : "All combinations already exist.",
-      );
-      setError("");
-    } catch (e) {
-      setError(e.message);
-      setFeedback("");
-    }
-  }
-  return (
-    <section className="admin-panel" aria-label="Product variants draft">
-      <h2>SKUs &amp; Product Variants</h2>
-      <p>
-        Optional for simple products. Generate size/color combinations or add
-        custom variants manually. Each SKU has its own price and stock.
-      </p>
-      <fieldset
-        disabled={disabled}
-        className="admin-panel"
-        style={{ marginBottom: 16 }}
-      >
-        <legend>Generate variant combinations</legend>
-        <div className="admin-form-grid two-column">
-          <label>
-            First attribute
-            <input
-              value={nameA}
-              onChange={(e) => setNameA(e.target.value)}
-              placeholder="Color"
-              maxLength={40}
-            />
-          </label>
-          <label>
-            Values (comma-separated)
-            <input
-              value={valuesA}
-              onChange={(e) => setValuesA(e.target.value)}
-              placeholder="Black, White, Blue"
-            />
-          </label>
-          <label>
-            Second attribute (optional)
-            <input
-              value={nameB}
-              onChange={(e) => setNameB(e.target.value)}
-              placeholder="Size"
-              maxLength={40}
-            />
-          </label>
-          <label>
-            Values (optional)
-            <input
-              value={valuesB}
-              onChange={(e) => setValuesB(e.target.value)}
-              placeholder="S, M, L"
-            />
-          </label>
-          <label>
-            SKU prefix
-            <input
-              value={skuPrefix}
-              onChange={(e) => setSkuPrefix(e.target.value)}
-              placeholder="TSHIRT"
-              maxLength={40}
-            />
-          </label>
-          <label>
-            Default selling price (₹)
-            <input
-              type="number"
-              min="0.01"
-              step="0.01"
-              value={defaultPrice}
-              onChange={(e) => setDefaultPrice(e.target.value)}
-            />
-          </label>
-          <label>
-            Default stock per variant
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={defaultStock}
-              onChange={(e) => setDefaultStock(e.target.value)}
-            />
-          </label>
-        </div>
-        <button
-          type="button"
-          disabled={disabled || variants.length >= 30}
-          onClick={generate}
-        >
-          Generate combinations
-        </button>
-        <p>
-          Maximum 30 variants total. Generated entries can be edited
-          individually below.
-        </p>
-      </fieldset>
-      <button
-        type="button"
-        disabled={disabled || variants.length >= 30}
-        onClick={() => change([...variants, blank()])}
-      >
-        + Add variant manually
-      </button>
-      {variants.map((row, index) => (
-        <fieldset
-          key={row.key}
-          disabled={disabled}
-          className="admin-panel"
-          style={{ marginTop: 12 }}
-        >
-          <legend>Variant {index + 1}</legend>
-          <div className="admin-form-grid two-column">
-            <label>
-              SKU
-              <input
-                value={row.sku}
-                onChange={(e) => update(row.key, "sku", e.target.value)}
-                placeholder="SHIRT-BLACK-M"
-                required
-                maxLength={80}
-              />
-            </label>
-            <label>
-              Price (₹)
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={row.price}
-                onChange={(e) => update(row.key, "price", e.target.value)}
-                required
-              />
-            </label>
-            <label>
-              Stock
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={row.stock}
-                onChange={(e) => update(row.key, "stock", e.target.value)}
-                required
-              />
-            </label>
-          </div>
-          <label>
-            Attributes (one per line: Color: Black)
-            <textarea
-              value={row.attributesText}
-              onChange={(e) =>
-                update(row.key, "attributesText", e.target.value)
-              }
-              placeholder={"Color: Black\nSize: M"}
-            />
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={row.isActive}
-              onChange={(e) => update(row.key, "isActive", e.target.checked)}
-            />{" "}
-            Active
-          </label>
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={() => change(variants.filter((v) => v.key !== row.key))}
-          >
-            Remove variant
-          </button>
-        </fieldset>
-      ))}
-      {variants.length > 0 && (
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => {
-            try {
-              validateVariantDrafts(variants);
-              setError("");
-              setFeedback("All SKU entries pass local validation.");
-            } catch (e) {
-              setError(e.message);
-              setFeedback("");
-            }
-          }}
-        >
-          Check variant entries
-        </button>
-      )}
-      {feedback && <p role="status">{feedback}</p>}
-      {error && <p role="alert">{error}</p>}
-    </section>
-  );
+const blank = () => ({key:crypto.randomUUID(),sku:"",attributesText:"",mrp:"",price:"",stock:"0",isActive:true,pricingMode:"price"});
+export default function DraftVariants({variants,onChange,disabled=false,existingVariants=[]}){
+ const [groups,setGroups]=useState(()=>[{...newOptionGroup(),name:"Color"},{...newOptionGroup(),name:"Size"}]);
+ const [skuPrefix,setSkuPrefix]=useState("ITEM"),[defaultMrp,setDefaultMrp]=useState(""),[defaultPrice,setDefaultPrice]=useState(""),[defaultStock,setDefaultStock]=useState("0");
+ const [error,setError]=useState(""),[feedback,setFeedback]=useState("");
+ function change(next){onChange(next);setError("");setFeedback("");}
+ function update(id,field,value){change(variants.map(row=>row.key!==id?row:["mrp","price","discount"].includes(field)?updatePricingDraft(row,field,value):{...row,[field]:value}));}
+ function generate(){try{
+   const additions=generateVariantMatrix({groups:groups.filter(g=>g.name.trim()||g.values.trim()),skuPrefix,defaultMrp,defaultPrice,defaultStock,existing:[...variants,...existingVariants],limit:120});
+   if(additions.length)onChange([...variants,...additions]);
+   setFeedback(additions.length?`${additions.length} editable SKU drafts generated. Nothing saved to database yet.`:"All combinations already exist.");setError("");
+  }catch(e){setError(e.message);setFeedback("");}}
+ function updateGroup(id,field,value){setGroups(gs=>gs.map(g=>g.id===id?{...g,[field]:value}:g));}
+ return <section className="admin-panel" aria-label="Product variants draft">
+  <h2>SKU Variants — Dynamic Option Matrix</h2>
+  <p>Add any relevant option groups (Color, RAM, Storage, Size, Volume...). The generator creates their combinations; review each selling price, MRP and stock before saving.</p>
+  <fieldset disabled={disabled} className="admin-panel"><legend>Generate combinations</legend>
+   {groups.map((group,index)=><div className="admin-form-grid two-column" key={group.id}>
+     <label>Option group {index+1}<input value={group.name} maxLength={40} onChange={e=>updateGroup(group.id,"name",e.target.value)} placeholder="Color"/></label>
+     <label>Values (comma-separated)<input value={group.values} onChange={e=>updateGroup(group.id,"values",e.target.value)} placeholder="Black, White, Blue"/></label>
+     <button type="button" disabled={groups.length===1} onClick={()=>setGroups(gs=>gs.filter(g=>g.id!==group.id))}>Remove option group</button>
+   </div>)}
+   <button type="button" disabled={groups.length>=8} onClick={()=>setGroups(gs=>[...gs,newOptionGroup()])}>+ Add option group</button>
+   <div className="admin-form-grid three-column">
+     <label>SKU prefix<input value={skuPrefix} onChange={e=>setSkuPrefix(e.target.value)}/></label>
+     <label>Default MRP (₹)<input type="number" min="0.01" step="0.01" value={defaultMrp} onChange={e=>setDefaultMrp(e.target.value)}/></label>
+     <label>Default selling price (₹)<input type="number" min="0.01" step="0.01" value={defaultPrice} onChange={e=>setDefaultPrice(e.target.value)}/></label>
+     <label>Default stock per SKU<input type="number" min="0" step="1" value={defaultStock} onChange={e=>setDefaultStock(e.target.value)}/></label>
+   </div>
+   <button type="button" disabled={disabled||variants.length>=120} onClick={generate}>Generate SKU combinations</button>
+   <p>Maximum 8 option groups and 120 total SKU drafts per product. This prevents accidental creation of thousands of combinations.</p>
+  </fieldset>
+  <button type="button" disabled={disabled||variants.length>=120} onClick={()=>change([...variants,blank()])}>+ Add SKU manually</button>
+  {variants.map((row,index)=><fieldset key={row.key} disabled={disabled} className="admin-panel" style={{marginTop:12}}>
+    <legend>SKU {index+1}</legend>
+    <div className="admin-form-grid two-column">
+      <label>SKU<input value={row.sku} onChange={e=>update(row.key,"sku",e.target.value)} maxLength={80} required/></label>
+      <label>Stock<input type="number" min="0" step="1" value={row.stock} onChange={e=>update(row.key,"stock",e.target.value)} required/></label>
+    </div>
+    <VariantPriceFields row={row} onFieldChange={(field,value)=>update(row.key,field,value)} disabled={disabled}/>
+    <label>Option values (one per line, e.g. Color: Midnight)<textarea value={row.attributesText} onChange={e=>update(row.key,"attributesText",e.target.value)} placeholder={"Color: Midnight\nRAM: 16 GB\nStorage: 1 TB"}/></label>
+    <label><input type="checkbox" checked={row.isActive} onChange={e=>update(row.key,"isActive",e.target.checked)}/> Active</label>
+    <button type="button" onClick={()=>change(variants.filter(v=>v.key!==row.key))}>Remove draft</button>
+  </fieldset>)}
+  {variants.length>0&&<button type="button" onClick={()=>{try{validateVariantDrafts(variants);setFeedback("All SKU entries pass local validation.");setError("");}catch(e){setError(e.message);setFeedback("");}}}>Validate SKU drafts</button>}
+  {feedback&&<p role="status">{feedback}</p>}{error&&<p role="alert" className="admin-alert">{error}</p>}
+ </section>;
 }
