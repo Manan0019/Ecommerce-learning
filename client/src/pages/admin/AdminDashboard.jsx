@@ -4,11 +4,13 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import { getAdminSummary } from "../../services/adminService";
 import { getAdminProducts } from "../../services/productService";
+import { getCodSummary } from "../../services/orderService";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [orderSummary, setOrderSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -33,6 +35,7 @@ export default function AdminDashboard() {
       }
     }
     loadDashboard();
+    getCodSummary(controller.signal).then(data => { if (!controller.signal.aborted) setOrderSummary(data.summary); }).catch(() => { /* Orders migration can be applied separately. */ });
     return () => controller.abort();
   }, [navigate]);
 
@@ -55,6 +58,11 @@ export default function AdminDashboard() {
         <span aria-hidden="true">○</span>
         <Link to="/admin/customers">View customers →</Link>
       </article>
+      <article className="admin-stat-card">
+        <div><p>COD orders</p><strong>{orderSummary ? orderSummary.total : "—"}</strong></div>
+        <span aria-hidden="true">▤</span>
+        <Link to="/admin/orders">View orders →</Link>
+      </article>
     </section>
 
     <section className="admin-dashboard-grid">
@@ -70,11 +78,12 @@ export default function AdminDashboard() {
       </article>
 
       <aside className="admin-panel admin-future-panel">
-        <p className="admin-eyebrow">Planned workspace</p><h2>Business insights</h2>
-        <div><span>Orders</span><strong>Coming Soon</strong></div>
-        <div><span>Revenue</span><strong>Coming Soon</strong></div>
-        <div><span>Analytics</span><strong>Coming Soon</strong></div>
-        <p>These metrics will appear only after their backend features are implemented.</p>
+        <p className="admin-eyebrow">Order workspace</p><h2>Cash on Delivery</h2>
+        <div><span>Awaiting confirmation</span><strong>{orderSummary?.placed ?? "—"}</strong></div>
+        <div><span>Confirmed / processing</span><strong>{orderSummary ? orderSummary.confirmed + orderSummary.processing : "—"}</strong></div>
+        <div><span>Non-cancelled order value</span><strong>{orderSummary ? `₹${Number(orderSummary.orderValue).toLocaleString("en-IN")}` : "—"}</strong></div>
+        <p>These totals reflect placed COD orders, not received payments.</p>
+        <Link className="text-link" to="/admin/orders">Manage COD orders →</Link>
       </aside>
     </section>
   </AdminLayout>;

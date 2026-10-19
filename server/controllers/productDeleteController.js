@@ -26,12 +26,24 @@ export async function deleteProduct(req, res) {
       await db.query("ROLLBACK");
       return res.status(409).json({message:"This product is used by a promotion. Edit that promotion and change/remove its product placement or link before deleting this product."});
     }
+    // COD history must never be removed, but unused products can still be deleted.
+    const orderItemsTable = await db.query("SELECT to_regclass('public.cod_order_items') AS table_name");
+    if (orderItemsTable.rows[0]?.table_name) {
+      const pastOrders = await db.query(`SELECT 1 FROM cod_order_items
+        WHERE product_id=$1 OR variant_id IN (SELECT id FROM product_variants WHERE product_id=$1)
+        LIMIT 1`, [id]);
+      if (pastOrders.rows.length) {
+        await db.query("ROLLBACK");
+        return res.status(409).json({message:"This product belongs to a COD order. Deactivate it to preserve order history."});
+      }
+    }
     const dependencies = await db.query(`
       SELECT conrelid::regclass::text AS referencing_table
       FROM pg_constraint
       WHERE contype='f'
         AND confrelid IN ('products'::regclass,'product_variants'::regclass)
         AND conrelid NOT IN ('product_media'::regclass,'product_variants'::regclass,'customer_wishlist'::regclass,'promotion_banners'::regclass)
+        AND conrelid <> COALESCE(to_regclass('public.cod_order_items')::oid,0::oid)
       ORDER BY referencing_table`);
     if (dependencies.rows.length) {
       await db.query("ROLLBACK");

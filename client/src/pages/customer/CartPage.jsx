@@ -72,9 +72,9 @@ export default function CartPage() {
         <div><span>All listed items</span><strong>₹{quote.subtotal}</strong></div>
         <div><span>Available items</span><strong>₹{quote.availableSubtotal}</strong></div>
         {quote.unavailableCount > 0 && <p role="alert" className="cart-warning">{quote.unavailableCount} unavailable line(s) are excluded from the available-items total. Remove or update them.</p>}
-        <div><span>Shipping and taxes</span><span>Not calculated</span></div>
-        <p className="stock-copy">Estimates only. Prices and stock may change. No stock is reserved and no order is placed.</p>
-        <button className="button button-primary" type="button" disabled>Checkout is not available yet</button>
+        <div><span>Shipping</span><span>Free for COD demo</span></div>
+        <p className="stock-copy">Prices and stock will be checked again when placing the COD order. No online payment is required.</p>
+        <Link className={`button button-primary nx-checkout-cta ${!quote.valid ? "nx-link-disabled" : ""}`} aria-disabled={!quote.valid} tabIndex={quote.valid ? 0 : -1} onClick={e => {if(!quote.valid)e.preventDefault()}} to="/checkout">Continue to Cash on Delivery →</Link>
         <button className="clear-cart-button" type="button" onClick={clearCart}>Clear cart</button>
         <Link className="text-link" to="/products">← Continue shopping</Link>
       </aside>

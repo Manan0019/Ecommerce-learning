@@ -1,0 +1,14 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { makeOrderLine, validateAddress, validRequestKey, canChangeOrderStatus, normalizeAddress } from "../services/codOrderRules.js";
+const address={fullName:"Test Buyer",phone:"9876543210",addressLine1:"12 Demo Street",city:"Surat",state:"Gujarat",pincode:"395007"};
+const item={productId:"11",variantId:"24",quantity:2};
+const product={id:11,name:"Cotton Shirt",stock:100,price:"400.00",is_active:true,category_active:true,image_url:null};
+const variant={id:24,product_id:11,sku:"SHRT-XL",attributes:{Size:"XL"},price:"499.50",stock:4,is_active:true};
+test("COD validates delivery address fields and PIN",()=>{assert.equal(validateAddress(address),null);assert.match(validateAddress({...address,pincode:"39507"}),/pincode|PIN/i);assert.match(validateAddress({...address,phone:"abc"}),/phone|mobile/i);assert.equal(normalizeAddress({...address,addressLine2:undefined}).addressLine2,"");});
+test("COD only accepts UUID request keys",()=>{assert.equal(validRequestKey("b9d75f44-758c-4719-a209-a86d1a49c926"),true);assert.equal(validRequestKey("123"),false);});
+test("COD locks exact SKU price and total in integer paise",()=>{const line=makeOrderLine(item,product,variant,true);assert.equal(line.unitPrice,49950n);assert.equal(line.lineTotal,99900n);assert.equal(line.sku,"SHRT-XL");});
+test("COD rejects missing, mismatched and inactive variants",()=>{assert.ok(makeOrderLine(item,product,null,true).error);assert.ok(makeOrderLine(item,product,{...variant,product_id:999},true).error);assert.ok(makeOrderLine(item,product,{...variant,is_active:false},true).error);});
+test("COD rejects insufficient stock and inactive parent",()=>{assert.ok(makeOrderLine(item,product,{...variant,stock:1},true).error);assert.ok(makeOrderLine(item,{...product,is_active:false},variant,true).error);});
+test("COD accepts existing simple products without variants",()=>{const r=makeOrderLine({productId:"11",variantId:null,quantity:2},product,null,false);assert.equal(r.lineTotal,80000n);});
+test("COD order transitions cannot process cancelled orders or cancel twice",()=>{assert.equal(canChangeOrderStatus("placed","confirmed"),true);assert.equal(canChangeOrderStatus("placed","cancelled"),true);assert.equal(canChangeOrderStatus("cancelled","confirmed"),false);assert.equal(canChangeOrderStatus("cancelled","cancelled"),false);assert.equal(canChangeOrderStatus("processing","cancelled"),false);});

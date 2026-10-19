@@ -28,7 +28,8 @@ export default function CustomerLogin() {
     try {
       const data = await login({ email, password });
 
-      navigate(data.user.role === "admin" ? "/admin/dashboard" : "/", { replace: true });
+      const returnTo = ["/checkout", "/orders"].includes(location.state?.from) ? location.state.from : "/";
+      navigate(data.user.role === "admin" ? "/admin/dashboard" : returnTo, { replace: true });
 
     } catch (error) {
       setFeedback({ text: error.message, type: "error" });

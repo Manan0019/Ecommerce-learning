@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import CustomerLayout from "../../components/layout/CustomerLayout";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import { getCurrentUser, logout, updateCustomerName, updateCustomerPassword } from "../../services/authService";
 
@@ -124,7 +125,8 @@ export default function CustomerDashboard() {
   }
 
   return (
-    <div className="profile-container">
+    <CustomerLayout mainClassName="nx-profile-page"><div className="profile-container">
+      <div className="nx-profile-head"><div><p className="eyebrow">My account</p><p>Manage your profile and review your COD orders.</p></div><Link className="button button-primary" to="/orders">My Orders →</Link></div>
       <h1>Customer Profile</h1>
 
       {user.profileImageUrl ? (
@@ -191,6 +193,6 @@ export default function CustomerDashboard() {
       <button onClick={handleLogout}>
         Logout
       </button>
-    </div>
+    </div></CustomerLayout>
   );
 }
