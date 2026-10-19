@@ -1,0 +1,13 @@
+import {Router} from "express";
+import {requireAdmin} from "../middleware/authMiddleware.js";
+import {catalogImageUpload,handleCatalogImageError} from "../services/catalogImageService.js";
+import {listAdminBanners,listBanners,createBanner,updateBanner,toggleBanner} from "../controllers/bannerController.js";
+export const publicBannerRoutes=Router();
+publicBannerRoutes.get("/",listBanners);
+export const adminBannerRoutes=Router();
+adminBannerRoutes.use(requireAdmin);
+adminBannerRoutes.get("/",listAdminBanners);
+adminBannerRoutes.post("/",catalogImageUpload.single("image"),createBanner);
+adminBannerRoutes.put("/:id",catalogImageUpload.single("image"),updateBanner);
+adminBannerRoutes.patch("/:id/status",toggleBanner);
+adminBannerRoutes.use(handleCatalogImageError);

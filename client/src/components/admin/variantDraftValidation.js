@@ -23,6 +23,7 @@ export function validateVariantDrafts(rows) {
   const price=String(row.price??"");const mrp=String(row.mrp??row.price??"");
   if(parsePaise(price)===null||parsePaise(price)<=0||parsePaise(mrp)===null||parsePaise(mrp)<parsePaise(price))throw Error(`${sku}: MRP must be at least the positive selling price.`);
   if(!/^(?:0|[1-9]\d*)$/.test(String(row.stock))||Number(row.stock)>2147483647)throw Error(`${sku}: invalid stock.`);
-  return {...row,sku,attributes,mrp,price};
+  if (String(row.customTitle || "").length > 260) throw Error(`${sku}: title is too long.`);
+  return {...row,sku,attributes,mrp,price,customTitle:String(row.customTitle||"").trim()};
  });
 }

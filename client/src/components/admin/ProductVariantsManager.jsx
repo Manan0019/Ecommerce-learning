@@ -6,7 +6,7 @@ import { updatePricingDraft, discountFromPrices } from "./variantPricing";
 import DraftVariants from "./DraftVariants";
 import VariantPriceFields from "./VariantPriceFields";
 
-const newForm = () => ({ sku: "", attributesText: "", mrp: "", price: "", stock: "0", isActive: true, pricingMode: "price" });
+const newForm = () => ({ sku: "", customTitle: "", attributesText: "", mrp: "", price: "", stock: "0", isActive: true, pricingMode: "price" });
 const money = value => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 function parseAttributes(text) {
   const attrs = {};
@@ -42,7 +42,7 @@ export default function ProductVariantsManager({ productId }) {
 
   function beginEdit(variant) {
     setEditing(variant.id);
-    setForm({ sku: variant.sku, price: String(variant.price), mrp: String(variant.mrp ?? variant.price),
+    setForm({ sku: variant.sku, customTitle: variant.customTitle || "", price: String(variant.price), mrp: String(variant.mrp ?? variant.price),
       discount: discountFromPrices(String(variant.mrp ?? variant.price), String(variant.price)),
       pricingMode: "price", stock: String(variant.stock), isActive: variant.isActive,
       attributesText: Object.entries(variant.attributes || {}).map(([key,value]) => `${key}: ${value}`).join("\n") });
@@ -55,7 +55,7 @@ export default function ProductVariantsManager({ productId }) {
     try {
       const attributes = parseAttributes(form.attributesText);
       const data = validateVariantDrafts([{ ...form, key: "edited", attributes }])[0];
-      const body = { sku: data.sku, attributes: data.attributes, mrp: data.mrp, price: data.price, stock: Number(data.stock), isActive: data.isActive };
+      const body = { sku: data.sku, customTitle: data.customTitle || "", attributes: data.attributes, mrp: data.mrp, price: data.price, stock: Number(data.stock), isActive: data.isActive };
       if (editing) await updateVariant(productId, editing, body);
       else await createVariant(productId, body);
       await refresh(); setModalOpen(false); setEditing(null); setForm(newForm());
@@ -70,7 +70,7 @@ export default function ProductVariantsManager({ productId }) {
     setBusy(true);
     const failed = [];
     for (const row of checked) {
-      try { await createVariant(productId, { sku: row.sku, attributes: row.attributes, mrp: row.mrp, price: row.price, stock: Number(row.stock), isActive: row.isActive }); }
+      try { await createVariant(productId, { sku: row.sku, customTitle: row.customTitle || "", attributes: row.attributes, mrp: row.mrp, price: row.price, stock: Number(row.stock), isActive: row.isActive }); }
       catch (err) { failed.push({ ...row, error: err.message }); }
     }
     setDrafts(failed);
@@ -88,7 +88,7 @@ export default function ProductVariantsManager({ productId }) {
       <div className="nx-sku-list">
         <div className="nx-sku-head"><span>Configuration</span><span>Pricing</span><span>Inventory</span><span></span></div>
         {variants.map(v => <div className="nx-sku-row" key={v.id}>
-          <div><strong>{v.sku}</strong><small>{Object.entries(v.attributes || {}).map(([k,value]) => `${k.replaceAll("_", " ")}: ${value}`).join(" · ") || "Default configuration"}</small></div>
+          <div><strong>{v.customTitle || v.sku}</strong><small>{v.customTitle ? `SKU: ${v.sku} · ` : ""}{Object.entries(v.attributes || {}).map(([k,value]) => `${k.replaceAll("_", " ")}: ${value}`).join(" · ") || "Default configuration"}</small></div>
           <div><strong>{money(v.price)}</strong><small>MRP {money(v.mrp ?? v.price)}</small></div>
           <div><strong>{v.stock} units</strong><small>{v.isActive ? "Active" : "Inactive"}</small></div>
           <button className="nx-edit-button" type="button" onClick={() => beginEdit(v)}>Edit ↗</button>
@@ -103,6 +103,7 @@ export default function ProductVariantsManager({ productId }) {
       <form className="admin-form nx-sku-form" onSubmit={saveOne}>
         <div className="admin-form-grid two-column"><label>SKU<input required maxLength={80} value={form.sku} onChange={e => setForm(old => ({ ...old, sku: e.target.value }))}/></label>
           <label>Stock units<input type="number" min="0" step="1" required value={form.stock} onChange={e => setForm(old => ({ ...old, stock: e.target.value }))}/></label></div>
+        <label>Customer-facing variant title (optional)<input maxLength={260} value={form.customTitle || ""} placeholder="MacBook Air M5 · 24 GB RAM / 512 GB SSD" onChange={e => setForm(old => ({...old, customTitle: e.target.value}))}/></label>
         <VariantPriceFields row={form} disabled={busy} onFieldChange={(field,value) => setForm(old => updatePricingDraft(old, field, value))}/>
         <label>Option values <small>One per line, like Color: Midnight</small><textarea rows={4} value={form.attributesText} onChange={e => setForm(old => ({ ...old, attributesText: e.target.value }))} placeholder={"Color: Midnight\nRAM: 16 GB\nStorage: 1 TB"}/></label>
         <label className="nx-inline-checkbox"><input type="checkbox" checked={form.isActive} onChange={e => setForm(old => ({ ...old, isActive: e.target.checked }))}/> SKU active for customers</label>

@@ -5,7 +5,7 @@ import { generateVariantMatrix, newOptionGroup } from "./variantGenerator";
 import { updatePricingDraft } from "./variantPricing";
 import VariantPriceFields from "./VariantPriceFields";
 
-const blank = () => ({ key: crypto.randomUUID(), sku: "", attributesText: "", mrp: "", price: "", stock: "0", isActive: true, pricingMode: "price" });
+const blank = () => ({ key: crypto.randomUUID(), sku: "", customTitle: "", attributesText: "", mrp: "", price: "", stock: "0", isActive: true, pricingMode: "price" });
 export default function DraftVariants({ variants, onChange, disabled = false, existingVariants = [] }) {
   const [groups, setGroups] = useState(() => [{ ...newOptionGroup(), name: "Color" }, { ...newOptionGroup(), name: "Size" }]);
   const [skuPrefix, setSkuPrefix] = useState("ITEM");
@@ -72,6 +72,7 @@ export default function DraftVariants({ variants, onChange, disabled = false, ex
       <div className="admin-form nx-sku-form">
         <div className="admin-form-grid two-column"><label>SKU<input value={current.sku} maxLength={80} onChange={e => update(current.key, "sku", e.target.value)} /></label>
           <label>Stock<input type="number" min="0" step="1" value={current.stock} onChange={e => update(current.key, "stock", e.target.value)} /></label></div>
+        <label>Customer-facing variant title (optional)<input maxLength={260} value={current.customTitle || ""} onChange={e => update(current.key,"customTitle",e.target.value)} placeholder="MacBook Air M5 · 16 GB / 1 TB"/></label>
         <VariantPriceFields row={current} onFieldChange={(field,value) => update(current.key, field, value)} />
         <label>Options (one per line)<textarea rows={4} value={current.attributesText || ""} onChange={e => update(current.key, "attributesText", e.target.value)} placeholder={"Color: Midnight\nRAM: 16 GB\nStorage: 1 TB"}/></label>
         <label className="nx-inline-checkbox"><input type="checkbox" checked={current.isActive} onChange={e => update(current.key, "isActive", e.target.checked)}/> Active SKU</label>

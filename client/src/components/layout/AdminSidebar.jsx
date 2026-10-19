@@ -5,6 +5,7 @@ const navigation = [
   { to: "/admin/dashboard", label: "Dashboard", icon: "⌂", end: true },
   { to: "/admin/products", label: "Manage Products", icon: "□" },
   { to: "/admin/categories", label: "Manage Categories", icon: "◇" },
+  { to: "/admin/banners", label: "Promotions", icon: "▧" },
   { to: "/admin/customers", label: "Customers", icon: "○" },
   { to: "/admin/orders", label: "Orders", icon: "▤" },
   { to: "/admin/analytics", label: "Analytics", icon: "⌁" },

@@ -7,6 +7,7 @@ import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminBanners from "./pages/admin/AdminBanners";
 import EditProduct from "./pages/admin/EditProduct";
 import CustomerLogin from "./pages/auth/CustomerLogin";
 import CustomerSignup from "./pages/auth/CustomerSignup";
@@ -25,6 +26,7 @@ import "./styles/wishlist.css";
 import "./styles/phase14.css";
 import "./styles/phase15.css";
 import "./styles/phase16.css";
+import "./styles/phase17.css";
 
 export default function App() {
   return <CartProvider><BrowserRouter><Routes>
@@ -40,6 +42,7 @@ export default function App() {
     <Route path="/admin/products/:id/edit" element={<EditProduct />} />
     <Route path="/admin/customers" element={<AdminCustomers />} />
     <Route path="/admin/categories" element={<AdminCategories />} />
+    <Route path="/admin/banners" element={<AdminBanners />} />
     <Route path="/admin/orders" element={<AdminComingSoon title="Orders" />} />
     <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />
     <Route path="/admin/settings" element={<AdminComingSoon title="Settings" />} />

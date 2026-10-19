@@ -10,7 +10,7 @@ export default function CategoryTile({ category, index = 0, directory = false })
     <div className="nx16-category-copy">
       <span className="nx16-category-kicker">Collection {String(index + 1).padStart(2, "0")}</span>
       <h3>{category.name}</h3>
-      <p>{category.productCount ?? 0} {(category.productCount ?? 0) === 1 ? "product style" : "product styles"}</p>
+      <p>{category.productCount ?? 0} styles</p>
       <span className="nx16-category-explore">Explore collection <span aria-hidden="true">↗</span></span>
     </div>
     <div className="nx16-category-art" aria-hidden="true">

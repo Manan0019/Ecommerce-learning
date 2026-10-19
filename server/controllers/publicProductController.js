@@ -103,6 +103,9 @@ export async function listProducts(req, res) {
     const maxPrice = priceValue(req.query.maxPrice);
     const inStock = req.query.inStock === "true";
     const featured = req.query.featured === "true";
+    const requestedView = queryString(req.query.view, 12) || "variants";
+    if (!["variants", "colors", "products"].includes(requestedView)) throw new Error("INVALID_PUBLIC_QUERY");
+    const view = featured ? "products" : requestedView;
     if (req.query.featured !== undefined && !["true", "false"].includes(req.query.featured)) throw new Error("INVALID_PUBLIC_QUERY");
     if (req.query.inStock !== undefined && !["true", "false"].includes(req.query.inStock)) throw new Error("INVALID_PUBLIC_QUERY");
     if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) throw new Error("INVALID_PUBLIC_QUERY");
@@ -127,7 +130,7 @@ export async function listProducts(req, res) {
     const filterSchemas = new Map(
       definition ? definitionFields(definition).filter((item) => item.filter).map((item) => [item.key, item]) : []
     );
-    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock", "featured"]);
+    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock", "featured", "view"]);
     const requestedFilters = [];
     for (const [key, value] of Object.entries(req.query)) {
       if (baseKeys.has(key)) continue;
@@ -153,18 +156,26 @@ export async function listProducts(req, res) {
       values.push(value);
       return `$${values.length}`;
     };
-    if (category) where.push(`category.id = ${parameter(category.id)}`);
-    if (inStock) where.push("pricing.effective_stock > 0");
+    if (category) {
+      // Nested categories: selecting Electronics also finds all descendants.
+      where.push(`category.id IN (
+        WITH RECURSIVE subtree AS (
+          SELECT id FROM categories WHERE id = ${parameter(category.id)}
+          UNION ALL SELECT child.id FROM categories child JOIN subtree parent ON child.parent_id=parent.id WHERE child.is_active=TRUE
+        ) SELECT id FROM subtree
+      )`);
+    }
+    if (inStock) where.push(view === "variants" ? "chosen.stock > 0" : "pricing.effective_stock > 0");
     if (featured) where.push("product.is_featured = TRUE");
     let searchParameter = null;
     if (q) {
       searchParameter = parameter(q);
       const escapedLike = q.replace(/[\\%_]/g, (match) => `\\${match}`);
       const likeParameter = parameter(`%${escapedLike}%`);
-      where.push(`(${searchDocument} @@ websearch_to_tsquery('simple'::regconfig, ${searchParameter}) OR product.name ILIKE ${likeParameter} ESCAPE '\\' OR product.brand ILIKE ${likeParameter} ESCAPE '\\' OR product.model ILIKE ${likeParameter} ESCAPE '\\')`);
+      where.push(`(${searchDocument} @@ websearch_to_tsquery('simple'::regconfig, ${searchParameter}) OR product.name ILIKE ${likeParameter} ESCAPE '\\' OR product.brand ILIKE ${likeParameter} ESCAPE '\\' OR product.model ILIKE ${likeParameter} ESCAPE '\\'${view === "variants" ? ` OR chosen.sku ILIKE ${likeParameter} ESCAPE '\\' OR chosen.custom_title ILIKE ${likeParameter} ESCAPE '\\' OR chosen.attributes::text ILIKE ${likeParameter} ESCAPE '\\'` : ""})`);
     }
-    if (minPrice !== null) where.push(`pricing.effective_price >= ${parameter(minPrice)}`);
-    if (maxPrice !== null) where.push(`pricing.effective_price <= ${parameter(maxPrice)}`);
+    if (minPrice !== null) where.push(`${view === "variants" ? "COALESCE(chosen.price,product.price)" : "pricing.effective_price"} >= ${parameter(minPrice)}`);
+    if (maxPrice !== null) where.push(`${view === "variants" ? "COALESCE(chosen.price,product.price)" : "pricing.effective_price"} <= ${parameter(maxPrice)}`);
 
     if (req.query.brand !== undefined) {
       const brands = filterValues(req.query.brand).map((brand) => brand.toLowerCase());
@@ -178,13 +189,22 @@ export async function listProducts(req, res) {
         : `product.specifications ->> ${keyParameter} = ANY(${valuesParameter}::text[])`);
     }
 
-    const whereSql = where.join(" AND ");
+    // Each SKU is paginated as its own public card in variants mode.
+    // Parents with no SKUs still have one catalogue card (chosen.id is NULL).
+    const chosenJoin = view === "variants" ? `
+      LEFT JOIN LATERAL (
+        SELECT v.id,v.sku,v.custom_title,v.attributes,v.price,v.mrp,v.stock
+        FROM product_variants v WHERE v.product_id=product.id AND v.is_active=TRUE
+      ) chosen ON TRUE` : "";
+    if (view === "variants") where.push("(chosen.id IS NOT NULL OR NOT EXISTS (SELECT 1 FROM product_variants old WHERE old.product_id=product.id))");
+    const finalWhere = where.join(" AND ");
     const countResult = await pool.query(`
       SELECT COUNT(*)::int AS total
       FROM products AS product
       JOIN categories AS category ON category.id = product.category_id
       ${pricingJoin}
-      WHERE ${whereSql}
+      ${chosenJoin}
+      WHERE ${finalWhere}
     `, values);
     const total = countResult.rows[0].total;
     const pages = total === 0 ? 0 : Math.ceil(total / limit);
@@ -194,17 +214,18 @@ export async function listProducts(req, res) {
         ? `ts_rank(${searchDocument}, websearch_to_tsquery('simple'::regconfig, ${searchParameter})) DESC, product.id DESC`
         : "product.created_at DESC, product.id DESC",
       newest: "product.created_at DESC, product.id DESC",
-      price_asc: "pricing.effective_price ASC, product.id DESC",
-      price_desc: "pricing.effective_price DESC, product.id DESC",
+      price_asc: `${view === "variants" ? "COALESCE(chosen.price,product.price)" : "pricing.effective_price"} ASC, product.id DESC${view === "variants" ? ", chosen.id ASC" : ""}`,
+      price_desc: `${view === "variants" ? "COALESCE(chosen.price,product.price)" : "pricing.effective_price"} DESC, product.id DESC${view === "variants" ? ", chosen.id ASC" : ""}`,
       name: "product.name ASC, product.id DESC"
     }[sort];
     const dataValues = [...values, limit, (safePage - 1) * limit];
     const { rows } = await pool.query(`
-      SELECT ${selectFields}
+      SELECT ${selectFields}${view === "variants" ? `, chosen.id AS chosen_variant_id, chosen.sku AS chosen_sku, chosen.custom_title AS chosen_title, chosen.attributes AS chosen_attributes, chosen.price AS chosen_price, chosen.mrp AS chosen_mrp, chosen.stock AS chosen_stock` : ""}
       FROM products AS product
       JOIN categories AS category ON category.id = product.category_id
       ${pricingJoin}
-      WHERE ${whereSql}
+      ${chosenJoin}
+      WHERE ${finalWhere}
       ORDER BY ${orderBy}
       LIMIT $${values.length + 1} OFFSET $${values.length + 2}
     `, dataValues);
@@ -221,28 +242,46 @@ export async function listProducts(req, res) {
     `, facetValues);
     const builtFacets = buildSpecificationFacets(category || {}, facetResult.rows).facets;
 
-    // Admin keeps one parent product; public catalogues may show one tile per color.
-    // Pagination counts parent product families. Expanding colors happens only for
-    // the bounded parent page, so there is no unbounded media/variant query.
     const parentProducts = rows.map(asPublicProduct);
     let cards = parentProducts;
-    if (rows.length) {
+    if (view === "variants") {
+      const ids = [...new Set(rows.map(row => String(row.id)))];
+      const mediaResult = ids.length ? await pool.query(`SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order,is_card_cover
+        FROM product_media WHERE product_id=ANY($1::bigint[]) AND media_type='image'
+        ORDER BY sort_order,id`, [ids]) : {rows:[]};
+      const pictures = mediaResult.rows;
+      cards = rows.map((row, i) => {
+        if (!row.chosen_variant_id) return { ...parentProducts[i], cardKey: `${row.id}:base` };
+        const attrs = row.chosen_attributes || {};
+        const color = Object.entries(attrs).find(([k]) => /^(color|colour)$/i.test(k))?.[1] || null;
+        const images = pictures.filter(p => String(p.product_id) === String(row.id));
+        const exact = images.filter(p => String(p.variant_id) === String(row.chosen_variant_id));
+        const matchColor = images.filter(p => p.variant_id == null && /^(color|colour)$/i.test(p.option_key || "") &&
+          String(p.option_value).toLowerCase() === String(color).toLowerCase());
+        const ordered = entries => [...entries].sort((a,b)=>Number(Boolean(b.is_card_cover))-Number(Boolean(a.is_card_cover)) || a.sort_order-b.sort_order || a.id-b.id);
+        const photo = ordered(exact.filter(p=>p.is_card_cover))[0] || ordered(matchColor.filter(p=>p.is_card_cover))[0] || ordered(matchColor)[0] || ordered(exact)[0];
+        const custom = row.chosen_title?.trim();
+        const suffix = Object.values(attrs).join(' / ');
+        return { ...parentProducts[i], cardKey: `${row.id}:sku:${row.chosen_variant_id}`,
+          parentProductId: String(row.id), selectedVariantId:String(row.chosen_variant_id),
+          sku:row.chosen_sku, name:custom || `${row.name}${suffix ? ` — ${suffix}` : ''}`,
+          colorLabel:color, price:row.chosen_price,mrp:row.chosen_mrp,stock:row.chosen_stock,
+          imageUrl:photo?.media_url || row.image_url };
+      });
+    } else if (view === "colors" && rows.length) {
       const ids = rows.map(row => String(row.id));
-      const [variantResult, mediaResult] = await Promise.all([
-        pool.query(`SELECT id,product_id,attributes,sku,mrp,price,stock,is_active
-          FROM product_variants WHERE product_id = ANY($1::bigint[]) AND is_active=TRUE
-          ORDER BY product_id,id`, [ids]),
-        pool.query(`SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order,is_card_cover
-          FROM product_media WHERE product_id = ANY($1::bigint[]) AND media_type='image'
-          ORDER BY product_id,sort_order,id`, [ids])
+      const [variantResult,mediaResult] = await Promise.all([
+        pool.query(`SELECT id,product_id,attributes,sku,mrp,price,stock,is_active,custom_title FROM product_variants WHERE product_id=ANY($1::bigint[]) AND is_active=TRUE ORDER BY product_id,id`,[ids]),
+        pool.query(`SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order,is_card_cover FROM product_media WHERE product_id=ANY($1::bigint[]) AND media_type='image' ORDER BY product_id,sort_order,id`,[ids])
       ]);
-      cards = makeStorefrontCards(parentProducts, variantResult.rows, mediaResult.rows);
+      cards = makeStorefrontCards(parentProducts,variantResult.rows,mediaResult.rows);
     }
     return res.json({
       products: cards,
       pagination: { page: safePage, limit, total, pages },
       facets: category ? builtFacets : builtFacets.filter((facet) => facet.key === "brand"),
-      category: category ? { id: String(category.id), name: category.name, slug: category.slug } : null
+      category: category ? { id: String(category.id), name: category.name, slug: category.slug } : null,
+      view, countUnit: view === "variants" ? "configurations" : "product styles"
     });
   } catch (error) {
     if (error.message === "INVALID_PUBLIC_QUERY") {

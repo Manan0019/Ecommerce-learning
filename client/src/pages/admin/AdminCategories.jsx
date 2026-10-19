@@ -17,6 +17,7 @@ export default function AdminCategories() {
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
+  const [parentId, setParentId] = useState("");
   const [editing, setEditing] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,7 @@ export default function AdminCategories() {
   function resetForm() {
     setName("");
     setImage(null);
+    setParentId("");
     setEditing(null);
     setModalOpen(false);
     formRef.current?.reset();
@@ -63,6 +65,7 @@ export default function AdminCategories() {
   function beginEdit(category) {
     setEditing(category);
     setName(category.name);
+    setParentId(category.parentId || "");
     setImage(null);
     setError("");
     setMessage("");
@@ -73,6 +76,7 @@ export default function AdminCategories() {
     event.preventDefault();
     const formData = new FormData();
     formData.append("name", name);
+    formData.append("parentId", parentId);
     if (image) formData.append("image", image);
     setSaving(true);
     setError("");
@@ -122,7 +126,7 @@ export default function AdminCategories() {
 
   return <AdminLayout title="Manage Categories"
     subtitle="Organize the catalogue with reusable, customer-facing categories."
-    actions={<button type="button" className="admin-primary-action" onClick={() => { setEditing(null); setName(""); setImage(null); setError(""); setMessage(""); setModalOpen(true); }}>+ Add category</button>}>
+    actions={<button type="button" className="admin-primary-action" onClick={() => { setEditing(null); setName(""); setImage(null); setParentId(""); setError(""); setMessage(""); setModalOpen(true); }}>+ Add category</button>}>
     <div className="admin-category-layout nx-category-layout">
       {modalOpen && <Modal title={editing ? "Edit category" : "Add category"} subtitle="Give this category a clear name and an optional cover image." size="medium" closeDisabled={saving} onClose={resetForm}>
       <section className="admin-panel admin-form-panel admin-category-form" ref={formRef}>
@@ -134,6 +138,7 @@ export default function AdminCategories() {
           {editing && <button className="admin-text-button" type="button" onClick={resetForm}>Cancel</button>}
         </div>
         <form className="admin-form" onSubmit={saveCategory}>
+          <label>Parent category <select value={parentId} onChange={event=>setParentId(event.target.value)}><option value="">Top-level category</option>{categories.filter(c=>String(c.id)!==String(editing?.id)).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
           <label>Category name
             <input value={name} onChange={(event) => setName(event.target.value)}
               minLength={2} maxLength={80} required />
@@ -171,7 +176,7 @@ export default function AdminCategories() {
                   : <span aria-hidden="true">{category.name.slice(0, 1).toUpperCase()}</span>}
               </div>
               <div className="admin-category-copy">
-                <div><h3>{category.name}</h3><p>/{category.slug}</p></div>
+                <div><h3>{category.name}</h3><p>{category.parentName ? `Under ${category.parentName} · ` : ""}/{category.slug}</p></div>
                 <dl><div><dt>Products</dt><dd>{category.productCount}</dd></div>
                   <div><dt>Status</dt><dd><span className={`admin-status ${category.isActive ? "is-active" : "is-inactive"}`}>
                     {category.isActive ? "Active" : "Inactive"}</span></dd></div></dl>

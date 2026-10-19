@@ -53,6 +53,7 @@ function ProductDetailsContent({ id }) {
   }
 
   const selectedVariant=variants.find(v => String(v.id) === String(requestedVariantId)) || variants.find(v=>String(v.id)===String(variantId));
+  const displayTitle=selectedVariant?.customTitle?.trim() || (selectedVariant && Object.keys(selectedVariant.attributes || {}).length ? `${product?.name || ""} — ${Object.values(selectedVariant.attributes).join(" / ")}` : product?.name);
   const effectivePrice=selectedVariant?.price ?? product?.price;
   const effectiveMrp=selectedVariant?.mrp ?? effectivePrice;
   const discount=Number(effectiveMrp)>Number(effectivePrice)? Math.round((Number(effectiveMrp)-Number(effectivePrice))/Number(effectiveMrp)*100):0;
@@ -73,13 +74,13 @@ function ProductDetailsContent({ id }) {
         <div className="product-detail-copy">
           <Link className="eyebrow detail-category-link" to={`/categories/${product.categorySlug}`}>{product.category}</Link>
           {(product.brand || product.model) && <p className="detail-model">{[product.brand, product.model].filter(Boolean).join(" · ")}</p>}
-          <h1>{product.name}</h1>
+          <h1 aria-live="polite">{displayTitle}</h1>
           <div className="detail-price-block" aria-live="polite">
             {discount>0&&<strong className="detail-discount">↓{discount}%</strong>}
             {discount>0&&<s className="detail-mrp">₹{Number(effectiveMrp).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</s>}
             <strong className="detail-price">₹{Number(effectivePrice).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
           </div>
-          <p className="detail-description">{product.description}</p>
+          <details className="nx17-description"><summary>Product information</summary><p className="detail-description">{product.description}</p></details>
           <div className={`stock-status ${canBuy ? "in-stock" : "out-of-stock"}`}>
             <span />{canBuy ? `${effectiveStock} available` : "Currently unavailable"}
           </div>

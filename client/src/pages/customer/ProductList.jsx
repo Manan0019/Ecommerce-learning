@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ProductCard from "../../components/common/ProductCard";
+import {apiAssetUrl} from "../../services/apiClient";
+import PromotionCarousel from "../../components/customer/PromotionCarousel";
 import ProductFilters from "../../components/customer/ProductFilters";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import { getCategories } from "../../services/categoryService";
@@ -77,6 +79,8 @@ export default function ProductList() {
     if (searchQuery) next.set("q", searchQuery);
     const sort = searchParams.get("sort");
     if (sort) next.set("sort", sort);
+    const view = searchParams.get("view");
+    if (view) next.set("view", view);
     if (slug) next.set("category", slug);
     else next.delete("category");
     navigate(`/products${next.size ? `?${next.toString()}` : ""}`);
@@ -93,7 +97,7 @@ export default function ProductList() {
   function changeFilter(key, values) {
     if (!key) {
       const preserved = new URLSearchParams();
-      for (const name of ["q", "category", "sort"]) {
+      for (const name of ["q", "category", "sort", "view"]) {
         const value = searchParams.get(name);
         if (value) preserved.set(name, value);
       }
@@ -125,6 +129,13 @@ export default function ProductList() {
         />
       </header>
 
+      {selectedCategory&&<PromotionCarousel position="category" category={selectedCategory}/>}
+      {category&&categories.some(c=>String(c.parentId)===String(category.id))&&<section className="nx17-subcategories" aria-label={`Shop ${category.name} subcategories`}>
+        <h2>Explore {category.name}</h2>
+        <div className="nx17-subcategory-shelf">{categories.filter(c=>String(c.parentId)===String(category.id)).map(child=><Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>
+          <span>{child.imageUrl?<img src={apiAssetUrl(child.imageUrl)} alt="" loading="lazy"/>:<span aria-hidden="true">◇</span>}</span><strong>{child.name}</strong></Link>)}</div>
+      </section>}
+
       <div
         className="category-filters category-tabs"
         aria-label="Browse categories"
@@ -152,8 +163,14 @@ export default function ProductList() {
         <p>
           {loading
             ? "Searching…"
-            : `${pagination.total} ${pagination.total === 1 ? "product" : "products"}`}
+            : `${pagination.total} ${searchParams.get("view") === "products" ? "product styles" : searchParams.get("view") === "colors" ? "product families (color cards may be more)" : "configurations"}`}
         </p>
+        <label className="nx17-view-control">
+          Show
+          <select value={searchParams.get("view") || "variants"} onChange={e => updateParams(next=>next.set("view",e.target.value))}>
+            <option value="variants">All configurations</option><option value="colors">By color</option><option value="products">One per product</option>
+          </select>
+        </label>
         <label>
           Sort by
           <select

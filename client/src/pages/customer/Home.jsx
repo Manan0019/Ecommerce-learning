@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../../components/common/ProductCard";
+import PromotionCarousel from "../../components/customer/PromotionCarousel";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import CategoryTile from "../../components/customer/CategoryTile";
 import { getCategories } from "../../services/categoryService";
@@ -17,7 +18,7 @@ export default function Home() {
     const controller = new AbortController();
     async function loadProducts() {
       try {
-        const data = await getProducts({ signal: controller.signal, params: new URLSearchParams({ featured: "true", limit: "4" }) });
+        const data = await getProducts({ signal: controller.signal, params: new URLSearchParams({ featured: "true", view: "products", limit: "4" }) });
         if (!controller.signal.aborted) setProducts(Array.isArray(data.products) ? data.products : []);
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -34,9 +35,10 @@ export default function Home() {
   }, []);
 
   const featured = products.filter((product) => product.isFeatured).slice(0, 4);
-  const featuredCategories = categories.slice(0, 8);
+  const featuredCategories = categories.filter(category => !category.parentId).slice(0, 8);
 
   return <CustomerLayout>
+      <PromotionCarousel position="home" fallback={<>
       <section className="hero-section">
         <div className="hero-copy">
           <p className="eyebrow">Discover more · Everyday essentials</p>
@@ -61,6 +63,7 @@ export default function Home() {
           <div className="hero-note"><span>01</span><p>Explore more categories and find your next favorite.</p></div>
         </div>
       </section>
+      </>}/>
 
       <section className="store-section" aria-labelledby="featured-heading">
         <div className="section-heading">
