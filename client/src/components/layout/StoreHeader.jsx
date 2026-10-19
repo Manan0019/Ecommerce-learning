@@ -175,7 +175,7 @@ export default function StoreHeader() {
           </button>
           {profileOpen && <div className="profile-dropdown" role="menu">
             <p>{user.fullName}</p>
-            {user.role === "admin" ? <Link role="menuitem" to="/admin/dashboard" onClick={() => setProfileOpen(false)}>Back to Admin Dashboard</Link> : <><Link role="menuitem" to="/dashboard" onClick={() => setProfileOpen(false)}>My Profile</Link><Link role="menuitem" to="/orders" onClick={() => setProfileOpen(false)}>My Orders</Link></>}
+            {user.role === "admin" ? <Link role="menuitem" to="/admin/dashboard" onClick={() => setProfileOpen(false)}>Back to Admin Dashboard</Link> : <><Link role="menuitem" to="/dashboard" onClick={() => setProfileOpen(false)}>My Profile</Link><Link role="menuitem" to="/orders" onClick={() => setProfileOpen(false)}>My Orders</Link><Link role="menuitem" to="/addresses" onClick={() => setProfileOpen(false)}>Saved Addresses</Link></>}
             <Link role="menuitem" to="/wishlist" onClick={() => setProfileOpen(false)}>Wishlist</Link>
             <button role="menuitem" type="button" onClick={logout}>Logout</button>
             {authError && <small role="alert">{authError}</small>}

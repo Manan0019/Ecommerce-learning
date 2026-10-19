@@ -11,6 +11,7 @@ function checkProductFields(body) {
   const { name, description, categoryId, price, stock, brand, model } = body;
   const threshold = Number(body.lowStockThreshold ?? 5);
   const mrp = body.mrp === undefined ? price : body.mrp;
+  const gstPercent = body.gstPercent == null || body.gstPercent === '' ? null : String(body.gstPercent);
   const text = (value, max) => typeof value === "string" &&
     value.trim().length > 0 && value.trim().length <= max;
   const validPrice = typeof price === "string" &&
@@ -23,6 +24,7 @@ function checkProductFields(body) {
   if (!text(name, 150) || !text(description, 5000) || !validId(String(categoryId || "")) ||
       !validPrice || !validStock || !Number.isInteger(threshold) || threshold < 0 || threshold > 1000000 || typeof mrp !== "string" ||
       !/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(mrp) || Number(mrp) < Number(price)) return null;
+  if (gstPercent !== null && (!/^(?:0|[1-9]\d?)(?:\.\d{1,2})?$/.test(gstPercent) || Number(gstPercent) > 40)) return null;
   if (brand !== undefined && brand !== "" && !text(brand, 80)) return null;
   if (model !== undefined && model !== "" && !text(model, 120)) return null;
   return {
@@ -31,6 +33,7 @@ function checkProductFields(body) {
     categoryId: String(categoryId),
     price,
     mrp,
+    gstPercent,
     stock: Number(stockString),
     lowStockThreshold: threshold,
     brand: typeof brand === "string" && brand.trim() ? brand.trim() : null,
@@ -52,6 +55,7 @@ function mapProduct(product) {
     specifications: product.specifications || {},
     price: product.price,
     mrp: product.mrp,
+    gstPercent: product.gst_percent,
     stock: product.stock,
     lowStockThreshold: product.low_stock_threshold,
     imageUrl: product.image_url,
@@ -69,7 +73,7 @@ function mapProduct(product) {
 const productSelect = `
   SELECT p.id, p.name, p.description, p.category_id, c.name AS category_name,
          c.slug AS category_slug, c.is_active AS category_active, p.brand, p.model,
-         p.specifications, p.price, p.mrp, p.stock, p.low_stock_threshold,
+         p.specifications, p.price, p.mrp, p.stock, p.low_stock_threshold, p.gst_percent,
          p.image_url, p.is_active, p.is_featured, p.featured_position, p.created_at, p.updated_at
   FROM products p
   JOIN categories c ON c.id = p.category_id`;
@@ -132,9 +136,9 @@ export async function createProduct(req, res) {
       WITH inserted AS (
         INSERT INTO products (
           name, description, category, category_id, brand, model, specifications,
-          price, mrp, stock, low_stock_threshold, image_url
+          price, mrp, stock, low_stock_threshold, image_url, gst_percent
         )
-        SELECT $1, $2, category.name, category.id, $4, $5, $6::jsonb, $7, $10, $8, $11, $9
+        SELECT $1, $2, category.name, category.id, $4, $5, $6::jsonb, $7, $10, $8, $11, $9, $12
         FROM categories AS category
         WHERE category.id = $3 AND category.is_active = TRUE
         RETURNING *
@@ -145,13 +149,13 @@ export async function createProduct(req, res) {
       SELECT inserted.id, inserted.name, inserted.description, inserted.category_id,
              category.name AS category_name, category.slug AS category_slug,
              category.is_active AS category_active, inserted.brand, inserted.model,
-             inserted.specifications, inserted.price, inserted.mrp, inserted.stock, inserted.low_stock_threshold,
+             inserted.specifications, inserted.price, inserted.mrp, inserted.stock, inserted.low_stock_threshold, inserted.gst_percent,
              inserted.image_url, inserted.is_active, inserted.is_featured, inserted.featured_position, inserted.created_at, inserted.updated_at
       FROM inserted
       JOIN categories AS category ON category.id = inserted.category_id
       JOIN cover ON cover.product_id = inserted.id
     `, [fields.name, fields.description, fields.categoryId, fields.brand, fields.model,
-      JSON.stringify(specifications), fields.price, fields.stock, saved.url, fields.mrp, fields.lowStockThreshold]);
+      JSON.stringify(specifications), fields.price, fields.stock, saved.url, fields.mrp, fields.lowStockThreshold, fields.gstPercent]);
     if (!result.rows.length) {
       await removeCatalogImage(saved);
       saved = null;
@@ -180,7 +184,7 @@ export async function updateProduct(req, res) {
         UPDATE products AS product
         SET name = $1, description = $2, category = category.name, category_id = category.id,
             brand = $4, model = $5, specifications = $6::jsonb,
-            price = $7, mrp = $10, stock = $8, low_stock_threshold = $11, updated_at = NOW()
+            price = $7, mrp = $10, stock = $8, low_stock_threshold = $11, gst_percent = $12, updated_at = NOW()
         FROM categories AS category
         WHERE product.id = $9 AND category.id = $3 AND category.is_active = TRUE
         RETURNING product.*
@@ -188,12 +192,12 @@ export async function updateProduct(req, res) {
       SELECT updated.id, updated.name, updated.description, updated.category_id,
              category.name AS category_name, category.slug AS category_slug,
              category.is_active AS category_active, updated.brand, updated.model,
-             updated.specifications, updated.price, updated.mrp, updated.stock, updated.low_stock_threshold,
+             updated.specifications, updated.price, updated.mrp, updated.stock, updated.low_stock_threshold, updated.gst_percent,
              updated.image_url, updated.is_active, updated.is_featured, updated.featured_position, updated.created_at, updated.updated_at
       FROM updated
       JOIN categories AS category ON category.id = updated.category_id
     `, [fields.name, fields.description, fields.categoryId, fields.brand, fields.model,
-      JSON.stringify(specifications), fields.price, fields.stock, req.params.id, fields.mrp, fields.lowStockThreshold]);
+      JSON.stringify(specifications), fields.price, fields.stock, req.params.id, fields.mrp, fields.lowStockThreshold, fields.gstPercent]);
     if (!result.rows.length) {
       const existing = await pool.query("SELECT id FROM products WHERE id = $1", [req.params.id]);
       if (!existing.rows.length) return res.status(404).json({ message: "Product not found." });

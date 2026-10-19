@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireCustomer, requireAdmin } from "../middleware/authMiddleware.js";
-import { placeCodOrder, myOrders, adminOrders, changeCodOrderStatus, adminCodSummary } from "../controllers/orderController.js";
+import { placeCodOrder, estimateCodOrder, myOrders, adminOrders, changeCodOrderStatus, adminCodSummary } from "../controllers/orderController.js";
 function checkWriteOrigin(req, res, next) {
   const origin = req.get("origin");
   const trusted = process.env.CLIENT_ORIGIN || "http://localhost:5173";
@@ -10,6 +10,7 @@ function checkWriteOrigin(req, res, next) {
 const customer = Router();
 customer.use(requireCustomer);
 customer.post("/cod", checkWriteOrigin, placeCodOrder);
+customer.post("/estimate",checkWriteOrigin,estimateCodOrder);
 customer.get("/mine", myOrders);
 const admin = Router();
 admin.use(requireAdmin);

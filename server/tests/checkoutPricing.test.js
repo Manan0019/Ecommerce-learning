@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {calculateCheckout,inclusiveTax,validateCheckoutSettings} from '../services/checkoutPricing.js';
+import {toPaise} from '../services/cartPricing.js';
+const policy={origin_state:'Gujarat',shipping_fee_in_state:'50.00',shipping_fee_other_state:'90.00',free_shipping_above:'1500.00',shipping_gst_percent:'18.00',default_item_gst_percent:'18.00',cod_enabled:true};
+const lines=[{lineTotal:toPaise('1000.00'),gstPercent:'18.00'}];
+test('inclusive GST never adds to selling price',()=>{const r=calculateCheckout(lines,'Gujarat',policy);assert.equal(r.subtotal,'1000.00');assert.equal(r.shippingFee,'50.00');assert.equal(r.total,'1050.00');assert.equal(r.taxType,'CGST + SGST');assert.equal(toPaise(r.cgst)+toPaise(r.sgst),toPaise(r.includedTax));});
+test('inter-state quote uses configured rate and IGST',()=>{const r=calculateCheckout(lines,'Maharashtra',policy);assert.equal(r.shippingFee,'90.00');assert.equal(r.total,'1090.00');assert.equal(r.taxType,'IGST');assert.equal(r.cgst,'0.00');assert.equal(r.igst,r.includedTax);});
+test('free shipping threshold uses product subtotal, not shipping-inclusive total',()=>{const r=calculateCheckout([{lineTotal:toPaise('1600.00'),gstPercent:'18'}],'Gujarat',policy);assert.equal(r.shippingFee,'0.00');assert.equal(r.total,'1600.00');});
+test('0% tax rate and 0 shipping give zero included GST',()=>{const r=calculateCheckout([{lineTotal:toPaise('100.00'),gstPercent:'0'}],'Gujarat',{...policy,shipping_fee_in_state:'0.00',shipping_gst_percent:'0'});assert.equal(r.includedTax,'0.00');});
+test('invalid settings and rates are rejected',()=>{assert.equal(validateCheckoutSettings({...policy,default_item_gst_percent:'99'}),null);assert.throws(()=>inclusiveTax(100n,'88'));assert.equal(validateCheckoutSettings(policy).cod_enabled,true)});

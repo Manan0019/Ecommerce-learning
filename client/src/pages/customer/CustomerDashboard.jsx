@@ -127,7 +127,7 @@ export default function CustomerDashboard() {
   return (
     <CustomerLayout mainClassName="nx-profile-page"><div className="profile-container">
       <div className="nx-profile-head"><div><p className="eyebrow">My account</p><p>Manage your profile and review your COD orders.</p></div><Link className="button button-primary" to="/orders">My Orders →</Link></div>
-      <h1>Customer Profile</h1>
+      <h1>Customer Profile</h1><p><Link to="/addresses">Manage saved delivery addresses →</Link></p>
 
       {user.profileImageUrl ? (
         <img

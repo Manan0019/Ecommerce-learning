@@ -21,7 +21,7 @@ export default function AdminOrders(){
  <header><div><strong>Order #{o.id}</strong><small>{new Date(o.placedAt).toLocaleString("en-IN")}</small></div><span className={`nx-status nx-status-${o.status}`}>{o.status}</span></header>
  <div className="nx-admin-order-meta"><span>{o.customerName||"Customer"}</span><span>{o.customerEmail||""}</span><strong>{money(o.total)}</strong></div>
  <div className="nx-admin-order-items">{o.items.map((p,i)=><p key={i}>{p.name} {p.sku?`(${p.sku})`:""} × {p.quantity}</p>)}</div>
- <details><summary>Delivery details</summary><p>{o.address.fullName}, {o.address.phone}</p><p>{o.address.addressLine1}, {o.address.addressLine2}</p><p>{o.address.city}, {o.address.state} — {o.address.pincode}</p></details>
+ <div className="nx25-order-breakdown"><span>Items {money(o.subtotal)}</span><span>Shipping {money(o.shippingFee)}</span><span>Included GST {money(o.taxTotal)}</span></div><details><summary>Delivery details</summary><p>{o.address.fullName}, {o.address.phone}</p><p>{o.address.addressLine1}, {o.address.addressLine2}</p><p>{o.address.city}, {o.address.state} — {o.address.pincode}</p></details>
  <footer><small>COD · unpaid online</small><div>{(nextStatuses[o.status]||[]).map(status=><button key={status} type="button" disabled={busy===o.id} className={status==="cancelled"?"nx-danger-action":"nx-cod-action"} onClick={()=>setStatus(o,status)}>{status==="cancelled"?"Cancel order":status==="confirmed"?"Confirm order":"Mark processing"}</button>)}</div></footer>
  </article>)}</div>}
  </section>

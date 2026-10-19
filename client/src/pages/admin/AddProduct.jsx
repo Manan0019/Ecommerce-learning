@@ -19,7 +19,7 @@ export default function AddProduct() {
   const navigate = useNavigate();
   const formRef = useRef(null);
   const { categories, categoriesLoading, categoriesError } = useActiveCategories();
-  const [form, setForm] = useState({ name: "", brand: "", model: "", description: "", categoryId: "", mrp: "", price: "", stock: "", lowStockThreshold:"5",pricingMode:"price" });
+  const [form, setForm] = useState({ name: "", brand: "", model: "", description: "", categoryId: "", mrp: "", price: "", stock: "", lowStockThreshold:"5",gstPercent:"",pricingMode:"price" });
   const [specifications, setSpecifications] = useState({});
   const specification = useSpecificationDefinition(form.categoryId);
   const [image, setImage] = useState(null);
@@ -167,7 +167,7 @@ export default function AddProduct() {
         <button type="button" className="admin-primary-action" onClick={() => {
           setCreatedProduct(null); setSavedPanel(null); setQueuedMedia([]); setFeatured(false);
           setUploadReport(""); setVariantDrafts([]); setVariantFailures([]);
-          setForm({ name:"", brand:"", model:"", description:"", categoryId:"", mrp:"", price:"", stock:"", lowStockThreshold:"5", pricingMode:"price" });
+          setForm({ name:"", brand:"", model:"", description:"", categoryId:"", mrp:"", price:"", stock:"", lowStockThreshold:"5",gstPercent:"", pricingMode:"price" });
           setSpecifications({}); setImage(null); formRef.current?.reset();
         }}>Create another product</button>
       </div>
@@ -193,6 +193,7 @@ export default function AddProduct() {
         </div>
         {variantDrafts.length === 0 ? <VariantPriceFields row={form} onFieldChange={(field,value)=>setForm(old=>updatePricingDraft(old,field,value))} disabled={loading}/>
           : <p className="nx22-sku-notice"><strong>SKU pricing is active.</strong> Price, MRP and stock come from each SKU below. The parent product's legacy values will be initialized automatically and are not separately entered.</p>}
+        <label className="nx25-gst-field">GST rate for this product (%)<input name="gstPercent" type="number" min="0" max="40" step="0.01" value={form.gstPercent} onChange={handleChange} placeholder="Use store default"/><small>Leave blank to use the rate in Shipping & Tax Settings. Rates require verification by product classification.</small></label>
         <DraftVariants variants={variantDrafts} onChange={setVariantDrafts} disabled={loading} />
         <ProductSpecificationFields definition={specification.definition} specifications={specifications}
           onChange={updateSpecification} loading={specification.loading} />

@@ -1,0 +1,37 @@
+/* Phase 25: mobile-first shopping, discoverability and checkout. */
+.catalogue-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.84fr);align-items:center;gap:clamp(18px,3vw,48px);padding:30px 0 24px;max-width:100%;}
+.catalogue-hero .nx25-hero-copy{min-width:0;}
+.catalogue-hero .eyebrow{margin:0 0 8px;font-size:.78rem;letter-spacing:.09em;}
+.catalogue-hero h1{margin:0;font-size:clamp(1.85rem,3.8vw,3.6rem);line-height:1.1;letter-spacing:-.045em;}
+.catalogue-hero .catalogue-search{min-width:0;width:100%;max-width:none;box-shadow:0 8px 22px rgba(17,24,39,.07);}
+.catalogue-hero .catalogue-search input{min-height:52px;font-size:1rem;}
+.nx25-addresses-page{max-width:1100px;margin:auto;padding:clamp(18px,3vw,48px);}
+.nx25-page-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:0 0 26px;}
+.nx25-page-heading h1{margin:6px 0 8px;font-size:clamp(1.8rem,4vw,2.9rem);}
+.nx25-page-heading p{color:#606b7d;}
+.nx25-address-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;}
+.nx25-address-card,.nx25-address-editor{background:#fff;border:1px solid #dce2ed;border-radius:18px;padding:20px;box-shadow:0 8px 26px rgba(20,30,60,.04);}
+.nx25-address-card h2{font-size:1.1rem;margin:12px 0 8px;}.nx25-address-card p{line-height:1.6;color:#505b6e;}
+.nx25-address-top,.nx25-address-actions,.nx25-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.nx25-address-top{justify-content:space-between;}.nx25-pill{background:#ecebff;color:#3e36a5;border-radius:12px;padding:4px 10px;font-size:.76rem;}
+.nx25-address-actions button{background:transparent;border:0;padding:8px 3px;color:#4839bb;cursor:pointer;text-decoration:underline;font:inherit;font-size:.86rem;}
+.nx25-address-editor{margin-top:22px;max-width:800px;}.nx25-address-editor form{display:grid;gap:15px;}
+.nx25-address-editor .nx-cod-field input{width:100%;}
+.nx25-check{display:flex;align-items:center;gap:9px;font-size:.9rem;margin:14px 0;}.nx25-check input{width:auto;accent-color:#5147da;}
+.nx25-address-options{display:grid;gap:10px;margin-bottom:14px;}
+.nx25-address-choice{display:flex;gap:12px;align-items:start;border:1px solid #d9e0ed;border-radius:12px;padding:14px;margin:10px 0;cursor:pointer;}
+.nx25-address-choice.is-selected{background:#f6f5ff;border-color:#6655de;}.nx25-address-choice input{margin-top:4px;accent-color:#5745d1;}
+.nx25-address-choice strong,.nx25-address-choice small{display:block;}.nx25-address-choice small{margin-top:5px;color:#5c677b;line-height:1.5;}
+.nx25-manage-link{display:inline-block;margin:5px 0 12px;color:#4d40c1;font-weight:650;}
+.nx25-tax-details{display:grid;gap:4px;padding:9px 0;color:#606e83;}.nx25-muted{color:#607082;font-size:.86rem;line-height:1.6;}
+.nx25-empty{background:#f8f9fc;padding:25px;border-radius:14px;}.nx25-success{color:#176b37;}.nx25-warning{border:1px solid #eebc82;background:#fff8eb;padding:16px;border-radius:12px;color:#804917;line-height:1.6;}
+.nx25-settings{padding:clamp(18px,3vw,32px);}.nx25-settings-form{display:grid;gap:25px;max-width:980px;}.nx25-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.nx25-settings-grid input{width:100%;padding:11px;border:1px solid #ccd5e2;border-radius:10px;background:white;color:#111827;}
+.nx25-settings-grid small{font-weight:400;color:#68758c;line-height:1.4;}
+@media(max-width:800px){.catalogue-hero{grid-template-columns:minmax(0,1fr);gap:15px;padding:18px 0 16px;}.catalogue-hero h1{font-size:clamp(1.7rem,7vw,2.6rem)}.nx-cod-grid{grid-template-columns:1fr}.nx-cod-summary{position:static}.nx25-settings-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.catalogue-hero .catalogue-search input{min-height:46px}.nx25-addresses-page{padding:15px}.nx25-address-card{padding:15px}.nx-cod-page{padding:15px 12px 45px}.nx-cod-fields{grid-template-columns:1fr}.nx-cod-wide{grid-column:auto}.nx-cod-panel{padding:16px}.nx-cod-summary-line{gap:8px}.nx-cod-total strong{font-size:1.2rem}.nx25-page-heading .button{width:100%;text-align:center}}
+@media(prefers-reduced-motion:reduce){.catalogue-hero *, .nx25-address-choice *{transition:none!important;animation:none!important}}
+
+.nx25-gst-field{display:grid;gap:8px;margin:12px 0;font-weight:650;}.nx25-gst-field input{width:100%;max-width:280px;border:1px solid #ccd5e2;border-radius:10px;padding:10px 12px;background:#fff;color:#111827;}.nx25-gst-field small{font-weight:400;color:#66738b;line-height:1.45;}
+
+.nx25-order-breakdown{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:#5b687e;padding:12px 0;border-top:1px solid #e5eaf3;}

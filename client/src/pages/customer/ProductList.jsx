@@ -132,13 +132,9 @@ export default function ProductList() {
   return (
     <CustomerLayout mainClassName="catalogue-page">
       <header className="catalogue-hero">
-        <p className="eyebrow">Discover products across every category</p>
-        <h1>{category?.name || "Explore our collection"}</h1>
-        <CatalogueSearch
-          key={searchQuery}
-          query={searchQuery}
-          onSubmit={submitSearch}
-        />
+        <div className="nx25-hero-copy"><p className="eyebrow">Discover products across every category</p>
+        <h1>{category?.name || "Explore our collection"}</h1></div>
+        <CatalogueSearch key={searchQuery} query={searchQuery} onSubmit={submitSearch} />
       </header>
 
       {activeCategory && <nav className="nx18-category-breadcrumb" aria-label="Category hierarchy">

@@ -14,6 +14,8 @@ import CustomerSignup from "./pages/auth/CustomerSignup";
 import VerifyOTP from "./pages/auth/VerifyOTP";
 import CartPage from "./pages/customer/CartPage";
 import Checkout from "./pages/customer/Checkout";
+import Addresses from "./pages/customer/Addresses";
+import AdminCheckoutSettings from "./pages/admin/AdminCheckoutSettings";
 import Orders from "./pages/customer/Orders";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminFeatured from "./pages/admin/AdminFeatured";
@@ -37,6 +39,7 @@ import "./styles/phase19.css";
 import "./styles/phase21.css";
 import "./styles/phase23.css";
 import "./styles/phase24.css";
+import "./styles/phase25.css";
 
 export default function App() {
   return <CartProvider><BrowserRouter><Routes>
@@ -57,13 +60,14 @@ export default function App() {
     <Route path="/admin/featured" element={<AdminFeatured />} />
     <Route path="/admin/inventory" element={<AdminInventory />} />
     <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />
-    <Route path="/admin/settings" element={<AdminComingSoon title="Settings" />} />
+    <Route path="/admin/settings" element={<AdminCheckoutSettings />} />
     <Route path="/products" element={<ProductList />} />
     <Route path="/products/:id" element={<ProductDetails />} />
     <Route path="/categories" element={<Categories />} />
     <Route path="/categories/:slug" element={<ProductList />} />
     <Route path="/cart" element={<CartPage />} />
     <Route path="/checkout" element={<Checkout />} />
+    <Route path="/addresses" element={<Addresses />} />
     <Route path="/orders" element={<Orders />} />
     <Route path="/wishlist" element={<Wishlist />} />
     <Route path="/about" element={<About />} />

@@ -45,7 +45,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
         const product = data.product;
         setForm({ name: product.name, brand: product.brand || "", model: product.model || "",
           description: product.description || "", categoryId: String(product.categoryId),
-          mrp: String(product.mrp ?? product.price), price: String(product.price), stock: String(product.stock), lowStockThreshold:String(product.lowStockThreshold ?? 5), pricingMode: "price" });
+          mrp: String(product.mrp ?? product.price), price: String(product.price), stock: String(product.stock), lowStockThreshold:String(product.lowStockThreshold ?? 5), gstPercent:product.gstPercent==null?"":String(product.gstPercent), pricingMode: "price" });
         setSpecifications(product.specifications || {});
         setImageUrl(product.imageUrl || "");
         setFeatured(Boolean(product.isFeatured));
@@ -125,6 +125,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
           </div>
           {hasSkus ? <p className="nx22-sku-notice"><strong>SKU-controlled product:</strong> Selling price, MRP and stock are managed per SKU in the SKUs tab. Parent values are retained only for legacy compatibility.</p>
             : <VariantPriceFields row={form} disabled={saving} onFieldChange={(key, value) => setForm(old => updatePricingDraft(old, key, value))}/>}
+          <label className="nx25-gst-field">GST rate for this product (%)<input name="gstPercent" type="number" min="0" max="40" step="0.01" value={form.gstPercent ?? ""} onChange={handleChange} placeholder="Use store default"/><small>Leave empty for the store default rate.</small></label>
           <ProductSpecificationFields definition={definition.definition} specifications={specifications}
             onChange={(key,value) => setSpecifications(old => ({ ...old, [key]: value }))} loading={definition.loading}/>
           {(categoriesError || definition.error) && <p className="admin-alert" role="alert">{categoriesError || definition.error}</p>}
