@@ -29,7 +29,6 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
   const [imageUrl, setImageUrl] = useState("");
   const [featured, setFeatured] = useState(false);
   const [hasSkus, setHasSkus] = useState(false);
-  const [featuredPosition, setFeaturedPosition] = useState(100);
   const [newImage, setNewImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -46,11 +45,10 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
         const product = data.product;
         setForm({ name: product.name, brand: product.brand || "", model: product.model || "",
           description: product.description || "", categoryId: String(product.categoryId),
-          mrp: String(product.mrp ?? product.price), price: String(product.price), stock: String(product.stock), pricingMode: "price" });
+          mrp: String(product.mrp ?? product.price), price: String(product.price), stock: String(product.stock), lowStockThreshold:String(product.lowStockThreshold ?? 5), pricingMode: "price" });
         setSpecifications(product.specifications || {});
         setImageUrl(product.imageUrl || "");
         setFeatured(Boolean(product.isFeatured));
-        setFeaturedPosition(product.featuredPosition ?? 100);
         const result = await getVariants(productId, true);
         if (!controller.signal.aborted) setHasSkus((result.variants || []).length > 0);
       } catch (failure) {
@@ -120,7 +118,10 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
           <div className="admin-form-grid two-column">
             <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || !categories.length}
               onChange={categoryId => { setSpecifications({}); setForm(old => ({ ...old, categoryId })); }} />
-            {!hasSkus && <label>Simple product stock<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>}
+            {!hasSkus && <>
+              <label>Simple product stock<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
+              <label>Low-stock alert threshold<input name="lowStockThreshold" type="number" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>Warn the admin at or below this quantity.</small></label>
+            </>}
           </div>
           {hasSkus ? <p className="nx22-sku-notice"><strong>SKU-controlled product:</strong> Selling price, MRP and stock are managed per SKU in the SKUs tab. Parent values are retained only for legacy compatibility.</p>
             : <VariantPriceFields row={form} disabled={saving} onFieldChange={(key, value) => setForm(old => updatePricingDraft(old, key, value))}/>}
@@ -141,6 +142,6 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
       </aside>
     </div>}
     {tab === "variants" && <ProductVariantsManager productId={productId} />}
-    {tab === "gallery" && <ProductMediaManager productId={productId} initialFeatured={featured} initialFeaturedPosition={featuredPosition} coverUrl={imageUrl} onCoverChanged={setImageUrl} />}
+    {tab === "gallery" && <ProductMediaManager productId={productId} initialFeatured={featured} coverUrl={imageUrl} onCoverChanged={setImageUrl} />}
   </div>;
 }

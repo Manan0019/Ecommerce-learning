@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "../common/Modal";
 import { moveSelectedMedia } from "./mediaSelectionOrder";
@@ -30,7 +31,7 @@ function payloadFor(scope) {
   return { scope: "shared" };
 }
 
-export default function ProductMediaManager({ productId, initialFeatured = false, initialFeaturedPosition = 100, coverUrl = "", onCoverChanged }) {
+export default function ProductMediaManager({ productId, initialFeatured = false, coverUrl = "", onCoverChanged }) {
   const [media, setMedia] = useState([]);
   const [variants, setVariants] = useState([]);
   const [featuredOverride, setFeaturedOverride] = useState(null);
@@ -50,7 +51,6 @@ export default function ProductMediaManager({ productId, initialFeatured = false
   const [dragOver, setDragOver] = useState(null);
   const [dragging, setDragging] = useState(null);
   const [selectedMedia, setSelectedMedia] = useState([]);
-  const [featuredPosition, setFeaturedPosition] = useState(String(initialFeaturedPosition ?? 100));
   const dragSource = useRef(null);
   const featured = featuredOverride ?? initialFeatured;
 
@@ -175,13 +175,9 @@ export default function ProductMediaManager({ productId, initialFeatured = false
     const result = await run(() => removeProductMedia(productId, removal.id), "Gallery entry removed (local file retained safely).");
     if (result) setRemoval(null);
   }
-  async function toggleFeatured(value, positionValue = featuredPosition) {
-    const position = Number(positionValue);
-    if (value && (!Number.isInteger(position) || position < 1 || position > 10000)) {
-      setError("Featured position must be a whole number from 1 to 10000."); return;
-    }
-    const result = await run(() => updateFeatured(productId, value, value ? position : undefined),
-      value ? `Featured at position ${position}.` : "Removed from featured products.");
+  async function toggleFeatured(value) {
+    const result = await run(() => updateFeatured(productId, value),
+      value ? "Added to Featured Products. Set its order in Featured Products." : "Removed from featured products.");
     if (result) setFeaturedOverride(value);
   }
   function scopePicker(value, onChange) {
@@ -214,7 +210,7 @@ export default function ProductMediaManager({ productId, initialFeatured = false
     </div>
     <div className="nx15-media-topline">
       <label className="nx-inline-checkbox"><input type="checkbox" checked={featured} disabled={busy} onChange={e => void toggleFeatured(e.target.checked)}/> Featured on homepage</label>
-      {featured && <div className="nx22-featured-order"><label>Featured position <input type="number" inputMode="numeric" min="1" max="10000" step="1" required value={featuredPosition} onChange={e => setFeaturedPosition(e.target.value)} /></label><button type="button" disabled={busy || !/^[1-9]\d{0,3}$|^10000$/.test(featuredPosition)} onClick={() => void toggleFeatured(true)}>Save position</button><small>1 appears first. Equal positions are ordered by product ID.</small></div>}
+      {featured && <p className="nx24-featured-help">Featured order is managed on <Link to="/admin/featured">Featured Products</Link>. Drag to arrange products there.</p>}
       <span>{media.length} of {MAX_ITEMS} media slots used</span>
       <button type="button" className="nx-text-action" disabled={busy} onClick={() => refreshVariants().catch(e => setError(e.message))}>Refresh SKUs</button>
     </div>

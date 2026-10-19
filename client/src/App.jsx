@@ -16,6 +16,8 @@ import CartPage from "./pages/customer/CartPage";
 import Checkout from "./pages/customer/Checkout";
 import Orders from "./pages/customer/Orders";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminFeatured from "./pages/admin/AdminFeatured";
+import AdminInventory from "./pages/admin/AdminInventory";
 import Wishlist from "./pages/customer/Wishlist";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import Home from "./pages/customer/Home";
@@ -34,6 +36,7 @@ import "./styles/phase18.css";
 import "./styles/phase19.css";
 import "./styles/phase21.css";
 import "./styles/phase23.css";
+import "./styles/phase24.css";
 
 export default function App() {
   return <CartProvider><BrowserRouter><Routes>
@@ -51,6 +54,8 @@ export default function App() {
     <Route path="/admin/categories" element={<AdminCategories />} />
     <Route path="/admin/banners" element={<AdminBanners />} />
     <Route path="/admin/orders" element={<AdminOrders />} />
+    <Route path="/admin/featured" element={<AdminFeatured />} />
+    <Route path="/admin/inventory" element={<AdminInventory />} />
     <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />
     <Route path="/admin/settings" element={<AdminComingSoon title="Settings" />} />
     <Route path="/products" element={<ProductList />} />

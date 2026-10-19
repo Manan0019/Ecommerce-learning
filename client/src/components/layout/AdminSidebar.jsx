@@ -4,6 +4,8 @@ import { SITE_NAME } from "../../config/site";
 const navigation = [
   { to: "/admin/dashboard", label: "Dashboard", icon: "⌂", end: true },
   { to: "/admin/products", label: "Manage Products", icon: "□" },
+  { to: "/admin/featured", label: "Featured Products", icon: "★" },
+  { to: "/admin/inventory", label: "Inventory Alerts", icon: "!" },
   { to: "/admin/categories", label: "Manage Categories", icon: "◇" },
   { to: "/admin/banners", label: "Promotions", icon: "▧" },
   { to: "/admin/customers", label: "Customers", icon: "○" },
@@ -12,7 +14,7 @@ const navigation = [
   { to: "/admin/settings", label: "Settings", icon: "⚙" }
 ];
 
-export default function AdminSidebar({ admin, isOpen, onClose, onLogout }) {
+export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAlertCount = 0 }) {
   const initials = admin.fullName.split(/\s+/).slice(0, 2)
     .map((part) => part[0]).join("").toUpperCase();
 
@@ -24,7 +26,7 @@ export default function AdminSidebar({ admin, isOpen, onClose, onLogout }) {
     <nav className="admin-nav" aria-label="Admin navigation">
       <p>Workspace</p>
       {navigation.map((item) => <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}>
-        <span aria-hidden="true">{item.icon}</span>{item.label}
+        <span aria-hidden="true">{item.icon}</span>{item.label}{item.to === "/admin/inventory" && stockAlertCount > 0 && <span className="nx24-sidebar-count">{stockAlertCount}</span>}
       </NavLink>)}
     </nav>
     <div className="admin-sidebar-footer">

@@ -42,7 +42,7 @@ export function generateVariantMatrix({groups,skuPrefix,defaultMrp,defaultPrice,
   if(usedSKUs.has(sku.toLowerCase()))throw Error(`SKU collision: ${sku}. Adjust prefix or values.`);
   usedSKUs.add(sku.toLowerCase());usedOptions.add(canon);
   output.push({key:crypto.randomUUID(),sku,attributesText:Object.entries(attributes).map(([k,v])=>`${k}: ${v}`).join("\n"),
-    mrp:String(defaultMrp),price:String(defaultPrice),stock:String(defaultStock),
+    mrp:String(defaultMrp),price:String(defaultPrice),stock:String(defaultStock),lowStockThreshold:"5",
     discount:"",pricingMode:"price",isActive:true});
  }
  return output;

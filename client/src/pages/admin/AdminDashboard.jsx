@@ -5,12 +5,14 @@ import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import { getAdminSummary } from "../../services/adminService";
 import { getAdminProducts } from "../../services/productService";
 import { getCodSummary } from "../../services/orderService";
+import { getLowStockAlerts } from "../../services/inventoryService";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [summary, setSummary] = useState(null);
   const [orderSummary, setOrderSummary] = useState(null);
+  const [stockAlerts, setStockAlerts] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -36,6 +38,7 @@ export default function AdminDashboard() {
     }
     loadDashboard();
     getCodSummary(controller.signal).then(data => { if (!controller.signal.aborted) setOrderSummary(data.summary); }).catch(() => { /* Orders migration can be applied separately. */ });
+    getLowStockAlerts(5,controller.signal).then(data=>{if(!controller.signal.aborted)setStockAlerts(data);}).catch(()=>{});
     return () => controller.abort();
   }, [navigate]);
 
@@ -65,6 +68,15 @@ export default function AdminDashboard() {
       </article>
     </section>
 
+    <section className="admin-panel nx24-dashboard-stock" aria-label="Low-stock notifications">
+      <div className="nx24-stock-head"><div><h2>Inventory notifications</h2><p>Alert thresholds are set per SKU, or per simple product. Refresh to see changes from COD orders.</p></div>
+        <Link className="admin-secondary-action" to="/admin/inventory">Open Inventory Alerts →</Link></div>
+      {stockAlerts ? <><p className={stockAlerts.summary.total?'nx24-badge nx24-badge-warning':'nx24-badge nx24-badge-ok'}>
+        {stockAlerts.summary.total ? `${stockAlerts.summary.total} items need attention · ${stockAlerts.summary.outOfStock} out of stock` : 'No active low-stock alerts'}
+      </p>{stockAlerts.items.length>0&&<ul className="nx24-dash-alert-list">{stockAlerts.items.slice(0,5).map(x=><li key={`${x.productId}-${x.variantId||'simple'}`}>
+        <strong>{x.productName}{x.sku?` · ${x.sku}`:''}</strong><span>{x.available} left · alert at {x.threshold}</span><Link to={`/admin/products/${x.productId}/edit?tab=${x.variantId?'variants':'details'}`}>Restock →</Link>
+      </li>)}</ul>}</> : <p>Stock notifications load when the dashboard is opened. Check the Inventory Alerts page if no summary appears.</p>}
+    </section>
     <section className="admin-dashboard-grid">
       <article className="admin-panel admin-recent-panel">
         <div className="admin-panel-heading"><div><h2>Recently added products</h2><p>Latest records from the product catalogue.</p></div><Link to="/admin/products">View all</Link></div>

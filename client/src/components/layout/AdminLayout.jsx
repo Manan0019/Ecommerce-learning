@@ -4,6 +4,8 @@ import { getAdmin } from "../../services/adminService";
 import { isAuthenticationError } from "../../services/apiClient";
 import { logout as endSession } from "../../services/authService";
 import AdminSidebar from "./AdminSidebar";
+import { getLowStockAlerts } from "../../services/inventoryService";
+import { Link } from "react-router-dom";
 import { guardNumberKey, showInvalidField, clearValidField } from "../admin/formValidation";
 
 export default function AdminLayout({ title, subtitle, actions, children }) {
@@ -12,6 +14,7 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [stockAlertCount, setStockAlertCount] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -41,6 +44,12 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
     return () => document.removeEventListener("keydown", closeWithEscape);
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    getLowStockAlerts(0).then(result => { if(active) setStockAlertCount(result.summary?.total || 0); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
   async function logout() {
     setError("");
     try {
@@ -63,11 +72,11 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
     {sidebarOpen && <button className="admin-sidebar-backdrop" type="button" aria-label="Close navigation"
       onClick={() => setSidebarOpen(false)} />}
     <AdminSidebar admin={admin} isOpen={sidebarOpen}
-      onClose={() => setSidebarOpen(false)} onLogout={logout} />
+      onClose={() => setSidebarOpen(false)} onLogout={logout} stockAlertCount={stockAlertCount} />
     <main className="admin-main" onKeyDownCapture={guardNumberKey} onInvalidCapture={showInvalidField} onInputCapture={clearValidField}>
       <header className="admin-page-header">
         <div><p className="admin-eyebrow">Admin workspace</p><h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>
-        {actions && <div className="admin-header-actions">{actions}</div>}
+        <div className="admin-header-actions">{stockAlertCount > 0 && <Link className="nx24-stock-link" to="/admin/inventory" aria-label={`${stockAlertCount} inventory alerts`}>🔔 {stockAlertCount} stock alerts</Link>}{actions}</div>
       </header>
       {error && <p className="admin-alert" role="alert">{error}</p>}
       {children}

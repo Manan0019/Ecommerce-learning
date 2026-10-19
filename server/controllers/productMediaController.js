@@ -1,3 +1,4 @@
+import { setFeaturedMembership } from "./featuredController.js";
 import pool from "../config/db.js";
 import crypto from "node:crypto";
 import path from "node:path";
@@ -101,24 +102,7 @@ export async function deleteProductMedia(req,res){
  return res.json({message:"Gallery item removed"});
  }catch(e){console.error(e);return res.status(500).json({message:"Unable to remove media"});}
 }
-export async function changeFeatured(req,res){
- const { isFeatured, position } = req.body || {};
- if (!idOK(req.params.id) || typeof isFeatured !== "boolean" ||
-     (position !== undefined && (!Number.isInteger(position) || position < 1 || position > 10000))) {
-   return res.status(400).json({message:"Featured status must be a boolean and position must be 1–10000."});
- }
- try {
-   const r=await pool.query(`UPDATE products
-     SET is_featured=$1,
-         featured_position=CASE WHEN $1 THEN COALESCE($2::integer,featured_position,100) ELSE NULL END,
-         updated_at=NOW()
-     WHERE id=$3 RETURNING id,is_featured,featured_position`,
-     [isFeatured,position ?? null,req.params.id]);
-   if (!r.rows.length) return res.status(404).json({message:"Product not found"});
-   return res.json({id:String(r.rows[0].id),isFeatured:r.rows[0].is_featured,featuredPosition:r.rows[0].featured_position});
- }
- catch(e){console.error(e);return res.status(500).json({message:"Unable to update featured status"});}
-}
+export const changeFeatured = setFeaturedMembership;
 
 // Makes an existing image the storefront/card cover. Never allows a video cover.
 export async function setMediaCover(req,res) {

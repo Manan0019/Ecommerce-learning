@@ -19,14 +19,13 @@ export default function AddProduct() {
   const navigate = useNavigate();
   const formRef = useRef(null);
   const { categories, categoriesLoading, categoriesError } = useActiveCategories();
-  const [form, setForm] = useState({ name: "", brand: "", model: "", description: "", categoryId: "", mrp: "", price: "", stock: "",pricingMode:"price" });
+  const [form, setForm] = useState({ name: "", brand: "", model: "", description: "", categoryId: "", mrp: "", price: "", stock: "", lowStockThreshold:"5",pricingMode:"price" });
   const [specifications, setSpecifications] = useState({});
   const specification = useSpecificationDefinition(form.categoryId);
   const [image, setImage] = useState(null);
   const [queuedMedia, setQueuedMedia] = useState([]);
   const [videoUrl, setVideoUrl] = useState("");
   const [featured, setFeatured] = useState(false);
-  const [featuredPosition, setFeaturedPosition] = useState("100");
   const [createdProduct, setCreatedProduct] = useState(null);
   const [variantDrafts, setVariantDrafts] = useState([]);
   const [variantFailures, setVariantFailures] = useState([]);
@@ -86,9 +85,6 @@ export default function AddProduct() {
     if (validVariants.length === 0 && (!form.price || !form.mrp || form.stock === "")) {
       setMessage("Enter MRP, selling price and stock for a simple product, or create at least one SKU."); return;
     }
-    if (featured && (!Number.isInteger(Number(featuredPosition)) || Number(featuredPosition) < 1 || Number(featuredPosition) > 10000)) {
-      setMessage("Featured position must be a whole number between 1 and 10000."); return;
-    }
     if (!image) {
       setMessage("Please select a product image.");
       return;
@@ -117,6 +113,7 @@ export default function AddProduct() {
             price: draft.price,
             mrp: draft.mrp,
             stock: Number(draft.stock),
+            lowStockThreshold: Number(draft.lowStockThreshold ?? 5),
             isActive: draft.isActive
           });
         } catch (variantError) {
@@ -134,7 +131,7 @@ export default function AddProduct() {
         }
       }
       if (featured) {
-        try { await updateFeatured(created.id, true, Number(featuredPosition)); }
+        try { await updateFeatured(created.id, true); }
         catch (featuredError) { failures.push(`Featured: ${featuredError.message}`); }
       }
       setUploadReport(failures.length
@@ -168,9 +165,9 @@ export default function AddProduct() {
       <div className="admin-form-actions">
         <Link className="admin-secondary-action" to="/admin/products">Back to products</Link>
         <button type="button" className="admin-primary-action" onClick={() => {
-          setCreatedProduct(null); setSavedPanel(null); setQueuedMedia([]); setFeatured(false); setFeaturedPosition("100");
+          setCreatedProduct(null); setSavedPanel(null); setQueuedMedia([]); setFeatured(false);
           setUploadReport(""); setVariantDrafts([]); setVariantFailures([]);
-          setForm({ name:"", brand:"", model:"", description:"", categoryId:"", mrp:"", price:"", stock:"", pricingMode:"price" });
+          setForm({ name:"", brand:"", model:"", description:"", categoryId:"", mrp:"", price:"", stock:"", lowStockThreshold:"5", pricingMode:"price" });
           setSpecifications({}); setImage(null); formRef.current?.reset();
         }}>Create another product</button>
       </div>
@@ -189,7 +186,10 @@ export default function AddProduct() {
         <div className="admin-form-grid">
           <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || categories.length === 0}
             onChange={categoryId => { setSpecifications({}); setForm(previous => ({...previous, categoryId})); }} />
-          {variantDrafts.length === 0 && <label>Simple product stock<input type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>}
+          {variantDrafts.length === 0 && <>
+            <label>Simple product stock<input type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
+            <label>Alert me at or below (units)<input type="number" name="lowStockThreshold" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>0 alerts only when out of stock.</small></label>
+          </>}
         </div>
         {variantDrafts.length === 0 ? <VariantPriceFields row={form} onFieldChange={(field,value)=>setForm(old=>updatePricingDraft(old,field,value))} disabled={loading}/>
           : <p className="nx22-sku-notice"><strong>SKU pricing is active.</strong> Price, MRP and stock come from each SKU below. The parent product's legacy values will be initialized automatically and are not separately entered.</p>}
@@ -210,7 +210,7 @@ export default function AddProduct() {
           </label>
           <button type="button" onClick={queueVideo} disabled={loading || !videoUrl.trim() || queuedMedia.length >= 59}>Queue video</button>
           <label className="admin-featured-toggle"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)}/> Feature this product on the homepage</label>
-          {featured && <label>Featured display position (1 = first)<input type="number" min="1" max="10000" step="1" inputMode="numeric" value={featuredPosition} onChange={e => setFeaturedPosition(e.target.value)} required /></label>}
+          {featured && <p>Featured products are ordered in <Link to="/admin/featured">Featured Products</Link> — no overlapping position numbers.</p>}
           <p className="nx15-media-hint">Use the position dropdown to arrange new media. After saving you can drag gallery cards freely.</p>
           <ol className="media-manager-list">
             {queuedMedia.map((item, index) => <li className="media-manager-item" key={item.key}>
