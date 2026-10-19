@@ -10,22 +10,23 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categoryError, setCategoryError] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
     async function loadProducts() {
       try {
-        const [productData, categoryData] = await Promise.all([
-          getProducts({ signal: controller.signal, params: new URLSearchParams({ featured: "true", limit: "4" }) }),
-          getCategories(controller.signal)
-        ]);
-        setProducts(Array.isArray(productData.products) ? productData.products : []);
-        setCategories(Array.isArray(categoryData.categories) ? categoryData.categories : []);
+        const data = await getProducts({ signal: controller.signal, params: new URLSearchParams({ featured: "true", limit: "4" }) });
+        if (!controller.signal.aborted) setProducts(Array.isArray(data.products) ? data.products : []);
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
+      } finally { if (!controller.signal.aborted) setLoading(false); }
+      try {
+        const categoryData = await getCategories(controller.signal);
+        if (!controller.signal.aborted) setCategories(Array.isArray(categoryData.categories) ? categoryData.categories : []);
+      } catch (requestError) {
+        if (requestError.name !== "AbortError") setCategoryError(requestError.message);
       }
     }
     loadProducts();
@@ -52,7 +53,11 @@ export default function Home() {
           </dl>
         </div>
         <div className="hero-visual">
-          <div className="generic-store-showcase" aria-hidden="true">Discover • Explore • Enjoy</div>
+          <div className="nx15-hero-stack" aria-hidden="true">
+            <div className="nx15-hero-item nx15-hero-item-one"><span>✿</span><b>Everyday finds</b><small>Beauty · Care</small></div>
+            <div className="nx15-hero-item nx15-hero-item-two"><span>◈</span><b>Fresh arrivals</b><small>Style · Fashion</small></div>
+            <div className="nx15-hero-item nx15-hero-item-three"><span>✦</span><b>Discover more</b><small>Home · Essentials</small></div>
+          </div>
           <div className="hero-note"><span>01</span><p>Explore more categories and find your next favorite.</p></div>
         </div>
       </section>
@@ -75,7 +80,9 @@ export default function Home() {
       <section className="store-section category-section" id="categories" aria-labelledby="categories-heading">
         <div className="section-heading">
           <div><p className="eyebrow">Browse what you love</p><h2 id="categories-heading">Shop by category</h2></div>
+          <Link className="text-link" to="/categories">All categories →</Link>
         </div>
+        {categoryError && <p className="store-alert" role="alert">{categoryError}</p>}
         {featuredCategories.length > 0 ? <div className="category-grid">
           {featuredCategories.map((category, index) => <Link
             className="category-card"

@@ -13,6 +13,7 @@ function validVideoBytes(file) {
   const webm = b.subarray(0,4).equals(Buffer.from([0x1a,0x45,0xdf,0xa3]));
   return file.mimetype === "video/mp4" && mp4 || file.mimetype === "video/webm" && webm;
 }
+export const MAX_GALLERY_ITEMS = 60;
 const idOK = v => typeof v === "string" && /^[1-9]\d*$/.test(v);
 function youtubeUrl(value) {
   try {
@@ -49,7 +50,7 @@ export async function addProductMedia(req,res) {
   const existing=await pool.query("SELECT id FROM products WHERE id=$1",[req.params.id]);
   if(!existing.rows.length) return res.status(404).json({message:"Product not found"});
   const count=await pool.query("SELECT count(*)::integer AS n FROM product_media WHERE product_id=$1",[req.params.id]);
-  if(count.rows[0].n>=16) return res.status(400).json({message:"Maximum 16 gallery items"});
+  if(count.rows[0].n>=MAX_GALLERY_ITEMS) return res.status(400).json({message:`Maximum ${MAX_GALLERY_ITEMS} gallery items`});
   let type,url;
   if(req.file && req.file.fieldname === "video") {
     if (!validVideoBytes(req.file)) return res.status(400).json({message:"Only valid MP4 or WebM video files are supported."});
@@ -83,7 +84,7 @@ export async function assignMediaVariant(req,res){
  }catch(e){console.error("Assign media",e);return res.status(500).json({message:"Unable to assign media"});}
 }
 export async function reorderProductMedia(req,res){
- if(!idOK(req.params.id)||!Array.isArray(req.body?.ids)||req.body.ids.length>16||req.body.ids.some(v=>!idOK(v))||new Set(req.body.ids).size!==req.body.ids.length)return res.status(400).json({message:"Invalid media ordering"});
+ if(!idOK(req.params.id)||!Array.isArray(req.body?.ids)||req.body.ids.length>MAX_GALLERY_ITEMS||req.body.ids.some(v=>!idOK(v))||new Set(req.body.ids).size!==req.body.ids.length)return res.status(400).json({message:"Invalid media ordering"});
  const client=await pool.connect();
  try{await client.query("BEGIN");await client.query("SELECT id FROM products WHERE id=$1 FOR UPDATE",[req.params.id]);
  const rows=await client.query("SELECT id::text AS id FROM product_media WHERE product_id=$1",[req.params.id]);

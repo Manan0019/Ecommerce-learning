@@ -8,10 +8,11 @@ import sharp from "sharp";
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const uploadsRoot = path.join(directory, "../uploads");
 const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+export const MAX_PRODUCT_IMAGE_BYTES = 12 * 1024 * 1024;
 
 export const catalogImageUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 12 },
+  limits: { fileSize: MAX_PRODUCT_IMAGE_BYTES, files: 1, fields: 12 },
   fileFilter: (_req, file, callback) => {
     if (!allowedMimeTypes.has(file.mimetype)) {
       return callback(new Error("UNSUPPORTED_IMAGE"));
@@ -60,7 +61,7 @@ export function handleCatalogImageError(error, _req, res, next) {
   if (error instanceof multer.MulterError) {
     return res.status(400).json({
       message: error.code === "LIMIT_FILE_SIZE"
-        ? "Image must be 5 MB or smaller."
+        ? "Image must be 12 MB or smaller."
         : "Invalid image upload."
     });
   }

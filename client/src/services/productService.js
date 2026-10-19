@@ -10,6 +10,10 @@ export function getProducts({ signal, category, params } = {}) {
   return apiRequest(`/api/products${query}`, { signal });
 }
 
+export function getProductSuggestions(q, signal) {
+  return apiRequest(`/api/products/suggestions?q=${encodeURIComponent(q)}`, { signal });
+}
+
 export function getProduct(id, signal) {
   return apiRequest(`/api/products/${id}`, { signal });
 }

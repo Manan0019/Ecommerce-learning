@@ -3,12 +3,14 @@ import { Router } from "express";
 import {
   getProduct,
   listProducts,
+  searchSuggestions,
 } from "../controllers/publicProductController.js";
 import { getProductMedia } from "../controllers/productMediaController.js";
 import { listRelatedProducts } from "../controllers/relatedProductController.js";
 
 const router = Router();
 router.get("/", listProducts);
+router.get("/suggestions", searchSuggestions);
 router.get("/:id/variants", listVariants);
 router.get("/:id/media", getProductMedia);
 router.get("/:id/related", listRelatedProducts);

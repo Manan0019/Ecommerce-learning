@@ -11,7 +11,7 @@ const selectFields = `
   category.name AS category_name, category.slug AS category_slug,
   product.brand, product.model, product.specifications,
   pricing.effective_price AS price, pricing.effective_mrp AS mrp, pricing.effective_stock AS stock,
-  pricing.has_variants, product.image_url, product.created_at`;
+  pricing.has_variants, product.is_featured, product.image_url, product.created_at`;
 
 // One row per parent product, even when it has many variants.
 // Existing products without configured variants retain their original price/stock.
@@ -52,6 +52,7 @@ function asPublicProduct(product) {
     mrp: product.mrp,
     stock: product.stock,
     hasVariants: product.has_variants,
+    isFeatured: Boolean(product.is_featured),
     imageUrl: product.image_url,
     createdAt: product.created_at
   };
@@ -100,6 +101,8 @@ export async function listProducts(req, res) {
     const minPrice = priceValue(req.query.minPrice);
     const maxPrice = priceValue(req.query.maxPrice);
     const inStock = req.query.inStock === "true";
+    const featured = req.query.featured === "true";
+    if (req.query.featured !== undefined && !["true", "false"].includes(req.query.featured)) throw new Error("INVALID_PUBLIC_QUERY");
     if (req.query.inStock !== undefined && !["true", "false"].includes(req.query.inStock)) throw new Error("INVALID_PUBLIC_QUERY");
     if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) throw new Error("INVALID_PUBLIC_QUERY");
     if (!new Set(["relevance", "newest", "price_asc", "price_desc", "name"]).has(sort)) {
@@ -123,7 +126,7 @@ export async function listProducts(req, res) {
     const filterSchemas = new Map(
       definition ? definitionFields(definition).filter((item) => item.filter).map((item) => [item.key, item]) : []
     );
-    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock"]);
+    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock", "featured"]);
     const requestedFilters = [];
     for (const [key, value] of Object.entries(req.query)) {
       if (baseKeys.has(key)) continue;
@@ -151,6 +154,7 @@ export async function listProducts(req, res) {
     };
     if (category) where.push(`category.id = ${parameter(category.id)}`);
     if (inStock) where.push("pricing.effective_stock > 0");
+    if (featured) where.push("product.is_featured = TRUE");
     let searchParameter = null;
     if (q) {
       searchParameter = parameter(q);
@@ -257,5 +261,37 @@ export async function getProduct(req, res) {
   } catch (error) {
     console.error("Public product details:", error);
     return res.status(500).json({ message: "Could not load product." });
+  }
+}
+
+
+/** Small, bounded autocomplete. Active catalogue only; no fabricated results. */
+export async function searchSuggestions(req, res) {
+  try {
+    const q = queryString(req.query.q, 80);
+    if (q.length < 2) return res.json({ products: [], categories: [] });
+    const term = `%${q.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+    const prefix = `${q.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+    const [productResult, categoryResult] = await Promise.all([
+      pool.query(`
+        SELECT product.id, product.name, product.brand, product.image_url,
+               category.name AS category_name, category.slug AS category_slug
+        FROM products product
+        JOIN categories category ON category.id = product.category_id
+        WHERE product.is_active = TRUE AND category.is_active = TRUE
+          AND (product.name ILIKE $1 ESCAPE '\\' OR product.brand ILIKE $1 ESCAPE '\\' OR product.model ILIKE $1 ESCAPE '\\')
+        ORDER BY CASE WHEN product.name ILIKE $2 ESCAPE '\\' THEN 0 ELSE 1 END,
+                 product.name ASC, product.id DESC
+        LIMIT 6`, [term, prefix]),
+      pool.query(`SELECT id, name, slug FROM categories WHERE is_active = TRUE AND name ILIKE $1 ESCAPE '\\' ORDER BY name LIMIT 4`, [term])
+    ]);
+    return res.json({
+      products: productResult.rows.map(r => ({ id: String(r.id), name: r.name, brand: r.brand, imageUrl: r.image_url, category: r.category_name })),
+      categories: categoryResult.rows.map(r => ({ id: String(r.id), name: r.name, slug: r.slug }))
+    });
+  } catch (error) {
+    if (error.message === "INVALID_PUBLIC_QUERY") return res.status(400).json({ message: "Invalid search query." });
+    console.error("Product suggestions:", error);
+    return res.status(500).json({ message: "Search suggestions unavailable." });
   }
 }

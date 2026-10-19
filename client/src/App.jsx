@@ -19,9 +19,11 @@ import ProductDetails from "./pages/customer/ProductDetails";
 import ProductList from "./pages/customer/ProductList";
 import About from "./pages/public/About";
 import Contact from "./pages/public/Contact";
+import Categories from "./pages/customer/Categories";
 import "./styles/app.css";
 import "./styles/wishlist.css";
 import "./styles/phase14.css";
+import "./styles/phase15.css";
 
 export default function App() {
   return <CartProvider><BrowserRouter><Routes>
@@ -42,6 +44,7 @@ export default function App() {
     <Route path="/admin/settings" element={<AdminComingSoon title="Settings" />} />
     <Route path="/products" element={<ProductList />} />
     <Route path="/products/:id" element={<ProductDetails />} />
+    <Route path="/categories" element={<Categories />} />
     <Route path="/categories/:slug" element={<ProductList />} />
     <Route path="/cart" element={<CartPage />} />
     <Route path="/wishlist" element={<Wishlist />} />
