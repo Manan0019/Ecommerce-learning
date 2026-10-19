@@ -15,12 +15,23 @@ export async function deleteProduct(req, res) {
     if (product.rows[0].name !== req.body.confirmName) {
       await db.query("ROLLBACK"); return res.status(400).json({message:"Enter the exact product name to confirm permanent deletion."});
     }
+    // Promotions may reference this product for placement, or link to its detail page.
+    // Fail closed rather than leave published banners with broken destinations.
+    const promotions = await db.query(`
+      SELECT id FROM promotion_banners
+      WHERE product_id=$1 OR link_url=('/products/' || $1::text)
+        OR link_url LIKE ('/products/' || $1::text || '?%')
+      LIMIT 1 FOR UPDATE`, [id]);
+    if (promotions.rows.length) {
+      await db.query("ROLLBACK");
+      return res.status(409).json({message:"This product is used by a promotion. Edit that promotion and change/remove its product placement or link before deleting this product."});
+    }
     const dependencies = await db.query(`
       SELECT conrelid::regclass::text AS referencing_table
       FROM pg_constraint
       WHERE contype='f'
         AND confrelid IN ('products'::regclass,'product_variants'::regclass)
-        AND conrelid NOT IN ('product_media'::regclass,'product_variants'::regclass,'customer_wishlist'::regclass)
+        AND conrelid NOT IN ('product_media'::regclass,'product_variants'::regclass,'customer_wishlist'::regclass,'promotion_banners'::regclass)
       ORDER BY referencing_table`);
     if (dependencies.rows.length) {
       await db.query("ROLLBACK");

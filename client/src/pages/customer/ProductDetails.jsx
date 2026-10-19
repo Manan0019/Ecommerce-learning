@@ -5,6 +5,7 @@ import CustomerLayout from "../../components/layout/CustomerLayout";
 import ProductMediaGallery from "../../components/customer/ProductMediaGallery";
 import ProductVariantSelector from "../../components/customer/ProductVariantSelector";
 import RelatedProducts from "../../components/customer/RelatedProducts";
+import PromotionCarousel from "../../components/customer/PromotionCarousel";
 import { getProduct, getProductMedia } from "../../services/productService";
 import { getVariants } from "../../services/variantService";
 import { useCart } from "../../hooks/useCart";
@@ -120,6 +121,7 @@ function ProductDetailsContent({ id }) {
           </ul>
         </div>
       </article>}
+      {product && <PromotionCarousel position="product" product={product.id} />}
       {product?.specificationDisplay?.groups?.length > 0 && <section className="technical-specifications" aria-labelledby="technical-specifications-heading">
         <div className="section-heading"><div><p className="eyebrow">Product data</p><h2 id="technical-specifications-heading">Product specifications</h2></div></div>
         <div className="specification-groups">

@@ -18,11 +18,25 @@ export async function listRelatedProducts(req, res) {
       )
       SELECT p.id::text AS id, p.name, p.description,
              c.name AS category, c.slug AS "categorySlug",
-             p.brand, p.model, p.price, p.stock, p.image_url AS "imageUrl",
+             p.brand, p.model, pricing.price, pricing.mrp, pricing.stock,
+             p.image_url AS "imageUrl",
              CASE WHEN p.category_id = s.category_id THEN 0 ELSE 1 END AS rank
       FROM source s
       JOIN products p ON p.id <> s.id AND p.is_active = TRUE
       JOIN categories c ON c.id = p.category_id AND c.is_active = TRUE
+      LEFT JOIN LATERAL (
+        SELECT
+          COALESCE((SELECT v.price FROM product_variants v
+            WHERE v.product_id=p.id AND v.is_active
+            ORDER BY CASE WHEN v.stock>0 THEN 0 ELSE 1 END, v.price, v.id LIMIT 1), p.price) AS price,
+          COALESCE((SELECT v.mrp FROM product_variants v
+            WHERE v.product_id=p.id AND v.is_active
+            ORDER BY CASE WHEN v.stock>0 THEN 0 ELSE 1 END, v.price, v.id LIMIT 1), p.mrp) AS mrp,
+          CASE WHEN EXISTS(SELECT 1 FROM product_variants v WHERE v.product_id=p.id)
+            THEN COALESCE((SELECT SUM(v.stock)::integer FROM product_variants v
+              WHERE v.product_id=p.id AND v.is_active), 0)
+            ELSE p.stock END AS stock
+      ) pricing ON TRUE
       WHERE p.category_id = s.category_id
          OR (s.brand IS NOT NULL AND lower(trim(p.brand)) = s.brand)
       ORDER BY rank, p.created_at DESC, p.id DESC

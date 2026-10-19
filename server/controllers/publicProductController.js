@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { availabilityPredicate } from "../services/catalogueAvailability.js";
 import { makeStorefrontCards } from "../services/storefrontVariantCards.js";
 import { getSpecificationDefinition } from "../config/productSpecifications.js";
 import {
@@ -165,7 +166,7 @@ export async function listProducts(req, res) {
         ) SELECT id FROM subtree
       )`);
     }
-    if (inStock) where.push(view === "variants" ? "chosen.stock > 0" : "pricing.effective_stock > 0");
+    if (inStock) where.push(availabilityPredicate(view));
     if (featured) where.push("product.is_featured = TRUE");
     let searchParameter = null;
     if (q) {
