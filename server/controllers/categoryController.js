@@ -165,11 +165,65 @@ export async function updateCategoryStatus(req, res) {
   }
 }
 
+/** Delete an empty leaf category only. Do not cascade into products, children or banners.
+ * The row lock makes concurrent FK inserts wait until the delete commits. */
+export async function deleteCategory(req, res) {
+  if (!validId(req.params.id) || typeof req.body?.confirmName !== "string") {
+    return res.status(400).json({ message: "Category ID and exact name confirmation are required." });
+  }
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(
+      "SELECT id, name, slug FROM categories WHERE id=$1 FOR UPDATE", [req.params.id]);
+    if (!result.rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "Category not found." });
+    }
+    const category = result.rows[0];
+    if (req.body.confirmName !== category.name) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ message: "Enter the exact category name to confirm deletion." });
+    }
+    const { rows: [usage] } = await client.query(`
+      SELECT
+        (SELECT COUNT(*)::int FROM products WHERE category_id=$1) AS products,
+        (SELECT COUNT(*)::int FROM categories WHERE parent_id=$1) AS children,
+        (SELECT COUNT(*)::int FROM promotion_banners WHERE category_id=$1
+           OR link_url=$2 OR link_url LIKE ($2 || '?%')
+           OR link_url=('/products?category=' || $3)
+           OR link_url LIKE ('/products?category=' || $3 || '&%')) AS promotions
+    `, [category.id, `/categories/${category.slug}`, category.slug]);
+    const reasons = [];
+    if (usage.products) reasons.push(`${usage.products} assigned product(s)`);
+    if (usage.children) reasons.push(`${usage.children} child category/subcategories`);
+    if (usage.promotions) reasons.push(`${usage.promotions} referring promotion(s)`);
+    if (reasons.length) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({
+        message: `Cannot delete ${category.name}: ${reasons.join(', ')}. Move products, delete child categories, or change promotions first. You can deactivate it instead.`
+      });
+    }
+    await client.query("DELETE FROM categories WHERE id=$1", [category.id]);
+    await client.query("COMMIT");
+    return res.json({ id: String(category.id), message: `Category ${category.name} permanently deleted. Its uploaded image was retained for later orphan-file cleanup.` });
+  } catch (error) {
+    try { await client.query("ROLLBACK"); } catch { /* already rolled back */ }
+    if (error.code === "23503") {
+      return res.status(409).json({ message: "Category is referenced by other records. Move or deactivate it instead." });
+    }
+    console.error("Deleting category:", error);
+    return res.status(500).json({ message: "Could not safely delete category." });
+  } finally {
+    client.release();
+  }
+}
+
 export async function listPublicCategories(_req, res) {
   try {
     const { rows } = await pool.query(`
       SELECT category.id, category.name, category.slug, category.parent_id, parent.name AS parent_name,
-             COALESCE(category.image_url, MIN(product.image_url)) AS image_url,
+             category.image_url AS image_url,
              category.is_active, category.created_at, category.updated_at,
              COUNT(product.id)::int AS product_count
       FROM categories AS category

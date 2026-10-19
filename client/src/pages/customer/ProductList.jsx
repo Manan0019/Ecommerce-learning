@@ -76,7 +76,15 @@ export default function ProductList() {
   }
 
   const activeCategory = categories.find(item => item.slug === selectedCategory);
-  const parentCategory = activeCategory?.parentId ? categories.find(item => String(item.id) === String(activeCategory.parentId)) : null;
+  const ancestors = [];
+  const seen = new Set(activeCategory ? [String(activeCategory.id)] : []);
+  let cursor = activeCategory;
+  while (cursor?.parentId && !seen.has(String(cursor.parentId))) {
+    seen.add(String(cursor.parentId));
+    cursor = categories.find(item => String(item.id) === String(cursor.parentId));
+    if (cursor) ancestors.unshift(cursor);
+  }
+  const parentCategory = ancestors.length ? ancestors[ancestors.length - 1] : null;
 
   function chooseCategory(slug) {
     const next = new URLSearchParams();
@@ -133,16 +141,17 @@ export default function ProductList() {
         />
       </header>
 
-      {parentCategory && <nav className="nx18-category-breadcrumb" aria-label="Category hierarchy">
-        <Link to="/categories">Categories</Link><span aria-hidden="true">›</span>
-        <Link to={`/categories/${encodeURIComponent(parentCategory.slug)}`}>{parentCategory.name}</Link>
+      {activeCategory && <nav className="nx18-category-breadcrumb" aria-label="Category hierarchy">
+        <Link to="/categories">Categories</Link>
+        {ancestors.map(parent => <span key={parent.id} className="nx21-crumb"><span aria-hidden="true">›</span>
+          <Link to={`/categories/${encodeURIComponent(parent.slug)}`}>{parent.name}</Link></span>)}
         <span aria-hidden="true">›</span><strong>{activeCategory.name}</strong>
       </nav>}
       {selectedCategory&&<PromotionCarousel position="category" category={selectedCategory}/>}
       {category&&categories.some(c=>String(c.parentId)===String(category.id))&&<section className="nx17-subcategories" aria-label={`Shop ${category.name} subcategories`}>
         <h2>Explore {category.name}</h2>
         <div className="nx17-subcategory-shelf">{categories.filter(c=>String(c.parentId)===String(category.id)).map(child=><Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>
-          <span>{child.imageUrl?<img src={apiAssetUrl(child.imageUrl)} alt="" loading="lazy"/>:<span aria-hidden="true">◇</span>}</span><strong>{child.name}</strong></Link>)}</div>
+          <span>{child.imageUrl?<img src={apiAssetUrl(child.imageUrl)} alt="" loading="lazy"/>:<span className="nx21-category-placeholder" aria-hidden="true">{child.name.slice(0, 1).toUpperCase()}</span>}</span><strong>{child.name}</strong></Link>)}</div>
       </section>}
 
       <div

@@ -6,6 +6,18 @@
  * Optional: set API_BASE_URL=http://localhost:4000
  */
 const base = (process.env.API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+// A stopped backend is one connectivity problem, not six broken features.
+// Run in a second terminal after `cd server; npm run dev` has started successfully.
+try {
+  const health = await fetch(`${base}/`, { signal: AbortSignal.timeout(3500) });
+  if (!health.ok) throw new Error(`API responded with HTTP ${health.status}`);
+} catch (error) {
+  console.error(`API_UNREACHABLE: ${base}`);
+  console.error(`Reason: ${error.message}`);
+  console.error("Start Express in another terminal: cd server && npm run dev");
+  console.error("Verify http://localhost:4000/ and /api/db-test, then rerun the read-only smoke test.");
+  process.exit(2);
+}
 const failures = [];
 const warnings = [];
 const checks = [];

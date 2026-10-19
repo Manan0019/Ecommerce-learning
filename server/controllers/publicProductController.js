@@ -1,5 +1,6 @@
 import pool from "../config/db.js";
 import { availabilityPredicate } from "../services/catalogueAvailability.js";
+import { buildVariantFacets, matchesVariantFacets } from "../services/variantFacets.js";
 import { makeStorefrontCards } from "../services/storefrontVariantCards.js";
 import { getSpecificationDefinition } from "../config/productSpecifications.js";
 import {
@@ -127,14 +128,45 @@ export async function listProducts(req, res) {
       category = result.rows[0];
     }
 
+    // Facets must be based on the selected category and all active descendants.
+    // SKU options are independent of electronics-only specifications; a Jeans category
+    // with Size=30/32/34 will expose Size even when Color has only one value.
+    const facetValues = category ? [category.id] : [];
+    const facetCategory = category ? `AND category.id IN (
+      WITH RECURSIVE subtree AS (
+        SELECT id FROM categories WHERE id=$1
+        UNION ALL SELECT child.id FROM categories child JOIN subtree parent ON child.parent_id=parent.id WHERE child.is_active=TRUE
+      ) SELECT id FROM subtree
+    )` : "";
+    const facetResult = await pool.query(`
+      SELECT product.brand, product.specifications,
+        COALESCE((SELECT jsonb_agg(v.attributes)
+          FROM product_variants v WHERE v.product_id=product.id AND v.is_active=TRUE), '[]'::jsonb) AS variant_attributes
+      FROM products AS product
+      JOIN categories AS category ON category.id = product.category_id
+      WHERE product.is_active = TRUE AND category.is_active = TRUE ${facetCategory}
+      ORDER BY product.id DESC LIMIT 1000
+    `, facetValues);
+    const variantFacets = buildVariantFacets(facetResult.rows);
+    const variantFacetMap = new Map(variantFacets.map(facet => [facet.key, facet]));
     const definition = category ? getSpecificationDefinition(category) : null;
     const filterSchemas = new Map(
       definition ? definitionFields(definition).filter((item) => item.filter).map((item) => [item.key, item]) : []
     );
     const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock", "featured", "view"]);
     const requestedFilters = [];
+    const variantFilters = [];
     for (const [key, value] of Object.entries(req.query)) {
       if (baseKeys.has(key)) continue;
+      const variantFacet = variantFacetMap.get(key);
+      if (variantFacet) {
+        const selected = filterValues(value);
+        if (selected.some(item => !variantFacet.options.some(option => option.value === item))) {
+          throw new Error("INVALID_PUBLIC_QUERY");
+        }
+        variantFilters.push({ attributeKey: variantFacet.attributeKey, values: selected });
+        continue;
+      }
       const schema = filterSchemas.get(key);
       if (!schema) throw new Error("INVALID_PUBLIC_QUERY");
       const values = filterValues(value);
@@ -190,6 +222,21 @@ export async function listProducts(req, res) {
         : `product.specifications ->> ${keyParameter} = ANY(${valuesParameter}::text[])`);
     }
 
+    if (variantFilters.length) {
+      if (view === "variants") {
+        for (const { attributeKey, values: selected } of variantFilters) {
+          where.push(`chosen.attributes ->> ${parameter(attributeKey)} = ANY(${parameter(selected)}::text[])`);
+        }
+      } else {
+        // Parent/color modes are eligible only if a SINGLE active SKU matches all
+        // selected option groups, not one SKU matching size and another matching color.
+        const clauses = variantFilters.map(({ attributeKey, values: selected }) =>
+          `filter_sku.attributes ->> ${parameter(attributeKey)} = ANY(${parameter(selected)}::text[])`);
+        where.push(`EXISTS (SELECT 1 FROM product_variants filter_sku
+          WHERE filter_sku.product_id=product.id AND filter_sku.is_active=TRUE AND ${clauses.join(" AND ")})`);
+      }
+    }
+
     // Each SKU is paginated as its own public card in variants mode.
     // Parents with no SKUs still have one catalogue card (chosen.id is NULL).
     const chosenJoin = view === "variants" ? `
@@ -231,22 +278,8 @@ export async function listProducts(req, res) {
       LIMIT $${values.length + 1} OFFSET $${values.length + 2}
     `, dataValues);
 
-    const facetValues = category ? [category.id] : [];
-    const facetCategory = category ? `AND category.id IN (
-      WITH RECURSIVE subtree AS (
-        SELECT id FROM categories WHERE id=$1
-        UNION ALL SELECT child.id FROM categories child JOIN subtree parent ON child.parent_id=parent.id WHERE child.is_active=TRUE
-      ) SELECT id FROM subtree
-    )` : "";
-    const facetResult = await pool.query(`
-      SELECT product.brand, product.specifications
-      FROM products AS product
-      JOIN categories AS category ON category.id = product.category_id
-      WHERE product.is_active = TRUE AND category.is_active = TRUE ${facetCategory}
-      ORDER BY product.id DESC
-      LIMIT 1000
-    `, facetValues);
     const builtFacets = buildSpecificationFacets(category || {}, facetResult.rows).facets;
+    const displayFacets = [...builtFacets.filter(facet => category || facet.key === "brand"), ...variantFacets];
 
     const parentProducts = rows.map(asPublicProduct);
     let cards = parentProducts;
@@ -280,12 +313,15 @@ export async function listProducts(req, res) {
         pool.query(`SELECT id,product_id,attributes,sku,mrp,price,stock,is_active,custom_title FROM product_variants WHERE product_id=ANY($1::bigint[]) AND is_active=TRUE ORDER BY product_id,id`,[ids]),
         pool.query(`SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order,is_card_cover FROM product_media WHERE product_id=ANY($1::bigint[]) AND media_type='image' ORDER BY product_id,sort_order,id`,[ids])
       ]);
-      cards = makeStorefrontCards(parentProducts,variantResult.rows,mediaResult.rows);
+      const matchingVariants = variantFilters.length
+        ? variantResult.rows.filter(row => matchesVariantFacets(row.attributes, variantFilters))
+        : variantResult.rows;
+      cards = makeStorefrontCards(parentProducts,matchingVariants,mediaResult.rows);
     }
     return res.json({
       products: cards,
       pagination: { page: safePage, limit, total, pages },
-      facets: category ? builtFacets : builtFacets.filter((facet) => facet.key === "brand"),
+      facets: displayFacets,
       category: category ? { id: String(category.id), name: category.name, slug: category.slug } : null,
       view, countUnit: view === "variants" ? "configurations" : "product styles"
     });

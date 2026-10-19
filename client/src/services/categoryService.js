@@ -39,3 +39,12 @@ export function updateCategoryStatus(id, isActive) {
     body: JSON.stringify({ isActive })
   });
 }
+
+export function deleteCategory(id, confirmName) {
+  return apiRequest(`/api/admin/categories/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ confirmName })
+  });
+}

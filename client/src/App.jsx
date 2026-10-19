@@ -29,6 +29,7 @@ import "./styles/phase16.css";
 import "./styles/phase17.css";
 import "./styles/phase18.css";
 import "./styles/phase19.css";
+import "./styles/phase21.css";
 
 export default function App() {
   return <CartProvider><BrowserRouter><Routes>

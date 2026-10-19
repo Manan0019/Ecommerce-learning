@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createCategory,
+  deleteCategory,
   getAdminSpecificationDefinition,
   listAdminCategories,
   updateCategory,
@@ -17,6 +18,7 @@ router.get("/:id/specifications", getAdminSpecificationDefinition);
 router.post("/", catalogImageUpload.single("image"), createCategory);
 router.put("/:id", catalogImageUpload.single("image"), updateCategory);
 router.patch("/:id/status", updateCategoryStatus);
+router.delete("/:id", deleteCategory);
 router.use(handleCatalogImageError);
 
 export default router;

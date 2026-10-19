@@ -5,6 +5,7 @@ import Modal from "../../components/common/Modal";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import {
   createCategory,
+  deleteCategory,
   getAdminCategories,
   updateCategory,
   updateCategoryStatus
@@ -20,6 +21,8 @@ export default function AdminCategories() {
   const [parentId, setParentId] = useState("");
   const [editing, setEditing] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteName, setDeleteName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState(null);
@@ -124,6 +127,29 @@ export default function AdminCategories() {
     }
   }
 
+  async function confirmDelete(event) {
+    event.preventDefault();
+    if (!deleting || deleteName !== deleting.name) return;
+    setBusyId(deleting.id);
+    setError("");
+    setMessage("");
+    try {
+      const result = await deleteCategory(deleting.id, deleteName);
+      setCategories(current => current.filter(item => item.id !== deleting.id));
+      setDeleting(null);
+      setDeleteName("");
+      setMessage(result.message);
+    } catch (requestError) {
+      if (isAuthenticationError(requestError)) {
+        navigate("/login", { replace: true });
+        return;
+      }
+      setError(requestError.message);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return <AdminLayout title="Manage Categories"
     subtitle="Organize the catalogue with reusable, customer-facing categories."
     actions={<button type="button" className="admin-primary-action" onClick={() => { setEditing(null); setName(""); setImage(null); setParentId(""); setError(""); setMessage(""); setModalOpen(true); }}>+ Add category</button>}>
@@ -156,9 +182,27 @@ export default function AdminCategories() {
       </section>
       </Modal>}
 
+      {deleting && <Modal title={`Delete ${deleting.name}?`} subtitle="Permanent deletion is available only for categories with no assigned products, child categories or promotions." size="medium" closeDisabled={busyId === deleting.id} onClose={() => { setDeleting(null); setDeleteName(""); setError(""); }}>
+        <form className="admin-form" onSubmit={confirmDelete}>
+          <p>Move products to another category, remove all nested subcategories, and update any promotions first. Deactivate instead if you want to keep this category.</p>
+          <label>Type <strong>{deleting.name}</strong> to confirm
+            <input value={deleteName} onChange={event => setDeleteName(event.target.value)} autoComplete="off" required />
+          </label>
+          {error && <p role="alert" className="admin-alert">{error}</p>}
+          <div className="admin-row-actions">
+            <button type="button" onClick={() => { setDeleting(null); setDeleteName(""); setError(""); }} disabled={busyId === deleting.id}>Cancel</button>
+            <button type="submit" className="nx21-delete-button" disabled={busyId === deleting.id || deleteName !== deleting.name}>
+              {busyId === deleting.id ? "Deleting…" : "Permanently delete category"}
+            </button>
+          </div>
+        </form>
+      </Modal>}
+
       <section className="admin-panel admin-category-list">
+        {message && !modalOpen && !deleting && <p role="status" className="admin-form-message">{message}</p>}
+        {error && !modalOpen && !deleting && <p role="alert" className="admin-alert">{error}</p>}
         <div className="admin-panel-heading admin-category-heading">
-          <div><h2>Category directory</h2><p>Categories with products can be deactivated but are never deleted.</p></div>
+          <div><h2>Category directory</h2><p>Empty leaf categories can be permanently deleted; those in use can be deactivated.</p></div>
           <label className="admin-search">
             <span className="sr-only">Search categories</span>
             <input type="search" placeholder="Search categories" value={query}
@@ -185,6 +229,7 @@ export default function AdminCategories() {
                   <button type="button" disabled={busyId === category.id} onClick={() => changeStatus(category)}>
                     {busyId === category.id ? "Saving…" : category.isActive ? "Deactivate" : "Activate"}
                   </button>
+                  <button type="button" className="nx21-delete-button" disabled={busyId === category.id} onClick={() => { setDeleting(category); setDeleteName(""); setError(""); setMessage(""); }}>Delete</button>
                 </div>
               </div>
             </article>)}
