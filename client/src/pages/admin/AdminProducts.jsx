@@ -83,7 +83,7 @@ export default function AdminProducts() {
           <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Manage</th></tr></thead>
           <tbody>{visible.length === 0 ? <tr><td colSpan={6}>No products match your search.</td></tr> : visible.map(product => <tr key={product.id}>
             <td><div className="admin-product-cell"><div className="nx-admin-product-image">{product.imageUrl ? <img src={apiAssetUrl(product.imageUrl)} alt=""/> : <span>□</span>}</div><div><strong>{product.name}</strong><small>{product.brand || "Product"} · ID {product.id}</small></div></div></td>
-            <td className="admin-muted">{product.category}</td><td><strong>{money(product.price)}</strong></td><td>{product.stock}</td>
+            <td className="admin-muted">{product.category}</td><td><strong>{money(product.displayPrice ?? product.price)}</strong>{product.hasVariants && <small>SKU starting price</small>}</td><td>{product.displayStock ?? product.stock}{product.hasVariants && <small>Across active SKUs</small>}</td>
             <td><span className={`admin-status ${product.isActive ? "is-active" : "is-inactive"}`}>{product.isActive ? "Active" : "Inactive"}</span></td>
             <td><div className="admin-row-actions nx-actions">
               <button className="nx-edit-button" type="button" onClick={() => setEditor({ id: product.id, name: product.name })}>Edit</button>

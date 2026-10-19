@@ -274,7 +274,7 @@ export async function listProducts(req, res) {
       ${pricingJoin}
       ${chosenJoin}
       WHERE ${finalWhere}
-      ORDER BY ${orderBy}
+      ORDER BY ${featured ? "product.featured_position ASC NULLS LAST, product.id DESC" : orderBy}
       LIMIT $${values.length + 1} OFFSET $${values.length + 2}
     `, dataValues);
 

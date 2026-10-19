@@ -10,6 +10,7 @@ import ProductVariantsManager from "./ProductVariantsManager";
 import VariantPriceFields from "./VariantPriceFields";
 import CategoryPicker from "./CategoryPicker";
 import { updatePricingDraft } from "./variantPricing";
+import { getVariants } from "../../services/variantService";
 
 const tabs = [
   { id: "details", label: "Product details", description: "Name, category, pricing and specifications" },
@@ -27,6 +28,8 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
   const definition = useSpecificationDefinition(form?.categoryId);
   const [imageUrl, setImageUrl] = useState("");
   const [featured, setFeatured] = useState(false);
+  const [hasSkus, setHasSkus] = useState(false);
+  const [featuredPosition, setFeaturedPosition] = useState(100);
   const [newImage, setNewImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -47,6 +50,9 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
         setSpecifications(product.specifications || {});
         setImageUrl(product.imageUrl || "");
         setFeatured(Boolean(product.isFeatured));
+        setFeaturedPosition(product.featuredPosition ?? 100);
+        const result = await getVariants(productId, true);
+        if (!controller.signal.aborted) setHasSkus((result.variants || []).length > 0);
       } catch (failure) {
         if (isAuthenticationError(failure)) { navigate("/login", { replace: true }); return; }
         if (failure.name !== "AbortError") setError(failure.message);
@@ -114,9 +120,10 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
           <div className="admin-form-grid two-column">
             <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || !categories.length}
               onChange={categoryId => { setSpecifications({}); setForm(old => ({ ...old, categoryId })); }} />
-            <label>Base stock (simple products)<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
+            {!hasSkus && <label>Simple product stock<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>}
           </div>
-          <VariantPriceFields row={form} disabled={saving} onFieldChange={(key, value) => setForm(old => updatePricingDraft(old, key, value))}/>
+          {hasSkus ? <p className="nx22-sku-notice"><strong>SKU-controlled product:</strong> Selling price, MRP and stock are managed per SKU in the SKUs tab. Parent values are retained only for legacy compatibility.</p>
+            : <VariantPriceFields row={form} disabled={saving} onFieldChange={(key, value) => setForm(old => updatePricingDraft(old, key, value))}/>}
           <ProductSpecificationFields definition={definition.definition} specifications={specifications}
             onChange={(key,value) => setSpecifications(old => ({ ...old, [key]: value }))} loading={definition.loading}/>
           {(categoriesError || definition.error) && <p className="admin-alert" role="alert">{categoriesError || definition.error}</p>}
@@ -134,6 +141,6 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
       </aside>
     </div>}
     {tab === "variants" && <ProductVariantsManager productId={productId} />}
-    {tab === "gallery" && <ProductMediaManager productId={productId} initialFeatured={featured} coverUrl={imageUrl} onCoverChanged={setImageUrl} />}
+    {tab === "gallery" && <ProductMediaManager productId={productId} initialFeatured={featured} initialFeaturedPosition={featuredPosition} coverUrl={imageUrl} onCoverChanged={setImageUrl} />}
   </div>;
 }

@@ -76,8 +76,8 @@ export function reorderProductMedia(id, ids) {
 export function removeProductMedia(id,mediaId) {
  return apiRequest(`/api/admin/products/${id}/media/${mediaId}`,{method:"DELETE",credentials:"include"});
 }
-export function updateFeatured(id,isFeatured) {
- return apiRequest(`/api/admin/products/${id}/featured`,{method:"PATCH",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({isFeatured})});
+export function updateFeatured(id,isFeatured,position) {
+ return apiRequest(`/api/admin/products/${id}/featured`,{method:"PATCH",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({isFeatured,...(position == null ? {} : {position})})});
 }
 
 export function addProductLocalVideo(id, file) {

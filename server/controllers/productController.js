@@ -53,7 +53,11 @@ function mapProduct(product) {
     stock: product.stock,
     imageUrl: product.image_url,
     isActive: product.is_active,
+    hasVariants: Boolean(product.has_variants),
+    displayPrice: product.display_price ?? product.price,
+    displayStock: product.display_stock ?? product.stock,
     isFeatured: product.is_featured,
+    featuredPosition: product.featured_position,
     createdAt: product.created_at,
     updatedAt: product.updated_at
   };
@@ -63,7 +67,7 @@ const productSelect = `
   SELECT p.id, p.name, p.description, p.category_id, c.name AS category_name,
          c.slug AS category_slug, c.is_active AS category_active, p.brand, p.model,
          p.specifications, p.price, p.mrp, p.stock,
-         p.image_url, p.is_active, p.is_featured, p.created_at, p.updated_at
+         p.image_url, p.is_active, p.is_featured, p.featured_position, p.created_at, p.updated_at
   FROM products p
   JOIN categories c ON c.id = p.category_id`;
 
@@ -78,7 +82,16 @@ function routeError(res, error, context) {
 
 export async function listAdminProducts(_req, res) {
   try {
-    const result = await pool.query(`${productSelect} ORDER BY p.created_at DESC, p.id DESC LIMIT 100`);
+    const result = await pool.query(`
+      SELECT base.*,
+        EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id=base.id) AS has_variants,
+        COALESCE((SELECT v.price FROM product_variants v WHERE v.product_id=base.id AND v.is_active
+          ORDER BY CASE WHEN v.stock>0 THEN 0 ELSE 1 END, v.price, v.id LIMIT 1), base.price) AS display_price,
+        CASE WHEN EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id=base.id) THEN
+          COALESCE((SELECT SUM(v.stock)::integer FROM product_variants v WHERE v.product_id=base.id AND v.is_active),0)
+          ELSE base.stock END AS display_stock
+      FROM (${productSelect}) base
+      ORDER BY base.created_at DESC, base.id DESC LIMIT 100`);
     return res.json({ products: result.rows.map(mapProduct) });
   } catch (error) {
     return routeError(res, error, "Loading products");
@@ -130,7 +143,7 @@ export async function createProduct(req, res) {
              category.name AS category_name, category.slug AS category_slug,
              category.is_active AS category_active, inserted.brand, inserted.model,
              inserted.specifications, inserted.price, inserted.mrp, inserted.stock,
-             inserted.image_url, inserted.is_active, inserted.is_featured, inserted.created_at, inserted.updated_at
+             inserted.image_url, inserted.is_active, inserted.is_featured, inserted.featured_position, inserted.created_at, inserted.updated_at
       FROM inserted
       JOIN categories AS category ON category.id = inserted.category_id
       JOIN cover ON cover.product_id = inserted.id
@@ -173,7 +186,7 @@ export async function updateProduct(req, res) {
              category.name AS category_name, category.slug AS category_slug,
              category.is_active AS category_active, updated.brand, updated.model,
              updated.specifications, updated.price, updated.mrp, updated.stock,
-             updated.image_url, updated.is_active, updated.is_featured, updated.created_at, updated.updated_at
+             updated.image_url, updated.is_active, updated.is_featured, updated.featured_position, updated.created_at, updated.updated_at
       FROM updated
       JOIN categories AS category ON category.id = updated.category_id
     `, [fields.name, fields.description, fields.categoryId, fields.brand, fields.model,

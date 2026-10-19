@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "../common/Modal";
+import { moveSelectedMedia } from "./mediaSelectionOrder";
 import { getVariants } from "../../services/variantService";
 import { apiAssetUrl } from "../../services/apiClient";
 import {
@@ -29,7 +30,7 @@ function payloadFor(scope) {
   return { scope: "shared" };
 }
 
-export default function ProductMediaManager({ productId, initialFeatured = false, coverUrl = "", onCoverChanged }) {
+export default function ProductMediaManager({ productId, initialFeatured = false, initialFeaturedPosition = 100, coverUrl = "", onCoverChanged }) {
   const [media, setMedia] = useState([]);
   const [variants, setVariants] = useState([]);
   const [featuredOverride, setFeaturedOverride] = useState(null);
@@ -48,6 +49,8 @@ export default function ProductMediaManager({ productId, initialFeatured = false
   const [previewOption, setPreviewOption] = useState("");
   const [dragOver, setDragOver] = useState(null);
   const [dragging, setDragging] = useState(null);
+  const [selectedMedia, setSelectedMedia] = useState([]);
+  const [featuredPosition, setFeaturedPosition] = useState(String(initialFeaturedPosition ?? 100));
   const dragSource = useRef(null);
   const featured = featuredOverride ?? initialFeatured;
 
@@ -88,28 +91,33 @@ export default function ProductMediaManager({ productId, initialFeatured = false
     } finally { setBusy(false); }
   }
 
-  async function saveReorder(sourceIndex, destinationIndex) {
-    if (busy || sourceIndex < 0 || destinationIndex < 0 || sourceIndex === destinationIndex) return;
-    const next = [...media];
-    const [item] = next.splice(sourceIndex, 1);
-    next.splice(destinationIndex, 0, item);
-    // Optimistic reorder, with reload of authoritative order on success/failure.
+  async function persistOrder(next) {
+    if (busy || next.map(x => String(x.id)).join(",") === media.map(x => String(x.id)).join(",")) return;
     setMedia(next);
     const result = await run(() => reorderProductMedia(productId, next.map(m => m.id)), "Gallery order saved.");
-    if (!result) { try { await refreshMedia(); } catch { /* keep error already displayed */ } }
+    if (!result) { try { await refreshMedia(); } catch { /* original error is displayed */ } }
+  }
+  function saveReorder(sourceIndex, destinationIndex) {
+    const source = media[sourceIndex], destination = media[destinationIndex];
+    if (source && destination) void persistOrder(moveSelectedMedia(media, [source.id], destination.id));
   }
   function onDragStart(event, index) {
     if (busy) { event.preventDefault(); return; }
-    dragSource.current = index;
+    const id = String(media[index].id);
+    const movingIds = selectedMedia.includes(id) ? selectedMedia : [id];
+    dragSource.current = movingIds;
     setDragging(index);
     event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", String(index));
+    event.dataTransfer.setData("text/plain", movingIds.join(","));
   }
   function onDrop(event, index) {
     event.preventDefault();
-    const source = dragSource.current;
+    const ids = dragSource.current;
     dragSource.current = null; setDragging(null); setDragOver(null);
-    if (Number.isInteger(source)) void saveReorder(source, index);
+    if (ids?.length) void persistOrder(moveSelectedMedia(media, ids, media[index].id));
+  }
+  function toggleSelection(id, enabled) {
+    setSelectedMedia(previous => enabled ? [...new Set([...previous, String(id)])] : previous.filter(item => item !== String(id)));
   }
   async function upload(event) {
     event.preventDefault();
@@ -167,8 +175,13 @@ export default function ProductMediaManager({ productId, initialFeatured = false
     const result = await run(() => removeProductMedia(productId, removal.id), "Gallery entry removed (local file retained safely).");
     if (result) setRemoval(null);
   }
-  async function toggleFeatured(value) {
-    const result = await run(() => updateFeatured(productId, value), value ? "Featured on homepage." : "Removed from featured products.");
+  async function toggleFeatured(value, positionValue = featuredPosition) {
+    const position = Number(positionValue);
+    if (value && (!Number.isInteger(position) || position < 1 || position > 10000)) {
+      setError("Featured position must be a whole number from 1 to 10000."); return;
+    }
+    const result = await run(() => updateFeatured(productId, value, value ? position : undefined),
+      value ? `Featured at position ${position}.` : "Removed from featured products.");
     if (result) setFeaturedOverride(value);
   }
   function scopePicker(value, onChange) {
@@ -201,11 +214,19 @@ export default function ProductMediaManager({ productId, initialFeatured = false
     </div>
     <div className="nx15-media-topline">
       <label className="nx-inline-checkbox"><input type="checkbox" checked={featured} disabled={busy} onChange={e => void toggleFeatured(e.target.checked)}/> Featured on homepage</label>
+      {featured && <div className="nx22-featured-order"><label>Featured position <input type="number" inputMode="numeric" min="1" max="10000" step="1" required value={featuredPosition} onChange={e => setFeaturedPosition(e.target.value)} /></label><button type="button" disabled={busy || !/^[1-9]\d{0,3}$|^10000$/.test(featuredPosition)} onClick={() => void toggleFeatured(true)}>Save position</button><small>1 appears first. Equal positions are ordered by product ID.</small></div>}
       <span>{media.length} of {MAX_ITEMS} media slots used</span>
       <button type="button" className="nx-text-action" disabled={busy} onClick={() => refreshVariants().catch(e => setError(e.message))}>Refresh SKUs</button>
     </div>
     <div className="nx15-media-help"><strong>Set visibility first, then choose Card cover for the image customers should see in category/search tiles.</strong><span aria-hidden="true">·</span><strong>Visibility:</strong> <span>Shared = everyone</span><span>Option = e.g. all Midnight colors</span><span>SKU = one precise combination</span></div>
-    <p className="nx15-media-hint"><strong>One sequence for all variants.</strong> Drag cards into any order you need — e.g. Midnight, Midnight, Shared, Midnight, Shared. Each customer sees only their applicable items, in this same order.</p>
+    <p className="nx15-media-hint"><strong>One sequence for all variants.</strong> Select several cards below, then drag any selected card to move the group together. You can still position single items, and Shared/Color/SKU visibility is preserved.</p>
+    {media.length > 0 && <div className="nx22-media-selection-toolbar">
+      <strong>{selectedMedia.length} selected</strong>
+      <button type="button" disabled={busy} onClick={() => setSelectedMedia(media.map(item => String(item.id)))}>Select all</button>
+      <button type="button" disabled={busy || !selectedMedia.length} onClick={() => setSelectedMedia([])}>Clear selection</button>
+      <button type="button" disabled={busy || !selectedMedia.length} onClick={() => void persistOrder(moveSelectedMedia(media, selectedMedia, null, "first"))}>Move to beginning</button>
+      <button type="button" disabled={busy || !selectedMedia.length} onClick={() => void persistOrder(moveSelectedMedia(media, selectedMedia, null, "last"))}>Move to end</button>
+    </div>}
     <div className="nx16-sequence-preview">
       <label>Preview customer gallery
         <select value={previewOption} onChange={e => setPreviewOption(e.target.value)}>
@@ -234,14 +255,15 @@ export default function ProductMediaManager({ productId, initialFeatured = false
       {media.map((item, index) => <article key={item.id} draggable={!busy} onDragStart={e => onDragStart(e, index)}
         onDragOver={e => { e.preventDefault(); if (!busy) { e.dataTransfer.dropEffect = "move"; setDragOver(index); } }}
         onDrop={e => onDrop(e, index)} onDragLeave={() => setDragOver(null)} onDragEnd={() => { dragSource.current = null; setDragging(null); setDragOver(null); }}
-        className={`nx-media-card nx15-sort-card${dragOver === index ? " is-drop-target" : ""}${dragging === index ? " is-dragging" : ""}`}>
+        className={`nx-media-card nx15-sort-card${selectedMedia.includes(String(item.id)) ? " is-selected" : ""}${dragOver === index ? " is-drop-target" : ""}${dragging === index ? " is-dragging" : ""}`}>
+        <label className="nx22-select-media"><input type="checkbox" checked={selectedMedia.includes(String(item.id))} disabled={busy} onChange={event => toggleSelection(item.id, event.target.checked)} /> Select</label>
         <div className="nx-media-preview">
           {item.type === "image" ? <img src={apiAssetUrl(item.url)} alt={`Gallery image ${index + 1}`} loading="lazy" draggable={false} /> : item.type === "video" ? <video src={apiAssetUrl(item.url)} muted preload="metadata" playsInline />
             : <div className="nx-youtube-placeholder"><span>▶</span>YouTube video</div>}
           <span className="nx-media-index">{index + 1}</span>
           {item.type === "image" && item.url === coverUrl && <span className="nx-cover-badge">Main cover</span>}
           {item.isCardCover && <span className="nx16-card-cover-badge">Card cover</span>}
-          <span className="nx15-drag-handle" aria-hidden="true">⠿ Drag</span>
+          <span className="nx15-drag-handle" aria-hidden="true">⠿ Drag {selectedMedia.includes(String(item.id)) && selectedMedia.length > 1 ? `${selectedMedia.length} items` : ""}</span>
         </div>
         <div className="nx-media-info"><span>{item.type === "image" ? "Image" : item.type === "video" ? "Local video" : "YouTube"}</span><strong>{scopeLabel(item)}</strong></div>
         <label className="nx15-position-control">Position

@@ -26,6 +26,7 @@ export default function AddProduct() {
   const [queuedMedia, setQueuedMedia] = useState([]);
   const [videoUrl, setVideoUrl] = useState("");
   const [featured, setFeatured] = useState(false);
+  const [featuredPosition, setFeaturedPosition] = useState("100");
   const [createdProduct, setCreatedProduct] = useState(null);
   const [variantDrafts, setVariantDrafts] = useState([]);
   const [variantFailures, setVariantFailures] = useState([]);
@@ -82,12 +83,21 @@ export default function AddProduct() {
     let validVariants;
     try { validVariants = validateVariantDrafts(variantDrafts); }
     catch (validationError) { setMessage(validationError.message); return; }
+    if (validVariants.length === 0 && (!form.price || !form.mrp || form.stock === "")) {
+      setMessage("Enter MRP, selling price and stock for a simple product, or create at least one SKU."); return;
+    }
+    if (featured && (!Number.isInteger(Number(featuredPosition)) || Number(featuredPosition) < 1 || Number(featuredPosition) > 10000)) {
+      setMessage("Featured position must be a whole number between 1 and 10000."); return;
+    }
     if (!image) {
       setMessage("Please select a product image.");
       return;
     }
     const formData = new FormData();
-    Object.entries(form).filter(([key])=>!["discount","pricingMode"].includes(key)).forEach(([key, value]) => formData.append(key, value));
+    // Parent columns remain for legacy simple products. SKUs have their own authoritative price/stock.
+    const anchorSku = validVariants.find(row => Number(row.stock) > 0) || validVariants[0];
+    const parent = anchorSku ? { ...form, mrp: anchorSku.mrp, price: anchorSku.price, stock: "0" } : form;
+    Object.entries(parent).filter(([key])=>!["discount","pricingMode"].includes(key)).forEach(([key, value]) => formData.append(key, value));
     formData.append("specifications", JSON.stringify(specifications));
     formData.append("image", image);
     setLoading(true);
@@ -124,7 +134,7 @@ export default function AddProduct() {
         }
       }
       if (featured) {
-        try { await updateFeatured(created.id, true); }
+        try { await updateFeatured(created.id, true, Number(featuredPosition)); }
         catch (featuredError) { failures.push(`Featured: ${featuredError.message}`); }
       }
       setUploadReport(failures.length
@@ -158,7 +168,7 @@ export default function AddProduct() {
       <div className="admin-form-actions">
         <Link className="admin-secondary-action" to="/admin/products">Back to products</Link>
         <button type="button" className="admin-primary-action" onClick={() => {
-          setCreatedProduct(null); setSavedPanel(null); setQueuedMedia([]); setFeatured(false);
+          setCreatedProduct(null); setSavedPanel(null); setQueuedMedia([]); setFeatured(false); setFeaturedPosition("100");
           setUploadReport(""); setVariantDrafts([]); setVariantFailures([]);
           setForm({ name:"", brand:"", model:"", description:"", categoryId:"", mrp:"", price:"", stock:"", pricingMode:"price" });
           setSpecifications({}); setImage(null); formRef.current?.reset();
@@ -179,9 +189,10 @@ export default function AddProduct() {
         <div className="admin-form-grid">
           <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || categories.length === 0}
             onChange={categoryId => { setSpecifications({}); setForm(previous => ({...previous, categoryId})); }} />
-          <label>Stock<input type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
+          {variantDrafts.length === 0 && <label>Simple product stock<input type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>}
         </div>
-        <VariantPriceFields row={form} onFieldChange={(field,value)=>setForm(old=>updatePricingDraft(old,field,value))} disabled={loading}/>
+        {variantDrafts.length === 0 ? <VariantPriceFields row={form} onFieldChange={(field,value)=>setForm(old=>updatePricingDraft(old,field,value))} disabled={loading}/>
+          : <p className="nx22-sku-notice"><strong>SKU pricing is active.</strong> Price, MRP and stock come from each SKU below. The parent product's legacy values will be initialized automatically and are not separately entered.</p>}
         <DraftVariants variants={variantDrafts} onChange={setVariantDrafts} disabled={loading} />
         <ProductSpecificationFields definition={specification.definition} specifications={specifications}
           onChange={updateSpecification} loading={specification.loading} />
@@ -199,6 +210,7 @@ export default function AddProduct() {
           </label>
           <button type="button" onClick={queueVideo} disabled={loading || !videoUrl.trim() || queuedMedia.length >= 59}>Queue video</button>
           <label className="admin-featured-toggle"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)}/> Feature this product on the homepage</label>
+          {featured && <label>Featured display position (1 = first)<input type="number" min="1" max="10000" step="1" inputMode="numeric" value={featuredPosition} onChange={e => setFeaturedPosition(e.target.value)} required /></label>}
           <p className="nx15-media-hint">Use the position dropdown to arrange new media. After saving you can drag gallery cards freely.</p>
           <ol className="media-manager-list">
             {queuedMedia.map((item, index) => <li className="media-manager-item" key={item.key}>
@@ -210,7 +222,7 @@ export default function AddProduct() {
         </section>
         <button className="admin-primary-action" type="submit" disabled={loading}>{loading ? "Creating…" : "Create Product"}</button>
       </form>
-      {message && <p className="admin-form-message" role="status">{message}</p>}
+      {message && <p className="admin-alert" role="alert">{message}</p>}
       {categoriesError && <p className="admin-alert" role="alert">{categoriesError}</p>}
       {!categoriesLoading && categories.length === 0 && <p className="admin-alert">Create an active category before adding products.</p>}
     </section>}

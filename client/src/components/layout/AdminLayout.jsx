@@ -4,6 +4,7 @@ import { getAdmin } from "../../services/adminService";
 import { isAuthenticationError } from "../../services/apiClient";
 import { logout as endSession } from "../../services/authService";
 import AdminSidebar from "./AdminSidebar";
+import { guardNumberKey, showInvalidField, clearValidField } from "../admin/formValidation";
 
 export default function AdminLayout({ title, subtitle, actions, children }) {
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
       onClick={() => setSidebarOpen(false)} />}
     <AdminSidebar admin={admin} isOpen={sidebarOpen}
       onClose={() => setSidebarOpen(false)} onLogout={logout} />
-    <main className="admin-main">
+    <main className="admin-main" onKeyDownCapture={guardNumberKey} onInvalidCapture={showInvalidField} onInputCapture={clearValidField}>
       <header className="admin-page-header">
         <div><p className="admin-eyebrow">Admin workspace</p><h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>
         {actions && <div className="admin-header-actions">{actions}</div>}

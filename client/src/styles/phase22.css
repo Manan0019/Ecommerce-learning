@@ -1,0 +1,19 @@
+/* Phase 22: required fields, validation and compact admin controls. */
+.admin-main .admin-form label:has(input[required]):not(.nx-inline-checkbox)::before,
+.admin-main .admin-form label:has(textarea[required])::before,
+.admin-main .admin-form label:has(select[required])::before,
+.admin-main .nx-sku-form label:has(input[required])::before { content:"* "; color:#c92640; font-weight:800; }
+.nx22-required { color:#c92640; font-weight:800; }
+.admin-main input[data-invalid="true"], .admin-main textarea[data-invalid="true"],
+.admin-main select[data-invalid="true"], .admin-main input:user-invalid,
+.admin-main textarea:user-invalid,.admin-main select:user-invalid { border:2px solid #c92640 !important; background:#fff5f6; outline-offset:2px; }
+.admin-main label:has([data-invalid="true"])::after { content:"Please enter a valid value for this field."; display:block; color:#b42335; font-size:.76rem; margin-top:.3rem; }
+.nx22-sku-notice { border:1px solid #d6ddf5; background:#f4f6ff; border-radius:12px; padding:13px 16px; color:#34405f; line-height:1.5; }
+.nx22-media-selection-toolbar,.nx22-featured-order { display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:10px 0; }
+.nx22-media-selection-toolbar button,.nx22-featured-order button { border:1px solid #cdd5e6; background:white; border-radius:9px; padding:8px 12px; cursor:pointer; color:#253152; }
+.nx22-media-selection-toolbar button:disabled,.nx22-featured-order button:disabled{opacity:.48; cursor:default;}
+.nx22-featured-order input { width:80px; margin-left:8px; padding:6px; }
+.nx22-featured-order small {color:#667085;}
+.nx22-select-media { display:flex; gap:8px; align-items:center; padding:8px 10px; cursor:pointer; font-weight:700; }
+.nx-media-card.is-selected { outline:3px solid #5347e7; outline-offset:1px; background:#f7f7ff; }
+@media(max-width:720px){.nx22-media-selection-toolbar{gap:6px}.nx22-media-selection-toolbar button{padding:7px 9px}}
