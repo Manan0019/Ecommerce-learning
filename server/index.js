@@ -18,6 +18,7 @@ import wishlistRoutes from "./routes/wishlistRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import publicCategoryRoutes from "./routes/publicCategoryRoutes.js";
 import {publicBannerRoutes,adminBannerRoutes} from "./routes/bannerRoutes.js";
+import { publicBrandingRoutes, adminBrandingRoutes } from "./routes/brandingRoutes.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -42,6 +43,9 @@ app.use("/uploads/products", express.static(path.join(__dirname, "uploads/produc
 app.use("/uploads/profiles", express.static(path.join(__dirname, "uploads/profiles")));
 app.use("/uploads/categories", express.static(path.join(__dirname, "uploads/categories")));
 app.use("/uploads/banners", express.static(path.join(__dirname, "uploads/banners")));
+app.use("/uploads/branding", express.static(path.join(__dirname, "uploads/branding")));
+app.use("/api/branding", publicBrandingRoutes);
+app.use("/api/admin/branding", adminBrandingRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin/products", productRoutes);
 app.use("/api/admin/categories", categoryRoutes);

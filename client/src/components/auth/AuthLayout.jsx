@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 import { SITE_NAME } from "../../config/site";
+import BrandLogo from "../common/BrandLogo";
 
 export default function AuthLayout({ eyebrow, title, description, children, compact = false }) {
   return <main className={`auth-shell${compact ? " auth-shell-compact" : ""}`}>
     <section className="auth-visual" aria-label={`${SITE_NAME} introduction`}>
       <Link className="auth-brand" to="/" aria-label={`${SITE_NAME} home`}>
-        <span className="auth-brand-mark">{SITE_NAME.charAt(0)}</span>
-        <span>{SITE_NAME}</span>
+        <BrandLogo markClassName="auth-brand-mark" />
       </Link>
 
       <div className="auth-visual-copy">

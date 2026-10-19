@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import CartProvider from "./context/CartProvider";
+import BrandingProvider from "./context/BrandingProvider";
+import AdminBranding from "./pages/admin/AdminBranding";
 import AddProduct from "./pages/admin/AddProduct";
 import AdminComingSoon from "./pages/admin/AdminComingSoon";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -40,9 +42,11 @@ import "./styles/phase21.css";
 import "./styles/phase23.css";
 import "./styles/phase24.css";
 import "./styles/phase25.css";
+import "./styles/phase26.css";
+import "./styles/phase27.css";
 
 export default function App() {
-  return <CartProvider><BrowserRouter><Routes>
+  return <BrandingProvider><CartProvider><BrowserRouter><Routes>
     <Route path="/" element={<Home />} />
     <Route path="/signup" element={<CustomerSignup />} />
     <Route path="/verify-otp" element={<VerifyOTP />} />
@@ -61,6 +65,7 @@ export default function App() {
     <Route path="/admin/inventory" element={<AdminInventory />} />
     <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />
     <Route path="/admin/settings" element={<AdminCheckoutSettings />} />
+    <Route path="/admin/branding" element={<AdminBranding />} />
     <Route path="/products" element={<ProductList />} />
     <Route path="/products/:id" element={<ProductDetails />} />
     <Route path="/categories" element={<Categories />} />
@@ -73,5 +78,5 @@ export default function App() {
     <Route path="/about" element={<About />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="*" element={<p>Page not found.</p>} />
-  </Routes></BrowserRouter></CartProvider>;
+  </Routes></BrowserRouter></CartProvider></BrandingProvider>;
 }

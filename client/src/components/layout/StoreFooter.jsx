@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { SITE_NAME, SITE_TAGLINE } from "../../config/site";
+import BrandLogo from "../common/BrandLogo";
 
 export default function StoreFooter() {
   return <footer className="store-footer">
     <div>
-      <Link className="brand footer-brand" to="/"><span className="brand-mark">N</span><span>{SITE_NAME}</span></Link>
+      <Link className="brand footer-brand" to="/"><BrandLogo /></Link>
       <p>{SITE_TAGLINE}</p>
     </div>
     <nav aria-label="Footer navigation">

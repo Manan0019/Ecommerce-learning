@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { SITE_NAME } from "../../config/site";
+import BrandLogo from "../common/BrandLogo";
 
 const navigation = [
   { to: "/admin/dashboard", label: "Dashboard", icon: "⌂", end: true },
@@ -11,7 +11,8 @@ const navigation = [
   { to: "/admin/customers", label: "Customers", icon: "○" },
   { to: "/admin/orders", label: "Orders", icon: "▤" },
   { to: "/admin/analytics", label: "Analytics", icon: "⌁" },
-  { to: "/admin/settings", label: "Settings", icon: "⚙" }
+  { to: "/admin/settings", label: "Shipping & Tax", icon: "⚙" },
+  { to: "/admin/branding", label: "Branding & Logo", icon: "✦" }
 ];
 
 export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAlertCount = 0 }) {
@@ -20,8 +21,7 @@ export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAl
 
   return <aside id="admin-sidebar" className={`admin-sidebar ${isOpen ? "is-open" : ""}`}>
     <Link className="admin-brand" to="/admin/dashboard" onClick={onClose}>
-      <span className="admin-brand-mark">N</span>
-      <span><strong>{SITE_NAME}</strong><small>Administration</small></span>
+      <BrandLogo markClassName="admin-brand-mark" showAdminLabel />
     </Link>
     <nav className="admin-nav" aria-label="Admin navigation">
       <p>Workspace</p>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { SITE_NAME } from "../../config/site";
+import BrandLogo from "../common/BrandLogo";
 import { useCart } from "../../hooks/useCart";
 import { apiAssetUrl } from "../../services/apiClient";
 import { getCurrentUser, logout as endSession } from "../../services/authService";
@@ -110,8 +111,7 @@ export default function StoreHeader() {
   return <header className="store-header">
     <div className="navbar">
       <Link className="brand" to="/" aria-label={`${SITE_NAME} home`}>
-        <span className="brand-mark">N</span>
-        <span>{SITE_NAME}</span>
+        <BrandLogo />
       </Link>
 
       <button
