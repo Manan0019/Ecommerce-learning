@@ -231,7 +231,12 @@ export async function listProducts(req, res) {
     `, dataValues);
 
     const facetValues = category ? [category.id] : [];
-    const facetCategory = category ? "AND category.id = $1" : "";
+    const facetCategory = category ? `AND category.id IN (
+      WITH RECURSIVE subtree AS (
+        SELECT id FROM categories WHERE id=$1
+        UNION ALL SELECT child.id FROM categories child JOIN subtree parent ON child.parent_id=parent.id WHERE child.is_active=TRUE
+      ) SELECT id FROM subtree
+    )` : "";
     const facetResult = await pool.query(`
       SELECT product.brand, product.specifications
       FROM products AS product

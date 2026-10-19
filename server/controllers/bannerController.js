@@ -1,3 +1,4 @@
+import { validBannerDestination, validBannerPlacement } from "../services/bannerTargeting.js";
 import pool from "../config/db.js";
 import { saveCatalogImage, removeCatalogImage } from "../services/catalogImageService.js";
 
@@ -12,9 +13,7 @@ function validate(body) {
   const categoryId=body?.categoryId || null;
   const linkUrl=typeof body?.linkUrl === "string" ? body.linkUrl.trim() : "/products";
   const sortOrder=Number(body?.sortOrder ?? 0);
-  if (!title || title.length>150 || subtitle.length>300 || !["home","category"].includes(position) ||
-      (position==="category" ? !idOk(categoryId) : Boolean(categoryId)) ||
-      !/^\/(?:[a-zA-Z0-9?&=%._/\-]*)$/.test(linkUrl) || linkUrl.startsWith("//") ||
+  if (!title || title.length>150 || subtitle.length>300 || !validBannerPlacement(position, categoryId) || !validBannerDestination(linkUrl) ||
       !Number.isInteger(sortOrder) || sortOrder<0 || sortOrder>10000) return null;
   return {title,subtitle,position,categoryId,linkUrl,sortOrder};
 }
@@ -31,8 +30,8 @@ export async function listBanners(req,res) {
   if(pos==="category" && (typeof category!=="string" || category.length>100))return res.status(400).json({message:"Invalid banner category."});
   try {
     const {rows}=await pool.query(`SELECT ${fields} FROM promotion_banners b ${join}
-      WHERE b.is_active=TRUE AND b.position=$1
-      AND ($1='home' AND b.category_id IS NULL OR $1='category' AND c.slug=$2 AND c.is_active=TRUE)
+      WHERE b.is_active=TRUE
+      AND ($1='home' AND b.position IN ('home','both') OR $1='category' AND b.position IN ('category','both') AND c.slug=$2 AND c.is_active=TRUE)
       ORDER BY b.sort_order,b.id LIMIT 12`,[pos,pos==="category"?category:null]);
     res.json({banners:rows.map(map)});
   }catch(err){console.error(err);res.status(500).json({message:"Unable to load promotions."});}

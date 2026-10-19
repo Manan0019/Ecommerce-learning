@@ -7,6 +7,7 @@ import ProductFilters from "../../components/customer/ProductFilters";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import { getCategories } from "../../services/categoryService";
 import { getProducts } from "../../services/productService";
+import { rootCategories } from "../../services/categoryHierarchy";
 
 export default function ProductList() {
   const navigate = useNavigate();
@@ -74,6 +75,9 @@ export default function ProductList() {
     setSearchParams(next);
   }
 
+  const activeCategory = categories.find(item => item.slug === selectedCategory);
+  const parentCategory = activeCategory?.parentId ? categories.find(item => String(item.id) === String(activeCategory.parentId)) : null;
+
   function chooseCategory(slug) {
     const next = new URLSearchParams();
     if (searchQuery) next.set("q", searchQuery);
@@ -129,6 +133,11 @@ export default function ProductList() {
         />
       </header>
 
+      {parentCategory && <nav className="nx18-category-breadcrumb" aria-label="Category hierarchy">
+        <Link to="/categories">Categories</Link><span aria-hidden="true">›</span>
+        <Link to={`/categories/${encodeURIComponent(parentCategory.slug)}`}>{parentCategory.name}</Link>
+        <span aria-hidden="true">›</span><strong>{activeCategory.name}</strong>
+      </nav>}
       {selectedCategory&&<PromotionCarousel position="category" category={selectedCategory}/>}
       {category&&categories.some(c=>String(c.parentId)===String(category.id))&&<section className="nx17-subcategories" aria-label={`Shop ${category.name} subcategories`}>
         <h2>Explore {category.name}</h2>
@@ -147,7 +156,7 @@ export default function ProductList() {
         >
           All products
         </button>
-        {categories.map((item) => (
+        {rootCategories(categories).map((item) => (
           <button
             className={selectedCategory === item.slug ? "is-active" : ""}
             type="button"
@@ -231,7 +240,8 @@ export default function ProductList() {
             (!selectedCategory || category) && (
               <div className="store-empty">
                 <h2>No matching products</h2>
-                <p>Remove a filter or try a broader search.</p>
+                <p>{parentCategory ? `No active products are assigned to ${activeCategory.name} yet. Try ${parentCategory.name} or remove a filter.` : "Remove a filter or try a broader search."}</p>
+                {parentCategory && <Link to={`/categories/${encodeURIComponent(parentCategory.slug)}`} className="button button-primary">Browse {parentCategory.name}</Link>}
               </div>
             )}
           {!loading && !error && products.length > 0 && (

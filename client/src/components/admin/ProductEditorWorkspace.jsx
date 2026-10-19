@@ -8,6 +8,7 @@ import ProductSpecificationFields from "./ProductSpecificationFields";
 import ProductMediaManager from "./ProductMediaManager";
 import ProductVariantsManager from "./ProductVariantsManager";
 import VariantPriceFields from "./VariantPriceFields";
+import CategoryPicker from "./CategoryPicker";
 import { updatePricingDraft } from "./variantPricing";
 
 const tabs = [
@@ -63,6 +64,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
 
   async function saveDetails(event) {
     event.preventDefault();
+    if (!form.categoryId) { setError("Select a valid category or subcategory."); return; }
     setSaving(true); setError(""); setMessage("");
     try {
       await updateProduct(productId, { ...form, stock: Number(form.stock), specifications });
@@ -110,9 +112,8 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
           </div>
           <label>Description<textarea name="description" rows={4} value={form.description} onChange={handleChange} required /></label>
           <div className="admin-form-grid two-column">
-            <label>Category<select name="categoryId" value={form.categoryId} onChange={handleChange} disabled={categoriesLoading || !categories.length} required>
-              <option value="">Select a category</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select></label>
+            <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || !categories.length}
+              onChange={categoryId => { setSpecifications({}); setForm(old => ({ ...old, categoryId })); }} />
             <label>Base stock (simple products)<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
           </div>
           <VariantPriceFields row={form} disabled={saving} onFieldChange={(key, value) => setForm(old => updatePricingDraft(old, key, value))}/>

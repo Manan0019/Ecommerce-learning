@@ -13,6 +13,7 @@ import { useSpecificationDefinition } from "../../hooks/useSpecificationDefiniti
 import ProductSpecificationFields from "../../components/admin/ProductSpecificationFields";
 import { updatePricingDraft } from "../../components/admin/variantPricing";
 import VariantPriceFields from "../../components/admin/VariantPriceFields";
+import CategoryPicker from "../../components/admin/CategoryPicker";
 
 export default function AddProduct() {
   const navigate = useNavigate();
@@ -77,6 +78,7 @@ export default function AddProduct() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (!form.categoryId) { setMessage("Select a valid category or subcategory from the suggestions."); return; }
     let validVariants;
     try { validVariants = validateVariantDrafts(variantDrafts); }
     catch (validationError) { setMessage(validationError.message); return; }
@@ -175,11 +177,8 @@ export default function AddProduct() {
         </div>
         <label>Description<textarea name="description" placeholder="Product description" value={form.description} onChange={handleChange} required /></label>
         <div className="admin-form-grid">
-          <label>Category<select name="categoryId" value={form.categoryId} onChange={handleChange}
-            disabled={categoriesLoading || categories.length === 0} required>
-            <option value="">{categoriesLoading ? "Loading categories…" : "Select a category"}</option>
-            {categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}
-          </select></label>
+          <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || categories.length === 0}
+            onChange={categoryId => { setSpecifications({}); setForm(previous => ({...previous, categoryId})); }} />
           <label>Stock<input type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
         </div>
         <VariantPriceFields row={form} onFieldChange={(field,value)=>setForm(old=>updatePricingDraft(old,field,value))} disabled={loading}/>
