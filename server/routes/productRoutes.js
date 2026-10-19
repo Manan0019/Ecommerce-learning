@@ -12,7 +12,7 @@ import { deleteProduct } from "../controllers/productDeleteController.js";
 import { requireAdmin } from "../middleware/authMiddleware.js";
 import { catalogImageUpload, handleCatalogImageError } from "../services/catalogImageService.js";
 
-import { getAdminMedia,addProductMedia,reorderProductMedia,deleteProductMedia,changeFeatured,setMediaCover,assignMediaVariant,assignMediaScope } from "../controllers/productMediaController.js";
+import { getAdminMedia,addProductMedia,reorderProductMedia,deleteProductMedia,changeFeatured,setMediaCover,assignMediaVariant,assignMediaScope,setMediaCardCover } from "../controllers/productMediaController.js";
 import { listVariants, createVariant, updateVariant } from "../controllers/variantController.js";
 const router = Router();
 
@@ -38,6 +38,7 @@ router.post("/:id/media/video",productVideoUpload.single("video"), (req,res,next
  next();
 },addProductMedia);
 router.put("/:id/media/:mediaId/cover",setMediaCover);
+router.put("/:id/media/:mediaId/card-cover",setMediaCardCover);
 router.patch("/:id/media/:mediaId/variant",assignMediaVariant);
 router.patch("/:id/media/:mediaId/assignment",assignMediaScope);
 router.post("/:id/media",catalogImageUpload.single("image"),addProductMedia);

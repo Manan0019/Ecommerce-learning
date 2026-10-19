@@ -220,7 +220,7 @@ export default function ProductList() {
           {!loading && !error && products.length > 0 && (
             <div className="product-grid">
               {products.map((product) => (
-                <ProductCard product={product} key={product.id} />
+                <ProductCard product={product} key={product.cardKey || product.id} />
               ))}
             </div>
           )}

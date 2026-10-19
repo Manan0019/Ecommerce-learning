@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { makeStorefrontCards } from "../services/storefrontVariantCards.js";
 import { getSpecificationDefinition } from "../config/productSpecifications.js";
 import {
   buildSpecificationFacets,
@@ -220,8 +221,25 @@ export async function listProducts(req, res) {
     `, facetValues);
     const builtFacets = buildSpecificationFacets(category || {}, facetResult.rows).facets;
 
+    // Admin keeps one parent product; public catalogues may show one tile per color.
+    // Pagination counts parent product families. Expanding colors happens only for
+    // the bounded parent page, so there is no unbounded media/variant query.
+    const parentProducts = rows.map(asPublicProduct);
+    let cards = parentProducts;
+    if (rows.length) {
+      const ids = rows.map(row => String(row.id));
+      const [variantResult, mediaResult] = await Promise.all([
+        pool.query(`SELECT id,product_id,attributes,sku,mrp,price,stock,is_active
+          FROM product_variants WHERE product_id = ANY($1::bigint[]) AND is_active=TRUE
+          ORDER BY product_id,id`, [ids]),
+        pool.query(`SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order,is_card_cover
+          FROM product_media WHERE product_id = ANY($1::bigint[]) AND media_type='image'
+          ORDER BY product_id,sort_order,id`, [ids])
+      ]);
+      cards = makeStorefrontCards(parentProducts, variantResult.rows, mediaResult.rows);
+    }
     return res.json({
-      products: rows.map(asPublicProduct),
+      products: cards,
       pagination: { page: safePage, limit, total, pages },
       facets: category ? builtFacets : builtFacets.filter((facet) => facet.key === "brand"),
       category: category ? { id: String(category.id), name: category.name, slug: category.slug } : null
@@ -285,8 +303,18 @@ export async function searchSuggestions(req, res) {
         LIMIT 6`, [term, prefix]),
       pool.query(`SELECT id, name, slug FROM categories WHERE is_active = TRUE AND name ILIKE $1 ESCAPE '\\' ORDER BY name LIMIT 4`, [term])
     ]);
+    const resultProducts = productResult.rows.map(r => ({ id: String(r.id), name: r.name, brand: r.brand, imageUrl: r.image_url, category: r.category_name }));
+    let suggestedCards = resultProducts;
+    if (resultProducts.length) {
+      const ids = resultProducts.map(p => p.id);
+      const [variantRows, mediaRows] = await Promise.all([
+        pool.query(`SELECT id,product_id,attributes,sku,mrp,price,stock,is_active FROM product_variants WHERE product_id=ANY($1::bigint[]) AND is_active=TRUE ORDER BY product_id,id`,[ids]),
+        pool.query(`SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order,is_card_cover FROM product_media WHERE product_id=ANY($1::bigint[]) AND media_type='image' ORDER BY product_id,sort_order,id`,[ids])
+      ]);
+      suggestedCards = makeStorefrontCards(resultProducts, variantRows.rows, mediaRows.rows).slice(0,6);
+    }
     return res.json({
-      products: productResult.rows.map(r => ({ id: String(r.id), name: r.name, brand: r.brand, imageUrl: r.image_url, category: r.category_name })),
+      products: suggestedCards,
       categories: categoryResult.rows.map(r => ({ id: String(r.id), name: r.name, slug: r.slug }))
     });
   } catch (error) {

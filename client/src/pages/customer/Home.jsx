@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../../components/common/ProductCard";
 import CustomerLayout from "../../components/layout/CustomerLayout";
-import { apiAssetUrl } from "../../services/apiClient";
+import CategoryTile from "../../components/customer/CategoryTile";
 import { getCategories } from "../../services/categoryService";
 import { getProducts } from "../../services/productService";
 
@@ -73,7 +73,7 @@ export default function Home() {
         {error && <p className="store-alert" role="alert">{error}</p>}
         {!loading && !error && featured.length === 0 && <div className="store-empty">No featured products yet. An admin can mark products as Featured.</div>}
         {!loading && !error && featured.length > 0 && <div className="product-grid">
-          {featured.map((product) => <ProductCard product={product} key={product.id} />)}
+          {featured.map((product) => <ProductCard product={product} key={product.cardKey || product.id} />)}
         </div>}
       </section>
 
@@ -83,16 +83,8 @@ export default function Home() {
           <Link className="text-link" to="/categories">All categories →</Link>
         </div>
         {categoryError && <p className="store-alert" role="alert">{categoryError}</p>}
-        {featuredCategories.length > 0 ? <div className="category-grid">
-          {featuredCategories.map((category, index) => <Link
-            className="category-card"
-            to={`/categories/${encodeURIComponent(category.slug)}`}
-            key={category.id}
-          >
-            {category.imageUrl && <img src={apiAssetUrl(category.imageUrl)} alt="" loading="lazy" />}
-            <span className="category-number">0{index + 1}</span>
-            <div><h3>{category.name}</h3><span>{category.productCount} products · Explore collection →</span></div>
-          </Link>)}
+        {featuredCategories.length > 0 ? <div className="nx16-category-grid">
+          {featuredCategories.map((category,index) => <CategoryTile key={category.id} category={category} index={index} />)}
         </div> : !loading && <p className="store-empty">Categories will appear as products are added.</p>}
       </section>
 

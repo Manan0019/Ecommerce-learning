@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import { getCategories } from "../../services/categoryService";
-import { apiAssetUrl } from "../../services/apiClient";
+import CategoryTile from "../../components/customer/CategoryTile";
 
 export default function Categories() {
   const [state, setState] = useState({ loading: true, categories: [], error: "" });
@@ -19,11 +18,8 @@ export default function Categories() {
     {state.loading && <p role="status">Loading categories…</p>}
     {state.error && <p className="store-alert" role="alert">{state.error}</p>}
     {!state.loading && !state.error && state.categories.length === 0 && <div className="store-empty">Categories will appear here when the catalogue is ready.</div>}
-    <div className="nx-category-landing-grid">
-      {state.categories.map((category, index) => <Link className="nx-category-landing-card" key={category.id} to={`/categories/${encodeURIComponent(category.slug)}`}>
-        <div className="nx-category-landing-visual">{category.imageUrl ? <img src={apiAssetUrl(category.imageUrl)} loading="lazy" alt="" /> : <span aria-hidden="true">{["✦","◈","✳","✿"][index % 4]}</span>}</div>
-        <div className="nx-category-landing-info"><h2>{category.name}</h2><p>{category.productCount} products</p><span aria-hidden="true">Explore →</span></div>
-      </Link>)}
+    <div className="nx16-category-grid nx16-category-directory">
+      {state.categories.map((category,index) => <CategoryTile key={category.id} category={category} index={index} directory />)}
     </div>
   </CustomerLayout>;
 }

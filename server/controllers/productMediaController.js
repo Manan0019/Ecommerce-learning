@@ -29,7 +29,7 @@ function youtubeUrl(value) {
     return /^[A-Za-z0-9_-]{11}$/.test(id || "") ? `https://www.youtube-nocookie.com/embed/${id}` : null;
   } catch { return null; }
 }
-const present = r => ({ id:String(r.id),type:r.media_type,url:r.media_url,order:r.sort_order,variantId:r.variant_id == null ? null : String(r.variant_id),optionKey:r.option_key ?? null,optionValue:r.option_value ?? null });
+const present = r => ({ id:String(r.id),type:r.media_type,url:r.media_url,order:r.sort_order,variantId:r.variant_id == null ? null : String(r.variant_id),optionKey:r.option_key ?? null,optionValue:r.option_value ?? null,isCardCover:Boolean(r.is_card_cover) });
 export async function getProductMedia(req,res) {
  if (!idOK(req.params.id)) return res.status(400).json({message:"Invalid product ID"});
  try {
@@ -144,10 +144,39 @@ export async function assignMediaScope(req,res) {
       [req.params.id,optionKey,optionValue.trim()]);
    if (!exists.rows.length){await db.query("ROLLBACK");return res.status(400).json({message:"No SKU has that option value."});}
   }
-  const {rows}=await db.query(`UPDATE product_media SET variant_id=$3, option_key=$4, option_value=$5
+  const {rows}=await db.query(`UPDATE product_media SET variant_id=$3, option_key=$4, option_value=$5, is_card_cover=FALSE
     WHERE id=$1 AND product_id=$2 RETURNING *`,[req.params.mediaId,req.params.id,
      scope==="variant"?variantId:null,scope==="option"?optionKey:null,scope==="option"?optionValue.trim():null]);
   await db.query("COMMIT");return res.json({media:present(rows[0])});
  }catch(e){await db.query("ROLLBACK");console.error("Media scope:",e);return res.status(500).json({message:"Could not assign gallery scope."});}
  finally{db.release();}
+}
+
+// Select a distinct catalogue cover for one color/option or one exact SKU.
+// The global product cover remains in products.image_url, unchanged.
+export async function setMediaCardCover(req, res) {
+  if (!idOK(req.params.id) || !idOK(req.params.mediaId)) return res.status(400).json({ message: "Invalid product or media ID." });
+  const db = await pool.connect();
+  try {
+    await db.query("BEGIN");
+    const locked = await db.query("SELECT id FROM products WHERE id=$1 FOR UPDATE", [req.params.id]);
+    if (!locked.rows.length) { await db.query("ROLLBACK"); return res.status(404).json({ message: "Product not found." }); }
+    const result = await db.query(`SELECT * FROM product_media WHERE id=$1 AND product_id=$2 FOR UPDATE`, [req.params.mediaId,req.params.id]);
+    const item = result.rows[0];
+    if (!item) { await db.query("ROLLBACK"); return res.status(404).json({ message: "Gallery image not found." }); }
+    if (item.media_type !== "image") { await db.query("ROLLBACK"); return res.status(400).json({ message: "Only images can be covers." }); }
+    if (!item.option_key && !item.variant_id) { await db.query("ROLLBACK"); return res.status(400).json({ message: "Assign the image to a color or exact SKU first. For shared images, use Set main cover." }); }
+    if (item.variant_id) {
+      await db.query(`UPDATE product_media SET is_card_cover=FALSE WHERE product_id=$1 AND variant_id=$2`, [req.params.id,item.variant_id]);
+    } else {
+      await db.query(`UPDATE product_media SET is_card_cover=FALSE WHERE product_id=$1 AND option_key=$2 AND option_value=$3 AND variant_id IS NULL`, [req.params.id,item.option_key,item.option_value]);
+    }
+    await db.query("UPDATE product_media SET is_card_cover=TRUE WHERE id=$1 AND product_id=$2", [item.id,req.params.id]);
+    await db.query("COMMIT");
+    return res.json({ message: "Catalogue card cover saved.", mediaId: String(item.id) });
+  } catch(error) {
+    await db.query("ROLLBACK");
+    console.error("Card cover update:", error);
+    return res.status(500).json({ message: "Could not update catalogue card cover." });
+  } finally { db.release(); }
 }

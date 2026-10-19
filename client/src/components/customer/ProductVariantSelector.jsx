@@ -29,8 +29,10 @@ export default function ProductVariantSelector({variants,selectedVariant,onSelec
      const candidate=choiceFor(variants,selectedVariant,key,value);
      const selected=selectedVariant?.attributes[key]===value;
      const isColor=["color","colour"].includes(key);
-     const picture=media.find(m=>m.type==="image"&&m.optionKey===key&&m.optionValue===value)
-        ||media.find(m=>m.type==="image"&&m.variantId===candidate?.id);
+     const relevant=media.filter(m=>m.type==="image"&&(
+       m.optionKey===key&&m.optionValue===value ||
+       String(m.variantId)===String(candidate?.id) && candidate?.id!=null));
+     const picture=relevant.find(m=>m.isCardCover)||relevant[0];
      const img=picture?.url||coverUrl;
      return <button type="button" key={value} disabled={!candidate} aria-pressed={selected}
        aria-label={`${value}${candidate?.stock===0?", out of stock":""}`}

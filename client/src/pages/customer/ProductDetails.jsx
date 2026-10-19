@@ -1,6 +1,6 @@
 import WishlistButton from "../../components/customer/WishlistButton";
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import ProductMediaGallery from "../../components/customer/ProductMediaGallery";
 import ProductVariantSelector from "../../components/customer/ProductVariantSelector";
@@ -16,6 +16,9 @@ export default function ProductDetails() {
 
 function ProductDetailsContent({ id }) {
   const { addToCart } = useCart();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedVariantId = searchParams.get("variant");
+  const initialVariantRef = useRef(requestedVariantId);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,7 +35,7 @@ function ProductDetailsContent({ id }) {
         const data = await getProduct(id, controller.signal);
         setProduct(data.product);
         const [result,mediaResult]=await Promise.all([getVariants(id),getProductMedia(id)]);
-        if (!controller.signal.aborted) { setVariants(result.variants); setMedia(mediaResult.media||[]); setVariantId(result.variants.find(v=>v.stock>0)?.id || result.variants[0]?.id || ""); }
+        if (!controller.signal.aborted) { setVariants(result.variants); setMedia(mediaResult.media||[]); setVariantId(result.variants.find(v => String(v.id) === String(initialVariantRef.current))?.id || result.variants.find(v => v.stock > 0)?.id || result.variants[0]?.id || ""); }
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
       } finally {
@@ -44,12 +47,12 @@ function ProductDetailsContent({ id }) {
   }, [id]);
 
   function addProduct() {
-    if (variants.length && !variantId) return;
-    addToCart(product.id, quantity, variantId || null);
+    if (variants.length && !selectedVariant) return;
+    addToCart(product.id, quantity, selectedVariant?.id || null);
     setAdded(true);
   }
 
-  const selectedVariant=variants.find(v=>v.id===variantId);
+  const selectedVariant=variants.find(v => String(v.id) === String(requestedVariantId)) || variants.find(v=>String(v.id)===String(variantId));
   const effectivePrice=selectedVariant?.price ?? product?.price;
   const effectiveMrp=selectedVariant?.mrp ?? effectivePrice;
   const discount=Number(effectiveMrp)>Number(effectivePrice)? Math.round((Number(effectiveMrp)-Number(effectivePrice))/Number(effectiveMrp)*100):0;
@@ -65,7 +68,7 @@ function ProductDetailsContent({ id }) {
       {error && <p role="alert" className="store-alert">{error}</p>}
       {product && <article className="product-detail">
         <div className="product-detail-media">
-          <ProductMediaGallery product={product} variantId={variantId || null} variantAttributes={selectedVariant?.attributes||{}} items={media} />
+          <ProductMediaGallery key={selectedVariant?.attributes?.color ?? selectedVariant?.attributes?.colour ?? variantId} product={product} variantId={selectedVariant?.id || null} variantAttributes={selectedVariant?.attributes||{}} items={media} />
         </div>
         <div className="product-detail-copy">
           <Link className="eyebrow detail-category-link" to={`/categories/${product.categorySlug}`}>{product.category}</Link>
@@ -81,7 +84,10 @@ function ProductDetailsContent({ id }) {
             <span />{canBuy ? `${effectiveStock} available` : "Currently unavailable"}
           </div>
           <ProductVariantSelector variants={variants} selectedVariant={selectedVariant} media={media}
-            coverUrl={product.imageUrl} onSelect={selected=>{setVariantId(selected);setQuantity(1);setAdded(false);}}/>
+            coverUrl={product.imageUrl} onSelect={selected=>{
+              setVariantId(selected); setQuantity(1); setAdded(false);
+              setSearchParams(previous => { const next = new URLSearchParams(previous); next.set("variant", selected); return next; }, {replace: true});
+            }}/>
           <WishlistButton productId={product.id} />
           <div className="purchase-panel">
             <label htmlFor="product-quantity">Quantity</label>

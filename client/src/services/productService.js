@@ -101,3 +101,7 @@ export function deleteProductPermanently(id, confirmName) {
 export function assignProductMediaScope(id,mediaId,assignment){
  return apiRequest(`/api/admin/products/${id}/media/${mediaId}/assignment`,{method:"PATCH",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(assignment)});
 }
+
+export function setProductCardCover(id, mediaId) {
+  return apiRequest(`/api/admin/products/${id}/media/${mediaId}/card-cover`, {method:"PUT",credentials:"include"});
+}
