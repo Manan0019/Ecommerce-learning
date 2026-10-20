@@ -1,0 +1,30 @@
+/* Phase 28: a compact, touch-friendly, keyboard-accessible dual-price slider. */
+.nx28-price-filter { gap: 12px; }
+.nx28-price-range { width: 100%; min-width: 0; display: grid; gap: 10px; }
+.nx28-price-values { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.nx28-price-values output { min-width: 0; padding: 8px 9px; border: 1px solid #e2e0f6; border-radius: 10px; background: #f6f5ff; color: #35248e; font-size: .77rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nx28-price-values > span { font-size: .8rem; color: #94a3b8; }
+.nx28-range-track { position: relative; height: 32px; margin: 4px 10px 0; display: flex; align-items: center; }
+.nx28-range-rail, .nx28-range-fill { position: absolute; top: 50%; transform: translateY(-50%); height: 6px; border-radius: 999px; pointer-events: none; }
+.nx28-range-rail { left: 0; right: 0; background: #e8e5f4; }
+.nx28-range-fill { background: linear-gradient(90deg,#5f45d8,#9168ed); }
+.nx28-range-track input[type="range"] { position: absolute; width: 100%; left: 0; margin: 0; padding: 0; height: 32px; border: 0; border-radius: 0; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; pointer-events: none; }
+.nx28-range-track input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: transparent; border: 0; }
+.nx28-range-track input[type="range"]::-moz-range-track { height: 6px; background: transparent; border: 0; }
+.nx28-range-track input[type="range"]::-webkit-slider-thumb { width: 22px; height: 22px; border: 3px solid #6546d8; border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(73,52,156,.22); appearance: none; -webkit-appearance: none; margin-top: -8px; pointer-events: auto; }
+.nx28-range-track input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border: 3px solid #6546d8; border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(73,52,156,.22); pointer-events: auto; }
+.nx28-range-track input[type="range"]:focus-visible { outline: none; }
+.nx28-range-track input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 3px solid #aaa2ff; outline-offset: 3px; }
+.nx28-range-track input[type="range"]:focus-visible::-moz-range-thumb { outline: 3px solid #aaa2ff; outline-offset: 3px; }
+.nx28-range-track input[type="range"]:disabled { opacity: .5; cursor: wait; }
+.nx28-range-endpoints { display: flex; justify-content: space-between; gap: 8px; font-size: .7rem; color: #7a8094; font-variant-numeric: tabular-nums; }
+.nx28-price-actions { display: flex; gap: 7px; }
+.nx28-price-actions button { min-height: 36px; border-radius: 9px; padding: 8px 11px; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.nx28-price-apply { flex: 1; color: #fff; border: 1px solid #5941c1; background: #5941c1; }
+.nx28-price-apply:hover:not(:disabled) { background: #4935a6; }
+.nx28-price-reset { color: #5e45bc; background: #fff; border: 1px solid #dcd6f7; }
+.nx28-price-actions button:disabled { opacity: .48; cursor: not-allowed; }
+.nx28-price-help { margin: 0; font-size: .71rem; color: #778199; line-height: 1.5; }
+@media (max-width: 900px) { .nx28-price-range { max-width: 440px; } }
+@media (max-width: 480px) { .nx28-price-values output { font-size: .85rem; } .nx28-price-actions button { min-height: 44px; } .nx28-range-track { height: 44px; } }
+@media (prefers-reduced-motion: reduce) { .nx28-price-range * { transition: none !important; } }

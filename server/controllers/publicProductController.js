@@ -104,6 +104,8 @@ export async function listProducts(req, res) {
     const minPrice = priceValue(req.query.minPrice);
     const maxPrice = priceValue(req.query.maxPrice);
     const inStock = req.query.inStock === "true";
+    const includePriceBounds = req.query.includePriceBounds === "true";
+    if (req.query.includePriceBounds !== undefined && !["true", "false"].includes(req.query.includePriceBounds)) throw new Error("INVALID_PUBLIC_QUERY");
     const featured = req.query.featured === "true";
     const requestedView = queryString(req.query.view, 12) || "variants";
     if (!["variants", "colors", "products"].includes(requestedView)) throw new Error("INVALID_PUBLIC_QUERY");
@@ -123,7 +125,7 @@ export async function listProducts(req, res) {
         LIMIT 1
       `, [categoryValue]);
       if (!result.rows.length) {
-        return res.json({ products: [], pagination: { page, limit, total: 0, pages: 0 }, facets: [], category: null });
+        return res.json({ products: [], pagination: { page, limit, total: 0, pages: 0 }, facets: [], category: null, ...(includePriceBounds ? { priceBounds: null } : {}) });
       }
       category = result.rows[0];
     }
@@ -153,7 +155,7 @@ export async function listProducts(req, res) {
     const filterSchemas = new Map(
       definition ? definitionFields(definition).filter((item) => item.filter).map((item) => [item.key, item]) : []
     );
-    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock", "featured", "view"]);
+    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock", "featured", "view", "includePriceBounds"]);
     const requestedFilters = [];
     const variantFilters = [];
     for (const [key, value] of Object.entries(req.query)) {
@@ -207,9 +209,6 @@ export async function listProducts(req, res) {
       const likeParameter = parameter(`%${escapedLike}%`);
       where.push(`(${searchDocument} @@ websearch_to_tsquery('simple'::regconfig, ${searchParameter}) OR product.name ILIKE ${likeParameter} ESCAPE '\\' OR product.brand ILIKE ${likeParameter} ESCAPE '\\' OR product.model ILIKE ${likeParameter} ESCAPE '\\'${view === "variants" ? ` OR chosen.sku ILIKE ${likeParameter} ESCAPE '\\' OR chosen.custom_title ILIKE ${likeParameter} ESCAPE '\\' OR chosen.attributes::text ILIKE ${likeParameter} ESCAPE '\\'` : ""})`);
     }
-    if (minPrice !== null) where.push(`${view === "variants" ? "COALESCE(chosen.price,product.price)" : "pricing.effective_price"} >= ${parameter(minPrice)}`);
-    if (maxPrice !== null) where.push(`${view === "variants" ? "COALESCE(chosen.price,product.price)" : "pricing.effective_price"} <= ${parameter(maxPrice)}`);
-
     if (req.query.brand !== undefined) {
       const brands = filterValues(req.query.brand).map((brand) => brand.toLowerCase());
       where.push(`lower(product.brand) = ANY(${parameter(brands)}::text[])`);
@@ -245,15 +244,37 @@ export async function listProducts(req, res) {
         FROM product_variants v WHERE v.product_id=product.id AND v.is_active=TRUE
       ) chosen ON TRUE` : "";
     if (view === "variants") where.push("(chosen.id IS NOT NULL OR NOT EXISTS (SELECT 1 FROM product_variants old WHERE old.product_id=product.id))");
+
+    // Keep the slider bounds independent of its own selected min/max. The same
+    // category, search, stock and SKU filters still apply to these bounds.
+    const rangeWhere = where.join(" AND ");
+    const rangeValues = [...values];
+    const priceExpression = view === "variants" ? "COALESCE(chosen.price,product.price)" : "pricing.effective_price";
+    if (minPrice !== null) where.push(`${priceExpression} >= ${parameter(minPrice)}`);
+    if (maxPrice !== null) where.push(`${priceExpression} <= ${parameter(maxPrice)}`);
     const finalWhere = where.join(" AND ");
-    const countResult = await pool.query(`
-      SELECT COUNT(*)::int AS total
-      FROM products AS product
-      JOIN categories AS category ON category.id = product.category_id
-      ${pricingJoin}
-      ${chosenJoin}
-      WHERE ${finalWhere}
-    `, values);
+    const [countResult, priceResult] = await Promise.all([
+      pool.query(`
+        SELECT COUNT(*)::int AS total
+        FROM products AS product
+        JOIN categories AS category ON category.id = product.category_id
+        ${pricingJoin}
+        ${chosenJoin}
+        WHERE ${finalWhere}
+      `, values),
+      includePriceBounds ? pool.query(`
+        SELECT FLOOR(MIN(${priceExpression})) AS min_price,
+               CEIL(MAX(${priceExpression})) AS max_price
+        FROM products AS product
+        JOIN categories AS category ON category.id = product.category_id
+        ${pricingJoin}
+        ${chosenJoin}
+        WHERE ${rangeWhere}
+      `, rangeValues) : Promise.resolve(null)
+    ]);
+    const rawBounds = priceResult?.rows[0];
+    const priceBounds = rawBounds?.min_price == null || rawBounds?.max_price == null
+      ? null : { min: Number(rawBounds.min_price), max: Number(rawBounds.max_price) };
     const total = countResult.rows[0].total;
     const pages = total === 0 ? 0 : Math.ceil(total / limit);
     const safePage = pages === 0 ? 1 : Math.min(page, pages);
@@ -323,7 +344,8 @@ export async function listProducts(req, res) {
       pagination: { page: safePage, limit, total, pages },
       facets: displayFacets,
       category: category ? { id: String(category.id), name: category.name, slug: category.slug } : null,
-      view, countUnit: view === "variants" ? "configurations" : "product styles"
+      view, countUnit: view === "variants" ? "configurations" : "product styles",
+      ...(includePriceBounds ? { priceBounds } : {})
     });
   } catch (error) {
     if (error.message === "INVALID_PUBLIC_QUERY") {

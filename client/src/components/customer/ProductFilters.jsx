@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PriceRangeSlider from "./PriceRangeSlider";
 
 function selectedValues(params, key) {
   return (params.get(key) || "").split(",").filter(Boolean);
@@ -10,15 +11,15 @@ export default function ProductFilters({
   onFilterChange,
   onPriceChange,
   disabled,
+  priceBounds,
 }) {
-  const priceKey = `${params.get("minPrice") || ""}:${params.get("maxPrice") || ""}`;
   return (
     <ProductFiltersContent
-      key={priceKey}
       facets={facets}
       params={params}
       onFilterChange={onFilterChange}
       onPriceChange={onPriceChange}
+      priceBounds={priceBounds}
       disabled={disabled}
     />
   );
@@ -29,11 +30,10 @@ function ProductFiltersContent({
   params,
   onFilterChange,
   onPriceChange,
+  priceBounds,
   disabled,
 }) {
   const [open, setOpen] = useState(false);
-  const [minPrice, setMinPrice] = useState(params.get("minPrice") || "");
-  const [maxPrice, setMaxPrice] = useState(params.get("maxPrice") || "");
 
   function toggleValue(key, value, checked) {
     const selected = new Set(selectedValues(params, key));
@@ -75,37 +75,14 @@ function ProductFiltersContent({
             <span>In stock only</span>
           </label>
         </fieldset>
-        <fieldset className="filter-group price-filter">
-          <legend>Price</legend>
-          <div>
-            <label>
-              Min
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={minPrice}
-                onChange={(event) => setMinPrice(event.target.value)}
-              />
-            </label>
-            <label>
-              Max
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={maxPrice}
-                onChange={(event) => setMaxPrice(event.target.value)}
-              />
-            </label>
-          </div>
-          <button
-            type="button"
+        <fieldset className="filter-group price-filter nx28-price-filter">
+          <legend>Price range</legend>
+          <PriceRangeSlider
+            priceBounds={priceBounds}
+            params={params}
             disabled={disabled}
-            onClick={() => onPriceChange(minPrice, maxPrice)}
-          >
-            Apply price
-          </button>
+            onPriceChange={onPriceChange}
+          />
         </fieldset>
         {facets.map((facet) => (
           <fieldset className="filter-group" key={facet.key}>

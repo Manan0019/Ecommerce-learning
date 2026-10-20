@@ -19,6 +19,7 @@ export default function ProductList() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [facets, setFacets] = useState([]);
+  const [priceBounds, setPriceBounds] = useState(null);
   const [category, setCategory] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -49,10 +50,12 @@ export default function ProductList() {
       try {
         const params = new URLSearchParams(queryString);
         if (selectedCategory) params.set("category", selectedCategory);
+        params.set("includePriceBounds", "true");
         const data = await getProducts({ signal: controller.signal, params });
         if (!controller.signal.aborted) {
           setProducts(data.products || []);
           setFacets(data.facets || []);
+          setPriceBounds(data.priceBounds || null);
           setCategory(data.category || null);
           setPagination(
             data.pagination || { page: 1, limit: 12, total: 0, pages: 0 },
@@ -208,6 +211,7 @@ export default function ProductList() {
       <div className="catalogue-layout">
         <ProductFilters
           facets={facets}
+          priceBounds={priceBounds}
           params={searchParams}
           disabled={loading}
           onFilterChange={changeFilter}
