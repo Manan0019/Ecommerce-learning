@@ -42,3 +42,40 @@ test("stale URL values clamp to updated category bounds", () => {
   const bounds = { min: 400, max: 900 };
   assert.deepEqual(getSelectedPriceRange(new URLSearchParams("minPrice=50&maxPrice=9999"), bounds), bounds);
 });
+
+// Phase 30: miniature sidebars must not clip the slider thumbs, and keyboard
+// movement / snapping must match pointer movement.
+import {
+  formatPriceCompact,
+  priceAtPointer,
+  pricePercent,
+  priceSliderStep,
+  snapPriceValue,
+} from "../src/services/priceRange.js";
+
+test("narrow sidebar maps both inset thumb centers to true catalogue endpoints", () => {
+  const bounds = { min: 499, max: 29999 };
+  const rect = { left: 10, width: 176 };
+  assert.equal(priceAtPointer(10, rect, bounds), bounds.min);
+  assert.equal(priceAtPointer(28, rect, bounds), bounds.min);
+  assert.equal(priceAtPointer(168, rect, bounds), bounds.max);
+  assert.equal(priceAtPointer(999, rect, bounds), bounds.max);
+  assert.equal(priceAtPointer(98, rect, bounds), (bounds.min + bounds.max) / 2);
+  assert.equal(priceAtPointer(20, { left: 10, width: 35 }, bounds), null);
+});
+test("thumb percentages and snapping have stable bounds", () => {
+  const bounds = { min: 150, max: 20150 };
+  assert.equal(pricePercent(150, bounds), 0);
+  assert.equal(pricePercent(20150, bounds), 100);
+  assert.equal(pricePercent(999999, bounds), 100);
+  const step = priceSliderStep(bounds);
+  assert.ok(step > 0);
+  assert.equal(snapPriceValue(149, bounds, step), 150);
+  assert.equal(snapPriceValue(999999, bounds, step), 20150);
+});
+test("compact INR labels stay short enough for mobile price pills", () => {
+  assert.equal(formatPriceCompact(499), "₹499");
+  assert.equal(formatPriceCompact(25000), "₹25k");
+  assert.equal(formatPriceCompact(150000), "₹1.5L");
+  assert.equal(formatPriceCompact(12500000), "₹1.3Cr");
+});

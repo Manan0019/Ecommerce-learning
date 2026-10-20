@@ -24,8 +24,17 @@ export default function BrandingProvider({ children }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    refreshBranding(controller.signal);
-    const onFocus = () => refreshBranding(controller.signal);
+    // React effects must not synchronously trigger setState: hydrate branding
+    // when the API promise settles, then subscribe to tab focus refreshes.
+    getBranding(controller.signal).then((info) => {
+      if (!controller.signal.aborted) setBranding({
+        iconUrl: info.iconUrl || null,
+        faviconOverrideUrl: info.faviconOverrideUrl || null,
+      });
+    }).catch((error) => {
+      if (error.name !== "AbortError") console.warn("Branding unavailable; using default mark.");
+    });
+    const onFocus = () => { void refreshBranding(controller.signal); };
     window.addEventListener("focus", onFocus);
     return () => { controller.abort(); window.removeEventListener("focus", onFocus); };
   }, [refreshBranding]);

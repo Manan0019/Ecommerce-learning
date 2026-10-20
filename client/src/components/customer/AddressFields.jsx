@@ -1,4 +1,3 @@
-export const blankAddress={fullName:'',phone:'',addressLine1:'',addressLine2:'',city:'',state:'',pincode:''};
 const fields=[
   {key:'fullName',label:'Full name',autoComplete:'name',max:100},
   {key:'phone',label:'Mobile number',type:'tel',autoComplete:'tel',max:18,pattern:'[+]?[0-9\\s-]{10,18}'},

@@ -1,7 +1,8 @@
 import {useEffect,useRef,useState} from 'react';
 import {Link,useNavigate} from 'react-router-dom';
 import CustomerLayout from '../../components/layout/CustomerLayout';
-import AddressFields,{blankAddress} from '../../components/customer/AddressFields';
+import AddressFields from '../../components/customer/AddressFields';
+import { blankAddress } from '../../constants/addressDefaults';
 import {useCart} from '../../hooks/useCart';
 import {quoteCart} from '../../services/cartService';
 import {getCurrentUser} from '../../services/authService';

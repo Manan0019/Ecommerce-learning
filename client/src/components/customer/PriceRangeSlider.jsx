@@ -3,131 +3,160 @@ import {
   getSelectedPriceRange,
   movePriceHandle,
   normalizePriceBounds,
+  priceAtPointer,
+  pricePercent,
   priceQueryValues,
+  priceSliderStep,
+  snapPriceValue,
+  formatPriceCompact,
 } from "../../services/priceRange";
 
-const rupees = new Intl.NumberFormat("en-IN", {
+const fullPrice = new Intl.NumberFormat("en-IN", {
   style: "currency", currency: "INR", maximumFractionDigits: 0,
 });
 
-export default function PriceRangeSlider({ priceBounds, params, onPriceChange, disabled }) {
+export default function PriceRangeSlider({ priceBounds, params, onPriceChange, disabled = false }) {
   const bounds = normalizePriceBounds(priceBounds);
-  if (!bounds) return <p className="nx28-price-help">Price range will appear when products are available.</p>;
-  return (
-    <PriceRangeControl
-      key={`${bounds.min}:${bounds.max}:${params.get("minPrice") || ""}:${params.get("maxPrice") || ""}`}
-      bounds={bounds}
-      params={params}
-      onPriceChange={onPriceChange}
-      disabled={disabled}
-    />
-  );
+  if (!bounds) {
+    return <p className="nx30-price-empty">Price filters appear when this category has products.</p>;
+  }
+  // URL changes, including category and Clear All, reinitialize local draft values.
+  const priceKey = `${bounds.min}:${bounds.max}:${params.get("minPrice") ?? ""}:${params.get("maxPrice") ?? ""}`;
+  return <PriceRangeControl key={priceKey} bounds={bounds} params={params} onPriceChange={onPriceChange} disabled={disabled} />;
 }
 
 function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
   const [selected, setSelected] = useState(() => getSelectedPriceRange(params, bounds));
-  const railRef = useRef(null);
-  const dragRef = useRef(null);
-  const span = bounds.max - bounds.min;
-  const minPct = ((selected.min - bounds.min) / span) * 100;
-  const maxPct = ((selected.max - bounds.min) / span) * 100;
+  const sliderRef = useRef(null);
+  const draggingRef = useRef(null);
+  const minThumbRef = useRef(null);
+  const maxThumbRef = useRef(null);
   const applied = getSelectedPriceRange(params, bounds);
+  const hasFilter = params.has("minPrice") || params.has("maxPrice");
   const dirty = selected.min !== applied.min || selected.max !== applied.max;
-  const filtered = params.has("minPrice") || params.has("maxPrice");
-  const step = Math.max(1, Math.pow(10, Math.floor(Math.log10(span)) - 2));
+  const step = priceSliderStep(bounds);
+  const left = pricePercent(selected.min, bounds);
+  const right = pricePercent(selected.max, bounds);
 
-  function update(handle, next) {
-    setSelected((current) => movePriceHandle(handle, next, current, bounds));
+  function moveHandle(handle, value) {
+    setSelected((current) => movePriceHandle(handle, snapPriceValue(value, bounds, step), current, bounds));
   }
-  function valueFromPointer(clientX) {
-    const rect = railRef.current?.getBoundingClientRect();
-    if (!rect?.width) return null;
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    return Math.round(bounds.min + span * ratio);
+
+  function valueFromEvent(event) {
+    return priceAtPointer(event.clientX, sliderRef.current?.getBoundingClientRect(), bounds);
   }
-  function startDrag(event, handle) {
-    if (disabled || event.button !== 0) return;
-    event.preventDefault();
-    dragRef.current = { id: event.pointerId, handle };
-    event.currentTarget.setPointerCapture(event.pointerId);
-    const value = valueFromPointer(event.clientX);
-    if (value !== null) update(handle, value);
-  }
-  function moveDrag(event) {
-    if (dragRef.current?.id !== event.pointerId) return;
-    const value = valueFromPointer(event.clientX);
-    if (value !== null) update(dragRef.current.handle, value);
-  }
-  function stopDrag(event) {
-    if (dragRef.current?.id === event.pointerId) dragRef.current = null;
-  }
-  function chooseOnTrack(event) {
-    if (disabled || event.target.closest(".nx29-price-thumb")) return;
-    const value = valueFromPointer(event.clientX);
+
+  function onPointerDown(event) {
+    if (disabled || !event.isPrimary || event.button !== 0) return;
+    const value = valueFromEvent(event);
     if (value === null) return;
-    update(Math.abs(value - selected.min) <= Math.abs(value - selected.max) ? "min" : "max", value);
-  }
-  function onKey(event, handle) {
-    if (disabled) return;
-    let next;
-    const current = selected[handle];
-    if (["ArrowRight", "ArrowUp"].includes(event.key)) next = current + step;
-    else if (["ArrowLeft", "ArrowDown"].includes(event.key)) next = current - step;
-    else if (event.key === "PageUp") next = current + step * 10;
-    else if (event.key === "PageDown") next = current - step * 10;
-    else if (event.key === "Home") next = handle === "min" ? bounds.min : selected.min;
-    else if (event.key === "End") next = handle === "max" ? bounds.max : selected.max;
-    else return;
+    const targetHandle = event.target.closest("[data-range-handle]")?.dataset.rangeHandle;
+    const handle = targetHandle || (Math.abs(value - selected.min) <= Math.abs(value - selected.max) ? "min" : "max");
     event.preventDefault();
-    update(handle, next);
+    draggingRef.current = { id: event.pointerId, handle };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    (handle === "min" ? minThumbRef : maxThumbRef).current?.focus({ preventScroll: true });
+    moveHandle(handle, value);
   }
+
+  function onPointerMove(event) {
+    if (draggingRef.current?.id !== event.pointerId) return;
+    const value = valueFromEvent(event);
+    if (value !== null) moveHandle(draggingRef.current.handle, value);
+  }
+
+  function stopPointer(event) {
+    if (draggingRef.current?.id !== event.pointerId) return;
+    draggingRef.current = null;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  }
+
+  function onHandleKey(event, handle) {
+    if (disabled) return;
+    const current = selected[handle];
+    let next;
+    switch (event.key) {
+      case "ArrowUp": case "ArrowRight": next = current + step; break;
+      case "ArrowDown": case "ArrowLeft": next = current - step; break;
+      case "PageUp": next = current + step * 10; break;
+      case "PageDown": next = current - step * 10; break;
+      case "Home": next = handle === "min" ? bounds.min : selected.min; break;
+      case "End": next = handle === "max" ? bounds.max : selected.max; break;
+      default: return;
+    }
+    event.preventDefault();
+    moveHandle(handle, next);
+  }
+
   function apply() {
     const { min, max } = priceQueryValues(selected, bounds);
     onPriceChange(min, max);
   }
+
   function reset() {
     setSelected({ min: bounds.min, max: bounds.max });
-    if (filtered) onPriceChange("", "");
+    if (hasFilter) onPriceChange("", "");
   }
 
-  return <div className="nx28-price-range nx29-price-range">
-    <div className="nx28-price-values" aria-live="off">
-      <output aria-label="Selected minimum price">{rupees.format(selected.min)}</output>
-      <span aria-hidden="true">—</span>
-      <output aria-label="Selected maximum price">{rupees.format(selected.max)}</output>
+  return <div className="nx30-price-filter" aria-label="Filter by price">
+    <div className="nx30-price-values">
+      <div className="nx30-price-value" title={fullPrice.format(selected.min)}>
+        <span>MIN PRICE</span>
+        <output aria-label={`Minimum ${fullPrice.format(selected.min)}`}>{formatPriceCompact(selected.min)}</output>
+      </div>
+      <span className="nx30-price-value-separator" aria-hidden="true">–</span>
+      <div className="nx30-price-value" title={fullPrice.format(selected.max)}>
+        <span>MAX PRICE</span>
+        <output aria-label={`Maximum ${fullPrice.format(selected.max)}`}>{formatPriceCompact(selected.max)}</output>
+      </div>
     </div>
-    <div className="nx29-price-slider" aria-label="Price budget">
-      <div className="nx29-price-rail" ref={railRef} onPointerDown={chooseOnTrack}>
-        <div className="nx29-price-fill" style={{ left: `${minPct}%`, width: `${maxPct - minPct}%` }} />
+
+    <div
+      ref={sliderRef}
+      className="nx30-price-hit-area"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={stopPointer}
+      onPointerCancel={stopPointer}
+      onLostPointerCapture={stopPointer}
+    >
+      <div className="nx30-price-rail">
+        <div className="nx30-price-selected" style={{ left: `${left}%`, right: `${100 - right}%` }} />
         {(["min", "max"]).map((handle) => <div
           key={handle}
-          className={`nx29-price-thumb nx29-thumb-${handle}`}
-          style={{ left: `${handle === "min" ? minPct : maxPct}%`, zIndex: handle === "min" && selected.min === selected.max ? 5 : handle === "max" ? 4 : 3 }}
+          ref={handle === "min" ? minThumbRef : maxThumbRef}
+          className="nx30-price-handle"
+          data-range-handle={handle}
           role="slider"
-          tabIndex={disabled ? -1 : 0}
           aria-label={handle === "min" ? "Minimum price" : "Maximum price"}
+          aria-orientation="horizontal"
           aria-valuemin={handle === "min" ? bounds.min : selected.min}
           aria-valuemax={handle === "min" ? selected.max : bounds.max}
           aria-valuenow={selected[handle]}
-          aria-valuetext={rupees.format(selected[handle])}
+          aria-valuetext={fullPrice.format(selected[handle])}
           aria-disabled={disabled || undefined}
-          onPointerDown={(event) => startDrag(event, handle)}
-          onPointerMove={moveDrag}
-          onPointerUp={stopDrag}
-          onPointerCancel={stopDrag}
-          onLostPointerCapture={stopDrag}
-          onKeyDown={(event) => onKey(event, handle)}
-        />)}
+          tabIndex={disabled ? -1 : 0}
+          onKeyDown={(event) => onHandleKey(event, handle)}
+          style={{ left: `${handle === "min" ? left : right}%`, zIndex: handle === "min" ? 2 : 3 }}
+        >
+          <span className="nx30-price-handle-core" />
+        </div>)}
       </div>
     </div>
-    <div className="nx28-range-endpoints">
-      <span>{rupees.format(bounds.min)}</span>
-      <span>{rupees.format(bounds.max)}</span>
+
+    <div className="nx30-price-endpoints">
+      <span title={fullPrice.format(bounds.min)}>{formatPriceCompact(bounds.min)}</span>
+      <span title={fullPrice.format(bounds.max)}>{formatPriceCompact(bounds.max)}</span>
     </div>
-    <div className="nx28-price-actions">
-      <button type="button" className="nx28-price-apply" onClick={apply} disabled={disabled || !dirty}>Apply range</button>
-      <button type="button" className="nx28-price-reset" onClick={reset} disabled={disabled || (!dirty && !filtered)}>Reset</button>
+
+    <div className="nx30-price-actions">
+      <button className="nx30-price-apply" type="button" onClick={apply} disabled={disabled || !dirty}>
+        Apply price
+      </button>
+      <button className="nx30-price-reset" type="button" onClick={reset} disabled={disabled || (!dirty && !hasFilter)}>
+        Reset
+      </button>
     </div>
-    <p className="nx28-price-help">Drag the purple handles or tap the track. Arrow keys adjust the selected handle.</p>
+    <p className="nx30-price-hint">Drag handles to set your budget</p>
   </div>;
 }

@@ -42,3 +42,43 @@ export function priceQueryValues(selected, bounds) {
     max: selected.max < bounds.max ? String(selected.max) : "",
   };
 }
+
+// Display-friendly labels that cannot force a narrow 220px filter sidebar wider.
+// The complete INR number remains available via title and ARIA on each label.
+export function formatPriceCompact(value) {
+  const number = Math.max(0, Number(value) || 0);
+  const compact = (base, suffix) => {
+    const units = number / base;
+    return `₹${Number(units.toFixed(units < 10 ? 1 : 0)).toLocaleString("en-IN")}${suffix}`;
+  };
+  if (number >= 10000000) return compact(10000000, "Cr");
+  if (number >= 100000) return compact(100000, "L");
+  if (number >= 10000) return compact(1000, "k");
+  return `₹${Math.round(number).toLocaleString("en-IN")}`;
+}
+
+export function pricePercent(value, bounds) {
+  if (!bounds || bounds.max <= bounds.min) return 0;
+  return Math.max(0, Math.min(100, ((value - bounds.min) / (bounds.max - bounds.min)) * 100));
+}
+
+// The hit area is wider than the usable rail. Insetting the rail by the thumb
+// radius keeps both circular handles *entirely within* the sidebar at 0%/100%.
+export function priceAtPointer(clientX, rect, bounds, thumbRadius = 18) {
+  if (!rect || rect.width <= thumbRadius * 2 || !Number.isFinite(clientX)) return null;
+  const fraction = Math.max(0, Math.min(1, (clientX - rect.left - thumbRadius) / (rect.width - thumbRadius * 2)));
+  return bounds.min + fraction * (bounds.max - bounds.min);
+}
+
+export function priceSliderStep(bounds) {
+  const span = Math.max(1, bounds.max - bounds.min);
+  return Math.max(1, 10 ** Math.max(0, Math.floor(Math.log10(span)) - 2));
+}
+
+export function snapPriceValue(value, bounds, step) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return bounds.min;
+  if (parsed <= bounds.min + step / 2) return bounds.min;
+  if (parsed >= bounds.max - step / 2) return bounds.max;
+  return Math.max(bounds.min, Math.min(bounds.max, Math.round(parsed / step) * step));
+}
