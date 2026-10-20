@@ -140,3 +140,38 @@
 @media (prefers-reduced-motion: reduce) {
   .nx30-price-filter * { transition: none !important; }
 }
+
+/* Phase 31: The original app.css still contains this legacy rule:
+   `.price-filter > div { grid-template-columns: 1fr 1fr; }`
+   It overrides .nx30-price-filter and forces every slider section into two
+   side-by-side cells. Scope the current layout to ONE full-width column.
+   Do not remove this higher-specificity guard unless app.css is refactored. */
+.catalogue-filters fieldset.price-filter > div.nx30-price-filter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-flow: row;
+  gap: 11px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.catalogue-filters fieldset.price-filter > .nx30-price-filter > * {
+  grid-column: 1 / -1;
+  min-width: 0;
+  max-width: 100%;
+}
+.catalogue-filters fieldset.price-filter {
+  min-width: 0;
+  min-inline-size: 0;
+}
+/* Keep the slider's rail fully separate from the value cells and actions. */
+.catalogue-filters .nx30-price-hit-area {
+  width: 100%;
+  justify-self: stretch;
+}
+.catalogue-filters .nx30-price-values {
+  grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr);
+}
+.catalogue-filters .nx30-price-actions {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
