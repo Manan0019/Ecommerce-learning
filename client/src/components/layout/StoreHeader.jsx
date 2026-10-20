@@ -11,6 +11,10 @@ function SearchIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" /></svg>;
 }
 
+function HeartIcon() {
+  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.8a5.6 5.6 0 0 0-7.9 0L12 5.7l-.9-.9a5.6 5.6 0 0 0-7.9 7.9L12 21l8.8-8.3a5.6 5.6 0 0 0 0-7.9Z" /></svg>;
+}
+
 function CartIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20 8H6m4 12h.01M17 20h.01" /></svg>;
 }
@@ -108,7 +112,8 @@ export default function StoreHeader() {
     .join("")
     .toUpperCase();
 
-  return <header className="store-header">
+  return <header className="store-header nx34-header">
+    <div className="nx34-header-ribbon"><span className="nx34-ribbon-dot" /> <strong>THE NEXORA EDIT</strong><span className="nx34-ribbon-separator" />Discover something worth keeping <span className="nx34-ribbon-arrow">✦</span></div>
     <div className="navbar">
       <Link className="brand" to="/" aria-label={`${SITE_NAME} home`}>
         <BrandLogo />
@@ -159,14 +164,14 @@ export default function StoreHeader() {
 
       <div className="nav-actions">
         {user?.role === "admin" && <Link className="admin-return-link" to="/admin/dashboard">Admin Dashboard</Link>}
-        <Link className="wishlist-header-link" to="/wishlist" aria-label="Wishlist">♡ <span>Wishlist</span></Link>
+        <Link className="wishlist-header-link nx34-wishlist-icon" to="/wishlist" aria-label="View wishlist" title="Wishlist"><HeartIcon /></Link>
         <Link className="cart-link" to="/cart" aria-label={`Cart with ${itemCount} items`}>
           <CartIcon />
           {itemCount > 0 && <span className="cart-count">{itemCount > 99 ? "99+" : itemCount}</span>}
         </Link>
 
         {user ? <div className="profile-menu" ref={profileRef}>
-          <button className="avatar-button" type="button" aria-label="Open account menu"
+          <button className="avatar-button" type="button" aria-label="Open account menu" title="Account"
             aria-haspopup="menu" aria-expanded={profileOpen}
             onClick={() => setProfileOpen((open) => !open)}>
             {user.profileImageUrl

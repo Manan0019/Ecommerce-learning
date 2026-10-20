@@ -109,18 +109,18 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
       <section className="admin-panel admin-form-panel">
         <div className="admin-panel-heading"><div><h2>Product information</h2><p>Changes are saved independently of gallery and variants.</p></div></div>
         <form className="admin-form" onSubmit={saveDetails}>
-          <label>Name<input name="name" value={form.name} onChange={handleChange} required /></label>
+          <label><span className="nx34-field-label">Product name <b className="nx34-required" aria-hidden="true">*</b></span><input name="name" value={form.name} onChange={handleChange} required /></label>
           <div className="admin-form-grid two-column">
             <label>Brand<input name="brand" value={form.brand} onChange={handleChange} maxLength={80} /></label>
             <label>Model<input name="model" value={form.model} onChange={handleChange} maxLength={120} /></label>
           </div>
-          <label>Description<textarea name="description" rows={4} value={form.description} onChange={handleChange} required /></label>
+          <label><span className="nx34-field-label">Description <b className="nx34-required" aria-hidden="true">*</b></span><textarea name="description" rows={4} value={form.description} onChange={handleChange} required /></label>
           <div className="admin-form-grid two-column">
             <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || !categories.length}
               onChange={categoryId => { setSpecifications({}); setForm(old => ({ ...old, categoryId })); }} />
             {!hasSkus && <>
-              <label>Simple product stock<input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
-              <label>Low-stock alert threshold<input name="lowStockThreshold" type="number" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>Warn the admin at or below this quantity.</small></label>
+              <label><span className="nx34-field-label">Simple product stock <b className="nx34-required" aria-hidden="true">*</b></span><input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
+              <label><span className="nx34-field-label">Low-stock alert threshold <b className="nx34-required" aria-hidden="true">*</b></span><input name="lowStockThreshold" type="number" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>Warn the admin at or below this quantity.</small></label>
             </>}
           </div>
           {hasSkus ? <p className="nx22-sku-notice"><strong>SKU-controlled product:</strong> Selling price, MRP and stock are managed per SKU in the SKUs tab. Parent values are retained only for legacy compatibility.</p>

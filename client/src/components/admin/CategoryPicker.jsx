@@ -26,7 +26,7 @@ export default function CategoryPicker({ categories = [], value = "", onChange, 
     if (e.key === "Enter" && open && matches.length) { e.preventDefault(); select(matches[highlight] || matches[0]); }
   }
   return <div className="nx18-category-picker">
-    <label htmlFor={inputId}>{label}{required && <span className="nx22-required" aria-hidden="true"> *</span>}</label>
+    <label htmlFor={inputId} className="nx34-category-picker-label"><span className="nx34-field-label">{label}{required && <b className="nx34-required" aria-hidden="true">*</b>}</span></label>
     <div className="nx18-combobox-wrap">
       <input id={inputId} type="search" role="combobox" aria-autocomplete="list"
         aria-expanded={open} aria-controls={listId} aria-activedescendant={open && matches[highlight] ? `${listId}-${matches[highlight].id}` : undefined}

@@ -6,7 +6,7 @@ import { logout as endSession } from "../../services/authService";
 import AdminSidebar from "./AdminSidebar";
 import { getLowStockAlerts } from "../../services/inventoryService";
 import { Link } from "react-router-dom";
-import { guardNumberKey, showInvalidField, clearValidField } from "../admin/formValidation";
+import { guardNumberKey, guardNumericPaste, guardNumericBeforeInput, showInvalidField, clearValidField } from "../admin/formValidation";
 
 export default function AdminLayout({ title, subtitle, actions, children }) {
   const navigate = useNavigate();
@@ -45,10 +45,24 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
   }, []);
 
   useEffect(() => {
+    if (!admin) return undefined;
     let active = true;
-    getLowStockAlerts(0).then(result => { if(active) setStockAlertCount(result.summary?.total || 0); }).catch(() => {});
-    return () => { active = false; };
-  }, []);
+    let current = null;
+    const refresh = () => {
+      if (!active || document.visibilityState === "hidden") return;
+      current?.abort();
+      current = new AbortController();
+      getLowStockAlerts(0, current.signal)
+        .then(result => { if (active) setStockAlertCount(Number(result.summary?.total || 0)); })
+        .catch(() => { /* Preserve last-known count across intermittent network errors. */ });
+    };
+    refresh();
+    const timer = window.setInterval(refresh, 60000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("nexora:inventory-updated", refresh);
+    return () => { active = false; current?.abort(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); window.removeEventListener("nexora:inventory-updated", refresh); };
+  }, [admin]);
 
   async function logout() {
     setError("");
@@ -73,10 +87,10 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
       onClick={() => setSidebarOpen(false)} />}
     <AdminSidebar admin={admin} isOpen={sidebarOpen}
       onClose={() => setSidebarOpen(false)} onLogout={logout} stockAlertCount={stockAlertCount} />
-    <main className="admin-main" onKeyDownCapture={guardNumberKey} onInvalidCapture={showInvalidField} onInputCapture={clearValidField}>
+    <main className="admin-main nx34-admin-main" onPasteCapture={guardNumericPaste} onBeforeInputCapture={guardNumericBeforeInput} onKeyDownCapture={guardNumberKey} onInvalidCapture={showInvalidField} onInputCapture={clearValidField}>
       <header className="admin-page-header">
         <div><p className="admin-eyebrow">Admin workspace</p><h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>
-        <div className="admin-header-actions">{stockAlertCount > 0 && <Link className="nx24-stock-link" to="/admin/inventory" aria-label={`${stockAlertCount} inventory alerts`}>🔔 {stockAlertCount} stock alerts</Link>}{actions}</div>
+        <div className="admin-header-actions">{stockAlertCount > 0 && <Link className="nx24-stock-link" to="/admin/inventory" aria-label={`${stockAlertCount} inventory alerts`}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg> {stockAlertCount} needs attention</Link>}{actions}</div>
       </header>
       {error && <p className="admin-alert" role="alert">{error}</p>}
       {children}

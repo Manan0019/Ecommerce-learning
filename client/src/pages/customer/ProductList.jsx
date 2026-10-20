@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ProductCard from "../../components/common/ProductCard";
-import {apiAssetUrl} from "../../services/apiClient";
+import CategoryArtwork from "../../components/customer/CategoryArtwork";
 import PromotionCarousel from "../../components/customer/PromotionCarousel";
 import ProductFilters from "../../components/customer/ProductFilters";
 import ActiveFilterChips from "../../components/customer/ActiveFilterChips";
@@ -152,7 +152,7 @@ export default function ProductList() {
       {category&&categories.some(c=>String(c.parentId)===String(category.id))&&<section className="nx17-subcategories" aria-label={`Shop ${category.name} subcategories`}>
         <h2>Explore {category.name}</h2>
         <div className="nx17-subcategory-shelf">{categories.filter(c=>String(c.parentId)===String(category.id)).map(child=><Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>
-          <span>{child.imageUrl?<img src={apiAssetUrl(child.imageUrl)} alt="" loading="lazy"/>:<span className="nx21-category-placeholder" aria-hidden="true">{child.name.slice(0, 1).toUpperCase()}</span>}</span><strong>{child.name}</strong></Link>)}</div>
+          <CategoryArtwork category={child} /><strong>{child.name}</strong><span className="nx34-category-action" aria-hidden="true">Explore ↗</span></Link>)}</div>
       </section>}
 
       <div

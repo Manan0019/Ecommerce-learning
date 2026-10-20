@@ -19,3 +19,24 @@ export function clearValidField(event) {
     element.removeAttribute("aria-invalid");
   }
 }
+
+
+// Enforce the same numeric grammar for typed, pasted and dropped values.
+// Product titles, brands and SKUs deliberately remain alphanumeric (e.g. "iPhone 17").
+export function guardNumericPaste(event) {
+  const element = event.target;
+  if (element?.tagName !== "INPUT" || element.type !== "number") return;
+  const incoming = event.clipboardData?.getData("text") || "";
+  if (!incoming) return;
+  const step = element.step || "1";
+  const grammar = step === "1" ? /^\d+$/ : /^(?:\d+)(?:\.\d+)?$/;
+  if (!grammar.test(incoming.trim())) event.preventDefault();
+}
+export function guardNumericBeforeInput(event) {
+  const element = event.target;
+  if (element?.tagName !== "INPUT" || element.type !== "number") return;
+  const value = event.data;
+  if (!value || event.nativeEvent?.isComposing) return;
+  const grammar = element.step === "1" || (!element.step || element.step === "") ? /^[0-9]+$/ : /^[0-9.]+$/;
+  if (!grammar.test(value)) event.preventDefault();
+}

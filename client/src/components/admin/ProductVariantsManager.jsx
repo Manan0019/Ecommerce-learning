@@ -101,9 +101,9 @@ export default function ProductVariantsManager({ productId }) {
     {modalOpen && <Modal title={editing ? "Edit SKU" : "Add a SKU"} subtitle="Change this configuration without scrolling through other variants." size="medium"
       onClose={() => { if (!busy) { setModalOpen(false); setError(""); } }} closeDisabled={busy}>
       <form className="admin-form nx-sku-form" onSubmit={saveOne}>
-        <div className="admin-form-grid two-column"><label>SKU<input required maxLength={80} value={form.sku} onChange={e => setForm(old => ({ ...old, sku: e.target.value }))}/></label>
-          <label>Stock units<input type="number" min="0" step="1" required value={form.stock} onChange={e => setForm(old => ({ ...old, stock: e.target.value }))}/></label>
-          <label>Low-stock alert at or below<input type="number" min="0" max="1000000" step="1" required value={form.lowStockThreshold} onChange={e => setForm(old => ({ ...old, lowStockThreshold: e.target.value }))}/></label></div>
+        <div className="admin-form-grid two-column"><label><span className="nx34-field-label">SKU <b className="nx34-required" aria-hidden="true">*</b></span><input required maxLength={80} value={form.sku} onChange={e => setForm(old => ({ ...old, sku: e.target.value }))}/></label>
+          <label><span className="nx34-field-label">Stock units <b className="nx34-required" aria-hidden="true">*</b></span><input type="number" min="0" step="1" required value={form.stock} onChange={e => setForm(old => ({ ...old, stock: e.target.value }))}/></label>
+          <label><span className="nx34-field-label">Low-stock alert at or below <b className="nx34-required" aria-hidden="true">*</b></span><input type="number" min="0" max="1000000" step="1" required value={form.lowStockThreshold} onChange={e => setForm(old => ({ ...old, lowStockThreshold: e.target.value }))}/></label></div>
         <label>Customer-facing variant title (optional)<input maxLength={260} value={form.customTitle || ""} placeholder="MacBook Air M5 · 24 GB RAM / 512 GB SSD" onChange={e => setForm(old => ({...old, customTitle: e.target.value}))}/></label>
         <VariantPriceFields row={form} disabled={busy} onFieldChange={(field,value) => setForm(old => updatePricingDraft(old, field, value))}/>
         <label>Option values <small>One per line, like Color: Midnight</small><textarea rows={4} value={form.attributesText} onChange={e => setForm(old => ({ ...old, attributesText: e.target.value }))} placeholder={"Color: Midnight\nRAM: 16 GB\nStorage: 1 TB"}/></label>

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
+import { guardNumberKey, guardNumericPaste, guardNumericBeforeInput, showInvalidField, clearValidField } from "../admin/formValidation";
 
 /** Accessible, focused dialog. Save/cancel actions belong to the dialog's content. */
 export default function Modal({ title, subtitle, children, onClose, size = "wide", closeDisabled = false }) {
@@ -34,7 +35,9 @@ export default function Modal({ title, subtitle, children, onClose, size = "wide
   }, []);
   return createPortal(
     <div className="nx-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !closeDisabled) onClose(); }}>
-      <section className={`nx-modal nx-modal-${size}`} role="dialog" aria-modal="true" aria-labelledby={headingId} ref={panelRef}>
+      <section className={`nx-modal nx-modal-${size}`} role="dialog" aria-modal="true" aria-labelledby={headingId} ref={panelRef}
+        onKeyDownCapture={guardNumberKey} onPasteCapture={guardNumericPaste} onBeforeInputCapture={guardNumericBeforeInput}
+        onInvalidCapture={showInvalidField} onInputCapture={clearValidField}>
         <header className="nx-modal-header">
           <div><h2 id={headingId}>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>
           <button ref={closeRef} type="button" className="nx-icon-button" aria-label="Close dialog" disabled={closeDisabled} onClick={onClose}>×</button>

@@ -1,8 +1,18 @@
 import { apiRequest } from "./apiClient";
 
+let publicCategoryCache = null;
+let categoryCacheAt = 0;
+const CATEGORY_CACHE_MS = 20_000;
 export function getCategories(signal) {
-  return apiRequest("/api/categories", { signal });
+  if (publicCategoryCache && Date.now() - categoryCacheAt < CATEGORY_CACHE_MS) {
+    return Promise.resolve(publicCategoryCache);
+  }
+  return apiRequest("/api/categories", { signal }).then(result => {
+    if (!signal?.aborted) { publicCategoryCache = result; categoryCacheAt = Date.now(); }
+    return result;
+  });
 }
+export function invalidatePublicCategoryCache() { publicCategoryCache = null; categoryCacheAt = 0; }
 
 export function getAdminCategories(signal) {
   return apiRequest("/api/admin/categories", { credentials: "include", signal });
@@ -20,7 +30,7 @@ export function createCategory(formData) {
     method: "POST",
     credentials: "include",
     body: formData
-  });
+  }).then(result => { invalidatePublicCategoryCache(); return result; });
 }
 
 export function updateCategory(id, formData) {
@@ -28,7 +38,7 @@ export function updateCategory(id, formData) {
     method: "PUT",
     credentials: "include",
     body: formData
-  });
+  }).then(result => { invalidatePublicCategoryCache(); return result; });
 }
 
 export function updateCategoryStatus(id, isActive) {
@@ -37,7 +47,7 @@ export function updateCategoryStatus(id, isActive) {
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ isActive })
-  });
+  }).then(result => { invalidatePublicCategoryCache(); return result; });
 }
 
 export function deleteCategory(id, confirmName) {
@@ -46,5 +56,5 @@ export function deleteCategory(id, confirmName) {
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ confirmName })
-  });
+  }).then(result => { invalidatePublicCategoryCache(); return result; });
 }

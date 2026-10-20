@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { apiAssetUrl } from "../../services/apiClient";
+import CategoryArtwork from "./CategoryArtwork";
 
 /** Compact category tile. Existing admin-uploaded category art is shown at a
  * controlled size, so large line-art icons no longer swallow the entire card.
@@ -13,8 +13,6 @@ export default function CategoryTile({ category, index = 0, directory = false })
       <p>{category.productCount ?? 0} styles</p>
       <span className="nx16-category-explore">Explore collection <span aria-hidden="true">↗</span></span>
     </div>
-    <div className="nx16-category-art" aria-hidden="true">
-      {category.imageUrl ? <img src={apiAssetUrl(category.imageUrl)} alt="" loading="lazy" /> : <span>✳</span>}
-    </div>
+    <CategoryArtwork category={category} className="nx16-category-art" />
   </Link>;
 }

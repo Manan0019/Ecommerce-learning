@@ -85,7 +85,7 @@ export default function AdminBanners(){
     </article>)}{!items.length&&<div className="admin-empty">No promotions yet. Add a banner to get started.</div>}</section>
     {opened&&<Modal title={editing?"Edit promotion":"New promotion"} size="medium" onClose={()=>!busy&&setOpened(false)} closeDisabled={busy}>
       <form className="admin-form nx17-banner-form" onSubmit={submit}>
-        <label>Headline<input required maxLength={150} value={draft.title} onChange={e=>setDraft(p=>({...p,title:e.target.value}))}/></label>
+        <label><span className="nx34-field-label">Headline <b className="nx34-required" aria-hidden="true">*</b></span><input required maxLength={150} value={draft.title} onChange={e=>setDraft(p=>({...p,title:e.target.value}))}/></label>
         <label>Subtitle<input maxLength={300} value={draft.subtitle} onChange={e=>setDraft(p=>({...p,subtitle:e.target.value}))}/></label>
         <fieldset className="nx19-section"><legend>1. Where should it appear?</legend>
           <label>Banner placement<select value={draft.position} onChange={e=>setDraft(p=>({...p,position:e.target.value,categoryId:"",productId:"",productName:""}))}>
@@ -95,7 +95,7 @@ export default function AdminBanners(){
             <option value="product">Specific product page</option>
             <option value="home_product">Homepage + specific product page</option>
           </select></label>
-          {categoryPlacement(draft.position)&&<label>Choose display category<select required value={draft.categoryId} onChange={e=>setDraft(p=>({...p,categoryId:e.target.value}))}>
+          {categoryPlacement(draft.position)&&<label><span className="nx34-field-label">Choose display category <b className="nx34-required" aria-hidden="true">*</b></span><select required value={draft.categoryId} onChange={e=>setDraft(p=>({...p,categoryId:e.target.value}))}>
             <option value="">Choose a category or subcategory</option>{paths.filter(c=>c.isActive).map(c=><option key={c.id} value={c.id}>{c.path}</option>)}
           </select></label>}
           {productPlacement(draft.position)&&<PromotionProductPicker label="Choose display product" productId={draft.productId} productName={draft.productName}
@@ -109,17 +109,17 @@ export default function AdminBanners(){
           </select></label>
           {draft.destinationType==="product"&&<PromotionProductPicker label="Choose redirect product" productId={draft.destinationProductId}
             productName={draft.destinationProductName} onSelect={(id,name)=>setDraft(p=>({...p,destinationProductId:id,destinationProductName:name}))}/>}
-          {draft.destinationType==="category"&&<label>Choose redirect category<select required value={draft.destinationCategoryId}
+          {draft.destinationType==="category"&&<label><span className="nx34-field-label">Choose redirect category <b className="nx34-required" aria-hidden="true">*</b></span><select required value={draft.destinationCategoryId}
             onChange={e=>setDraft(p=>({...p,destinationCategoryId:e.target.value}))}>
             <option value="">Choose a category or subcategory</option>{paths.filter(c=>c.isActive).map(c=><option key={c.id} value={c.id}>{c.path}</option>)}
           </select></label>}
-          {draft.destinationType==="custom"&&<label>Custom URL<input required maxLength={400} value={draft.customLink}
+          {draft.destinationType==="custom"&&<label><span className="nx34-field-label">Custom URL <b className="nx34-required" aria-hidden="true">*</b></span><input required maxLength={400} value={draft.customLink}
             placeholder="/products/12?variant=4 or https://example.com" onChange={e=>setDraft(p=>({...p,customLink:e.target.value}))}/>
             <small>Internal paths start with /; external destinations must use HTTPS. Unsafe links are rejected.</small></label>}
           <p className="nx19-url-preview">Click destination: <code>{destination()||"Select a destination"}</code></p>
         </fieldset>
         <label>Slide order<input type="number" min="0" max="10000" value={draft.sortOrder} onChange={e=>setDraft(p=>({...p,sortOrder:e.target.value}))}/></label>
-        <label>{editing?"Replace banner image (optional)":"Banner image (required)"}
+        <label><span className="nx34-field-label">{editing?"Replace banner image (optional)":"Banner image"}{!editing && <b className="nx34-required" aria-hidden="true"> *</b>}</span>
           <input required={!editing} type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setDraft(p=>({...p,image:e.target.files?.[0]||null}))}/>
           <small>Landscape 1600 × 600 recommended. JPG, PNG or WebP, up to 12 MB.</small></label>
         {error&&<p className="admin-alert" role="alert">{error}</p>}

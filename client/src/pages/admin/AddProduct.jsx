@@ -177,18 +177,18 @@ export default function AddProduct() {
       </Modal>}
     </section> : <section className="admin-panel admin-form-panel">
       <form className="admin-form" ref={formRef} onSubmit={handleSubmit}>
-        <label>Product name<input name="name" placeholder="Product name" value={form.name} onChange={handleChange} required /></label>
+        <label><span className="nx34-field-label">Product name <b className="nx34-required" aria-hidden="true">*</b></span><input name="name" placeholder="Product name" value={form.name} onChange={handleChange} required /></label>
         <div className="admin-form-grid two-column">
           <label>Brand<input name="brand" placeholder="Brand" value={form.brand} onChange={handleChange} maxLength={80} /></label>
           <label>Model<input name="model" placeholder="Model number or family" value={form.model} onChange={handleChange} maxLength={120} /></label>
         </div>
-        <label>Description<textarea name="description" placeholder="Product description" value={form.description} onChange={handleChange} required /></label>
+        <label><span className="nx34-field-label">Description <b className="nx34-required" aria-hidden="true">*</b></span><textarea name="description" placeholder="Product description" value={form.description} onChange={handleChange} required /></label>
         <div className="admin-form-grid">
           <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || categories.length === 0}
             onChange={categoryId => { setSpecifications({}); setForm(previous => ({...previous, categoryId})); }} />
           {variantDrafts.length === 0 && <>
-            <label>Simple product stock<input type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
-            <label>Alert me at or below (units)<input type="number" name="lowStockThreshold" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>0 alerts only when out of stock.</small></label>
+            <label><span className="nx34-field-label">Simple product stock <b className="nx34-required" aria-hidden="true">*</b></span><input type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
+            <label><span className="nx34-field-label">Low-stock alert threshold (units) <b className="nx34-required" aria-hidden="true">*</b></span><input type="number" name="lowStockThreshold" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>0 alerts only when out of stock.</small></label>
           </>}
         </div>
         {variantDrafts.length === 0 ? <VariantPriceFields row={form} onFieldChange={(field,value)=>setForm(old=>updatePricingDraft(old,field,value))} disabled={loading}/>

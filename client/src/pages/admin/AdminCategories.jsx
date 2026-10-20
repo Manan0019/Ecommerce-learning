@@ -77,8 +77,9 @@ export default function AdminCategories() {
 
   async function saveCategory(event) {
     event.preventDefault();
+    if (name.trim().length < 2) { setError("Enter a category name with at least two characters."); return; }
     const formData = new FormData();
-    formData.append("name", name);
+    formData.append("name", name.trim());
     formData.append("parentId", parentId);
     if (image) formData.append("image", image);
     setSaving(true);
@@ -165,7 +166,7 @@ export default function AdminCategories() {
         </div>
         <form className="admin-form" onSubmit={saveCategory}>
           <label>Parent category <select value={parentId} onChange={event=>setParentId(event.target.value)}><option value="">Top-level category</option>{categories.filter(c=>String(c.id)!==String(editing?.id)).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-          <label>Category name
+          <label><span className="nx34-field-label">Category name <b className="nx34-required" aria-hidden="true">*</b></span>
             <input value={name} onChange={(event) => setName(event.target.value)}
               minLength={2} maxLength={80} required />
           </label>
