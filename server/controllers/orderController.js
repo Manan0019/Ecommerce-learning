@@ -2,16 +2,16 @@ import { createHash } from "node:crypto";
 import pool from "../config/db.js";
 import { fromPaise, validateCartItems } from "../services/cartPricing.js";
 import { calculateCheckout } from "../services/checkoutPricing.js";
-import { canChangeOrderStatus, makeOrderLine, normalizeAddress, validOrderId, validRequestKey, validateAddress } from "../services/codOrderRules.js";
+import { canChangeOrderStatus, canConfirmCodCollection, validateDispatch, makeOrderLine, normalizeAddress, validOrderId, validRequestKey, validateAddress } from "../services/codOrderRules.js";
 
 const statementError = (res, error, label) => {
   console.error(label, error);
-  if (error.code === "42P01" || error.code === "42703") return res.status(503).json({ message: "COD database migrations 015–017 are required." });
+  if (error.code === "42P01" || error.code === "42703") return res.status(503).json({ message: "COD database migrations through 022 may be missing. Please review and apply them." });
   if (error.code === "23503") return res.status(409).json({ message: "Product or SKU is no longer available." });
   if (error.code === "40P01" || error.code === "40001") return res.status(409).json({ message: "Stock changed while ordering. Check your cart and retry." });
   return res.status(500).json({ message: "Could not complete the requested order operation." });
 };
-const serializeOrder = r => ({ taxTotal:r.tax_total, taxableValue:r.taxable_value, cgst:r.cgst, sgst:r.sgst, igst:r.igst, id: String(r.id), status: r.status, paymentMethod: "Cash on Delivery", paymentStatus: "cod_pending", subtotal: r.subtotal, shippingFee: r.shipping_fee, total: r.grand_total, address: r.address_snapshot, placedAt: r.placed_at, updatedAt: r.updated_at, customerName: r.customer_name ?? null, customerEmail: r.customer_email ?? null });
+const serializeOrder = r => ({ taxTotal:r.tax_total, taxableValue:r.taxable_value, cgst:r.cgst, sgst:r.sgst, igst:r.igst, id: String(r.id), status: r.status, paymentMethod: "Cash on Delivery", paymentStatus: r.payment_status, deliveryPartner: r.delivery_partner ?? null, trackingReference: r.tracking_reference ?? null, shippedAt: r.shipped_at ?? null, deliveredAt: r.delivered_at ?? null, codCollectedAt: r.cod_collected_at ?? null, subtotal: r.subtotal, shippingFee: r.shipping_fee, total: r.grand_total, address: r.address_snapshot, placedAt: r.placed_at, updatedAt: r.updated_at, customerName: r.customer_name ?? null, customerEmail: r.customer_email ?? null });
 
 // Item identity/price/stock checks are identical for estimate and final COD placement.
 async function loadOrderLines(db, items, lock = false) {
@@ -83,6 +83,7 @@ export async function placeCodOrder(req,res){
   const saved=await db.query(`INSERT INTO cod_orders(customer_id,request_key,request_digest,subtotal,shipping_fee,grand_total,address_snapshot,tax_total,taxable_value,cgst,sgst,igst)
     VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12) RETURNING *`,[req.user.id,requestKey,digest,amounts.subtotal,amounts.shippingFee,amounts.total,JSON.stringify(address.address),amounts.includedTax,amounts.taxableValue,amounts.cgst,amounts.sgst,amounts.igst]);
   const order=saved.rows[0];
+  await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id) VALUES($1,'placed',$2)",[order.id,req.user.id]);
   for(const [i,line] of lines.entries()){
     await db.query(`INSERT INTO cod_order_items(order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total,gst_percent,included_tax)
       VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12)`,[order.id,line.productId,line.variantId,line.name,line.sku,JSON.stringify(line.attributes),line.imageUrl,line.quantity,fromPaise(line.unitPrice),fromPaise(line.lineTotal),line.gstPercent,amounts.itemTaxes[i]]);
@@ -94,6 +95,13 @@ export async function placeCodOrder(req,res){
  finally{db.release();}
 }
 
+async function loadEvents(db,orderIds){
+ if(!orderIds.length)return new Map();
+ const r=await db.query('SELECT order_id,event_type,notes,recorded_at FROM cod_order_events WHERE order_id=ANY($1::bigint[]) ORDER BY id',[orderIds]);
+ const events=new Map();
+ for(const e of r.rows){const id=String(e.order_id);if(!events.has(id))events.set(id,[]);events.get(id).push({type:e.event_type,notes:e.notes,at:e.recorded_at});}
+ return events;
+}
 async function loadItems(db,orderIds){
  if (!orderIds.length) return new Map();
  const result=await db.query(`SELECT order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total
@@ -101,17 +109,17 @@ async function loadItems(db,orderIds){
  const map=new Map();for(const r of result.rows){ const key=String(r.order_id);if(!map.has(key))map.set(key,[]);map.get(key).push({productId:String(r.product_id),variantId:r.variant_id?String(r.variant_id):null,name:r.name_snapshot,sku:r.sku_snapshot,attributes:r.attributes_snapshot,imageUrl:r.image_snapshot,quantity:r.quantity,unitPrice:r.unit_price,lineTotal:r.line_total});}return map;
 }
 export async function myOrders(req,res){
- try {const r=await pool.query("SELECT * FROM cod_orders WHERE customer_id=$1 ORDER BY placed_at DESC,id DESC LIMIT 100",[req.user.id]);const items=await loadItems(pool,r.rows.map(x=>x.id));res.json({orders:r.rows.map(x=>({...serializeOrder(x),items:items.get(String(x.id))??[]}))});}
+ try {const r=await pool.query("SELECT * FROM cod_orders WHERE customer_id=$1 ORDER BY placed_at DESC,id DESC LIMIT 100",[req.user.id]);const ids=r.rows.map(x=>x.id);const [items,events]=await Promise.all([loadItems(pool,ids),loadEvents(pool,ids)]);res.json({orders:r.rows.map(x=>({...serializeOrder(x),items:items.get(String(x.id))??[],events:events.get(String(x.id))??[]}))});}
  catch(e){return statementError(res,e,"Customer orders:");}
 }
 export async function adminOrders(req,res){
  try {const r=await pool.query(`SELECT o.*,u.full_name AS customer_name,u.email AS customer_email FROM cod_orders o JOIN users u ON u.id=o.customer_id
- ORDER BY o.placed_at DESC,o.id DESC LIMIT 200`);const items=await loadItems(pool,r.rows.map(x=>x.id));return res.json({orders:r.rows.map(x=>({...serializeOrder(x),items:items.get(String(x.id))??[]}))});}
+ ORDER BY o.placed_at DESC,o.id DESC LIMIT 200`);const ids=r.rows.map(x=>x.id);const [items,events]=await Promise.all([loadItems(pool,ids),loadEvents(pool,ids)]);return res.json({orders:r.rows.map(x=>({...serializeOrder(x),items:items.get(String(x.id))??[],events:events.get(String(x.id))??[]}))});}
  catch(e){return statementError(res,e,"Admin orders:");}
 }
 export async function changeCodOrderStatus(req,res){
  const id=req.params.id;const status=req.body?.status;
- if(!validOrderId(id)||!(["confirmed","processing","cancelled"].includes(status)))return res.status(400).json({message:"Invalid order or status."});
+ if(!validOrderId(id)||!(["confirmed","processing","shipped","delivered","cancelled"].includes(status)))return res.status(400).json({message:"Invalid order or status."});
  const db=await pool.connect();let open=false;
  try{
   await db.query("BEGIN");open=true;
@@ -119,6 +127,10 @@ export async function changeCodOrderStatus(req,res){
   if(!r.rows.length){await db.query("ROLLBACK");open=false;return res.status(404).json({message:"Order not found."});}
   const order=r.rows[0];
   if(!canChangeOrderStatus(order.status,status)){await db.query("ROLLBACK");open=false;return res.status(409).json({message:`Cannot change an order from ${order.status} to ${status}.`});}
+  if(status==='shipped'){
+    const invalid=validateDispatch(req.body);
+    if(invalid){await db.query('ROLLBACK');open=false;return res.status(400).json({message:invalid});}
+  }
   if(status==='cancelled'){
     const items=await db.query("SELECT product_id,variant_id,quantity FROM cod_order_items WHERE order_id=$1 ORDER BY id",[id]);
     for(const item of items.rows){
@@ -126,7 +138,17 @@ export async function changeCodOrderStatus(req,res){
       else await db.query("UPDATE products SET stock=stock+$1 WHERE id=$2",[item.quantity,item.product_id]);
     }
   }
-  const changed=await db.query("UPDATE cod_orders SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *",[id,status]);
+  let changed;
+  if(status==='shipped'){
+    changed=await db.query(`UPDATE cod_orders SET status='shipped',delivery_partner=$2,tracking_reference=$3,
+      shipped_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,
+      [id,req.body.deliveryPartner.trim(),(req.body.trackingReference??'').trim()||null]);
+  }else if(status==='delivered'){
+    changed=await db.query("UPDATE cod_orders SET status='delivered',delivered_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *",[id]);
+  }else{
+    changed=await db.query("UPDATE cod_orders SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *",[id,status]);
+  }
+  await db.query('INSERT INTO cod_order_events(order_id,event_type,actor_user_id) VALUES($1,$2,$3)',[id,status,req.user.id]);
   await db.query("COMMIT");open=false;return res.json({order:serializeOrder(changed.rows[0])});
  }catch(e){if(open)await db.query("ROLLBACK").catch(()=>{});return statementError(res,e,"Update COD order:");}
  finally{db.release();}
@@ -139,4 +161,23 @@ export async function adminCodSummary(_req,res){
  COALESCE(SUM(grand_total) FILTER (WHERE status <> 'cancelled'),0)::numeric(12,2) AS order_value
  FROM cod_orders`);return res.json({summary:{total:r.rows[0].total_count,placed:r.rows[0].pending_count,confirmed:r.rows[0].confirmed_count,processing:r.rows[0].processing_count,orderValue:r.rows[0].order_value}});}
  catch(e){return statementError(res,e,"COD summary:");}
+}
+
+// Manual confirmation only: this does not contact a payment gateway or courier.
+export async function confirmCodCollection(req,res) {
+ const id=req.params.id;
+ if(!validOrderId(id))return res.status(400).json({message:'Invalid order ID.'});
+ const db=await pool.connect();let open=false;
+ try {
+  await db.query('BEGIN');open=true;
+  const found=await db.query('SELECT * FROM cod_orders WHERE id=$1 FOR UPDATE',[id]);
+  if(!found.rows.length){await db.query('ROLLBACK');open=false;return res.status(404).json({message:'Order not found.'});}
+  const order=found.rows[0];
+  if(order.payment_status==='cod_collected'){await db.query('COMMIT');open=false;return res.json({order:serializeOrder(order),alreadyCollected:true});}
+  if(!canConfirmCodCollection(order.status,order.payment_status)){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Cash collection can only be recorded after delivery.'});}
+  const updated=await db.query("UPDATE cod_orders SET payment_status='cod_collected',cod_collected_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *",[id]);
+  await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'cod_collected',$2,$3)",[id,req.user.id,'Cash collection manually recorded by administrator.']);
+  await db.query('COMMIT');open=false;return res.json({order:serializeOrder(updated.rows[0]),alreadyCollected:false});
+ }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});return statementError(res,e,'Record COD collection:');}
+ finally{db.release();}
 }

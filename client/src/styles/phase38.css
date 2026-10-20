@@ -1,0 +1,30 @@
+/* Phase 38 — manually recorded COD fulfillment, delivery and collection. */
+.nx38-tracking{margin:17px 0;padding:17px 18px;border:1px solid #e7e6f3;border-radius:17px;background:#f8f7ff;min-width:0;color:#263254}
+.nx38-tracking h3{font-size:.86rem;letter-spacing:-.02em;margin:0 0 14px;color:#25214c}
+.nx38-steps{list-style:none;padding:0;margin:0;display:flex;gap:0;justify-content:space-between}
+.nx38-steps li{position:relative;flex:1 1 0;min-width:0;display:flex;align-items:center;flex-direction:column;gap:7px;text-align:center;font-size:.68rem;font-weight:750;color:#8890a7}
+.nx38-steps li:not(:last-child):after{content:"";height:3px;position:absolute;top:13px;left:calc(50% + 17px);right:calc(-50% + 17px);background:#dce1ee;border-radius:3px;z-index:0}
+.nx38-steps li.is-done{color:#4333b6}.nx38-steps li.is-done:not(:last-child):after{background:#a59af0}
+.nx38-step-dot{height:28px;width:28px;border:2px solid #dae0ec;display:grid;place-items:center;border-radius:50%;background:#fff;font-size:.73rem;position:relative;z-index:1;color:#687694}
+.nx38-steps li.is-done .nx38-step-dot{background:#5948d8;border-color:#5948d8;color:#fff}
+.nx38-steps li.is-current .nx38-step-dot{box-shadow:0 0 0 4px rgba(91,67,216,.13)}
+.nx38-steps li>span:last-child{overflow-wrap:anywhere}
+.nx38-cancelled{border-radius:11px;padding:12px;background:#fff0f3;color:#9b2848;font-weight:700;font-size:.8rem}
+.nx38-delivery-info{margin-top:16px;border-radius:10px;background:#fff;padding:11px 12px;font-size:.79rem;overflow-wrap:anywhere;display:flex;flex-wrap:wrap;gap:5px 9px}
+.nx38-ref-label{font-weight:750;margin-left:8px}.nx38-delivery-info code{font-size:.83em;color:#3a3099}
+.nx38-cash-state{margin-top:13px;font-size:.78rem;font-weight:750;color:#483ca0}
+.nx38-history{margin-top:13px;border-top:1px solid #e2dff2;padding-top:10px;font-size:.79rem}
+.nx38-history summary{cursor:pointer;font-weight:750}.nx38-history ol{padding:10px 0 0 19px;margin:0;display:grid;gap:8px}
+.nx38-history li{padding-left:2px;line-height:1.5}.nx38-history time{display:block;color:#747d94;font-size:.73rem}.nx38-history small{display:block;color:#64738a}
+.nx38-tracking-note{display:block;margin-top:12px;font-size:.7rem;color:#747b99;line-height:1.5}
+.nx38-item-count{font-size:.8rem;color:#717990;font-weight:600;vertical-align:middle}
+.nx38-customer-order{border:1px solid #e3e7f2;box-shadow:0 11px 28px rgba(26,31,67,.05)}
+.nx38-order-breakdown{display:grid;gap:5px;padding:11px 0}.nx38-order-breakdown>span{display:flex;justify-content:space-between;gap:10px}
+.nx38-dispatch-form{display:grid;gap:10px;border:1px solid #dfdafb;border-radius:13px;padding:15px;margin-top:14px;background:#faf9ff}
+.nx38-dispatch-form h3{font-size:.92rem;margin:0 0 3px}.nx38-dispatch-form label{display:grid;gap:5px;font-size:.77rem;font-weight:750;color:#34405f}
+.nx38-dispatch-form label>span{color:#cd3150}.nx38-dispatch-form input{width:100%;border:1px solid #cbd2e3;border-radius:9px;padding:10px 11px;min-width:0;font:inherit;background:#fff;color:#172340}
+.nx38-dispatch-form input:focus-visible{outline:2px solid #7668e8;outline-offset:2px}
+.nx38-dispatch-form>div{display:flex;gap:8px;flex-wrap:wrap}.nx38-neutral-action{border-radius:9px;border:1px solid #cbd1e1;padding:8px 11px;background:#fff;font-weight:700;color:#304060}
+.nx38-collect-action{border:1px solid #b5e3cd;background:#edfff5;color:#146644;font-weight:800;border-radius:9px;padding:8px 11px;font-size:.78rem}
+.nx-status-shipped{background:#e7f2ff;color:#1559a6}.nx-status-delivered{background:#e6f8eb;color:#227245}
+@media(max-width:580px){.nx38-tracking{padding:13px 10px}.nx38-steps li{font-size:.56rem;gap:5px}.nx38-step-dot{width:24px;height:24px}.nx38-steps li:not(:last-child):after{top:11px;left:calc(50% + 13px);right:calc(-50% + 13px)}.nx38-customer-order .nx-order-heading{gap:6px}.nx38-customer-order .nx-order-heading h2{font-size:1rem}}

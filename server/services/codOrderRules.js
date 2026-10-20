@@ -1,7 +1,7 @@
 import { isPositiveId, toPaise } from "./cartPricing.js";
 
-export const ORDER_STATES = Object.freeze(["placed", "confirmed", "processing", "cancelled"]);
-const TRANSITIONS = Object.freeze({ placed: ["confirmed", "cancelled"], confirmed: ["processing", "cancelled"], processing: [], cancelled: [] });
+export const ORDER_STATES = Object.freeze(["placed", "confirmed", "processing", "shipped", "delivered", "cancelled"]);
+const TRANSITIONS = Object.freeze({ placed: ["confirmed", "cancelled"], confirmed: ["processing", "cancelled"], processing: ["shipped"], shipped: ["delivered"], delivered: [], cancelled: [] });
 export function canChangeOrderStatus(from, to) { return TRANSITIONS[from]?.includes(to) ?? false; }
 export function validRequestKey(value) {
   return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -34,3 +34,17 @@ export function makeOrderLine(item, product, variant, configured) {
     unitPrice: unitPaise, lineTotal: unitPaise * BigInt(item.quantity) };
 }
 export function validOrderId(id) { return isPositiveId(String(id)); }
+
+// Courier details describe a manual dispatch entry. They are not courier-verified tracking.
+export function validateDispatch(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "Delivery partner is required.";
+  const partner = typeof value.deliveryPartner === "string" ? value.deliveryPartner.trim() : "";
+  if (value.trackingReference != null && typeof value.trackingReference !== "string") return "Tracking reference must be text.";
+  const reference = typeof value.trackingReference === "string" ? value.trackingReference.trim() : "";
+  if (partner.length < 2 || partner.length > 80) return "Delivery partner must be between 2 and 80 characters.";
+  if (reference.length > 100 || (reference && !/^[\p{L}\p{N} _./#-]+$/u.test(reference))) return "Enter a valid tracking reference (up to 100 characters).";
+  return null;
+}
+export function canConfirmCodCollection(status, paymentStatus) {
+  return status === "delivered" && paymentStatus === "cod_pending";
+}
