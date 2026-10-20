@@ -94,7 +94,7 @@ test("unified login, persisted identity, session rotation, role boundaries and l
   assert.equal(customer.status, 200);
   assert.deepEqual(customer.data.user, {
     id: "1", fullName: "Customer", email: "customer@example.test",
-    mobileNumber: "+919876543210", profileImageUrl: "/uploads/profiles/test.webp",
+    mobileNumber: "+919876543210",
     role: "customer"
   });
   assert.ok(customer.cookie);
@@ -161,7 +161,7 @@ test("customer profile updates allow only name and password", async () => {
     assert.equal(renamed.data.user.fullName, "Updated Customer");
     assert.equal(renamed.data.user.email, "customer@example.test");
     assert.equal(renamed.data.user.mobileNumber, "+919876543210");
-    assert.equal(renamed.data.user.profileImageUrl, "/uploads/profiles/test.webp");
+    assert.equal(renamed.data.user.profileImageUrl, undefined);
     assert.equal(renamed.data.user.password_hash, undefined);
 
     assert.equal((await request("/api/auth/profile/password", {
@@ -251,7 +251,7 @@ test("OTP verification creates a customer with pending profile data", async () =
     assert.equal(result.status, 201);
     assert.match(inserted.sql, /VALUES \(\$1, \$2, \$3, \$4, \$5, 'customer'\)/);
     assert.deepEqual(inserted.values.slice(0, 4), [
-      pending.full_name, pending.email, pending.mobile_number, pending.profile_image_url
+      pending.full_name, pending.email, pending.mobile_number, null
     ]);
     assert.equal(inserted.values[4], pending.password_hash);
     assert.equal(result.data.password_hash, undefined);

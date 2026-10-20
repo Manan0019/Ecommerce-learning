@@ -17,6 +17,7 @@ export default function CustomerSignup() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [attempted, setAttempted] = useState(false);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -30,10 +31,12 @@ export default function CustomerSignup() {
   async function handleSubmit(event) {
     event.preventDefault();
 
+    setAttempted(true);
     setLoading(true);
     setMessage("");
 
     try {
+      if (form.password.length < 12) throw new Error("Password must be at least 12 characters.");
       if (form.password !== form.confirmPassword) {
         throw new Error("Passwords do not match.");
       }
@@ -59,8 +62,9 @@ export default function CustomerSignup() {
 
   return <AuthLayout eyebrow="Create your account" title="A little of everything starts here."
     description="Save favourites, manage delivery addresses and track your orders in one place.">
-      <form className="auth-form auth-signup-form" onSubmit={handleSubmit}>
-        <label className="auth-field" htmlFor="signup-name"><span>Full name</span>
+      <form className="auth-form auth-signup-form nx37-signup-form" onSubmit={handleSubmit}>
+        <div className="nx37-signup-note"><span aria-hidden="true">✦</span> One account for favourites, addresses and orders.</div>
+        <label className="auth-field" htmlFor="signup-name"><span>Full name <b className="nx37-required" aria-hidden="true">*</b></span>
           <input id="signup-name"
           type="text"
           name="fullName"
@@ -72,7 +76,7 @@ export default function CustomerSignup() {
           />
         </label>
 
-        <label className="auth-field" htmlFor="signup-email"><span>Email address</span>
+        <label className="auth-field" htmlFor="signup-email"><span>Email address <b className="nx37-required" aria-hidden="true">*</b></span>
           <input id="signup-email"
           type="email"
           name="email"
@@ -85,7 +89,7 @@ export default function CustomerSignup() {
           />
         </label>
 
-        <label className="auth-field" htmlFor="signup-mobile"><span>Mobile number</span>
+        <label className="auth-field" htmlFor="signup-mobile"><span>Mobile number <b className="nx37-required" aria-hidden="true">*</b></span>
           <input id="signup-mobile"
           type="tel"
           name="mobileNumber"
@@ -94,6 +98,7 @@ export default function CustomerSignup() {
           onChange={handleChange}
           autoComplete="tel"
           inputMode="tel"
+          maxLength={16}
           required
           />
         </label>
@@ -134,6 +139,6 @@ export default function CustomerSignup() {
         </button>
       </form>
 
-      <p className="auth-switch">Already have an account? <Link to="/login">Sign in</Link></p>
+      <p className="auth-switch nx37-signup-switch">Already have an account? <Link to="/login">Sign in</Link></p>
     </AuthLayout>;
 }

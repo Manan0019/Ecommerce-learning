@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import RecentlyViewed from "../../components/customer/RecentlyViewed";
 import ProductCard from "../../components/common/ProductCard";
 import PromotionCarousel from "../../components/customer/PromotionCarousel";
 import CustomerLayout from "../../components/layout/CustomerLayout";
@@ -90,6 +91,10 @@ export default function Home() {
           {featuredCategories.map((category,index) => <CategoryTile key={category.id} category={category} index={index} />)}
         </div> : !loading && <p className="store-empty">Categories will appear as products are added.</p>}
       </section>
+
+      <section className="nx37-shop-guide" aria-label="Explore Nexora"><div><span aria-hidden="true">01</span><strong>Explore</strong><p>Find products by collection, brand or price.</p></div><div><span aria-hidden="true">02</span><strong>Choose</strong><p>Compare configurations and save favourites.</p></div><div><span aria-hidden="true">03</span><strong>Order</strong><p>Review delivery and payment options at checkout.</p></div></section>
+
+      <RecentlyViewed />
 
       <section className="editorial-banner">
         <p className="eyebrow">Thoughtfully selected</p>

@@ -1,3 +1,4 @@
+import { rememberProduct } from "../../services/recentlyViewed";
 import WishlistButton from "../../components/customer/WishlistButton";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -34,7 +35,7 @@ function ProductDetailsContent({ id }) {
     async function loadProduct() {
       try {
         const data = await getProduct(id, controller.signal);
-        setProduct(data.product);
+        if (!controller.signal.aborted) { setProduct(data.product); rememberProduct(data.product); }
         const [result,mediaResult]=await Promise.all([getVariants(id),getProductMedia(id)]);
         if (!controller.signal.aborted) { setVariants(result.variants); setMedia(mediaResult.media||[]); setVariantId(result.variants.find(v => String(v.id) === String(initialVariantRef.current))?.id || result.variants.find(v => v.stock > 0)?.id || result.variants[0]?.id || ""); }
       } catch (requestError) {

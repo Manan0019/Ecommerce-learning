@@ -77,6 +77,11 @@ export default function AdminBanners(){
   return <AdminLayout title="Promotion Studio" subtitle="Choose where a banner appears and where it redirects—independently."
     actions={<button type="button" className="admin-primary-action" onClick={()=>edit(null)}>+ New promotion</button>}>
     {error&&!opened&&<p className="admin-alert" role="alert">{error}</p>}{notice&&<p role="status" className="admin-form-message">{notice}</p>}
+    <section className="nx37-promotion-admin-intro" aria-label="Promotion overview">
+      <div><strong>{items.filter(item => item.isActive).length}</strong><span>Published banners</span></div>
+      <div><strong>{items.filter(item => item.isActive && ["home","both","home_product"].includes(item.position)).length}</strong><span>On homepage</span></div>
+      <p>Up to three homepage banners are now visible together. Use <b>Order</b> to control their sequence; image-only banners never receive an extra text overlay.</p>
+    </section>
     <section className="nx17-admin-banner-grid">{items.map(item=><article className="nx17-banner-card" key={item.id}>
       <img src={apiAssetUrl(item.imageUrl)} alt=""/><div><strong>{item.title}</strong>
       <p>{placementLabel(item)} · {item.isActive?"Active":"Inactive"} · Order {item.sortOrder} · {item.showText===false?"Image only":"Text overlay"}</p>

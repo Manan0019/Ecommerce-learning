@@ -124,69 +124,24 @@ export default function CustomerDashboard() {
     return null;
   }
 
-  return (
-    <CustomerLayout mainClassName="nx-profile-page"><div className="profile-container">
-      <div className="nx-profile-head"><div><p className="eyebrow">My account</p><p>Manage your profile and review your COD orders.</p></div><Link className="button button-primary" to="/orders">My Orders →</Link></div>
-      <h1>Customer Profile</h1><p><Link to="/addresses">Manage saved delivery addresses →</Link></p>
-
-      <div className="nx35-account-identity"><span className="nx35-account-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20c.35-4.25 3.1-6.35 7.2-6.35s6.85 2.1 7.2 6.35"/></svg></span><div><strong>{user.fullName}</strong><small>Customer account</small></div></div>
-
-      <p><strong>Email:</strong> {user.email}</p>
-      <p><strong>Mobile number:</strong> {user.mobileNumber || "Not provided"}</p>
-
-      <form onSubmit={updateName}>
-        <h2>Change name</h2>
-        <input
-          type="text"
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          minLength={2}
-          maxLength={100}
-          required
-        />
-        <button type="submit" disabled={savingName}>
-          {savingName ? "Saving..." : "Save name"}
-        </button>
-        {nameMessage && <p role="status">{nameMessage}</p>}
-      </form>
-
-      <form onSubmit={updatePassword}>
-        <h2>Change password</h2>
-        <input
-          type="password"
-          placeholder="Current password"
-          value={passwords.currentPassword}
-          onChange={(event) => setPasswords((value) => ({ ...value, currentPassword: event.target.value }))}
-          autoComplete="current-password"
-          required
-        />
-        <input
-          type="password"
-          placeholder="New password (minimum 12 characters)"
-          value={passwords.newPassword}
-          onChange={(event) => setPasswords((value) => ({ ...value, newPassword: event.target.value }))}
-          minLength={12}
-          autoComplete="new-password"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Confirm new password"
-          value={passwords.confirmPassword}
-          onChange={(event) => setPasswords((value) => ({ ...value, confirmPassword: event.target.value }))}
-          minLength={12}
-          autoComplete="new-password"
-          required
-        />
-        <button type="submit" disabled={savingPassword}>
-          {savingPassword ? "Saving..." : "Change password"}
-        </button>
-        {passwordMessage && <p role="status">{passwordMessage}</p>}
-      </form>
-
-      <button onClick={handleLogout}>
-        Logout
-      </button>
-    </div></CustomerLayout>
-  );
+  return <CustomerLayout mainClassName="nx-profile-page nx37-account-page">
+    <div className="nx37-account-shell">
+      <div className="nx37-account-heading"><div><span className="eyebrow">YOUR SPACE</span><h1>Good to see you, {user.fullName?.split(" ")[0] || "there"}.</h1><p>Everything about your account in one place.</p></div><span className="nx37-account-illustration" aria-hidden="true">✦</span></div>
+      <div className="nx37-account-identity"><div className="nx35-account-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20c.35-4.25 3.1-6.35 7.2-6.35s6.85 2.1 7.2 6.35"/></svg></div><div><strong>{user.fullName}</strong><span>{user.email}</span><small>{user.mobileNumber || "Mobile number not available"}</small></div></div>
+      <nav className="nx37-account-shortcuts" aria-label="Account shortcuts">
+        <Link to="/orders"><span aria-hidden="true">▣</span><strong>My orders</strong><small>View order status and totals</small><em aria-hidden="true">↗</em></Link>
+        <Link to="/addresses"><span aria-hidden="true">⌂</span><strong>Saved addresses</strong><small>Manage where orders arrive</small><em aria-hidden="true">↗</em></Link>
+        <Link to="/wishlist"><span aria-hidden="true">♡</span><strong>Favourites</strong><small>Return to things you loved</small><em aria-hidden="true">↗</em></Link>
+      </nav>
+      <div className="nx37-account-settings"><section className="nx37-account-panel"><div className="nx37-account-section-head"><span className="eyebrow">PERSONAL DETAILS</span><h2>Change your name</h2><p>Your email and account role cannot be changed here.</p></div>
+        <form onSubmit={updateName}><label htmlFor="nx37-account-name">Full name <span className="nx37-required">*</span></label><input id="nx37-account-name" type="text" autoComplete="name" value={fullName} onChange={event => setFullName(event.target.value)} minLength={2} maxLength={100} required/><button type="submit" disabled={savingName}>{savingName ? "Saving…" : "Save changes"}</button>{nameMessage && <p role="status" className="nx37-account-feedback">{nameMessage}</p>}</form>
+      </section><section className="nx37-account-panel"><div className="nx37-account-section-head"><span className="eyebrow">ACCOUNT SECURITY</span><h2>Update your password</h2><p>Choose a new password with at least 12 characters.</p></div>
+        <form onSubmit={updatePassword}><label htmlFor="nx37-current-password">Current password <span className="nx37-required">*</span></label><input id="nx37-current-password" type="password" value={passwords.currentPassword} onChange={event => setPasswords(v => ({ ...v, currentPassword: event.target.value }))} autoComplete="current-password" required />
+          <label htmlFor="nx37-new-password">New password <span className="nx37-required">*</span></label><input id="nx37-new-password" type="password" value={passwords.newPassword} onChange={event => setPasswords(v => ({ ...v, newPassword: event.target.value }))} minLength={12} autoComplete="new-password" required />
+          <label htmlFor="nx37-confirm-password">Confirm password <span className="nx37-required">*</span></label><input id="nx37-confirm-password" type="password" value={passwords.confirmPassword} onChange={event => setPasswords(v => ({ ...v, confirmPassword: event.target.value }))} minLength={12} autoComplete="new-password" required />
+          <button type="submit" disabled={savingPassword}>{savingPassword ? "Updating…" : "Update password"}</button>{passwordMessage && <p role="status" className="nx37-account-feedback">{passwordMessage}</p>}</form>
+      </section></div>
+      <div className="nx37-account-bottom"><span>Need to switch accounts?</span><button type="button" onClick={handleLogout}>Sign out ↗</button></div>
+    </div>
+  </CustomerLayout>;
 }

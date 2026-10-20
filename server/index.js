@@ -40,7 +40,6 @@ app.get("/api/db-test", async (_req, res) => {
   }
 });
 app.use("/uploads/products", express.static(path.join(__dirname, "uploads/products")));
-app.use("/uploads/profiles", express.static(path.join(__dirname, "uploads/profiles")));
 app.use("/uploads/categories", express.static(path.join(__dirname, "uploads/categories")));
 app.use("/uploads/banners", express.static(path.join(__dirname, "uploads/banners")));
 app.use("/uploads/branding", express.static(path.join(__dirname, "uploads/branding")));

@@ -9,18 +9,26 @@ export default function Categories() {
   useEffect(() => {
     const controller = new AbortController();
     getCategories(controller.signal)
-      .then(data => setState({ loading: false, categories: data.categories || [], error: "" }))
+      .then(data => { if (!controller.signal.aborted) setState({ loading: false, categories: data.categories || [], error: "" }); })
       .catch(err => { if (err.name !== "AbortError") setState({ loading: false, categories: [], error: err.message }); });
     return () => controller.abort();
   }, []);
-  return <CustomerLayout mainClassName="nx-categories-page">
-    <header className="nx-page-intro"><p className="eyebrow">Find your next favourite</p><h1>Explore every category.</h1>
-      <p>Browse our collections and discover products that match your interests.</p></header>
-    {state.loading && <p role="status">Loading categories…</p>}
-    {state.error && <p className="store-alert" role="alert">{state.error}</p>}
-    {!state.loading && !state.error && state.categories.length === 0 && <div className="store-empty">Categories will appear here when the catalogue is ready.</div>}
-    <div className="nx16-category-grid nx16-category-directory">
-      {state.categories.filter(c=>!c.parentId).map((category,index) => <div key={category.id} className="nx17-category-tree"><CategoryTile category={category} index={index} directory /><div className="nx17-subcategory-links">{state.categories.filter(sub=>String(sub.parentId)===String(category.id)).map(sub=><Link key={sub.id} to={`/categories/${encodeURIComponent(sub.slug)}`}>{sub.name} ↗</Link>)}</div></div>)}
+  const top = state.categories.filter(c => !c.parentId);
+  return <CustomerLayout mainClassName="nx-categories-page nx37-collections-page">
+    <header className="nx37-collections-intro"><span className="eyebrow">THE COLLECTIONS</span><h1>Find your kind of everything.</h1><p>Explore categories made for the things you love, with an easier path to every subcategory.</p></header>
+    {state.loading && <div className="nx37-category-grid" aria-label="Loading categories">{[1, 2, 3, 4].map(i => <div className="nx37-category-placeholder" key={i}/>)}</div>}
+    {state.error && <div className="store-alert" role="alert">{state.error}</div>}
+    {!state.loading && !state.error && top.length === 0 && <div className="store-empty">Categories will appear here when the catalogue is ready.</div>}
+    <div className="nx37-category-grid nx37-directory-grid">
+      {top.map((category, index) => {
+        const children = state.categories.filter(sub => String(sub.parentId) === String(category.id));
+        return <section className="nx37-category-group" key={category.id}>
+          <CategoryTile category={category} index={index} directory />
+          {children.length > 0 && <div className="nx37-subcategory-row" aria-label={`${category.name} subcategories`}>
+            {children.map(child => <Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>{child.name}<span aria-hidden="true">↗</span></Link>)}
+          </div>}
+        </section>;
+      })}
     </div>
   </CustomerLayout>;
 }

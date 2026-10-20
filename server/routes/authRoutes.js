@@ -40,7 +40,6 @@ function safeUser(user) {
     fullName: user.full_name,
     email: user.email,
     mobileNumber: user.mobile_number ?? null,
-    profileImageUrl: user.profile_image_url ?? null,
     role: user.role
   };
 }
@@ -308,7 +307,7 @@ router.post(
           pending.full_name,
           pending.email,
           pending.mobile_number,
-          pending.profile_image_url,
+          null,
           pending.password_hash
         ]
       );

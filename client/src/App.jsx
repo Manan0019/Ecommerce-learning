@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import StoreErrorBoundary from "./components/common/StoreErrorBoundary";
+import RouteExperience from "./components/common/RouteExperience";
 import CartProvider from "./context/CartProvider";
 import BrandingProvider from "./context/BrandingProvider";
 import AdminBranding from "./pages/admin/AdminBranding";
@@ -53,9 +55,10 @@ import "./styles/phase33.css";
 import "./styles/phase34.css";
 import "./styles/phase35.css";
 import "./styles/phase36.css";
+import "./styles/phase37.css";
 
 export default function App() {
-  return <BrandingProvider><CartProvider><BrowserRouter><Routes>
+  return <StoreErrorBoundary><BrandingProvider><CartProvider><BrowserRouter><RouteExperience /><Routes>
     <Route path="/" element={<Home />} />
     <Route path="/signup" element={<CustomerSignup />} />
     <Route path="/verify-otp" element={<VerifyOTP />} />
@@ -87,5 +90,5 @@ export default function App() {
     <Route path="/about" element={<About />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="*" element={<NotFound />} />
-  </Routes></BrowserRouter></CartProvider></BrandingProvider>;
+  </Routes></BrowserRouter></CartProvider></BrandingProvider></StoreErrorBoundary>;
 }

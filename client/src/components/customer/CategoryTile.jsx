@@ -1,18 +1,15 @@
 import { Link } from "react-router-dom";
 import CategoryArtwork from "./CategoryArtwork";
 
-/** Compact category tile. Existing admin-uploaded category art is shown at a
- * controlled size, so large line-art icons no longer swallow the entire card.
- * Replace image assets later with consistent lifestyle/category photography.
- */
+/** The artwork is always contained in a consistent panel, even when admins use
+ * mixed aspect ratios; later brand photography can be swapped without new CSS. */
 export default function CategoryTile({ category, index = 0, directory = false }) {
-  return <Link className={`nx16-category-tile ${directory ? "nx16-category-directory-tile" : ""}`} to={`/categories/${encodeURIComponent(category.slug)}`}>
-    <div className="nx16-category-copy">
-      <span className="nx16-category-kicker">Collection {String(index + 1).padStart(2, "0")}</span>
+  return <Link className={`nx37-category-card nx37-category-tone-${index % 4}${directory ? " is-directory" : ""}`} to={`/categories/${encodeURIComponent(category.slug)}`} aria-label={`Browse ${category.name}`}>
+    <div className="nx37-category-image"><CategoryArtwork category={category} /></div>
+    <div className="nx37-category-details">
+      <span className="nx37-category-kicker">COLLECTION {String(index + 1).padStart(2, "0")}</span>
       <h3>{category.name}</h3>
-      <p>{category.productCount ?? 0} styles</p>
-      <span className="nx16-category-explore">Explore collection <span aria-hidden="true">↗</span></span>
+      <div className="nx37-category-bottom"><span>{Number(category.productCount) > 0 ? `${category.productCount} products` : "Discover collection"}</span><span className="nx37-category-arrow" aria-hidden="true">↗</span></div>
     </div>
-    <CategoryArtwork category={category} className="nx16-category-art" />
   </Link>;
 }
