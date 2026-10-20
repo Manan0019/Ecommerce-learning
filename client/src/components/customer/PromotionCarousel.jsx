@@ -27,14 +27,31 @@ export default function PromotionCarousel({ position = "home", category, product
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [homeVisibleCount,setHomeVisibleCount] = useState(3);
   const rail = useRef(null);
   useEffect(() => {
-    const controller = new AbortController();
-    getBanners(position, position === "product" ? product : category, controller.signal)
-      .then(result => { if (!controller.signal.aborted) { setBanners(result.banners || []); setActive(0); setLoaded(true); setFailed(false); } })
-      .catch(() => { if (!controller.signal.aborted) { setLoaded(true); setFailed(true); } });
-    return () => controller.abort();
-  }, [position, category, product]);
+    const controller=new AbortController();
+    let first=true;
+    async function refresh() {
+      try {
+        const result=await getBanners(position,position==="product"?product:category,controller.signal);
+        if(controller.signal.aborted)return;
+        const next=result.banners||[];
+        setBanners(next);
+        setHomeVisibleCount(result.homeVisibleCount??3);
+        setActive(current=>first?0:Math.min(current,Math.max(next.length-1,0)));
+        first=false;
+        setLoaded(true);setFailed(false);
+      } catch {
+        if(!controller.signal.aborted){setLoaded(true);setFailed(true);}
+      }
+    }
+    refresh();
+    // A scheduled promotion can start or expire while a shopper leaves the page open.
+    const timer=window.setInterval(refresh,60_000);
+    window.addEventListener("focus",refresh);
+    return ()=>{controller.abort();window.clearInterval(timer);window.removeEventListener("focus",refresh);};
+  },[position,category,product]);
 
   const slide = useCallback((step) => {
     setActive(current => banners.length ? (current + step + banners.length) % banners.length : 0);
@@ -42,7 +59,7 @@ export default function PromotionCarousel({ position = "home", category, product
   }, [banners.length]);
 
   if (!banners.length) return loaded ? fallback : null;
-  const count = Math.min(banners.length, position === "home" ? 3 : 2);
+  const count = Math.min(banners.length, position === "home" ? homeVisibleCount : 2);
   const visible = Array.from({ length: count }, (_, i) => banners[(active + i) % banners.length]);
   return <section className={`nx37-promotion-section ${position === "home" ? "nx37-promotion-home" : "nx37-promotion-inner"}`} aria-label="Current store promotions">
     <div className="nx37-promotion-heading"><span>THE NEXORA EDIT <span aria-hidden="true">✦</span> CURATED FOR YOU</span>

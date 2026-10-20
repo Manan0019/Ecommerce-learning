@@ -29,7 +29,8 @@ test('recently viewed safely ignores malformed and illegal product ids', () => {
 });
 test('promotion grid shows multiple panels without changing banner destination', () => {
   const t = src('components/customer/PromotionCarousel.jsx');
-  assert.match(t, /Math\.min\(banners\.length, position === "home" \? 3 : 2\)/);
+  assert.match(t, /Math\.min\(banners\.length, position === "home" \? homeVisibleCount : 2\)/);
+  assert.match(t, /setHomeVisibleCount/);
   assert.match(t, /banner\.linkUrl/);
   assert.match(t, /showText === false/);
   assert.match(t, /getBanners\(position/);

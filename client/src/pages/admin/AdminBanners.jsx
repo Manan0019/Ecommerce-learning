@@ -4,12 +4,14 @@ import Modal from "../../components/common/Modal";
 import PromotionProductPicker from "../../components/admin/PromotionProductPicker";
 import {apiAssetUrl} from "../../services/apiClient";
 import {getAdminCategories} from "../../services/categoryService";
-import {getAdminBanners,saveBanner,setBannerActive} from "../../services/bannerService";
+import {getAdminBanners,saveBanner,setBannerActive,setPromotionDisplayCount} from "../../services/bannerService";
+import PromotionOrderManager from "../../components/admin/PromotionOrderManager";
+import {bannerStatus,toLocalDateTime,toUtcDateTime} from "../../services/promotionSchedule";
 import {categoryPaths} from "../../services/categoryHierarchy";
 
 const blank=()=>({title:"",subtitle:"",position:"home",categoryId:"",productId:"",productName:"",
   destinationType:"shop",destinationCategoryId:"",destinationProductId:"",destinationProductName:"",
-  customLink:"/products",sortOrder:"0",showText:true,image:null});
+  customLink:"/products",showText:true,startsAt:"",endsAt:"",image:null});
 const categoryPlacement=position=>["category","both"].includes(position);
 const productPlacement=position=>["product","home_product"].includes(position);
 function parseDestination(url,categories){
@@ -36,13 +38,15 @@ function placementLabel(item){
 export default function AdminBanners(){
   const [items,setItems]=useState([]),[categories,setCategories]=useState([]),[draft,setDraft]=useState(blank),[editing,setEditing]=useState(null);
   const [opened,setOpened]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
-  async function reload(){const [b,c]=await Promise.all([getAdminBanners(),getAdminCategories()]);setItems(b.banners||[]);setCategories(c.categories||[]);}
-  useEffect(()=>{let alive=true;Promise.all([getAdminBanners(),getAdminCategories()]).then(([b,c])=>{if(alive){setItems(b.banners||[]);setCategories(c.categories||[]);}}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false};},[]);
+  const [homeCount,setHomeCount]=useState(3),[savingDisplay,setSavingDisplay]=useState(false);
+  async function reload(){const [b,c]=await Promise.all([getAdminBanners(),getAdminCategories()]);setItems(b.banners||[]);setCategories(c.categories||[]);setHomeCount(b.homeVisibleCount??3);}
+  useEffect(()=>{let alive=true;Promise.all([getAdminBanners(),getAdminCategories()]).then(([b,c])=>{if(alive){setItems(b.banners||[]);setCategories(c.categories||[]);setHomeCount(b.homeVisibleCount??3);}}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false};},[]);
   const paths=categoryPaths(categories);
   function edit(item){
     setEditing(item);setDraft({...blank(),title:item?.title||"",subtitle:item?.subtitle||"",
       position:item?.position||"home",categoryId:item?.categoryId||"",productId:item?.productId||"",
-      productName:item?.productName||"",sortOrder:String(item?.sortOrder??0),showText:item?.showText!==false,...parseDestination(item?.linkUrl,paths)});
+      productName:item?.productName||"",showText:item?.showText!==false,
+      startsAt:toLocalDateTime(item?.startsAt),endsAt:toLocalDateTime(item?.endsAt),...parseDestination(item?.linkUrl,paths)});
     setError("");setNotice("");setOpened(true);
   }
   function destination(){
@@ -61,10 +65,14 @@ export default function AdminBanners(){
     if(!linkUrl)return setError("Choose a destination category or product before saving.");
     if(categoryPlacement(draft.position)&&!draft.categoryId)return setError("Choose a category for this promotion placement.");
     if(productPlacement(draft.position)&&!draft.productId)return setError("Choose a product for this promotion placement.");
+    const startsAt=toUtcDateTime(draft.startsAt),endsAt=toUtcDateTime(draft.endsAt);
+    if((draft.startsAt&&!startsAt)||(draft.endsAt&&!endsAt)||(startsAt&&endsAt&&startsAt>=endsAt))
+      return setError("Use valid start/end dates, with the end after the start.");
     setBusy(true);
     try{
       const data=new FormData();
-      for(const key of ["title","subtitle","position","sortOrder"])data.append(key,draft[key]);
+      for(const key of ["title","subtitle","position"])data.append(key,draft[key]);
+      data.append("startsAt",startsAt||"");data.append("endsAt",endsAt||"");
       data.append("showText",String(draft.showText));
       data.append("categoryId",categoryPlacement(draft.position)?draft.categoryId:"");
       data.append("productId",productPlacement(draft.position)?draft.productId:"");
@@ -74,20 +82,34 @@ export default function AdminBanners(){
     }catch(err){setError(err.message)}finally{setBusy(false)}
   }
   async function toggle(item){setBusy(true);setError("");try{await setBannerActive(item.id,!item.isActive);await reload()}catch(e){setError(e.message)}finally{setBusy(false)}}
+  async function saveDisplay(){setSavingDisplay(true);setError("");try{await setPromotionDisplayCount(homeCount);await reload();setNotice("Homepage layout saved.");}catch(e){setError(e.message);}finally{setSavingDisplay(false);}}
+  const live=items.filter(item=>bannerStatus(item)==="Live");
+  const upcoming=items.filter(item=>bannerStatus(item)==="Scheduled");
   return <AdminLayout title="Promotion Studio" subtitle="Choose where a banner appears and where it redirects—independently."
     actions={<button type="button" className="admin-primary-action" onClick={()=>edit(null)}>+ New promotion</button>}>
     {error&&!opened&&<p className="admin-alert" role="alert">{error}</p>}{notice&&<p role="status" className="admin-form-message">{notice}</p>}
-    <section className="nx37-promotion-admin-intro" aria-label="Promotion overview">
-      <div><strong>{items.filter(item => item.isActive).length}</strong><span>Published banners</span></div>
-      <div><strong>{items.filter(item => item.isActive && ["home","both","home_product"].includes(item.position)).length}</strong><span>On homepage</span></div>
-      <p>Up to three homepage banners are now visible together. Use <b>Order</b> to control their sequence; image-only banners never receive an extra text overlay.</p>
+    <section className="nx39-metrics" aria-label="Promotion statistics">
+      <div><strong>{items.length}</strong><span>Total banners</span></div>
+      <div><strong>{live.length}</strong><span>Currently live</span></div>
+      <div><strong>{live.filter(item=>["home","both","home_product"].includes(item.position)).length}</strong><span>Live on homepage</span></div>
+      <div><strong>{upcoming.length}</strong><span>Scheduled next</span></div>
     </section>
-    <section className="nx17-admin-banner-grid">{items.map(item=><article className="nx17-banner-card" key={item.id}>
-      <img src={apiAssetUrl(item.imageUrl)} alt=""/><div><strong>{item.title}</strong>
-      <p>{placementLabel(item)} · {item.isActive?"Active":"Inactive"} · Order {item.sortOrder} · {item.showText===false?"Image only":"Text overlay"}</p>
+    <div className="nx39-layout-panel"><div><span className="nx39-eyebrow">HOMEPAGE LAYOUT</span><h2>How many banners appear together?</h2>
+      <p>Choose the desktop layout. On narrow phones, shoppers can swipe through one card at a time.</p></div>
+      <label><span>Visible banners</span><select value={homeCount} onChange={e=>setHomeCount(Number(e.target.value))}>
+        <option value={1}>1 banner</option><option value={2}>2 banners</option><option value={3}>3 banners</option>
+      </select></label>
+      <button type="button" className="admin-primary-action" disabled={savingDisplay} onClick={saveDisplay}>{savingDisplay?"Saving…":"Save layout"}</button>
+    </div>
+    <PromotionOrderManager items={items} onSaved={reload}/>
+    <div className="nx39-section-heading"><span className="nx39-eyebrow">BANNER LIBRARY</span><h2>All promotions</h2><p>Modify content, placement, destination, visibility and schedule here.</p></div>
+    <section className="nx17-admin-banner-grid">{items.map((item,i)=><article className="nx17-banner-card nx39-library-card" key={item.id}>
+      <img src={apiAssetUrl(item.imageUrl)} alt="" loading="lazy"/><div><div className="nx39-card-titles"><strong>{item.title}</strong><span className={`nx39-status nx39-${bannerStatus(item).toLowerCase()}`}>{bannerStatus(item)}</span></div>
+      <p><strong>#{i+1}</strong> · {placementLabel(item)} · {item.showText===false?"Image only":"Text overlay"}</p>
       <p className="nx19-banner-destination">Redirects to: <code>{item.linkUrl}</code></p>
+      {(item.startsAt||item.endsAt)&&<p className="nx39-schedule-caption">{item.startsAt?`From ${new Date(item.startsAt).toLocaleString()}`:"Immediately"} → {item.endsAt?new Date(item.endsAt).toLocaleString():"No end date"}</p>}
       <div className="nx17-banner-actions"><button type="button" onClick={()=>edit(item)}>Edit</button>
-        <button type="button" disabled={busy} onClick={()=>toggle(item)}>{item.isActive?"Hide":"Publish"}</button></div></div>
+        <button type="button" disabled={busy} onClick={()=>toggle(item)}>{item.isActive?"Disable":"Enable"}</button></div></div>
     </article>)}{!items.length&&<div className="admin-empty">No promotions yet. Add a banner to get started.</div>}</section>
     {opened&&<Modal title={editing?"Edit promotion":"New promotion"} size="medium" onClose={()=>!busy&&setOpened(false)} closeDisabled={busy}>
       <form className="admin-form nx17-banner-form" onSubmit={submit}>
@@ -126,7 +148,14 @@ export default function AdminBanners(){
             <small>Internal paths start with /; external destinations must use HTTPS. Unsafe links are rejected.</small></label>}
           <p className="nx19-url-preview">Click destination: <code>{destination()||"Select a destination"}</code></p>
         </fieldset>
-        <label>Slide order<input type="number" min="0" max="10000" value={draft.sortOrder} onChange={e=>setDraft(p=>({...p,sortOrder:e.target.value}))}/></label>
+        <fieldset className="nx39-schedule-fields"><legend>3. Promotion schedule (optional)</legend>
+          <p>Use your local date and time. Empty fields mean no time limit. The promotion must also be enabled.</p>
+          <div className="nx39-schedule-grid"><label>Start date &amp; time<input type="datetime-local" value={draft.startsAt}
+            onChange={e=>setDraft(p=>({...p,startsAt:e.target.value}))}/></label>
+            <label>End date &amp; time<input type="datetime-local" value={draft.endsAt}
+            onChange={e=>setDraft(p=>({...p,endsAt:e.target.value}))}/></label></div>
+        </fieldset>
+        <p className="nx39-order-hint">Display position is managed in the numbered <b>Promotion positions</b> section after saving.</p>
         <label><span className="nx34-field-label">{editing?"Replace banner image (optional)":"Banner image"}{!editing && <b className="nx34-required" aria-hidden="true"> *</b>}</span>
           <input required={!editing} type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setDraft(p=>({...p,image:e.target.files?.[0]||null}))}/>
           <small>Landscape 1600 × 600 recommended. JPG, PNG or WebP, up to 12 MB.</small></label>

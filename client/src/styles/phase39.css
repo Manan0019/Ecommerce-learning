@@ -1,0 +1,52 @@
+/* Phase 39 – numbered promotions with responsive position controls. */
+.nx39-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:10px 0 22px}
+.nx39-metrics>div{background:#fff;border:1px solid #e3e5f1;border-radius:16px;padding:19px 20px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.nx39-metrics strong{font-size:1.8rem;line-height:1;color:#3f2eac;font-variant-numeric:tabular-nums}
+.nx39-metrics span{font-size:.79rem;color:#6a7188;font-weight:650}
+.nx39-layout-panel,.nx39-order-panel{background:#fff;border:1px solid #e3e5f1;border-radius:19px;padding:clamp(17px,2vw,27px);margin:0 0 20px;min-width:0}
+.nx39-layout-panel{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.nx39-layout-panel>div{flex:1 1 310px}
+.nx39-layout-panel h2,.nx39-order-top h2,.nx39-section-heading h2{font-size:clamp(1.15rem,2vw,1.55rem);margin:5px 0;color:#17213c;letter-spacing:-.025em}
+.nx39-layout-panel p,.nx39-order-top p,.nx39-section-heading p{color:#67728b;font-size:.82rem;line-height:1.55;margin:0}
+.nx39-eyebrow{letter-spacing:.14em;font-size:.67rem;color:#5b46c6;font-weight:900}
+.nx39-layout-panel>label{display:grid;gap:6px;color:#333c57;font-size:.78rem;font-weight:750}
+.nx39-layout-panel select,.nx39-select-position select{background:#fff;border:1px solid #dcdff0;border-radius:9px;color:#17213c;padding:10px 13px;min-height:42px;font:inherit}
+.nx39-layout-panel .admin-primary-action,.nx39-order-actions .admin-primary-action{white-space:nowrap;min-height:42px}
+.nx39-order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:19px}
+.nx39-order-top>div:first-child{flex:1 1 300px}
+.nx39-order-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.nx39-order-actions>button:not(.admin-primary-action){border:1px solid #e0deee;color:#493d69;background:#fff;border-radius:10px;padding:10px 17px;font-weight:800;min-height:42px}
+.nx39-order-actions button:disabled,.nx39-order-movers button:disabled{opacity:.45;cursor:not-allowed}
+.nx39-feedback{padding:10px 14px;border-radius:9px;background:#f0eefe;color:#483caa;font-size:.83rem;margin-bottom:15px}
+.nx39-order-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.nx39-order-row{display:flex;gap:13px;align-items:center;border:1px solid #e5e7f0;border-radius:13px;padding:12px;background:#fff;min-width:0;transition:background .2s,border-color .2s}
+.nx39-order-row:hover{background:#f9f8ff;border-color:#c5baf4}
+.nx39-order-row.is-dragging{opacity:.6}
+.nx39-grip{color:#948baa;font-size:1.7rem;cursor:grab;user-select:none}
+.nx39-rank{background:#eeeafd;color:#523bc2;border-radius:11px;padding:10px;min-width:42px;min-height:42px;display:grid;place-items:center;font-size:1.1rem;font-weight:900;flex-shrink:0}
+.nx39-order-row>img{width:87px;height:61px;flex:0 0 87px;object-fit:contain;background:#f4f4f8;border-radius:10px}
+.nx39-order-copy{flex:1;min-width:0;display:grid;gap:5px}
+.nx39-order-copy strong{color:#1a2541;font-size:.91rem;overflow-wrap:anywhere}
+.nx39-order-copy span{color:#69758e;font-size:.75rem;text-transform:capitalize}
+.nx39-select-position{display:grid;gap:5px;color:#626b86;font-size:.7rem;font-weight:750}
+.nx39-order-movers{display:flex;gap:5px}
+.nx39-order-movers button{background:#fafaff;border:1px solid #dcd8f5;border-radius:9px;color:#483bc0;font-size:1.05rem;width:36px;height:38px}
+.nx39-empty{color:#76809b;font-size:.85rem}
+.nx39-section-heading{margin:28px 0 18px}
+.nx39-card-titles{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.nx39-status{border-radius:99px;font-size:.7rem;font-weight:800;padding:5px 10px;background:#edf5ee;color:#1b7c48;white-space:nowrap}
+.nx39-status.nx39-scheduled{background:#e9edff;color:#4e43ae}
+.nx39-status.nx39-ended{background:#fff1dd;color:#935c13}
+.nx39-status.nx39-hidden{background:#f1f2f6;color:#687189}
+.nx39-schedule-caption{font-size:.78rem;color:#66718b}
+.nx39-schedule-fields{border:1px solid #e2e1f1;border-radius:12px;padding:14px;margin:0 0 14px;min-width:0}
+.nx39-schedule-fields legend{padding:0 8px;font-size:.91rem;font-weight:850;color:#242d4b}
+.nx39-schedule-fields>p{color:#73758d;font-size:.78rem;line-height:1.45;margin:5px 0 12px}
+.nx39-schedule-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.nx39-schedule-grid label{display:grid;gap:6px;min-width:0}
+.nx39-schedule-grid input{max-width:100%;min-width:0;font-family:inherit}
+.nx39-order-hint{font-size:.8rem;color:#625a92;background:#f4f1ff;border-radius:10px;padding:10px 13px}
+@media(max-width:900px){.nx39-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.nx39-order-row{gap:8px;flex-wrap:wrap}.nx39-order-row>img{width:64px;flex-basis:64px}.nx39-order-copy{flex-basis:calc(100% - 165px)}.nx39-select-position{margin-left:auto}.nx39-schedule-grid{grid-template-columns:1fr}.nx39-layout-panel>div{flex-basis:100%}}
+@media(max-width:380px){.nx39-metrics{gap:8px}.nx39-metrics>div{padding:13px}.nx39-rank{min-width:34px;padding:7px}.nx39-order-row>img{width:55px;flex-basis:55px}}
+@media(prefers-reduced-motion:reduce){.nx39-order-row{transition:none}}

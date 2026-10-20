@@ -30,8 +30,9 @@ test('category menu uses database icon, one button trigger and no chevron toggle
 });
 test('banner image-only mode retains full artwork with short height and no dark overlay',()=>{
   const code=source('../src/components/customer/PromotionCarousel.jsx');
-  assert.match(code,/nx36-promo-artwork/);
-  assert.match(code,/nx36-promo-background/);
+  assert.match(code,/nx37-promotion-image-frame/);
+  assert.match(code,/is-image-only/);
+  assert.match(code,/imageOnly &&/);
   const css=source('../src/styles/phase36.css');
   assert.match(css,/object-fit:contain!important/);
   assert.match(css,/height:clamp\(145px,19vw,270px\)/);

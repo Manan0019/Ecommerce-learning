@@ -10,7 +10,7 @@ const load=(p)=>fs.readFileSync(path.join(root,p),'utf8');
 test('category directory navigates through React Router instead of reloading the application',()=>{
  const body=load('pages/customer/Categories.jsx');
  assert.match(body,/import \{ Link \} from "react-router-dom"/);
- assert.match(body,/to=\{`\/categories\/\$\{encodeURIComponent\(sub.slug\)\}`\}/);
+ assert.match(body,/to=\{`\/categories\/\$\{encodeURIComponent\(child.slug\)\}`\}/);
  assert.doesNotMatch(body,/href=\{`\/categories\//);
 });
 test('category artwork has a stable contained frame and image loading fallback',()=>{
@@ -52,7 +52,7 @@ test('order lines expose name, quantity and line total separately, and subtotal 
  assert.match(src,/nx34-order-line-info/);
  assert.match(src,/Qty \{item.quantity\}/);
  assert.match(src,/money\(item.lineTotal/);
- assert.match(src,/Products subtotal/);
+ assert.match(src,/Items subtotal/);
  assert.doesNotMatch(src,/Items \{money\(o.subtotal\)\}/);
 });
 test('inventory notification refreshes on a timer, focus and explicit stock changes',()=>{
