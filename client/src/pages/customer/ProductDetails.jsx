@@ -67,7 +67,7 @@ function ProductDetailsContent({ id }) {
         {product && <><span aria-hidden="true">/</span><span>{product.name}</span></>}
       </nav>
       {loading && <div className="detail-skeleton" aria-label="Loading product" />}
-      {error && <p role="alert" className="store-alert">{error}</p>}
+      {error && <section className="nx33-detail-error" role="alert"><h1>We couldn’t load this product</h1><p>{error}</p><Link className="button button-primary" to="/products">Browse products</Link></section>}
       {product && <article className="product-detail">
         <div className="product-detail-media">
           <ProductMediaGallery key={selectedVariant?.attributes?.color ?? selectedVariant?.attributes?.colour ?? variantId} product={product} variantId={selectedVariant?.id || null} variantAttributes={selectedVariant?.attributes||{}} items={media} />

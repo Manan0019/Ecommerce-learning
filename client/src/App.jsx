@@ -29,6 +29,7 @@ import ProductDetails from "./pages/customer/ProductDetails";
 import ProductList from "./pages/customer/ProductList";
 import About from "./pages/public/About";
 import Contact from "./pages/public/Contact";
+import NotFound from "./pages/public/NotFound";
 import Categories from "./pages/customer/Categories";
 import "./styles/app.css";
 import "./styles/wishlist.css";
@@ -48,6 +49,7 @@ import "./styles/phase28.css";
 import "./styles/phase29.css";
 import "./styles/phase30.css";
 import "./styles/phase32.css";
+import "./styles/phase33.css";
 
 export default function App() {
   return <BrandingProvider><CartProvider><BrowserRouter><Routes>
@@ -81,6 +83,6 @@ export default function App() {
     <Route path="/wishlist" element={<Wishlist />} />
     <Route path="/about" element={<About />} />
     <Route path="/contact" element={<Contact />} />
-    <Route path="*" element={<p>Page not found.</p>} />
+    <Route path="*" element={<NotFound />} />
   </Routes></BrowserRouter></CartProvider></BrandingProvider>;
 }

@@ -10,10 +10,13 @@ export default function ProductCard({ product }) {
     ? product.previewImages.filter(Boolean).slice(0, 6)
     : product.imageUrl ? [product.imageUrl] : [];
   const [active, setActive] = useState(0);
+  const [failedImages, setFailedImages] = useState([]);
+  // Broken/missing uploads should not leave a browser broken-image glyph.
+  const availableImages = images.filter(url => !failedImages.includes(url));
   const timer = useRef(null);
   const touch = useRef(null);
   const swiped = useRef(false);
-  const current = images[Math.min(active, images.length - 1)];
+  const current = availableImages[Math.min(active, availableImages.length - 1)];
 
   function stopPreview(reset = false) {
     if (timer.current != null) window.clearInterval(timer.current);
@@ -22,17 +25,17 @@ export default function ProductCard({ product }) {
   }
   function startPreview() {
     stopPreview();
-    if (images.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    timer.current = window.setInterval(() => setActive(index => (index + 1) % images.length), 1600);
+    if (availableImages.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    timer.current = window.setInterval(() => setActive(index => (index + 1) % availableImages.length), 1600);
   }
   useEffect(() => () => { if (timer.current != null) window.clearInterval(timer.current); }, []);
-  function choose(index) { setActive((index + images.length) % images.length); }
+  function choose(index) { if (availableImages.length) setActive((index + availableImages.length) % availableImages.length); }
   function onTouchStart(event) {
     touch.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
     swiped.current = false;
   }
   function onTouchEnd(event) {
-    if (!touch.current || images.length < 2) return;
+    if (!touch.current || availableImages.length < 2) return;
     const dx = event.changedTouches[0].clientX - touch.current.x;
     const dy = event.changedTouches[0].clientY - touch.current.y;
     touch.current = null;
@@ -45,20 +48,20 @@ export default function ProductCard({ product }) {
   return <article className="product-card nx29-preview-card">
     <div className="nx29-card-stage" onMouseEnter={() => { if (window.matchMedia("(hover: hover)").matches) startPreview(); }} onMouseLeave={() => stopPreview(true)} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <Link className="product-image-link" to={detailUrl} aria-label={`View ${product.name}`} onClick={event => { if (swiped.current) { event.preventDefault(); swiped.current = false; } }}>
-        {current ? <img key={current} className="nx29-card-image" src={apiAssetUrl(current)} alt={product.name} loading="lazy" />
+        {current ? <img key={current} className="nx29-card-image" src={apiAssetUrl(current)} alt={product.name} loading="lazy" onError={() => { setFailedImages(prev => prev.includes(current) ? prev : [...prev, current]); setActive(0); }} />
           : <div className="missing-image">Image coming soon</div>}
         {product.stock === 0 && <span className="product-badge">Sold out</span>}
       </Link>
-      {images.length > 1 && <>
+      {availableImages.length > 1 && <>
         <div className="nx29-card-arrows" aria-label="Preview product images">
           <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}>‹</button>
           <button type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}>›</button>
         </div>
         <div className="nx29-card-dots" aria-label="Choose product image">
-          {images.map((image, index) => <button
+          {availableImages.map((image, index) => <button
             key={`${image}:${index}`}
             type="button"
-            aria-label={`Show image ${index + 1} of ${images.length} for ${product.name}`}
+            aria-label={`Show image ${index + 1} of ${availableImages.length} for ${product.name}`}
             aria-pressed={index === active}
             className={index === active ? "active" : ""}
             onClick={() => choose(index)}

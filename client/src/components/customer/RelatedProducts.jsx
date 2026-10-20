@@ -1,51 +1,57 @@
 import "../../styles/related-products.css";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import ProductCard from "../common/ProductCard";
 import { getRelatedProducts } from "../../services/relatedProductService";
 
+// The section must never block checkout, but failed requests should not vanish
+// silently. A retry and Shop fallback make problems diagnosable in the browser.
 export default function RelatedProducts({ productId }) {
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState("loading");
+  const [attempt, setAttempt] = useState(0);
+
   useEffect(() => {
     const controller = new AbortController();
     getRelatedProducts(productId, controller.signal)
       .then((data) => {
         if (!controller.signal.aborted) {
-          setItems(Array.isArray(data.products) ? data.products : []);
+          setItems(Array.isArray(data?.products) ? data.products : []);
           setStatus("ready");
         }
       })
       .catch((error) => {
-        if (!controller.signal.aborted && error.name !== "AbortError")
+        if (!controller.signal.aborted && error.name !== "AbortError") {
           setStatus("error");
+        }
       });
     return () => controller.abort();
-  }, [productId]);
+  }, [productId, attempt]);
 
-  if (status === "loading")
-    return (
-      <section aria-label="Related products">
-        <p>Finding similar products…</p>
-      </section>
-    );
-  if (status === "error") return null; // Recommendations must not prevent purchasing/browsing.
-  if (!items.length) return null;
-  return (
-    <section
-      className="related-products"
-      aria-labelledby="related-products-title"
-    >
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Discover more</p>
-          <h2 id="related-products-title">You may also like</h2>
+  return <section className="related-products nx33-recommendations" aria-labelledby="related-products-title">
+    <div className="section-heading nx33-recommendations-heading">
+      <div>
+        <p className="eyebrow">Keep exploring</p>
+        <h2 id="related-products-title">You may also like</h2>
+        <p className="nx33-recommendations-subtitle">Discover related products and more from your favourite categories.</p>
+      </div>
+      <Link className="nx33-see-all" to="/products?view=products">Explore all products <span aria-hidden="true">→</span></Link>
+    </div>
+    {status === "loading" && <div className="nx33-recommendations-loading" role="status" aria-label="Loading recommendations">
+      {Array.from({ length: 4 }, (_, index) => <div className="product-skeleton" key={index} />)}
+    </div>}
+    {status === "error" && <div className="nx33-recommendations-state" role="status">
+      <strong>Recommendations are temporarily unavailable.</strong>
+      <p>You can still explore the catalogue while we reconnect.</p>
+      <button className="button button-primary" type="button" onClick={() => { setStatus("loading"); setAttempt(x => x + 1); }}>Try again</button>
+    </div>}
+    {status === "ready" && (items.length
+      ? <div className="product-grid related-products-grid">
+          {items.map((product) => <ProductCard key={product.cardKey || product.id} product={product} />)}
         </div>
-      </div>
-      <div className="product-grid related-products-grid">
-        {items.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </section>
-  );
+      : <div className="nx33-recommendations-state"><strong>Explore more from Nexora</strong>
+          <p>There aren't any closely related products published yet.</p>
+          <Link className="button button-primary" to="/products?view=products">Browse the collection</Link>
+        </div>)}
+  </section>;
 }
