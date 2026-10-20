@@ -38,9 +38,9 @@ function placementLabel(item){
 export default function AdminBanners(){
   const [items,setItems]=useState([]),[categories,setCategories]=useState([]),[draft,setDraft]=useState(blank),[editing,setEditing]=useState(null);
   const [opened,setOpened]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
-  const [homeCount,setHomeCount]=useState(3),[savingDisplay,setSavingDisplay]=useState(false);
-  async function reload(){const [b,c]=await Promise.all([getAdminBanners(),getAdminCategories()]);setItems(b.banners||[]);setCategories(c.categories||[]);setHomeCount(b.homeVisibleCount??3);}
-  useEffect(()=>{let alive=true;Promise.all([getAdminBanners(),getAdminCategories()]).then(([b,c])=>{if(alive){setItems(b.banners||[]);setCategories(c.categories||[]);setHomeCount(b.homeVisibleCount??3);}}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false};},[]);
+  const [homeCount,setHomeCount]=useState(3),[homeAutoplay,setHomeAutoplay]=useState(true),[homeRotateSeconds,setHomeRotateSeconds]=useState(6),[savingDisplay,setSavingDisplay]=useState(false);
+  async function reload(){const [b,c]=await Promise.all([getAdminBanners(),getAdminCategories()]);setItems(b.banners||[]);setCategories(c.categories||[]);setHomeCount(b.homeVisibleCount??3);setHomeAutoplay(b.homeAutoplay??true);setHomeRotateSeconds(b.homeRotateSeconds??6);}
+  useEffect(()=>{let alive=true;Promise.all([getAdminBanners(),getAdminCategories()]).then(([b,c])=>{if(alive){setItems(b.banners||[]);setCategories(c.categories||[]);setHomeCount(b.homeVisibleCount??3);setHomeAutoplay(b.homeAutoplay??true);setHomeRotateSeconds(b.homeRotateSeconds??6);}}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false};},[]);
   const paths=categoryPaths(categories);
   function edit(item){
     setEditing(item);setDraft({...blank(),title:item?.title||"",subtitle:item?.subtitle||"",
@@ -82,7 +82,7 @@ export default function AdminBanners(){
     }catch(err){setError(err.message)}finally{setBusy(false)}
   }
   async function toggle(item){setBusy(true);setError("");try{await setBannerActive(item.id,!item.isActive);await reload()}catch(e){setError(e.message)}finally{setBusy(false)}}
-  async function saveDisplay(){setSavingDisplay(true);setError("");try{await setPromotionDisplayCount(homeCount);await reload();setNotice("Homepage layout saved.");}catch(e){setError(e.message);}finally{setSavingDisplay(false);}}
+  async function saveDisplay(){setSavingDisplay(true);setError("");try{await setPromotionDisplayCount(homeCount,homeAutoplay,homeRotateSeconds);await reload();setNotice("Homepage layout saved.");}catch(e){setError(e.message);}finally{setSavingDisplay(false);}}
   const live=items.filter(item=>bannerStatus(item)==="Live");
   const upcoming=items.filter(item=>bannerStatus(item)==="Scheduled");
   return <AdminLayout title="Promotion Studio" subtitle="Choose where a banner appears and where it redirects—independently."
@@ -95,9 +95,13 @@ export default function AdminBanners(){
       <div><strong>{upcoming.length}</strong><span>Scheduled next</span></div>
     </section>
     <div className="nx39-layout-panel"><div><span className="nx39-eyebrow">HOMEPAGE LAYOUT</span><h2>How many banners appear together?</h2>
-      <p>Choose the desktop layout. On narrow phones, shoppers can swipe through one card at a time.</p></div>
+      <p>Choose 1–6 banners visible together on desktop. Every active banner remains in the slideshow, even if you add more than six. On phones, one banner is shown at a time.</p></div>
       <label><span>Visible banners</span><select value={homeCount} onChange={e=>setHomeCount(Number(e.target.value))}>
-        <option value={1}>1 banner</option><option value={2}>2 banners</option><option value={3}>3 banners</option>
+        {[1,2,3,4,5,6].map(n=><option key={n} value={n}>{n} {n===1?"banner":"banners"}</option>)}
+      </select></label>
+      <label className="nx41-autoplay-toggle"><span>Automatic slideshow</span><input type="checkbox" checked={homeAutoplay} onChange={e=>setHomeAutoplay(e.target.checked)} aria-label="Automatically rotate promotion banners"/></label>
+      <label><span>Change banner every</span><select value={homeRotateSeconds} disabled={!homeAutoplay} onChange={e=>setHomeRotateSeconds(Number(e.target.value))}>
+        {[3,4,5,6,7,8,9,10,12,15].map(n=><option key={n} value={n}>{n} seconds</option>)}
       </select></label>
       <button type="button" className="admin-primary-action" disabled={savingDisplay} onClick={saveDisplay}>{savingDisplay?"Saving…":"Save layout"}</button>
     </div>

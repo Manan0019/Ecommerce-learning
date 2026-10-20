@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizePromotionOrder, parsePromotionSchedule, promotionStatus, homeBannerCount } from "../services/promotionPlanning.js";
+import { normalizePromotionOrder, parsePromotionSchedule, promotionStatus, homeBannerCount, homeRotationSeconds, homeAutoplaySetting } from "../services/promotionPlanning.js";
 
 test("promotion reorder accepts exact IDs once, rejects stale/duplicate/invalid lists", () => {
   assert.deepEqual(normalizePromotionOrder(["9","2","3"],["2","3","9"]),["9","2","3"]);
@@ -22,7 +22,14 @@ test("scheduled and ended banners never appear live",()=>{
   assert.equal(promotionStatus({isActive:true,endsAt:"2026-10-20T11:59:00Z"},now),"ended");
   assert.equal(promotionStatus({isActive:true,startsAt:"2026-10-20T11:00:00Z",endsAt:"2026-10-20T13:00:00Z"},now),"live");
 });
-test("homepage count is restricted to 1, 2 or 3",()=>{
-  for(const n of [1,2,3]) assert.equal(homeBannerCount(n),n);
-  for(const n of [0,4,2.5,"2.2","",null]) assert.equal(homeBannerCount(n),null);
+test("homepage count allows 1–6 concurrently without accepting malformed values",()=>{
+  for(const n of [1,2,3,4,5,6]) assert.equal(homeBannerCount(n),n);
+  for(const n of [0,7,2.5,"2.2","",null]) assert.equal(homeBannerCount(n),null);
+});
+test("slideshow auto-play settings reject invalid values",()=>{
+  for (const n of [3,5,6,10,15]) assert.equal(homeRotationSeconds(n),n);
+  for (const n of [0,2,16,3.5,"fast",null]) assert.equal(homeRotationSeconds(n),null);
+  assert.equal(homeAutoplaySetting(true),true);
+  assert.equal(homeAutoplaySetting(false),false);
+  assert.equal(homeAutoplaySetting("true"),null);
 });

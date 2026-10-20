@@ -1,6 +1,6 @@
 import { validBannerDestination, validBannerPlacement } from "../services/bannerTargeting.js";
 import { parseBannerVisualMode } from "../services/bannerVisualMode.js";
-import { normalizePromotionOrder, parsePromotionSchedule, homeBannerCount } from "../services/promotionPlanning.js";
+import { normalizePromotionOrder, parsePromotionSchedule, homeBannerCount, homeRotationSeconds, homeAutoplaySetting } from "../services/promotionPlanning.js";
 import pool from "../config/db.js";
 import { saveCatalogImage, removeCatalogImage } from "../services/catalogImageService.js";
 
@@ -69,8 +69,8 @@ export async function searchPromotionProducts(req,res){
 export async function listAdminBanners(_req,res){
   try {const {rows}=await pool.query(`SELECT ${fields} FROM promotion_banners b ${join}
     ORDER BY b.sort_order,b.id`);
-    const display=await pool.query("SELECT home_visible_count FROM promotion_display_settings WHERE id=1");
-    res.json({banners:rows.map(map),homeVisibleCount:display.rows[0]?.home_visible_count ?? 3});
+    const display=await pool.query("SELECT home_visible_count,home_autoplay,home_rotate_seconds FROM promotion_display_settings WHERE id=1");
+    res.json({banners:rows.map(map),homeVisibleCount:display.rows[0]?.home_visible_count ?? 3,homeAutoplay:display.rows[0]?.home_autoplay ?? true,homeRotateSeconds:display.rows[0]?.home_rotate_seconds ?? 6});
   }catch(err){console.error(err);res.status(500).json({message:"Unable to load banners."});}
 }
 export async function listBanners(req,res){
@@ -93,9 +93,9 @@ export async function listBanners(req,res){
           OR ($1='product' AND b.position IN ('product','home_product') AND b.product_id=$3::bigint
               AND p.is_active=TRUE AND pc.is_active=TRUE)
         )
-      ORDER BY b.sort_order,b.id LIMIT 12`,[pos,pos==="category"?category:null,pos==="product"?product:null]);
-    const display=pos === "home" ? await pool.query("SELECT home_visible_count FROM promotion_display_settings WHERE id=1") : null;
-    res.json({banners:rows.map(map),homeVisibleCount:display?.rows[0]?.home_visible_count ?? 3});
+      ORDER BY b.sort_order,b.id LIMIT 250`,[pos,pos==="category"?category:null,pos==="product"?product:null]);
+    const display=pos === "home" ? await pool.query("SELECT home_visible_count,home_autoplay,home_rotate_seconds FROM promotion_display_settings WHERE id=1") : null;
+    res.json({banners:rows.map(map),homeVisibleCount:display?.rows[0]?.home_visible_count ?? 3,homeAutoplay:display?.rows[0]?.home_autoplay ?? true,homeRotateSeconds:display?.rows[0]?.home_rotate_seconds ?? 6});
   }catch(err){console.error(err);res.status(500).json({message:"Unable to load promotions."});}
 }
 export async function createBanner(req,res){
@@ -177,11 +177,21 @@ export async function reorderBanners(req,res) {
 
 export async function updatePromotionDisplay(req,res) {
   const count=homeBannerCount(req.body?.homeVisibleCount);
-  if(count===null)return res.status(400).json({message:"Choose between 1 and 3 homepage banners."});
+  // Null means the setting wasn't supplied by an older client: preserve the saved value.
+  const auto=req.body?.homeAutoplay === undefined ? undefined : homeAutoplaySetting(req.body.homeAutoplay);
+  const seconds=req.body?.homeRotateSeconds === undefined ? undefined : homeRotationSeconds(req.body.homeRotateSeconds);
+  if(count===null || auto===null || seconds===null)
+    return res.status(400).json({message:"Choose 1–6 banners, a valid autoplay option and an interval from 3 to 15 seconds."});
   try{
-    const {rows}=await pool.query(`INSERT INTO promotion_display_settings(id,home_visible_count)
-      VALUES(1,$1) ON CONFLICT(id) DO UPDATE SET home_visible_count=$1,updated_at=NOW()
-      RETURNING home_visible_count`,[count]);
-    res.json({homeVisibleCount:rows[0].home_visible_count});
+    const {rows}=await pool.query(`INSERT INTO promotion_display_settings
+      (id,home_visible_count,home_autoplay,home_rotate_seconds)
+      VALUES(1,$1,COALESCE($2::boolean,TRUE),COALESCE($3::smallint,6))
+      ON CONFLICT(id) DO UPDATE SET home_visible_count=EXCLUDED.home_visible_count,
+        home_autoplay=COALESCE($2::boolean,promotion_display_settings.home_autoplay),
+        home_rotate_seconds=COALESCE($3::smallint,promotion_display_settings.home_rotate_seconds),
+        updated_at=NOW()
+      RETURNING home_visible_count,home_autoplay,home_rotate_seconds`,[count,auto??null,seconds??null]);
+    res.json({homeVisibleCount:rows[0].home_visible_count,homeAutoplay:rows[0].home_autoplay,
+      homeRotateSeconds:rows[0].home_rotate_seconds});
   }catch(err){console.error(err);res.status(500).json({message:"Unable to change banner layout."});}
 }

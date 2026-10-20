@@ -34,5 +34,14 @@ export function promotionStatus(banner, now = Date.now()) {
 }
 export function homeBannerCount(value) {
   const n = Number(value);
-  return Number.isInteger(n) && n >= 1 && n <= 3 && String(value) === String(n) ? n : null;
+  return Number.isInteger(n) && n >= 1 && n <= 6 && String(value) === String(n) ? n : null;
+}
+
+/** Admin-facing rotation settings, validated independently of display count. */
+export function homeRotationSeconds(value) {
+  const n=Number(value);
+  return Number.isInteger(n) && n>=3 && n<=15 && String(value)===String(n) ? n : null;
+}
+export function homeAutoplaySetting(value) {
+  return typeof value === "boolean" ? value : null;
 }

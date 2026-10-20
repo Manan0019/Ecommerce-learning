@@ -9,5 +9,5 @@ export const setBannerActive=(id,isActive)=>apiRequest(`/api/admin/banners/${id}
 
 export const reorderPromotions=(ids,expectedIds)=>apiRequest('/api/admin/banners/order',{
   method:'PUT',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids,expectedIds})});
-export const setPromotionDisplayCount=(homeVisibleCount)=>apiRequest('/api/admin/banners/display',{
-  method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({homeVisibleCount})});
+export const setPromotionDisplayCount=(homeVisibleCount,homeAutoplay,homeRotateSeconds)=>apiRequest('/api/admin/banners/display',{
+  method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({homeVisibleCount,homeAutoplay,homeRotateSeconds})});

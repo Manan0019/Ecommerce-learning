@@ -1,0 +1,28 @@
+/* Phase 41: multi-banner rotating carousel, compatible with the Phase 37 grid and Phase 39 studio. */
+.storefront .nx37-promotion-grid.nx41-multi-banner{
+  display:grid;grid-template-columns:repeat(var(--nx41-columns,4),minmax(0,1fr));grid-template-rows:minmax(0,1fr);
+  height:clamp(180px,18vw,285px);gap:12px;
+}
+.storefront .nx41-multi-banner .nx37-promotion-card{grid-row:auto!important;grid-column:auto!important;border-radius:15px;animation:nx41-reveal .3s ease-out both}
+.storefront .nx41-multi-banner .nx37-promotion-copy{padding:clamp(9px,1.4vw,20px);gap:6px}
+.storefront .nx41-multi-banner .nx37-promotion-copy strong,
+.storefront .nx41-multi-banner .nx37-promotion-card:not(.is-primary) .nx37-promotion-copy strong{font-size:clamp(.8rem,1.3vw,1.35rem);line-height:1.2}
+.storefront .nx41-multi-banner .nx37-promotion-copy span{font-size:clamp(.7rem,.9vw,.83rem)}
+.storefront .nx41-multi-banner .nx37-promotion-card.is-image-only img{object-fit:contain}
+.storefront .nx37-promotion-controls .nx41-pause-button{font-size:.89rem;font-weight:900}
+.nx39-layout-panel .nx41-autoplay-toggle{display:flex;align-items:center;gap:13px;flex-direction:row;min-height:42px}
+.nx39-layout-panel .nx41-autoplay-toggle input{width:19px;height:19px;accent-color:#6143dc;cursor:pointer}
+@keyframes nx41-reveal{from{opacity:.65;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media (max-width:960px) and (min-width:721px){
+  .storefront .nx37-promotion-grid.nx41-multi-banner{gap:7px;height:205px}
+  .storefront .nx41-multi-banner .nx37-promotion-copy span,.storefront .nx41-multi-banner .nx37-promotion-copy em{display:none}
+}
+@media(max-width:720px){
+  .storefront .nx37-promotion-grid.nx41-multi-banner{display:flex;overflow-x:hidden;height:auto;gap:0;padding:2px 3px 10px;scroll-snap-type:none}
+  .storefront .nx37-promotion-grid.nx41-multi-banner .nx37-promotion-card{flex:0 0 100%;width:100%;max-width:100%;min-height:205px;height:clamp(200px,53vw,275px)}
+  .storefront .nx37-promotion-grid:not(.nx41-multi-banner) .nx37-promotion-card:nth-child(n+2){display:none}
+  .storefront .nx37-promotion-grid.nx41-multi-banner .nx37-promotion-card:nth-child(n+2){display:none}
+  .storefront .nx37-promotion-heading{flex-wrap:wrap}
+  .storefront .nx37-promotion-controls{margin-left:auto}
+}
+@media(prefers-reduced-motion:reduce){.storefront .nx41-multi-banner .nx37-promotion-card{animation:none!important}}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getBanners } from "../../services/bannerService";
 import { apiAssetUrl } from "../../services/apiClient";
+import { movePromotionSlide, visiblePromotionWindow, promotionDotIndices } from "../../services/promotionCarouselRules";
 
 function PromotionCard({ banner, primary = false, priority = false }) {
   const imageOnly = banner.showText === false;
@@ -19,8 +20,8 @@ function PromotionCard({ banner, primary = false, priority = false }) {
     : <Link className={cls} to={banner.linkUrl} aria-label={banner.title}>{content}</Link>;
 }
 
-/** Three promotions at once on desktop; a horizontally swipeable rail on phones.
- * Placement, existing banner links and the image-only option are unchanged.
+/** 1–6 promotions at once on desktop, one active image on phones.
+ * Cycles through all eligible promotions; links, placements and image-only modes stay intact.
  */
 export default function PromotionCarousel({ position = "home", category, product, fallback = null }) {
   const [banners, setBanners] = useState([]);
@@ -28,7 +29,14 @@ export default function PromotionCarousel({ position = "home", category, product
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const [homeVisibleCount,setHomeVisibleCount] = useState(3);
+  const [homeAutoplay,setHomeAutoplay] = useState(true);
+  const [homeRotateSeconds,setHomeRotateSeconds] = useState(6);
+  const [userPaused,setUserPaused] = useState(false);
+  const [interactionPaused,setInteractionPaused] = useState(false);
+  const [reducedMotion,setReducedMotion] = useState(() => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
   const rail = useRef(null);
+  const swipeStart = useRef(null);
+  const preventClickUntil = useRef(0);
   useEffect(() => {
     const controller=new AbortController();
     let first=true;
@@ -39,6 +47,8 @@ export default function PromotionCarousel({ position = "home", category, product
         const next=result.banners||[];
         setBanners(next);
         setHomeVisibleCount(result.homeVisibleCount??3);
+        setHomeAutoplay(result.homeAutoplay??true);
+        setHomeRotateSeconds(result.homeRotateSeconds??6);
         setActive(current=>first?0:Math.min(current,Math.max(next.length-1,0)));
         first=false;
         setLoaded(true);setFailed(false);
@@ -54,25 +64,58 @@ export default function PromotionCarousel({ position = "home", category, product
   },[position,category,product]);
 
   const slide = useCallback((step) => {
-    setActive(current => banners.length ? (current + step + banners.length) % banners.length : 0);
-    if (rail.current) rail.current.scrollTo({ left: 0, behavior: "smooth" });
+    setActive(current => movePromotionSlide(current,step,banners.length));
+    // The phone view deliberately shows a single image; its position is updated by state.
+    if (rail.current?.scrollTo) rail.current.scrollTo({ left: 0, behavior: "instant" });
   }, [banners.length]);
+
+  useEffect(() => {
+    const query=window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    if(!query) return;
+    const update=()=>setReducedMotion(query.matches);
+    query.addEventListener?.("change",update);
+    return ()=>query.removeEventListener?.("change",update);
+  },[]);
+  useEffect(() => {
+    if(!homeAutoplay || userPaused || interactionPaused || reducedMotion || banners.length<=1) return;
+    const timer=window.setInterval(()=>{
+      if(document.visibilityState !== "hidden") setActive(current=>movePromotionSlide(current,1,banners.length));
+    }, Math.max(3,Math.min(15,homeRotateSeconds))*1000);
+    return ()=>window.clearInterval(timer);
+  },[banners.length,homeAutoplay,homeRotateSeconds,userPaused,interactionPaused,reducedMotion]);
+  const touchStart = e => {swipeStart.current=e.touches[0]?.clientX??null;};
+  const touchEnd = e => {
+    if(swipeStart.current==null)return;
+    const dx=(e.changedTouches[0]?.clientX??swipeStart.current)-swipeStart.current;
+    swipeStart.current=null;
+    if(Math.abs(dx)<45)return;
+    preventClickUntil.current=Date.now()+350;
+    slide(dx<0?1:-1);
+  };
+  const handleBlur=e=>{if(!e.currentTarget.contains(e.relatedTarget))setInteractionPaused(false);};
 
   if (!banners.length) return loaded ? fallback : null;
   const count = Math.min(banners.length, position === "home" ? homeVisibleCount : 2);
-  const visible = Array.from({ length: count }, (_, i) => banners[(active + i) % banners.length]);
-  return <section className={`nx37-promotion-section ${position === "home" ? "nx37-promotion-home" : "nx37-promotion-inner"}`} aria-label="Current store promotions">
+  const visible = visiblePromotionWindow(banners,active,count);
+  const rotating = banners.length>1;
+  return <section className={`nx37-promotion-section ${position === "home" ? "nx37-promotion-home" : "nx37-promotion-inner"}`}
+    aria-label="Current store promotions" onMouseEnter={()=>setInteractionPaused(true)} onMouseLeave={()=>setInteractionPaused(false)}
+    onFocusCapture={()=>setInteractionPaused(true)} onBlurCapture={handleBlur}
+    onTouchStart={touchStart} onTouchEnd={touchEnd} onTouchCancel={()=>{swipeStart.current=null;}}
+    onClickCapture={e=>{if(Date.now()<preventClickUntil.current){e.preventDefault();e.stopPropagation();}}}>
     <div className="nx37-promotion-heading"><span>THE NEXORA EDIT <span aria-hidden="true">✦</span> CURATED FOR YOU</span>
-      {banners.length > count && <div className="nx37-promotion-controls">
+      {rotating && <div className="nx37-promotion-controls">
         <button type="button" onClick={() => slide(-1)} aria-label="Previous promotions">←</button>
         <span aria-live="polite">{active + 1} / {banners.length}</span>
         <button type="button" onClick={() => slide(1)} aria-label="Next promotions">→</button>
+        {homeAutoplay && !reducedMotion && <button type="button" className="nx41-pause-button" aria-label={userPaused?"Play automatic promotion slideshow":"Pause automatic promotion slideshow"}
+          aria-pressed={userPaused} onClick={()=>setUserPaused(p=>!p)}>{userPaused?"▶":"Ⅱ"}</button>}
       </div>}
     </div>
-    <div className={`nx37-promotion-grid nx37-count-${count}`} ref={rail}>
+    <div className={`nx37-promotion-grid nx37-count-${count}${count>3?" nx41-multi-banner":""}`} ref={rail} style={{"--nx41-columns":count}}>
       {visible.map((banner, index) => <PromotionCard key={`${banner.id}-${index}`} banner={banner} primary={index === 0} priority={position === "home" && index === 0} />)}
     </div>
-    {banners.length > count && <div className="nx37-promotion-dots" aria-label="Select promotion set">{banners.map((banner, i) => <button type="button" key={banner.id} aria-label={`Start with promotion ${i + 1}`} aria-current={active === i ? "true" : undefined} className={active === i ? "is-active" : ""} onClick={() => setActive(i)} />)}</div>}
+    {rotating && <div className="nx37-promotion-dots" aria-label="Select promotion set">{promotionDotIndices(banners.length,active).map((i) => <button type="button" key={banners[i].id} aria-label={`Start with promotion ${i + 1}`} aria-current={active === i ? "true" : undefined} className={active === i ? "is-active" : ""} onClick={() => setActive(i)} />)}</div>}
     {failed && <p role="status">Some promotions are temporarily unavailable.</p>}
   </section>;
 }
