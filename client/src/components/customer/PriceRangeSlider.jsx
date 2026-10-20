@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import {
   getSelectedPriceRange,
   movePriceHandle,
@@ -10,6 +10,7 @@ import {
   snapPriceValue,
   formatPriceCompact,
 } from "../../services/priceRange";
+import { digitsOnlyPrice, validatePriceDraft } from "../../services/priceInput";
 
 const fullPrice = new Intl.NumberFormat("en-IN", {
   style: "currency", currency: "INR", maximumFractionDigits: 0,
@@ -20,26 +21,46 @@ export default function PriceRangeSlider({ priceBounds, params, onPriceChange, d
   if (!bounds) {
     return <p className="nx30-price-empty">Price filters appear when this category has products.</p>;
   }
-  // URL changes, including category and Clear All, reinitialize local draft values.
-  const priceKey = `${bounds.min}:${bounds.max}:${params.get("minPrice") ?? ""}:${params.get("maxPrice") ?? ""}`;
-  return <PriceRangeControl key={priceKey} bounds={bounds} params={params} onPriceChange={onPriceChange} disabled={disabled} />;
+  // Reinitializes both text fields and slider when URL, category or Clear All changes.
+  const key = `${bounds.min}:${bounds.max}:${params.get("minPrice") ?? ""}:${params.get("maxPrice") ?? ""}`;
+  return <PriceRangeControl key={key} bounds={bounds} params={params} onPriceChange={onPriceChange} disabled={disabled} />;
 }
 
 function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
-  const [selected, setSelected] = useState(() => getSelectedPriceRange(params, bounds));
+  const initial = getSelectedPriceRange(params, bounds);
+  const [selected, setSelected] = useState(initial);
+  const [draft, setDraft] = useState({ min: String(initial.min), max: String(initial.max) });
+  const minId = useId();
+  const maxId = useId();
+  const errorId = useId();
   const sliderRef = useRef(null);
   const draggingRef = useRef(null);
   const minThumbRef = useRef(null);
   const maxThumbRef = useRef(null);
   const applied = getSelectedPriceRange(params, bounds);
   const hasFilter = params.has("minPrice") || params.has("maxPrice");
-  const dirty = selected.min !== applied.min || selected.max !== applied.max;
+  const validation = validatePriceDraft(draft, bounds);
+  const dirty = validation.valid && (selected.min !== applied.min || selected.max !== applied.max);
+  const modified = draft.min !== String(applied.min) || draft.max !== String(applied.max);
   const step = priceSliderStep(bounds);
   const left = pricePercent(selected.min, bounds);
   const right = pricePercent(selected.max, bounds);
 
+  function updateRange(next) {
+    setSelected(next);
+    setDraft({ min: String(next.min), max: String(next.max) });
+  }
+
+  function setTypedPrice(handle, raw) {
+    const next = { ...draft, [handle]: digitsOnlyPrice(raw) };
+    setDraft(next);
+    const checked = validatePriceDraft(next, bounds);
+    if (checked.valid) setSelected({ min: checked.min, max: checked.max });
+  }
+
   function moveHandle(handle, value) {
-    setSelected((current) => movePriceHandle(handle, snapPriceValue(value, bounds, step), current, bounds));
+    const next = movePriceHandle(handle, snapPriceValue(value, bounds, step), selected, bounds);
+    updateRange(next);
   }
 
   function valueFromEvent(event) {
@@ -89,26 +110,38 @@ function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
   }
 
   function apply() {
+    if (!validation.valid) return;
     const { min, max } = priceQueryValues(selected, bounds);
     onPriceChange(min, max);
   }
 
   function reset() {
-    setSelected({ min: bounds.min, max: bounds.max });
+    updateRange({ min: bounds.min, max: bounds.max });
     if (hasFilter) onPriceChange("", "");
   }
 
-  return <div className="nx30-price-filter" aria-label="Filter by price">
-    <div className="nx30-price-values">
-      <div className="nx30-price-value" title={fullPrice.format(selected.min)}>
-        <span>MIN PRICE</span>
-        <output aria-label={`Minimum ${fullPrice.format(selected.min)}`}>{formatPriceCompact(selected.min)}</output>
-      </div>
-      <span className="nx30-price-value-separator" aria-hidden="true">–</span>
-      <div className="nx30-price-value" title={fullPrice.format(selected.max)}>
-        <span>MAX PRICE</span>
-        <output aria-label={`Maximum ${fullPrice.format(selected.max)}`}>{formatPriceCompact(selected.max)}</output>
-      </div>
+  return <div className="nx30-price-filter nx32-price-filter" aria-label="Filter by price">
+    <div className="nx32-price-entry-row">
+      {(["min", "max"]).map((handle) => <label className="nx32-price-entry" key={handle} htmlFor={handle === "min" ? minId : maxId}>
+        <span>{handle === "min" ? "Min price" : "Max price"}</span>
+        <span className={`nx32-price-input-wrap${validation.errors[handle] ? " is-invalid" : ""}`}>
+          <span className="nx32-rupee" aria-hidden="true">₹</span>
+          <input
+            id={handle === "min" ? minId : maxId}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
+            spellCheck="false"
+            value={draft[handle]}
+            onChange={(event) => setTypedPrice(handle, event.target.value)}
+            onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); apply(); } }}
+            disabled={disabled}
+            aria-invalid={Boolean(validation.errors[handle])}
+            aria-describedby={validation.errors[handle] ? errorId : undefined}
+          />
+        </span>
+      </label>)}
     </div>
 
     <div
@@ -149,14 +182,13 @@ function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
       <span title={fullPrice.format(bounds.max)}>{formatPriceCompact(bounds.max)}</span>
     </div>
 
+    {!validation.valid && <p className="nx32-price-error" id={errorId} role="alert">
+      {validation.errors.min || validation.errors.max}
+    </p>}
     <div className="nx30-price-actions">
-      <button className="nx30-price-apply" type="button" onClick={apply} disabled={disabled || !dirty}>
-        Apply price
-      </button>
-      <button className="nx30-price-reset" type="button" onClick={reset} disabled={disabled || (!dirty && !hasFilter)}>
-        Reset
-      </button>
+      <button className="nx30-price-apply" type="button" onClick={apply} disabled={disabled || !dirty || !validation.valid}>Apply range</button>
+      <button className="nx30-price-reset" type="button" onClick={reset} disabled={disabled || (!modified && !hasFilter)}>Reset</button>
     </div>
-    <p className="nx30-price-hint">Drag handles to set your budget</p>
+    <p className="nx30-price-hint">Type a price or drag the handles</p>
   </div>;
 }

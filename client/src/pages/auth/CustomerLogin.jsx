@@ -26,9 +26,9 @@ export default function CustomerLogin() {
     setFeedback(null);
 
     try {
-      const data = await login({ email, password });
+      const data = await login({ email: email.trim(), password });
 
-      const returnTo = ["/checkout", "/orders"].includes(location.state?.from) ? location.state.from : "/";
+      const returnTo = ["/checkout", "/orders", "/addresses", "/wishlist"].includes(location.state?.from) ? location.state.from : "/";
       navigate(data.user.role === "admin" ? "/admin/dashboard" : returnTo, { replace: true });
 
     } catch (error) {
@@ -40,23 +40,25 @@ export default function CustomerLogin() {
   }
 
   return <AuthLayout eyebrow="Unified account access" title="Welcome back."
-    description="Sign in to continue discovering products you love.">
-      <form className="auth-form" onSubmit={handleLogin}>
+    description="Sign in to save favourites, manage addresses and follow your orders.">
+      <form className="auth-form" onSubmit={handleLogin} aria-busy={loading}>
         <label className="auth-field" htmlFor="login-email">
           <span>Email address</span>
           <input id="login-email"
           type="email"
           placeholder="you@example.com"
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          onChange={(event) => { setEmail(event.target.value); if (feedback?.type === "error") setFeedback(null); }}
           autoComplete="email"
+          maxLength={254}
+          autoFocus
           required
           />
         </label>
 
         <PasswordField id="login-password" label="Password"
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          onChange={(event) => { setPassword(event.target.value); if (feedback?.type === "error") setFeedback(null); }}
           autoComplete="current-password"
           required
         />
@@ -71,5 +73,7 @@ export default function CustomerLogin() {
       </form>
 
       <p className="auth-switch">New here? <Link to="/signup">Create an account</Link></p>
+      <Link className="nx32-browse-link" to="/products">Continue shopping without signing in →</Link>
+      <p className="nx32-security-line">Your password is never displayed publicly.</p>
     </AuthLayout>;
 }

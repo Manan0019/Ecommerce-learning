@@ -4,6 +4,8 @@ import ProductCard from "../../components/common/ProductCard";
 import {apiAssetUrl} from "../../services/apiClient";
 import PromotionCarousel from "../../components/customer/PromotionCarousel";
 import ProductFilters from "../../components/customer/ProductFilters";
+import ActiveFilterChips from "../../components/customer/ActiveFilterChips";
+import { removeCatalogueFilter } from "../../services/activeFilters";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import { getCategories } from "../../services/categoryService";
 import { getProducts } from "../../services/productService";
@@ -207,6 +209,13 @@ export default function ProductList() {
           </select>
         </label>
       </div>
+
+      <ActiveFilterChips
+        params={searchParams}
+        facets={facets}
+        onRemove={(chip) => setSearchParams(removeCatalogueFilter(searchParams, chip))}
+        onClear={() => changeFilter(null, [])}
+      />
 
       <div className="catalogue-layout">
         <ProductFilters

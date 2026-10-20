@@ -60,7 +60,7 @@ export default function CustomerSignup() {
   }
 
   return <AuthLayout eyebrow="Create your account" title="A little of everything starts here."
-    description="Create your account.">
+    description="Save favourites, manage delivery addresses and track your orders in one place.">
       <form className="auth-form auth-signup-form" onSubmit={handleSubmit}>
         <label className="auth-field" htmlFor="signup-name"><span>Full name</span>
           <input id="signup-name"
@@ -82,6 +82,7 @@ export default function CustomerSignup() {
           value={form.email}
           onChange={handleChange}
           autoComplete="email"
+          maxLength={254}
           required
           />
         </label>
@@ -94,6 +95,7 @@ export default function CustomerSignup() {
           value={form.mobileNumber}
           onChange={handleChange}
           autoComplete="tel"
+          inputMode="tel"
           required
           />
         </label>
@@ -108,6 +110,10 @@ export default function CustomerSignup() {
           required
         />
 
+        <p className={`nx32-password-guidance${form.password.length >= 12 ? " is-valid" : ""}`}>
+          {form.password.length >= 12 ? "✓ Minimum password length met" : "Use at least 12 characters for your password"}
+        </p>
+
         <PasswordField id="signup-confirm-password" label="Confirm password"
           name="confirmPassword"
           placeholder="Confirm password"
@@ -117,6 +123,10 @@ export default function CustomerSignup() {
           autoComplete="new-password"
           required
         />
+
+        {form.confirmPassword && <p className={`nx32-password-guidance${form.password === form.confirmPassword ? " is-valid" : " is-invalid"}`}>
+          {form.password === form.confirmPassword ? "✓ Passwords match" : "Passwords do not match yet"}
+        </p>}
 
         <label className="auth-field auth-file-field" htmlFor="signup-image">
           <span>Profile image <small>Optional · JPG, PNG or WebP</small></span>
