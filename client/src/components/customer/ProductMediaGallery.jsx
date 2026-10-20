@@ -1,24 +1,77 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { apiAssetUrl } from "../../services/apiClient";
 import { visibleProductMedia } from "./galleryMedia";
 
 export default function ProductMediaGallery({ product, variantId = null, variantAttributes = {}, items = [] }) {
   const [selectedId, setSelectedId] = useState(null);
+  const [hoveredId, setHoveredId] = useState(null);
+  const zoomRef = useRef(null);
+  const touchRef = useRef(null);
+  const swipedRef = useRef(false);
   const gallery = visibleProductMedia(items, variantId, variantAttributes);
   const fallback = product.imageUrl ? [{ id: "cover", type: "image", url: product.imageUrl }] : [];
   const visible = gallery.length ? gallery : fallback;
-  const current = visible.find(item => String(item.id) === String(selectedId)) || visible[0];
-  return <div className="product-gallery">
-    <div className="gallery-main" aria-live="polite">
+  const selected = visible.find(item => String(item.id) === String(selectedId)) || visible[0];
+  const current = visible.find(item => String(item.id) === String(hoveredId)) || selected;
+  const index = visible.findIndex(item => String(item.id) === String(current?.id));
+
+  function moveSelection(offset) {
+    if (visible.length < 2) return;
+    const next = visible[(Math.max(0, index) + offset + visible.length) % visible.length];
+    setSelectedId(next.id);
+    setHoveredId(null);
+  }
+  function onTouchStart(event) {
+    touchRef.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    swipedRef.current = false;
+  }
+  function onTouchEnd(event) {
+    if (!touchRef.current || visible.length < 2) return;
+    const dx = event.changedTouches[0].clientX - touchRef.current.x;
+    const dy = event.changedTouches[0].clientY - touchRef.current.y;
+    touchRef.current = null;
+    if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+      swipedRef.current = true;
+      moveSelection(dx < 0 ? 1 : -1);
+    }
+  }
+  function mediaContent(item) {
+    if (item.type === "image") return <img key={item.id} className="gallery-transition" src={apiAssetUrl(item.url)} alt={product.name} />;
+    if (item.type === "video") return <video key={item.id} className="gallery-transition" src={apiAssetUrl(item.url)} controls preload="metadata" playsInline />;
+    return <iframe key={item.id} className="gallery-transition" src={item.url} title={`${product.name} video`} loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />;
+  }
+  return <div className="product-gallery nx29-detail-gallery">
+    <div className="gallery-main" aria-live="off" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {!current ? <div className="missing-image">Image coming soon</div>
-        : current.type === "image" ? <img key={current.id} className="gallery-transition" src={apiAssetUrl(current.url)} alt={product.name} />
-          : current.type === "video" ? <video key={current.id} className="gallery-transition" src={apiAssetUrl(current.url)} controls preload="metadata" playsInline />
-            : <iframe key={current.id} className="gallery-transition" src={current.url} title={`${product.name} video`} loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />}
+        : current.type === "image" ? <button
+          type="button" className="nx29-zoom-trigger"
+          aria-label={`Enlarge image ${index + 1} of ${visible.length}`}
+          onClick={() => { if (swipedRef.current) { swipedRef.current = false; return; } zoomRef.current?.showModal(); }}
+        >{mediaContent(current)}<span className="nx29-zoom-hint" aria-hidden="true">⤢ View larger</span></button>
+          : mediaContent(current)}
+      {visible.length > 1 && <div className="nx29-detail-controls">
+        <button type="button" onClick={() => moveSelection(-1)} aria-label="Previous product image">‹</button>
+        <span aria-live="polite">{index + 1} / {visible.length}</span>
+        <button type="button" onClick={() => moveSelection(1)} aria-label="Next product image">›</button>
+      </div>}
     </div>
-    {visible.length > 1 && <div className="gallery-thumbnails" aria-label="Product gallery thumbnails">
-      {visible.map((item, index) => <button type="button" key={item.id} className={current?.id === item.id ? "selected" : ""} onClick={() => setSelectedId(item.id)} aria-label={`Show media ${index + 1}`} aria-pressed={current?.id === item.id}>
-        {item.type === "image" ? <img src={apiAssetUrl(item.url)} alt="" /> : <span>▶ {item.type === "video" ? "Video" : "YouTube"}</span>}
+    {visible.length > 1 && <div className="gallery-thumbnails nx29-gallery-thumbnails" aria-label="Product gallery thumbnails">
+      {visible.map((item, thumbIndex) => <button type="button" key={item.id}
+        className={String(selected?.id) === String(item.id) ? "selected" : ""}
+        onClick={() => { setSelectedId(item.id); setHoveredId(null); }}
+        onPointerEnter={event => { if (event.pointerType === "mouse") setHoveredId(item.id); }}
+        onPointerLeave={() => setHoveredId(null)}
+        onFocus={() => setHoveredId(item.id)}
+        onBlur={() => setHoveredId(null)}
+        aria-label={`Show media ${thumbIndex + 1} of ${visible.length}`}
+        aria-pressed={String(selected?.id) === String(item.id)}>
+        {item.type === "image" ? <img src={apiAssetUrl(item.url)} alt="" loading="lazy" /> : <span>▶ {item.type === "video" ? "Video" : "YouTube"}</span>}
       </button>)}
     </div>}
+    <p className="nx29-gallery-help">Hover over a thumbnail to preview it, or tap to keep it selected.</p>
+    <dialog ref={zoomRef} className="nx29-image-dialog" aria-label={`${product.name} enlarged image`}>
+      <button type="button" className="nx29-image-dialog-close" onClick={() => zoomRef.current?.close()} aria-label="Close enlarged image">×</button>
+      {current?.type === "image" && <img src={apiAssetUrl(current.url)} alt={product.name} />}
+    </dialog>
   </div>;
 }

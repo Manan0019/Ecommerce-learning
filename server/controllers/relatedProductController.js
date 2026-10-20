@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { attachCardPreviews } from "../services/catalogueCardPreviews.js";
 
 // Recommendations use existing, active catalogue data only.
 // Same-category products rank first; same-brand products provide fallbacks.
@@ -44,7 +45,12 @@ export async function listRelatedProducts(req, res) {
     `,
       [id],
     );
-    return res.json({ products: rows.map(({ rank, ...product }) => product) });
+    const images = rows.length ? await pool.query(`
+      SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order
+      FROM product_media WHERE product_id = ANY($1::bigint[]) AND media_type='image'
+      ORDER BY product_id,sort_order,id
+    `, [rows.map(row => row.id)]) : { rows: [] };
+    return res.json({ products: attachCardPreviews(rows.map(({ rank, ...product }) => product), images.rows) });
   } catch (error) {
     console.error("Related products:", error);
     return res

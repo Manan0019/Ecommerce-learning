@@ -50,6 +50,7 @@ export function makeStorefrontCards(products, variants = [], media = []) {
         cardKey: `${product.id}:color:${normalize(group.value)}`,
         parentProductId: String(product.id),
         selectedVariantId: String(representative.id),
+        selectedAttributes: representative.attributes || {},
         colorLabel: String(group.value),
         name: `${product.name} · ${group.value}`,
         imageUrl: cardImage?.media_url || product.imageUrl,

@@ -2,6 +2,7 @@ import pool from "../config/db.js";
 import { availabilityPredicate } from "../services/catalogueAvailability.js";
 import { buildVariantFacets, matchesVariantFacets } from "../services/variantFacets.js";
 import { makeStorefrontCards } from "../services/storefrontVariantCards.js";
+import { attachCardPreviews } from "../services/catalogueCardPreviews.js";
 import { getSpecificationDefinition } from "../config/productSpecifications.js";
 import {
   buildSpecificationFacets,
@@ -304,12 +305,14 @@ export async function listProducts(req, res) {
 
     const parentProducts = rows.map(asPublicProduct);
     let cards = parentProducts;
+    let cardMedia = null;
     if (view === "variants") {
       const ids = [...new Set(rows.map(row => String(row.id)))];
       const mediaResult = ids.length ? await pool.query(`SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order,is_card_cover
         FROM product_media WHERE product_id=ANY($1::bigint[]) AND media_type='image'
         ORDER BY sort_order,id`, [ids]) : {rows:[]};
       const pictures = mediaResult.rows;
+      cardMedia = pictures;
       cards = rows.map((row, i) => {
         if (!row.chosen_variant_id) return { ...parentProducts[i], cardKey: `${row.id}:base` };
         const attrs = row.chosen_attributes || {};
@@ -325,7 +328,7 @@ export async function listProducts(req, res) {
         return { ...parentProducts[i], cardKey: `${row.id}:sku:${row.chosen_variant_id}`,
           parentProductId: String(row.id), selectedVariantId:String(row.chosen_variant_id),
           sku:row.chosen_sku, name:custom || `${row.name}${suffix ? ` — ${suffix}` : ''}`,
-          colorLabel:color, price:row.chosen_price,mrp:row.chosen_mrp,stock:row.chosen_stock,
+          colorLabel:color, selectedAttributes:attrs, price:row.chosen_price,mrp:row.chosen_mrp,stock:row.chosen_stock,
           imageUrl:photo?.media_url || row.image_url };
       });
     } else if (view === "colors" && rows.length) {
@@ -337,8 +340,17 @@ export async function listProducts(req, res) {
       const matchingVariants = variantFilters.length
         ? variantResult.rows.filter(row => matchesVariantFacets(row.attributes, variantFilters))
         : variantResult.rows;
-      cards = makeStorefrontCards(parentProducts,matchingVariants,mediaResult.rows);
+      cardMedia = mediaResult.rows;
+      cards = makeStorefrontCards(parentProducts,matchingVariants,cardMedia);
     }
+    if (!cardMedia && cards.length) {
+      const ids = [...new Set(rows.map(row => String(row.id)))];
+      const images = await pool.query(`SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order
+        FROM product_media WHERE product_id=ANY($1::bigint[]) AND media_type='image'
+        ORDER BY product_id,sort_order,id`, [ids]);
+      cardMedia = images.rows;
+    }
+    cards = attachCardPreviews(cards, cardMedia || []);
     return res.json({
       products: cards,
       pagination: { page: safePage, limit, total, pages },
