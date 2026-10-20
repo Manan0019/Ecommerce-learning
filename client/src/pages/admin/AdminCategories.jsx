@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Modal from "../../components/common/Modal";
@@ -13,7 +13,6 @@ import {
 
 export default function AdminCategories() {
   const navigate = useNavigate();
-  const formRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
@@ -66,7 +65,6 @@ export default function AdminCategories() {
     setParentId("");
     setEditing(null);
     setModalOpen(false);
-    formRef.current?.reset();
   }
 
   function beginEdit(category) {
@@ -164,7 +162,7 @@ export default function AdminCategories() {
     actions={<button type="button" className="admin-primary-action" onClick={() => { setEditing(null); setName(""); setImage(null); setParentId(""); setError(""); setMessage(""); setModalOpen(true); }}>+ Add category</button>}>
     <div className="admin-category-layout nx-category-layout">
       {modalOpen && <Modal title={editing ? "Edit category" : "Add category"} subtitle="Choose a cover image and an optional square icon for the dropdown." size="medium" closeDisabled={saving} onClose={resetForm}>
-      <section className="admin-panel admin-form-panel admin-category-form" ref={formRef}>
+      <section className="admin-panel admin-form-panel admin-category-form">
         <div className="admin-panel-heading">
           <div>
             <h2>{editing ? "Edit category" : "Create category"}</h2>
