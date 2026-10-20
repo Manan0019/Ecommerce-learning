@@ -1,6 +1,6 @@
 import { apiRequest } from "./apiClient";
 const sessionOptions = { credentials: "include" };
-export function estimateCodOrder(payload){return apiRequest("/api/orders/estimate",{...sessionOptions,method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});}
+export function estimateCodOrder(payload,signal){return apiRequest("/api/orders/estimate",{...sessionOptions,signal,method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});}
 export function createCodOrder(payload) { return apiRequest("/api/orders/cod", { ...sessionOptions, method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); }
 export function getMyOrders(signal) { return apiRequest("/api/orders/mine", { ...sessionOptions, signal }); }
 export function getAdminOrders(signal) { return apiRequest("/api/admin/orders", { ...sessionOptions, signal }); }

@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import pool from "../config/db.js";
 import { fromPaise, validateCartItems } from "../services/cartPricing.js";
 import { calculateCheckout } from "../services/checkoutPricing.js";
+import { acceptedQuoteError, quoteMatchesAccepted, quoteSummary } from "../services/checkoutAcceptance.js";
+import { deductStock } from "../services/stockDeduction.js";
 import { canChangeOrderStatus, canConfirmCodCollection, validateDispatch, makeOrderLine, normalizeAddress, validOrderId, validRequestKey, validateAddress } from "../services/codOrderRules.js";
 
 const statementError = (res, error, label) => {
@@ -35,17 +37,17 @@ async function loadOrderLines(db, items, lock = false) {
   }
   return {lines};
 }
-async function resolveAddress(db,userId,body){
+async function resolveAddress(db,userId,body,lock=false){
   if(body?.addressId != null){
     if(!/^[1-9]\d*$/.test(String(body.addressId)))return {error:'Invalid saved address.'};
-    const r=await db.query('SELECT * FROM customer_addresses WHERE customer_id=$1 AND id=$2',[userId,body.addressId]);
+    const r=await db.query(`SELECT * FROM customer_addresses WHERE customer_id=$1 AND id=$2 ${lock?'FOR SHARE':''}`,[userId,body.addressId]);
     if(!r.rows.length)return {error:'Saved address was not found.'};
     const a=r.rows[0];return {address:{fullName:a.full_name,phone:a.phone,addressLine1:a.address_line1,addressLine2:a.address_line2,city:a.city,state:a.state,pincode:a.pincode}};
   }
   const error=validateAddress(body?.address);
   return error?{error}:{address:normalizeAddress(body.address)};
 }
-async function fetchPolicy(db){const r=await db.query('SELECT * FROM store_checkout_settings WHERE id=1');if(!r.rows.length)throw new Error('Store shipping settings missing');return r.rows[0];}
+async function fetchPolicy(db,lock=false){const r=await db.query(`SELECT * FROM store_checkout_settings WHERE id=1 ${lock?'FOR SHARE':''}`);if(!r.rows.length)throw new Error('Store shipping settings missing');return r.rows[0];}
 const externalBreakdown=b=>({subtotal:b.subtotal,shippingFee:b.shippingFee,total:b.total,taxableValue:b.taxableValue,includedTax:b.includedTax,cgst:b.cgst,sgst:b.sgst,igst:b.igst,taxType:b.taxType});
 export async function estimateCodOrder(req,res){
  const {items}=req.body||{};const invalid=validateCartItems(items);if(invalid||!items?.length)return res.status(400).json({message:invalid||'Cart is empty.'});
@@ -63,6 +65,8 @@ export async function placeCodOrder(req,res){
  const invalid=validateCartItems(items);if(invalid||!items?.length)return res.status(400).json({message:invalid||'Your cart is empty.'});
  if(paymentMethod!=='cod')return res.status(400).json({message:'Only Cash on Delivery is supported.'});
  if(!validRequestKey(requestKey))return res.status(400).json({message:'Invalid order request key.'});
+ const quoteError=acceptedQuoteError(req.body?.acceptedQuote);
+ if(quoteError)return res.status(400).json({message:quoteError});
  const digest=createHash('sha256').update(JSON.stringify({items:[...items].sort((a,b)=>`${a.productId}:${a.variantId??''}`.localeCompare(`${b.productId}:${b.variantId??''}`)),addressId:req.body?.addressId??null,address:req.body?.addressId?null:req.body?.address,paymentMethod})).digest('hex');
  const db=await pool.connect();let open=false;
  try{
@@ -71,15 +75,21 @@ export async function placeCodOrder(req,res){
   if(!customer.rows.length){await db.query('ROLLBACK');open=false;return res.status(403).json({message:'Customer account unavailable.'});}
   const duplicate=await db.query('SELECT * FROM cod_orders WHERE customer_id=$1 AND request_key=$2',[req.user.id,requestKey]);
   if(duplicate.rows.length){await db.query('COMMIT');open=false;if(duplicate.rows[0].request_digest!==digest)return res.status(409).json({message:'Request key already used for another order.'});return res.json({order:serializeOrder(duplicate.rows[0]),alreadyPlaced:true});}
-  const address=await resolveAddress(db,req.user.id,req.body);
+  const address=await resolveAddress(db,req.user.id,req.body,true);
   if(address.error){await db.query('ROLLBACK');open=false;return res.status(400).json({message:address.error});}
-  const policy=await fetchPolicy(db);
+  const policy=await fetchPolicy(db,true);
   if(!policy.cod_enabled){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Cash on Delivery is not yet enabled by the store. Please try again later.'});}
   const result=await loadOrderLines(db,items,true);
   if(result.error){await db.query('ROLLBACK');open=false;return res.status(409).json({message:result.error,requiresCartReview:true});}
   const lines=result.lines.map(x=>({...x,gstPercent:x.gstPercent??policy.default_item_gst_percent}));
   const amounts=calculateCheckout(lines,address.address.state,policy);
   if(amounts._total<=0n||amounts._total>999999999999n){await db.query('ROLLBACK');open=false;return res.status(400).json({message:'Invalid order total.'});}
+  // The customer's explicit acceptance is checked AFTER row locks and repricing.
+  // A changing SKU price, shipping fee or GST-inclusive amount needs a new confirmation.
+  if(!quoteMatchesAccepted(amounts,req.body.acceptedQuote)){
+    await db.query('ROLLBACK');open=false;
+    return res.status(409).json({message:'Your checkout amounts changed. Review the updated total before placing your order.',requiresEstimateReview:true,latestEstimate:quoteSummary(amounts)});
+  }
   const saved=await db.query(`INSERT INTO cod_orders(customer_id,request_key,request_digest,subtotal,shipping_fee,grand_total,address_snapshot,tax_total,taxable_value,cgst,sgst,igst)
     VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12) RETURNING *`,[req.user.id,requestKey,digest,amounts.subtotal,amounts.shippingFee,amounts.total,JSON.stringify(address.address),amounts.includedTax,amounts.taxableValue,amounts.cgst,amounts.sgst,amounts.igst]);
   const order=saved.rows[0];
@@ -87,8 +97,7 @@ export async function placeCodOrder(req,res){
   for(const [i,line] of lines.entries()){
     await db.query(`INSERT INTO cod_order_items(order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total,gst_percent,included_tax)
       VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12)`,[order.id,line.productId,line.variantId,line.name,line.sku,JSON.stringify(line.attributes),line.imageUrl,line.quantity,fromPaise(line.unitPrice),fromPaise(line.lineTotal),line.gstPercent,amounts.itemTaxes[i]]);
-    if(line.variantId)await db.query('UPDATE product_variants SET stock=stock-$1,updated_at=NOW() WHERE id=$2',[line.quantity,line.variantId]);
-    else await db.query('UPDATE products SET stock=stock-$1 WHERE id=$2',[line.quantity,line.productId]);
+    await deductStock(db,line);
   }
   await db.query('COMMIT');open=false;return res.status(201).json({order:serializeOrder(order),alreadyPlaced:false});
  }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});return statementError(res,e,'Place COD order:');}
