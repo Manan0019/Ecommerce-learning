@@ -52,6 +52,7 @@ import "./styles/phase32.css";
 import "./styles/phase33.css";
 import "./styles/phase34.css";
 import "./styles/phase35.css";
+import "./styles/phase36.css";
 
 export default function App() {
   return <BrandingProvider><CartProvider><BrowserRouter><Routes>

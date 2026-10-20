@@ -8,15 +8,15 @@ import {
   updateCategoryStatus
 } from "../controllers/categoryController.js";
 import { requireAdmin } from "../middleware/authMiddleware.js";
-import { catalogImageUpload, handleCatalogImageError } from "../services/catalogImageService.js";
+import { categoryImageUpload, handleCatalogImageError } from "../services/catalogImageService.js";
 
 const router = Router();
 
 router.use(requireAdmin);
 router.get("/", listAdminCategories);
 router.get("/:id/specifications", getAdminSpecificationDefinition);
-router.post("/", catalogImageUpload.single("image"), createCategory);
-router.put("/:id", catalogImageUpload.single("image"), updateCategory);
+router.post("/", categoryImageUpload.fields([{ name: "image", maxCount: 1 }, { name: "menuIcon", maxCount: 1 }]), createCategory);
+router.put("/:id", categoryImageUpload.fields([{ name: "image", maxCount: 1 }, { name: "menuIcon", maxCount: 1 }]), updateCategory);
 router.patch("/:id/status", updateCategoryStatus);
 router.delete("/:id", deleteCategory);
 router.use(handleCatalogImageError);

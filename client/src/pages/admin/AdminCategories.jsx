@@ -18,6 +18,8 @@ export default function AdminCategories() {
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
+  const [menuIcon, setMenuIcon] = useState(null);
+  const [removeMenuIcon, setRemoveMenuIcon] = useState(false);
   const [parentId, setParentId] = useState("");
   const [editing, setEditing] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -59,6 +61,8 @@ export default function AdminCategories() {
   function resetForm() {
     setName("");
     setImage(null);
+    setMenuIcon(null);
+    setRemoveMenuIcon(false);
     setParentId("");
     setEditing(null);
     setModalOpen(false);
@@ -70,6 +74,8 @@ export default function AdminCategories() {
     setName(category.name);
     setParentId(category.parentId || "");
     setImage(null);
+    setMenuIcon(null);
+    setRemoveMenuIcon(false);
     setError("");
     setMessage("");
     setModalOpen(true);
@@ -82,6 +88,8 @@ export default function AdminCategories() {
     formData.append("name", name.trim());
     formData.append("parentId", parentId);
     if (image) formData.append("image", image);
+    if (menuIcon) formData.append("menuIcon", menuIcon);
+    if (removeMenuIcon && !menuIcon) formData.append("removeMenuIcon", "true");
     setSaving(true);
     setError("");
     setMessage("");
@@ -155,12 +163,12 @@ export default function AdminCategories() {
     subtitle="Organize the catalogue with reusable, customer-facing categories."
     actions={<button type="button" className="admin-primary-action" onClick={() => { setEditing(null); setName(""); setImage(null); setParentId(""); setError(""); setMessage(""); setModalOpen(true); }}>+ Add category</button>}>
     <div className="admin-category-layout nx-category-layout">
-      {modalOpen && <Modal title={editing ? "Edit category" : "Add category"} subtitle="Give this category a clear name and an optional cover image." size="medium" closeDisabled={saving} onClose={resetForm}>
+      {modalOpen && <Modal title={editing ? "Edit category" : "Add category"} subtitle="Choose a cover image and an optional square icon for the dropdown." size="medium" closeDisabled={saving} onClose={resetForm}>
       <section className="admin-panel admin-form-panel admin-category-form" ref={formRef}>
         <div className="admin-panel-heading">
           <div>
             <h2>{editing ? "Edit category" : "Create category"}</h2>
-            <p>{editing ? "Update the category name or replace its image." : "Images are optional and can be added later."}</p>
+            <p>Use a colourful collection image for category pages and a separate small icon for the navigation menu.</p>
           </div>
           {editing && <button className="admin-text-button" type="button" onClick={resetForm}>Cancel</button>}
         </div>
@@ -170,10 +178,23 @@ export default function AdminCategories() {
             <input value={name} onChange={(event) => setName(event.target.value)}
               minLength={2} maxLength={80} required />
           </label>
-          <label>{editing ? "Replacement image (optional)" : "Category image (optional)"}
-            <input type="file" accept="image/jpeg,image/png,image/webp"
-              onChange={(event) => setImage(event.target.files?.[0] || null)} />
-          </label>
+          <div className="nx36-category-images" aria-label="Category artwork slots">
+            <label className="nx36-image-slot">
+              <span className="nx36-slot-title">Collection image</span>
+              <small>Shown on category cards and collection pages. Choose a colourful photo.</small>
+              {editing?.imageUrl && !image && <img className="nx36-slot-preview" alt="Current collection artwork" src={apiAssetUrl(editing.imageUrl)} />}
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setImage(event.target.files?.[0] || null)} />
+              {image && <small className="nx36-selected-file">Selected: {image.name}</small>}
+            </label>
+            <label className="nx36-image-slot">
+              <span className="nx36-slot-title">Dropdown menu icon</span>
+              <small>Small square symbol, ideally a transparent PNG (160×160 px or larger).</small>
+              {editing?.menuIconUrl && !menuIcon && !removeMenuIcon && <img className="nx36-icon-preview" alt="Current navigation icon" src={apiAssetUrl(editing.menuIconUrl)} />}
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {setMenuIcon(event.target.files?.[0] || null);setRemoveMenuIcon(false);}} />
+              {menuIcon && <small className="nx36-selected-file">Selected: {menuIcon.name}</small>}
+              {editing?.menuIconUrl && <span className="nx36-clear-icon"><input type="checkbox" checked={removeMenuIcon} onChange={(event)=>{setRemoveMenuIcon(event.target.checked);if(event.target.checked)setMenuIcon(null);}} />Remove custom menu icon</span>}
+            </label>
+          </div>
           <button className="admin-primary-action" type="submit" disabled={saving}>
             {saving ? "Saving…" : editing ? "Save Category" : "Create Category"}
           </button>

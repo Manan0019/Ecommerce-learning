@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { buildCategoryMenu } from "./categoryMenuTree";
 import { getCategories } from "../../services/categoryService";
+import { apiAssetUrl } from "../../services/apiClient";
 
-function CategoryGlyph({ name }) {
+function CategoryGlyph({ name, iconUrl }) {
+  if (iconUrl) return <span className="nx35-category-glyph nx36-custom-glyph"><img src={apiAssetUrl(iconUrl)} alt="" loading="lazy" /></span>;
   const label = name.toLowerCase();
   const symbol = /beauty|makeup|skin|hair|cosmetic/.test(label) ? "✦"
     : /computer|laptop|mobile|smart|electronics|tablet|phone/.test(label) ? "▣"
@@ -30,7 +32,7 @@ function MenuBranch({ category, close, depth = 0, ancestors = [] }) {
     onPointerEnter={selectSide} onFocus={selectSide}>
     <div className="nx35-category-item-row">
       <Link to={target} className="nx35-category-link" onClick={close}>
-        <CategoryGlyph name={category.name} />
+        <CategoryGlyph name={category.name} iconUrl={category.menuIconUrl} />
         <span>{category.name}</span>
       </Link>
       {hasChildren && <button type="button" className="nx35-category-expand" aria-expanded={expanded}
@@ -57,18 +59,15 @@ export default function CategoryMegaMenu({ mobileOpen, onNavigate }) {
   const categories = buildCategoryMenu(data.categories);
   function close() { setOpen(false); onNavigate?.(); }
   return <div className={`nx35-category-nav ${open ? "is-open" : ""}`}
-    onMouseEnter={() => {if (!mobileOpen) setOpen(true);}}
+    onMouseEnter={() => {if (!mobileOpen && window.matchMedia("(min-width: 861px)").matches) setOpen(true);}}
     onMouseLeave={() => { if (!mobileOpen) setOpen(false); }}
-    onFocus={() => {if (typeof window !== "undefined" && window.matchMedia("(min-width: 861px)").matches) setOpen(true);}}
     onBlur={event => {if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);}}
     onKeyDown={event => { if (event.key === "Escape") {event.preventDefault();event.currentTarget.querySelector(".nx35-category-trigger")?.focus();setOpen(false);} }}>
     <div className="nx35-nav-trigger-row">
-      <Link className="nx35-category-trigger" to="/categories" onClick={close} aria-label="Browse all categories">
+      <button className="nx35-category-trigger" type="button" aria-label="Explore categories" aria-haspopup="true" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/></svg>
         <span>Categories</span>
-      </Link>
-      <button className="nx35-menu-toggle" type="button" aria-expanded={open} aria-label="Toggle categories menu"
-        onClick={() => setOpen(current => !current)}><span aria-hidden="true">⌄</span></button>
+      </button>
     </div>
     <nav className="nx35-category-dropdown" aria-label="Category and subcategory navigation">
       <div className="nx35-category-heading"><span>EXPLORE BY CATEGORY</span><Link to="/categories" onClick={close}>View all ↗</Link></div>

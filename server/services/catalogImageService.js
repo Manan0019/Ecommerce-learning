@@ -21,7 +21,17 @@ export const catalogImageUpload = multer({
   }
 });
 
-export async function saveCatalogImage(file, folder, { required = false } = {}) {
+// Used only by category routes to allow one large card image and one small menu icon.
+export const categoryImageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_PRODUCT_IMAGE_BYTES, files: 2, fields: 12 },
+  fileFilter: (_req, file, callback) => {
+    if (!allowedMimeTypes.has(file.mimetype)) return callback(new Error("UNSUPPORTED_IMAGE"));
+    callback(null, true);
+  }
+});
+
+export async function saveCatalogImage(file, folder, { required = false, maxSize = 1200 } = {}) {
   if (!file) {
     if (required) throw new Error("IMAGE_REQUIRED");
     return null;
@@ -32,7 +42,7 @@ export async function saveCatalogImage(file, folder, { required = false } = {}) 
   try {
     image = await sharp(file.buffer, { limitInputPixels: 20_000_000 })
       .rotate()
-      .resize(1200, 1200, { fit: "inside", withoutEnlargement: true })
+      .resize(maxSize, maxSize, { fit: "inside", withoutEnlargement: true })
       .webp({ quality: 82 })
       .toBuffer();
   } catch {

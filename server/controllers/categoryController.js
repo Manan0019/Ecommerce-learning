@@ -18,6 +18,7 @@ function mapCategory(category) {
     slug: category.slug,
     specificationType: resolveSpecificationType(category),
     imageUrl: category.image_url,
+    menuIconUrl: category.menu_icon_url || null,
     parentId: category.parent_id == null ? null : String(category.parent_id),
     parentName: category.parent_name || null,
     isActive: category.is_active,
@@ -41,7 +42,7 @@ function categoryError(res, error, context) {
 export async function listAdminCategories(_req, res) {
   try {
     const { rows } = await pool.query(`
-      SELECT category.id, category.name, category.slug, category.image_url, category.parent_id, parent.name AS parent_name,
+      SELECT category.id, category.name, category.slug, category.image_url, category.menu_icon_url, category.parent_id, parent.name AS parent_name,
              category.is_active, category.created_at, category.updated_at,
              COUNT(product.id)::int AS product_count
       FROM categories AS category
@@ -61,6 +62,7 @@ export async function createCategory(req, res) {
   if (!name) return res.status(400).json({ message: "Category name must be 2 to 80 characters." });
 
   let saved = null;
+  let savedIcon = null;
   try {
     const parentId = req.body?.parentId || null;
     if (parentId && !validId(parentId)) return res.status(400).json({message:"Invalid parent category."});
@@ -68,17 +70,18 @@ export async function createCategory(req, res) {
       const parent = await pool.query("SELECT id FROM categories WHERE id=$1",[parentId]);
       if (!parent.rows.length) return res.status(400).json({message:"Parent category not found."});
     }
-    saved = await saveCatalogImage(req.file, "categories");
+    saved = await saveCatalogImage(req.files?.image?.[0], "categories");
+    savedIcon = await saveCatalogImage(req.files?.menuIcon?.[0], "categories", { maxSize: 160 });
     const slug = await createUniqueCategorySlug(pool, name);
     const { rows } = await pool.query(`
-      INSERT INTO categories (name, slug, image_url, parent_id)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, name, slug, image_url, parent_id, is_active, created_at, updated_at,
+      INSERT INTO categories (name, slug, image_url, menu_icon_url, parent_id)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, name, slug, image_url, menu_icon_url, parent_id, is_active, created_at, updated_at,
                 0::int AS product_count
-    `, [name, slug, saved?.url || null, parentId]);
+    `, [name, slug, saved?.url || null, savedIcon?.url || null, parentId]);
     return res.status(201).json({ message: "Category created.", category: mapCategory(rows[0]) });
   } catch (error) {
-    await removeCatalogImage(saved);
+    await Promise.all([removeCatalogImage(saved), removeCatalogImage(savedIcon)]);
     return categoryError(res, error, "Creating category");
   }
 }
@@ -89,10 +92,11 @@ export async function updateCategory(req, res) {
   if (!name) return res.status(400).json({ message: "Category name must be 2 to 80 characters." });
 
   let saved = null;
+  let savedIcon = null;
   const client = await pool.connect();
   try {
     const existing = await client.query(
-      "SELECT id, name, image_url FROM categories WHERE id = $1",
+      "SELECT id, name, image_url, menu_icon_url FROM categories WHERE id = $1",
       [req.params.id]
     );
     if (!existing.rows.length) return res.status(404).json({ message: "Category not found." });
@@ -110,20 +114,24 @@ export async function updateCategory(req, res) {
         await client.query("ROLLBACK");return res.status(400).json({message:"Invalid category hierarchy or cycle."});
       }
     }
-    saved = await saveCatalogImage(req.file, "categories");
+    saved = await saveCatalogImage(req.files?.image?.[0], "categories");
+    savedIcon = await saveCatalogImage(req.files?.menuIcon?.[0], "categories", { maxSize: 160 });
     const slug = await createUniqueCategorySlug(client, name, req.params.id);
     const { rows } = await client.query(`
       WITH updated AS (
         UPDATE categories
-        SET name = $1, slug = $2, image_url = COALESCE($3, image_url), parent_id=$4, updated_at = NOW()
+        SET name = $1, slug = $2, image_url = COALESCE($3, image_url),
+            menu_icon_url = CASE WHEN $6::boolean THEN NULL ELSE COALESCE($7, menu_icon_url) END,
+            parent_id=$4, updated_at = NOW()
         WHERE id = $5
         RETURNING *
       )
       SELECT updated.id, updated.name, updated.slug, updated.image_url, updated.parent_id, updated.is_active,
-             updated.created_at, updated.updated_at,
+             updated.menu_icon_url, updated.created_at, updated.updated_at,
              (SELECT COUNT(*)::int FROM products WHERE category_id = updated.id) AS product_count
       FROM updated
-    `, [name, slug, saved?.url || null, parentId, req.params.id]);
+    `, [name, slug, saved?.url || null, parentId, req.params.id,
+      req.body?.removeMenuIcon === "true" && !savedIcon, savedIcon?.url || null]);
     await client.query(
       "UPDATE products SET category = $1, updated_at = NOW() WHERE category_id = $2",
       [name, req.params.id]
@@ -132,7 +140,7 @@ export async function updateCategory(req, res) {
     return res.json({ message: "Category updated.", category: mapCategory(rows[0]) });
   } catch (error) {
     try { await client.query("ROLLBACK"); } catch { /* transaction may not have started */ }
-    await removeCatalogImage(saved);
+    await Promise.all([removeCatalogImage(saved), removeCatalogImage(savedIcon)]);
     return categoryError(res, error, "Updating category");
   } finally {
     client.release();
@@ -151,7 +159,7 @@ export async function updateCategoryStatus(req, res) {
         RETURNING *
       )
       SELECT updated.id, updated.name, updated.slug, updated.image_url, updated.parent_id, updated.is_active,
-             updated.created_at, updated.updated_at,
+             updated.menu_icon_url, updated.created_at, updated.updated_at,
              (SELECT COUNT(*)::int FROM products WHERE category_id = updated.id) AS product_count
       FROM updated
     `, [req.body.isActive, req.params.id]);
@@ -223,7 +231,7 @@ export async function listPublicCategories(_req, res) {
   try {
     const { rows } = await pool.query(`
       SELECT category.id, category.name, category.slug, category.parent_id, parent.name AS parent_name,
-             category.image_url AS image_url,
+             category.image_url AS image_url, category.menu_icon_url,
              category.is_active, category.created_at, category.updated_at,
              COUNT(product.id)::int AS product_count
       FROM categories AS category

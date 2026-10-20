@@ -73,7 +73,6 @@ export default function CustomerLogin() {
       </form>
 
       <p className="auth-switch">New here? <Link to="/signup">Create an account</Link></p>
-      <Link className="nx32-browse-link" to="/products">Continue shopping without signing in →</Link>
       <p className="nx32-security-line">Your password is never displayed publicly.</p>
     </AuthLayout>;
 }

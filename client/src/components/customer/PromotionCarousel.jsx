@@ -15,7 +15,7 @@ export default function PromotionCarousel({position="home",category,product,fall
   const slide=banners[index%banners.length];
   const external = slide.linkUrl.startsWith("https://");
   const imageOnly = slide.showText === false;
-  const content = <><img src={apiAssetUrl(slide.imageUrl)} alt={imageOnly?slide.title:""} loading={position==="home"?"eager":"lazy"}/>
+  const content = <>{imageOnly && <img className="nx36-promo-background" src={apiAssetUrl(slide.imageUrl)} alt="" aria-hidden="true" loading="lazy" />}<img className={imageOnly ? "nx36-promo-artwork" : undefined} src={apiAssetUrl(slide.imageUrl)} alt={imageOnly?slide.title:""} loading={position==="home"?"eager":"lazy"}/>
       {!imageOnly && <span className="nx17-promo-content"><strong>{slide.title}</strong>{slide.subtitle&&<span>{slide.subtitle}</span>}<em>{slide.linkUrl.startsWith("/products/")?"View product →":"Explore offer →"}</em></span>}</>;
   return <section className={`nx17-promo ${position==="product"?"nx19-promo-product":""} ${slide.showText===false?"nx35-promo-image-only":""}`} aria-label="Promotional banners" aria-roledescription="carousel"
     onTouchStart={e=>{touchStart.current=e.changedTouches[0]?.clientX ?? null}}

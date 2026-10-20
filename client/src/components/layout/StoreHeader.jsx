@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { SITE_NAME } from "../../config/site";
 import BrandLogo from "../common/BrandLogo";
 import CategoryMegaMenu from "./CategoryMegaMenu";
@@ -126,7 +126,6 @@ export default function StoreHeader() {
 
       <div id="store-navigation" className={`nav-panel ${mobileOpen ? "is-open" : ""}`}>
         <nav className="store-nav" aria-label="Primary navigation">
-          <NavLink to="/" end onClick={() => setMobileOpen(false)}>Home</NavLink>
           <CategoryMegaMenu mobileOpen={mobileOpen} onNavigate={() => setMobileOpen(false)} />
         </nav>
 
