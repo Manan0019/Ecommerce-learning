@@ -14,7 +14,6 @@ export default function CustomerSignup() {
     password: "",
     confirmPassword: ""
   });
-  const [profileImage, setProfileImage] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -41,7 +40,6 @@ export default function CustomerSignup() {
 
       const body = new FormData();
       Object.entries(form).forEach(([key, value]) => body.append(key, value));
-      if (profileImage) body.append("profileImage", profileImage);
 
       await registerCustomer(body);
 
@@ -127,16 +125,6 @@ export default function CustomerSignup() {
         {form.confirmPassword && <p className={`nx32-password-guidance${form.password === form.confirmPassword ? " is-valid" : " is-invalid"}`}>
           {form.password === form.confirmPassword ? "✓ Passwords match" : "Passwords do not match yet"}
         </p>}
-
-        <label className="auth-field auth-file-field" htmlFor="signup-image">
-          <span>Profile image <small>Optional · JPG, PNG or WebP</small></span>
-          <input
-            id="signup-image"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={(event) => setProfileImage(event.target.files?.[0] ?? null)}
-          />
-        </label>
 
         {message && <p className="auth-message auth-message-error" role="alert">{message}</p>}
 

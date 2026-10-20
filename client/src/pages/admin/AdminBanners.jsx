@@ -9,7 +9,7 @@ import {categoryPaths} from "../../services/categoryHierarchy";
 
 const blank=()=>({title:"",subtitle:"",position:"home",categoryId:"",productId:"",productName:"",
   destinationType:"shop",destinationCategoryId:"",destinationProductId:"",destinationProductName:"",
-  customLink:"/products",sortOrder:"0",image:null});
+  customLink:"/products",sortOrder:"0",showText:true,image:null});
 const categoryPlacement=position=>["category","both"].includes(position);
 const productPlacement=position=>["product","home_product"].includes(position);
 function parseDestination(url,categories){
@@ -42,7 +42,7 @@ export default function AdminBanners(){
   function edit(item){
     setEditing(item);setDraft({...blank(),title:item?.title||"",subtitle:item?.subtitle||"",
       position:item?.position||"home",categoryId:item?.categoryId||"",productId:item?.productId||"",
-      productName:item?.productName||"",sortOrder:String(item?.sortOrder??0),...parseDestination(item?.linkUrl,paths)});
+      productName:item?.productName||"",sortOrder:String(item?.sortOrder??0),showText:item?.showText!==false,...parseDestination(item?.linkUrl,paths)});
     setError("");setNotice("");setOpened(true);
   }
   function destination(){
@@ -65,6 +65,7 @@ export default function AdminBanners(){
     try{
       const data=new FormData();
       for(const key of ["title","subtitle","position","sortOrder"])data.append(key,draft[key]);
+      data.append("showText",String(draft.showText));
       data.append("categoryId",categoryPlacement(draft.position)?draft.categoryId:"");
       data.append("productId",productPlacement(draft.position)?draft.productId:"");
       data.append("linkUrl",linkUrl);
@@ -78,7 +79,7 @@ export default function AdminBanners(){
     {error&&!opened&&<p className="admin-alert" role="alert">{error}</p>}{notice&&<p role="status" className="admin-form-message">{notice}</p>}
     <section className="nx17-admin-banner-grid">{items.map(item=><article className="nx17-banner-card" key={item.id}>
       <img src={apiAssetUrl(item.imageUrl)} alt=""/><div><strong>{item.title}</strong>
-      <p>{placementLabel(item)} · {item.isActive?"Active":"Inactive"} · Order {item.sortOrder}</p>
+      <p>{placementLabel(item)} · {item.isActive?"Active":"Inactive"} · Order {item.sortOrder} · {item.showText===false?"Image only":"Text overlay"}</p>
       <p className="nx19-banner-destination">Redirects to: <code>{item.linkUrl}</code></p>
       <div className="nx17-banner-actions"><button type="button" onClick={()=>edit(item)}>Edit</button>
         <button type="button" disabled={busy} onClick={()=>toggle(item)}>{item.isActive?"Hide":"Publish"}</button></div></div>
@@ -87,6 +88,8 @@ export default function AdminBanners(){
       <form className="admin-form nx17-banner-form" onSubmit={submit}>
         <label><span className="nx34-field-label">Headline <b className="nx34-required" aria-hidden="true">*</b></span><input required maxLength={150} value={draft.title} onChange={e=>setDraft(p=>({...p,title:e.target.value}))}/></label>
         <label>Subtitle<input maxLength={300} value={draft.subtitle} onChange={e=>setDraft(p=>({...p,subtitle:e.target.value}))}/></label>
+        <div className="nx35-banner-visual-mode"><label className="nx35-banner-check"><input type="checkbox" checked={!draft.showText} onChange={e=>setDraft(p=>({...p,showText:!e.target.checked}))}/><span><strong>Use original banner design (image only)</strong><small>Hide all overlaid text and remove the dark gradient. The image displays at full brightness.</small></span></label>
+          <p>For banners containing their own wording, enable image-only mode. The headline is still required internally to identify the promotion in Admin.</p></div>
         <fieldset className="nx19-section"><legend>1. Where should it appear?</legend>
           <label>Banner placement<select value={draft.position} onChange={e=>setDraft(p=>({...p,position:e.target.value,categoryId:"",productId:"",productName:""}))}>
             <option value="home">Homepage only</option>

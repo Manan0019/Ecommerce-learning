@@ -2,18 +2,14 @@ import { Router } from "express";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
 import rateLimit from "express-rate-limit";
+import multer from "multer";
 
 import pool from "../config/db.js";
 import { sendOtpEmail } from "../config/mailer.js";
 
 import { requireAuthenticated, requireCustomer } from "../middleware/authMiddleware.js";
-import {
-  handleProfileImageError,
-  profileImageDiskPath,
-  profileImageUpload,
-  removeProfileImage,
-  saveProfileImage
-} from "../services/profileImageService.js";
+// Customer profile photos are no longer accepted. Existing stored photos are
+// retained in old records for backwards compatibility; the UI no longer uses them.
 
 const router = Router();
 
@@ -73,9 +69,7 @@ const verifyLimiter = rateLimit({
 
 // STEP 1: CUSTOMER SIGNUP
 
-router.post("/signup", signupLimiter, profileImageUpload.single("profileImage"), async (req, res) => {
-  let savedImage = null;
-  let registrationSaved = false;
+router.post("/signup", signupLimiter, multer().none(), async (req, res) => {
   try {
     const { fullName, email, mobileNumber, password, confirmPassword } = req.body ?? {};
 
@@ -154,8 +148,6 @@ router.post("/signup", signupLimiter, profileImageUpload.single("profileImage"),
       Date.now() + OTP_LIFETIME_MS
     );
 
-    savedImage = await saveProfileImage(req.file);
-    const previousImageUrl = existingPending.rows[0]?.profile_image_url ?? null;
 
     await pool.query(
       `INSERT INTO pending_registrations
@@ -175,7 +167,7 @@ router.post("/signup", signupLimiter, profileImageUpload.single("profileImage"),
        DO UPDATE SET
          full_name = EXCLUDED.full_name,
          mobile_number = EXCLUDED.mobile_number,
-         profile_image_url = COALESCE(EXCLUDED.profile_image_url, pending_registrations.profile_image_url),
+         profile_image_url = NULL,
          password_hash = EXCLUDED.password_hash,
          otp_hash = EXCLUDED.otp_hash,
          otp_expires_at = EXCLUDED.otp_expires_at,
@@ -185,17 +177,12 @@ router.post("/signup", signupLimiter, profileImageUpload.single("profileImage"),
         cleanName,
         cleanEmail,
         cleanMobile,
-        savedImage?.url ?? null,
+        null,
         passwordHash,
         otpHash,
         expiresAt
       ]
     );
-    registrationSaved = true;
-
-    if (savedImage && previousImageUrl && previousImageUrl !== savedImage.url) {
-      await removeProfileImage(profileImageDiskPath(previousImageUrl));
-    }
 
     await sendOtpEmail(cleanEmail, otp);
 
@@ -204,7 +191,6 @@ router.post("/signup", signupLimiter, profileImageUpload.single("profileImage"),
     });
 
   } catch (error) {
-    if (savedImage && !registrationSaved) await removeProfileImage(savedImage);
     if (error.code === "23505") {
       return res.status(409).json({
         message: "Unable to start registration for this email."
@@ -573,6 +559,10 @@ router.post("/logout", (req, res) => {
   });
 });
 
-router.use(handleProfileImageError);
+// Reject any attempted multipart file upload rather than accepting a photo.
+router.use((error, _req, res, next) => {
+  if (error?.code === "LIMIT_UNEXPECTED_FILE") return res.status(400).json({message:"Profile photos are not supported. Create your account without an image."});
+  next(error);
+});
 
 export default router;

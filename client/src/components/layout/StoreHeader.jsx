@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { SITE_NAME } from "../../config/site";
 import BrandLogo from "../common/BrandLogo";
+import CategoryMegaMenu from "./CategoryMegaMenu";
 import { useCart } from "../../hooks/useCart";
 import { apiAssetUrl } from "../../services/apiClient";
 import { getCurrentUser, logout as endSession } from "../../services/authService";
@@ -105,18 +106,11 @@ export default function StoreHeader() {
     }
   }
 
-  const initials = user?.fullName
-    ?.split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-
   return <header className="store-header nx34-header">
     <div className="nx34-header-ribbon"><span className="nx34-ribbon-dot" /> <strong>THE NEXORA EDIT</strong><span className="nx34-ribbon-separator" />Discover something worth keeping <span className="nx34-ribbon-arrow">✦</span></div>
     <div className="navbar">
       <Link className="brand" to="/" aria-label={`${SITE_NAME} home`}>
-        <BrandLogo />
+        <BrandLogo showIcon={false} />
       </Link>
 
       <button
@@ -133,10 +127,7 @@ export default function StoreHeader() {
       <div id="store-navigation" className={`nav-panel ${mobileOpen ? "is-open" : ""}`}>
         <nav className="store-nav" aria-label="Primary navigation">
           <NavLink to="/" end onClick={() => setMobileOpen(false)}>Home</NavLink>
-          <NavLink to="/products" onClick={() => setMobileOpen(false)}>Shop</NavLink>
-          <NavLink to="/categories" onClick={() => setMobileOpen(false)}>Categories</NavLink>
-          <NavLink to="/about" onClick={() => setMobileOpen(false)}>About Us</NavLink>
-          <NavLink to="/contact" onClick={() => setMobileOpen(false)}>Contact Us</NavLink>
+          <CategoryMegaMenu mobileOpen={mobileOpen} onNavigate={() => setMobileOpen(false)} />
         </nav>
 
         <form className="nav-search nx-nav-search" role="search" onSubmit={submitSearch} ref={searchRef} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setSearchFocused(false); }}>
@@ -174,9 +165,7 @@ export default function StoreHeader() {
           <button className="avatar-button" type="button" aria-label="Open account menu" title="Account"
             aria-haspopup="menu" aria-expanded={profileOpen}
             onClick={() => setProfileOpen((open) => !open)}>
-            {user.profileImageUrl
-              ? <img src={apiAssetUrl(user.profileImageUrl)} alt="" />
-              : <span>{initials || "U"}</span>}
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20c.35-4.25 3.1-6.35 7.2-6.35s6.85 2.1 7.2 6.35"/></svg>
           </button>
           {profileOpen && <div className="profile-dropdown" role="menu">
             <p>{user.fullName}</p>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
-import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
+import { isAuthenticationError } from "../../services/apiClient";
 import { getCurrentUser, logout, updateCustomerName, updateCustomerPassword } from "../../services/authService";
 
 export default function CustomerDashboard() {
@@ -129,13 +129,7 @@ export default function CustomerDashboard() {
       <div className="nx-profile-head"><div><p className="eyebrow">My account</p><p>Manage your profile and review your COD orders.</p></div><Link className="button button-primary" to="/orders">My Orders →</Link></div>
       <h1>Customer Profile</h1><p><Link to="/addresses">Manage saved delivery addresses →</Link></p>
 
-      {user.profileImageUrl ? (
-        <img
-          className="profile-image"
-          src={apiAssetUrl(user.profileImageUrl)}
-          alt={`${user.fullName}'s profile`}
-        />
-      ) : <div className="profile-image profile-placeholder" aria-label="No profile image">No image</div>}
+      <div className="nx35-account-identity"><span className="nx35-account-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20c.35-4.25 3.1-6.35 7.2-6.35s6.85 2.1 7.2 6.35"/></svg></span><div><strong>{user.fullName}</strong><small>Customer account</small></div></div>
 
       <p><strong>Email:</strong> {user.email}</p>
       <p><strong>Mobile number:</strong> {user.mobileNumber || "Not provided"}</p>

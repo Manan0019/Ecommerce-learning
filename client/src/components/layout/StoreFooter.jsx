@@ -9,7 +9,7 @@ export default function StoreFooter() {
       <p>GOOD THINGS, <em>FOUND HERE.</em></p><span className="nx34-footer-star" aria-hidden="true">✳</span>
     </div>
     <div className="nx34-footer-main">
-      <div className="nx34-footer-about"><Link className="brand footer-brand" to="/"><BrandLogo /></Link>
+      <div className="nx34-footer-about"><Link className="brand footer-brand" to="/"><BrandLogo showIcon={false} /></Link>
         <p>{SITE_TAGLINE}</p><span>Explore thoughtfully. Shop confidently.</span>
       </div>
       <nav aria-label="Explore Nexora" className="nx34-footer-nav"><strong>DISCOVER</strong>

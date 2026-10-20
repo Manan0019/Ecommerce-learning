@@ -1,4 +1,5 @@
 import { validBannerDestination, validBannerPlacement } from "../services/bannerTargeting.js";
+import { parseBannerVisualMode } from "../services/bannerVisualMode.js";
 import pool from "../config/db.js";
 import { saveCatalogImage, removeCatalogImage } from "../services/catalogImageService.js";
 
@@ -11,7 +12,7 @@ const map = r => ({
   id: String(r.id), title:r.title, subtitle:r.subtitle||"", imageUrl:r.image_url, linkUrl:r.link_url,
   position:r.position, categoryId:r.category_id == null? null:String(r.category_id),
   categoryName:r.category_name||null, productId:r.product_id == null? null:String(r.product_id),
-  productName:r.product_name||null, sortOrder:r.sort_order, isActive:r.is_active
+  productName:r.product_name||null, sortOrder:r.sort_order, showText:r.show_text !== false, isActive:r.is_active
 });
 function validate(body) {
   const title=typeof body?.title==="string"?body.title.trim():"";
@@ -21,10 +22,12 @@ function validate(body) {
   const productId=body?.productId||null;
   const linkUrl=typeof body?.linkUrl==="string"?body.linkUrl.trim():"/products";
   const sortOrder=Number(body?.sortOrder??0);
+  const showText=parseBannerVisualMode(body?.showText);
+  if(showText === null)return null;
   if(!title||title.length>150||subtitle.length>300||
      !validBannerPlacement(position,categoryId,productId)||!validBannerDestination(linkUrl)||
      !Number.isInteger(sortOrder)||sortOrder<0||sortOrder>10000)return null;
-  return {title,subtitle,position,categoryId,productId,linkUrl,sortOrder};
+  return {title,subtitle,position,categoryId,productId,linkUrl,sortOrder,showText};
 }
 async function validateTargets(values) {
   if(values.categoryId){
@@ -97,9 +100,9 @@ export async function createBanner(req,res){
     if(targetError)return res.status(400).json({message:targetError});
     saved=await saveCatalogImage(req.file,"banners",{required:true});
     const {rows}=await pool.query(`INSERT INTO promotion_banners
-      (title,subtitle,image_url,link_url,position,category_id,product_id,sort_order)
-      VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-      [values.title,values.subtitle,saved.url,values.linkUrl,values.position,values.categoryId,values.productId,values.sortOrder]);
+      (title,subtitle,image_url,link_url,position,category_id,product_id,sort_order,show_text)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      [values.title,values.subtitle,saved.url,values.linkUrl,values.position,values.categoryId,values.productId,values.sortOrder,values.showText]);
     res.status(201).json({banner:map(rows[0])});
   }catch(err){await removeCatalogImage(saved);if(err.code==='23503')return res.status(400).json({message:"Promotion target not found."});console.error(err);res.status(500).json({message:"Unable to add banner."});}
 }
@@ -114,9 +117,9 @@ export async function updateBanner(req,res){
     if(req.file)saved=await saveCatalogImage(req.file,"banners");
     const {rows}=await pool.query(`UPDATE promotion_banners SET
       title=$1,subtitle=$2,image_url=COALESCE($3,image_url),link_url=$4,position=$5,
-      category_id=$6,product_id=$7,sort_order=$8,updated_at=NOW()
-      WHERE id=$9 RETURNING *`,
-      [values.title,values.subtitle,saved?.url||null,values.linkUrl,values.position,values.categoryId,values.productId,values.sortOrder,req.params.id]);
+      category_id=$6,product_id=$7,sort_order=$8,show_text=$9,updated_at=NOW()
+      WHERE id=$10 RETURNING *`,
+      [values.title,values.subtitle,saved?.url||null,values.linkUrl,values.position,values.categoryId,values.productId,values.sortOrder,values.showText,req.params.id]);
     if(!rows.length){await removeCatalogImage(saved);return res.status(404).json({message:"Banner not found."});}
     res.json({banner:map(rows[0])});
   }catch(err){await removeCatalogImage(saved);if(err.code==='23503')return res.status(400).json({message:"Promotion target not found."});console.error(err);res.status(500).json({message:"Unable to update banner."});}
