@@ -8,6 +8,7 @@ const shapes = {
   'chevron-right': <path d="m9 5 7 7-7 7" />,
   'chevron-left': <path d="m15 5-7 7 7 7" />,
   'chevron-down': <path d="m5 9 7 7 7-7" />,
+  users: <><circle cx="9" cy="8" r="3"/><path d="M3.5 19v-2c0-2.5 2.5-4 5.5-4s5.5 1.5 5.5 4v2"/><path d="M17 5.5a2.5 2.5 0 0 1 0 5M16.5 13c2.5.3 4 1.6 4 3.8V19"/></>,
   search: <><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4.5 4.5" /></>,
   pause: <><path d="M8 5v14M16 5v14" /></>,
   play: <path d="m8 5 11 7-11 7z" />,

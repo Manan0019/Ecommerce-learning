@@ -1,0 +1,53 @@
+/* Phase 53: delivery executive directory and assignment confirmation. */
+.nx53-order-action {display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-width:220px}
+.nx53-order-assignee {font-size:12px;color:#69647e;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nx46-table td .nx53-open-picker,.nx53-open-picker {display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:11px;border:1px solid #d8cef7;background:#f2efff;color:#4b35ad;font-size:12px;font-weight:800;padding:10px 13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.nx53-open-picker:hover {border-color:#a18be7;background:#eae3ff}
+.nx46-table td .nx53-open-picker:disabled {opacity:.55;cursor:not-allowed}
+.nx53-assignment-dialog {display:grid;gap:16px;color:#232447}
+.nx53-assignment-context {display:grid;grid-template-columns:.8fr 1.7fr 1fr;gap:10px}
+.nx53-assignment-context>div {display:grid;gap:4px;align-content:start;padding:13px 15px;background:#f7f6fc;border:1px solid #eae5f6;border-radius:13px;min-width:0}
+.nx53-assignment-context span {font-size:10px;letter-spacing:.08em;color:#8a809e;font-weight:900}
+.nx53-assignment-context strong {font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+.nx53-assignment-context small {font-size:11px;color:#847b99}
+.nx53-current-assignee {margin:0;background:#f4efff;padding:10px 12px;border:1px solid #e4dafa;border-radius:11px;color:#675894;font-size:12px}
+.nx53-staff-search {display:flex;align-items:center;gap:9px;background:#fbfaff;border:1px solid #dcd6eb;padding:11px 14px;border-radius:12px;color:#6550ba}
+.nx53-staff-search:focus-within {border-color:#7a63d5;box-shadow:0 0 0 3px #7961ce20}
+.nx53-staff-search input {width:100%;min-width:0;outline:0;border:0!important;background:transparent!important;box-shadow:none!important;color:#242643;font:inherit;font-size:13px;padding:0!important}
+.nx53-team-list {max-height:min(42vh,390px);overflow-y:auto;display:grid;align-content:start;gap:9px;padding:2px 4px 4px 1px;scrollbar-width:thin}
+.nx53-team-card {display:flex;align-items:center;gap:12px;padding:13px 14px;min-width:0;border:1px solid #e5e2ef;border-radius:15px;cursor:pointer;background:#fff;transition:background .15s,border-color .15s,box-shadow .15s}
+.nx53-team-card:hover:not(.is-disabled) {border-color:#ad9beb;background:#fbfaff}
+.nx53-team-card.is-selected {border-color:#7960df;background:#f7f3ff;box-shadow:inset 0 0 0 1px #7960df}
+.nx53-team-card.is-disabled {cursor:not-allowed;background:#f9f9fc;opacity:.65}
+.nx53-team-card:focus-within {outline:2px solid #7760d7;outline-offset:2px}
+.nx53-team-card input[type=radio] {width:17px;height:17px;accent-color:#6450cb;flex-shrink:0;cursor:inherit}
+.nx53-team-avatar {display:grid;place-items:center;flex:0 0 38px;height:38px;background:#ece7ff;color:#4e39af;font-size:13px;font-weight:900;border-radius:12px}
+.nx53-team-identity {display:grid;gap:4px;min-width:0;flex:1}
+.nx53-team-identity strong {font-size:13px;overflow-wrap:anywhere}
+.nx53-team-identity small {font-size:11px;color:#807b98;overflow-wrap:anywhere}
+.nx53-team-meta {display:grid;justify-items:end;gap:6px;min-width:100px}
+.nx53-team-meta em {font-style:normal;border-radius:100px;padding:4px 9px;font-size:10px;font-weight:850}
+.nx53-team-meta em.is-active {background:#e7f7ed;color:#227348}
+.nx53-team-meta em.is-inactive {background:#efeff2;color:#777486}
+.nx53-team-meta small {font-size:11px;color:#7e7995;white-space:nowrap}
+.nx53-team-empty {margin:0;padding:25px 12px;text-align:center;color:#716d88;font-size:13px;background:#faf9fd;border:1px dashed #ded8ef;border-radius:14px}
+.nx53-picker-footer {display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid #edeaf4;padding-top:17px}
+.nx53-picker-footer p {margin:0;color:#736c8a;font-size:12px;overflow-wrap:anywhere}
+.nx53-picker-footer>div {display:flex;gap:9px;flex-shrink:0}
+.nx53-picker-footer button {border:1px solid #d8d0e9;border-radius:11px;padding:11px 15px;font-size:12px;font-weight:850;cursor:pointer}
+.nx53-picker-footer .nx53-cancel {color:#604d8a;background:#fff}
+.nx53-picker-footer .nx53-confirm {background:#5c45d0;color:#fff;border-color:#5c45d0}
+.nx53-picker-footer button:disabled {opacity:.46;cursor:not-allowed}
+.nx53-orders-link {display:inline-flex;align-items:center;gap:6px;font-weight:750;color:#5540ba;text-decoration:none;font-size:12px}
+.nx53-orders-link:hover {text-decoration:underline}
+@media(max-width:650px) {
+ .nx53-assignment-context {grid-template-columns:1fr 1fr}
+ .nx53-assignment-context>div:nth-child(2){grid-column:span 2;grid-row:2}
+ .nx53-team-card {gap:9px;padding:10px}
+ .nx53-team-avatar{flex-basis:32px;height:32px}
+ .nx53-team-meta {min-width:74px}
+ .nx53-team-meta small {white-space:normal;text-align:right}
+ .nx53-picker-footer {align-items:stretch;flex-direction:column}
+ .nx53-picker-footer>div {justify-content:flex-end}
+}
+@media(prefers-reduced-motion:reduce){.nx53-team-card{transition:none}}
