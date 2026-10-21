@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import UiIcon from "../common/UiIcon";
 import CategoryArtwork from "./CategoryArtwork";
 
 /** The artwork is always contained in a consistent panel, even when admins use
@@ -9,7 +10,7 @@ export default function CategoryTile({ category, index = 0, directory = false })
     <div className="nx37-category-details">
       <span className="nx37-category-kicker">COLLECTION {String(index + 1).padStart(2, "0")}</span>
       <h3>{category.name}</h3>
-      <div className="nx37-category-bottom"><span>{Number(category.productCount) > 0 ? `${category.productCount} products` : "Discover collection"}</span><span className="nx37-category-arrow" aria-hidden="true">↗</span></div>
+      <div className="nx37-category-bottom"><span>{Number(category.productCount) > 0 ? `${category.productCount} products` : "Discover collection"}</span><span className="nx37-category-arrow" aria-hidden="true"><UiIcon name="up-right" size={19}/></span></div>
     </div>
   </Link>;
 }

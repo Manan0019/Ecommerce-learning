@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import UiIcon from "./UiIcon";
 import { Link } from "react-router-dom";
 import { apiAssetUrl } from "../../services/apiClient";
 
@@ -54,18 +55,12 @@ export default function ProductCard({ product }) {
       </Link>
       {availableImages.length > 1 && <>
         <div className="nx29-card-arrows" aria-label="Preview product images">
-          <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}>‹</button>
-          <button type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}>›</button>
+          <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}><UiIcon name="chevron-left" size={18}/></button>
+          <button type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}><UiIcon name="chevron-right" size={18}/></button>
         </div>
-        <div className="nx29-card-dots" aria-label="Choose product image">
-          {availableImages.map((image, index) => <button
-            key={`${image}:${index}`}
-            type="button"
-            aria-label={`Show image ${index + 1} of ${availableImages.length} for ${product.name}`}
-            aria-pressed={index === active}
-            className={index === active ? "active" : ""}
-            onClick={() => choose(index)}
-          />)}
+        <div className="nx48-card-image-index" aria-live="off" aria-label={`Image ${Math.min(active+1,availableImages.length)} of ${availableImages.length}`}>
+          <UiIcon name="images" size={15}/>
+          <span>{String(Math.min(active+1,availableImages.length)).padStart(2,"0")}<i> / </i>{String(availableImages.length).padStart(2,"0")}</span>
         </div>
       </>}
     </div>
@@ -75,7 +70,7 @@ export default function ProductCard({ product }) {
       {(product.brand || product.model) && <p className="product-brand">{[product.brand, product.model].filter(Boolean).join(" · ")}</p>}
       <h3><Link to={detailUrl}>{product.name}</Link></h3>
       <div className="product-meta">
-        <p className="product-price">{Number(product.mrp) > Number(product.price) && <><span className="detail-discount">↓{Math.round((Number(product.mrp) - Number(product.price)) / Number(product.mrp) * 100)}% </span><s className="detail-mrp">₹{Number(product.mrp).toLocaleString("en-IN")}</s> </>}₹{Number(product.price).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <p className="product-price">{Number(product.mrp) > Number(product.price) && <><span className="detail-discount">−{Math.round((Number(product.mrp) - Number(product.price)) / Number(product.mrp) * 100)}% </span><s className="detail-mrp">₹{Number(product.mrp).toLocaleString("en-IN")}</s> </>}₹{Number(product.price).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         <span>{product.stock > 0 ? "Available" : "Out of stock"}</span>
       </div>
     </div>

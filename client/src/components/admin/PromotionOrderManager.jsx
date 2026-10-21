@@ -1,4 +1,5 @@
 import { useState } from "react";
+import UiIcon from "../common/UiIcon";
 import { apiAssetUrl } from "../../services/apiClient";
 import { reorderPromotions } from "../../services/bannerService";
 import { movePromotion } from "../../services/promotionOrder";
@@ -26,7 +27,7 @@ export default function PromotionOrderManager({ items, onSaved }) {
   }
   return <section className="nx39-order-panel" aria-label="Promotion positions">
     <div className="nx39-order-top"><div><span className="nx39-eyebrow">DISPLAY SEQUENCE</span><h2>Promotion positions</h2>
-      <p>Position 1 appears first. Drag a banner, choose its number, or use the arrow buttons. All locations share this order.</p></div>
+      <p>Position 1 appears first. Drag a banner, choose its number, or use the move controls. All locations share this order.</p></div>
       <div className="nx39-order-actions"><button type="button" disabled={!dirty||busy} onClick={()=>{setPendingIds(null);setMessage("");}}>Discard</button>
         <button type="button" className="admin-primary-action" disabled={!dirty||busy} onClick={save}>{busy?"Saving…":"Save positions"}</button></div>
     </div>
@@ -42,8 +43,8 @@ export default function PromotionOrderManager({ items, onSaved }) {
         <div className="nx39-order-copy"><strong>{item.title}</strong><span>{item.position.replaceAll("_"," ")} · {item.isActive?"Enabled":"Hidden"}</span></div>
         <label className="nx39-select-position"><span>Position</span><select aria-label={`Position of ${item.title}`} value={i} disabled={busy}
           onChange={e=>change(i,Number(e.target.value))}>{ids.map((_,j)=><option key={j} value={j}>{j+1}</option>)}</select></label>
-        <div className="nx39-order-movers"><button type="button" aria-label={`Move ${item.title} up`} disabled={busy||i===0} onClick={()=>change(i,i-1)}>↑</button>
-          <button type="button" aria-label={`Move ${item.title} down`} disabled={busy||i===ids.length-1} onClick={()=>change(i,i+1)}>↓</button></div>
+        <div className="nx39-order-movers"><button type="button" aria-label={`Move ${item.title} up`} disabled={busy||i===0} onClick={()=>change(i,i-1)}><UiIcon name="up" size={17}/></button>
+          <button type="button" aria-label={`Move ${item.title} down`} disabled={busy||i===ids.length-1} onClick={()=>change(i,i+1)}><UiIcon name="down" size={17}/></button></div>
       </li>;
     })}</ol>
     {!items.length&&<p className="nx39-empty">Add your first promotion to manage its position.</p>}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import UiIcon from "../common/UiIcon";
 import { useNavigate } from "react-router-dom";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import { getAdminProduct, updateProduct, updateProductImage } from "../../services/productService";
@@ -139,7 +140,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
           <label>Replace cover image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setNewImage(e.target.files?.[0] || null)} /></label>
           <button type="submit" className="admin-secondary-action" disabled={uploading || !newImage}>{uploading ? "Uploading…" : "Replace cover"}</button>
         </form>
-        <button className="nx-text-action" type="button" onClick={() => setTab("gallery")}>Manage all gallery images →</button>
+        <button className="nx-text-action" type="button" onClick={() => setTab("gallery")}>Manage all gallery images <UiIcon name="right" size={17}/></button>
       </aside>
     </div>}
     {tab === "variants" && <ProductVariantsManager productId={productId} />}

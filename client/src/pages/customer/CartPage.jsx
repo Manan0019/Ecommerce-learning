@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import UiIcon from "../../components/common/UiIcon";
 import { Link } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import { apiAssetUrl } from "../../services/apiClient";
@@ -74,9 +75,9 @@ export default function CartPage() {
         {quote.unavailableCount > 0 && <p role="alert" className="cart-warning">{quote.unavailableCount} unavailable line(s) are excluded from the available-items total. Remove or update them.</p>}
         <div><span>Shipping</span><span>Calculated at checkout</span></div>
         <p className="stock-copy">Shipping, included taxes, prices and stock are verified at checkout. No online payment is required.</p>
-        <Link className={`button button-primary nx-checkout-cta ${!quote.valid ? "nx-link-disabled" : ""}`} aria-disabled={!quote.valid} tabIndex={quote.valid ? 0 : -1} onClick={e => {if(!quote.valid)e.preventDefault()}} to="/checkout">Continue to Cash on Delivery →</Link>
+        <Link className={`button button-primary nx-checkout-cta ${!quote.valid ? "nx-link-disabled" : ""}`} aria-disabled={!quote.valid} tabIndex={quote.valid ? 0 : -1} onClick={e => {if(!quote.valid)e.preventDefault()}} to="/checkout">Continue to checkout <UiIcon name="right" size={17}/></Link>
         <button className="clear-cart-button" type="button" onClick={clearCart}>Clear cart</button>
-        <Link className="text-link" to="/products">← Continue shopping</Link>
+        <Link className="text-link" to="/products"><UiIcon name="left" size={17}/> Continue shopping</Link>
       </aside>
     </div>}
   </CustomerLayout>;

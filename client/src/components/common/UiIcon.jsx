@@ -1,0 +1,23 @@
+/** Consistent inline SVG arrows and navigation symbols. No external icon dependency. */
+const shapes = {
+  right: <path d="M4.5 12h15m-6-6 6 6-6 6" />,
+  left: <path d="M19.5 12h-15m6-6-6 6 6 6" />,
+  'up-right': <path d="M6.5 17.5 17.5 6.5M8 6.5h9.5V16" />,
+  up: <path d="M12 19V5m-6 6 6-6 6 6" />,
+  down: <path d="M12 5v14m-6-6 6 6 6-6" />,
+  'chevron-right': <path d="m9 5 7 7-7 7" />,
+  'chevron-left': <path d="m15 5-7 7 7 7" />,
+  'chevron-down': <path d="m5 9 7 7 7-7" />,
+  search: <><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4.5 4.5" /></>,
+  pause: <><path d="M8 5v14M16 5v14" /></>,
+  play: <path d="m8 5 11 7-11 7z" />,
+  grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
+  bag: <><path d="M4 8h16l-1.25 13H5.25L4 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></>,
+  images: <><rect x="3" y="5" width="15" height="15" rx="2"/><path d="M7 15l3-3 2.5 2.5 2-2 3.5 4"/><path d="M8 3h11a2 2 0 0 1 2 2v11"/></>,
+  maximize: <><path d="M8 3H3v5m0-5 7 7m6-7h5v5m0-5-7 7M3 16v5h5m-5 0 7-7m11 2v5h-5m5 0-7-7"/></>,
+};
+export default function UiIcon({ name = 'right', size = 18, className = '' }) {
+  return <svg className={`nx47-icon ${className}`.trim()} aria-hidden="true" width={size} height={size}
+    viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"
+    strokeLinecap="round" strokeLinejoin="round" focusable="false">{shapes[name] || shapes.right}</svg>;
+}

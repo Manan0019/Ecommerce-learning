@@ -1,4 +1,5 @@
 import {useEffect,useState} from "react";
+import PromotionCategorySelect from "../../components/admin/PromotionCategorySelect";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Modal from "../../components/common/Modal";
 import PromotionProductPicker from "../../components/admin/PromotionProductPicker";
@@ -129,7 +130,7 @@ export default function AdminBanners(){
       <img src={apiAssetUrl(item.imageUrl)} alt="" loading="lazy"/><div><div className="nx39-card-titles"><strong>{item.title}</strong><span className={`nx39-status nx39-${bannerStatus(item).toLowerCase()}`}>{bannerStatus(item)}</span></div>
       <p><strong>#{i+1}</strong> · {placementLabel(item)} · {item.showText===false?"Image only":"Text overlay"}</p>
       <p className="nx19-banner-destination">Redirects to: <code>{item.linkUrl}</code></p>
-      {(item.startsAt||item.endsAt)&&<p className="nx39-schedule-caption">{item.startsAt?`From ${new Date(item.startsAt).toLocaleString()}`:"Immediately"} → {item.endsAt?new Date(item.endsAt).toLocaleString():"No end date"}</p>}
+      {(item.startsAt||item.endsAt)&&<p className="nx39-schedule-caption">{item.startsAt?`From ${new Date(item.startsAt).toLocaleString()}`:"Immediately"} / {item.endsAt?new Date(item.endsAt).toLocaleString():"No end date"}</p>}
       <div className="nx17-banner-actions"><button type="button" onClick={()=>edit(item)}>Edit</button>
         <button type="button" disabled={busy} onClick={()=>toggle(item)}>{item.isActive?"Disable":"Enable"}</button></div></div>
     </article>)}{!items.length&&<div className="admin-empty">No promotions yet. Add a banner to get started.</div>}</section>
@@ -147,9 +148,8 @@ export default function AdminBanners(){
             <option value="product">Specific product page</option>
             <option value="home_product">Homepage + specific product page</option>
           </select></label>
-          {categoryPlacement(draft.position)&&<label><span className="nx34-field-label">Choose display category <b className="nx34-required" aria-hidden="true">*</b></span><select required value={draft.categoryId} onChange={e=>setDraft(p=>({...p,categoryId:e.target.value}))}>
-            <option value="">Choose a category or subcategory</option>{paths.filter(c=>c.isActive).map(c=><option key={c.id} value={c.id}>{c.path}</option>)}
-          </select></label>}
+          {categoryPlacement(draft.position)&&<PromotionCategorySelect label="Choose display category" categories={categories} value={draft.categoryId}
+              onChange={id=>setDraft(p=>({...p,categoryId:id}))}/>}
           {productPlacement(draft.position)&&<PromotionProductPicker label="Choose display product" productId={draft.productId} productName={draft.productName}
             onSelect={(id,name)=>setDraft(p=>({...p,productId:id,productName:name}))}/>}
         </fieldset>
@@ -161,10 +161,8 @@ export default function AdminBanners(){
           </select></label>
           {draft.destinationType==="product"&&<PromotionProductPicker label="Choose redirect product" productId={draft.destinationProductId}
             productName={draft.destinationProductName} onSelect={(id,name)=>setDraft(p=>({...p,destinationProductId:id,destinationProductName:name}))}/>}
-          {draft.destinationType==="category"&&<label><span className="nx34-field-label">Choose redirect category <b className="nx34-required" aria-hidden="true">*</b></span><select required value={draft.destinationCategoryId}
-            onChange={e=>setDraft(p=>({...p,destinationCategoryId:e.target.value}))}>
-            <option value="">Choose a category or subcategory</option>{paths.filter(c=>c.isActive).map(c=><option key={c.id} value={c.id}>{c.path}</option>)}
-          </select></label>}
+          {draft.destinationType==="category"&&<PromotionCategorySelect label="Choose redirect category" categories={categories} value={draft.destinationCategoryId}
+             onChange={id=>setDraft(p=>({...p,destinationCategoryId:id}))}/>}
           {draft.destinationType==="custom"&&<label><span className="nx34-field-label">Custom URL <b className="nx34-required" aria-hidden="true">*</b></span><input required maxLength={400} value={draft.customLink}
             placeholder="/products/12?variant=4 or https://example.com" onChange={e=>setDraft(p=>({...p,customLink:e.target.value}))}/>
             <small>Internal paths start with /; external destinations must use HTTPS. Unsafe links are rejected.</small></label>}

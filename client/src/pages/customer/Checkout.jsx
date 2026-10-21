@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import UiIcon from "../../components/common/UiIcon";
 import {Link,useNavigate} from 'react-router-dom';
 import CustomerLayout from '../../components/layout/CustomerLayout';
 import AddressFields from '../../components/customer/AddressFields';
@@ -111,27 +112,27 @@ export default function Checkout(){
   }finally{if(!checkoutOpened)release()}
  }
  return <CustomerLayout mainClassName="nx-cod-page nx25-checkout">
-  <div className="nx-page-intro"><Link className="nx-back-link" to="/cart">← Back to cart</Link><p className="eyebrow">Secure checkout</p><h1>Delivery & payment</h1><p>Choose an address, review shipping and included GST, then pay online with Razorpay or choose Cash on Delivery.</p></div>
+  <div className="nx-page-intro"><Link className="nx-back-link" to="/cart"><UiIcon name="left" size={17}/> Back to cart</Link><p className="eyebrow">Secure checkout</p><h1>Delivery & payment</h1><p>Choose an address, review shipping and included GST, then pay online with Razorpay or choose Cash on Delivery.</p></div>
   {checking&&<p className="nx-cod-message" role="status">Checking items, account and saved addresses…</p>}
-  {error&&<p role="alert" className="nx-cod-message nx-cod-error">{error} {needsCartReview&&<Link to="/cart">Review your cart →</Link>}</p>}
+  {error&&<p role="alert" className="nx-cod-message nx-cod-error">{error} {needsCartReview&&<Link to="/cart">Review your cart <UiIcon name="right" size={17}/></Link>}</p>}
   {!checking&&role==='customer'&&<div className="nx-cod-grid">
    <form className="nx-cod-panel" onSubmit={submit}>
     <div className="nx-section-heading"><span className="nx-step-number">01</span><div><h2>Delivery address</h2><p>Choose a saved address or add a new one.</p></div></div>
     {addresses.length>0&&<div className="nx25-address-options">{addresses.map(a=><label key={a.id} className={`nx25-address-choice ${selectedId===a.id?'is-selected':''}`}><input type="radio" name="selectedAddress" checked={selectedId===a.id} disabled={posting} onChange={()=>{setSelectedId(a.id);setEstimate(null);setEstimateFor('');setUpdatedQuote(false);setError('')}}/><span><strong>{a.label||'Home'}{a.isDefault?' · Default':''}</strong><small>{a.fullName} · {a.addressLine1}, {a.city}, {a.state} {a.pincode}</small></span></label>)}</div>}
     <label className="nx25-address-choice"><input type="radio" name="selectedAddress" checked={selectedId==='new'} disabled={posting} onChange={()=>{setSelectedId('new');setEstimate(null);setEstimateFor('');setUpdatedQuote(false);setError('')}}/> <strong>+ Use a new address</strong></label>
     {selectedId==='new'&&<><AddressFields address={address} onChange={v=>{setAddress(v);setEstimate(null);setEstimateFor('');setUpdatedQuote(false)}} disabled={posting}/><label className="nx25-check"><input type="checkbox" checked={saveNew} onChange={e=>setSaveNew(e.target.checked)}/> Save this address to my account</label></>}
-    <Link to="/addresses" className="nx25-manage-link">Manage saved addresses →</Link>
+    <Link to="/addresses" className="nx25-manage-link">Manage saved addresses <UiIcon name="right" size={17}/></Link>
     <div className="nx-cod-method"><div className="nx-section-heading"><span className="nx-step-number">02</span><div><h2>Payment method</h2><p>Select your preferred payment method.</p></div></div>
       <div className="nx42-payment-choices">
        {razorpayEnabled&&<label className={`nx25-address-choice ${paymentMethod==='razorpay'?'is-selected':''}`}><input type="radio" name="paymentMethod" checked={paymentMethod==='razorpay'} disabled={posting} onChange={()=>{setPaymentMethod('razorpay');setError('')}}/><span><strong>Pay securely online · Razorpay</strong><small>UPI, cards, net banking and enabled methods. Paid only after server verification.</small></span></label>}
        <label className={`nx25-address-choice ${paymentMethod==='cod'?'is-selected':''}`}><input type="radio" name="paymentMethod" checked={paymentMethod==='cod'} disabled={posting} onChange={()=>{setPaymentMethod('cod');setError('')}}/><span><strong>Cash on Delivery</strong><small>Pay when your order arrives.</small></span></label>
       </div>
-      {!razorpayEnabled&&<p className="nx-cod-note">Online checkout is unavailable. Configure Razorpay Test Mode on the backend to enable it.</p>}
+      {!razorpayEnabled&&<p className="nx-cod-note">Online payment is temporarily unavailable. Please choose Cash on Delivery.</p>}
      </div>
     {paymentMethod==='cod'&&!codEnabled&&validAddress&&quote?.valid&&<p className="nx-cod-message nx-cod-error" role="status">The store has not enabled COD checkout yet. Please contact the store.</p>}
     <button className="button button-primary nx-cod-submit" type="submit" disabled={checking||!validAddress||!canSubmit}>{posting?(paymentMethod==='razorpay'?'Opening secure payment…':'Placing order…'):updatedQuote?`Confirm revised total · ${money(estimate?.total)}`:paymentMethod==='razorpay'?`Pay online · ${money(estimate?.total)}`:`Place COD order · ${money(estimate?.total)}`}</button>
     {updatedQuote&&<p className="nx-cod-message nx40-review" role="status">Your prices, shipping or included tax changed. Review the amount due and select Confirm revised total to place the order.</p>}
-    <p className="nx-cod-note">Your shown subtotal, shipping and included GST must match the final server quote. Stock is rechecked by the server. Online stock is reserved during payment and released only after safe reconciliation.</p>
+    <p className="nx-cod-note">Review your items and delivery details before placing your order.</p>
    </form>
    <aside className="nx-cod-panel nx-cod-summary"><div className="nx-section-heading"><span className="nx-step-number">03</span><div><h2>Order summary</h2><p>Amounts are in INR, including GST where configured.</p></div></div>
     {!quote?.valid&&<p className="nx-cod-message nx-cod-error">Some items are unavailable. <Link to="/cart">Review your cart</Link>.</p>}
@@ -140,7 +141,7 @@ export default function Checkout(){
     <div className="nx-cod-summary-line"><span>Shipping</span><strong>{estimateFor===intentKey&&estimate?Number(estimate.shippingFee)===0?'Free':money(estimate.shippingFee):'Enter address'}</strong></div>
     {estimateFor===intentKey&&estimate&&<><div className="nx-cod-summary-line"><span>Included GST ({estimate.taxType})</span><strong>{money(estimate.includedTax)}</strong></div><div className="nx25-tax-details"><small>Taxable value: {money(estimate.taxableValue)}</small><small>{estimate.taxType==='IGST'?`IGST: ${money(estimate.igst)}`:`CGST: ${money(estimate.cgst)} · SGST: ${money(estimate.sgst)}`}</small></div></>}
     <div className="nx-cod-total"><span>{paymentMethod==='razorpay'?'Pay securely online':'Pay on delivery'}</span><strong>{estimateFor===intentKey&&estimate?money(estimate.total):'—'}</strong></div>
-    <p className="nx-cod-note">Tax shown is included in item prices and shipping charges; it is not added again. Verify final tax rules before live sales.</p>
+    <p className="nx-cod-note">GST is included where applicable. No extra tax is added at checkout.</p>
    </aside>
   </div>}
  </CustomerLayout>

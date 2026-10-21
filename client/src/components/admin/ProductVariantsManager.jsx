@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import UiIcon from "../common/UiIcon";
 import Modal from "../common/Modal";
 import { createVariant, getVariants, updateVariant } from "../../services/variantService";
 import { validateVariantDrafts } from "./variantDraftValidation";
@@ -91,10 +92,10 @@ export default function ProductVariantsManager({ productId }) {
           <div><strong>{v.customTitle || v.sku}</strong><small>{v.customTitle ? `SKU: ${v.sku} · ` : ""}{Object.entries(v.attributes || {}).map(([k,value]) => `${k.replaceAll("_", " ")}: ${value}`).join(" · ") || "Default configuration"}</small></div>
           <div><strong>{money(v.price)}</strong><small>MRP {money(v.mrp ?? v.price)}</small></div>
           <div><strong>{v.stock} units</strong><small>{v.isActive ? (Number(v.stock) <= Number(v.lowStockThreshold ?? 5) ? `Low stock (≤ ${v.lowStockThreshold ?? 5})` : "Active") : "Inactive"}</small></div>
-          <button className="nx-edit-button" type="button" onClick={() => beginEdit(v)}>Edit ↗</button>
+          <button className="nx-edit-button" type="button" onClick={() => beginEdit(v)}>Edit <UiIcon name="up-right" size={17}/></button>
         </div>)}
       </div>}
-    <details className="nx-generator-details"><summary><span><strong>Generate multiple SKU combinations</strong><small>Colors × sizes × storage, and any other option groups</small></span><span>Expand ↓</span></summary>
+    <details className="nx-generator-details"><summary><span><strong>Generate multiple SKU combinations</strong><small>Colors × sizes × storage, and any other option groups</small></span><span>Expand <UiIcon name="chevron-down" size={17}/></span></summary>
       <DraftVariants variants={drafts} onChange={setDrafts} disabled={busy} existingVariants={variants} />
       {drafts.length > 0 && <button type="button" className="admin-primary-action" disabled={busy} onClick={saveDrafts}>{busy ? "Saving…" : `Save ${drafts.length} generated SKU(s)`}</button>}
     </details>

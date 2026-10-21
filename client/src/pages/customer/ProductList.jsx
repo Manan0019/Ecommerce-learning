@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import UiIcon from "../../components/common/UiIcon";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ProductCard from "../../components/common/ProductCard";
 import CategoryArtwork from "../../components/customer/CategoryArtwork";
@@ -103,14 +104,6 @@ export default function ProductList() {
     navigate(`/products${next.size ? `?${next.toString()}` : ""}`);
   }
 
-  function submitSearch(searchDraft) {
-    updateParams((next) => {
-      const clean = searchDraft.trim();
-      if (clean) next.set("q", clean);
-      else next.delete("q");
-    });
-  }
-
   function changeFilter(key, values) {
     if (!key) {
       const preserved = new URLSearchParams();
@@ -139,44 +132,45 @@ export default function ProductList() {
       <header className="catalogue-hero">
         <div className="nx25-hero-copy"><p className="eyebrow">Discover products across every category</p>
         <h1>{category?.name || "Explore our collection"}</h1></div>
-        <CatalogueSearch key={searchQuery} query={searchQuery} onSubmit={submitSearch} />
+        <Link to="/categories" className="nx48-hero-collections">Explore collections <UiIcon name="up-right" size={18} /></Link>
       </header>
 
       {activeCategory && <nav className="nx18-category-breadcrumb" aria-label="Category hierarchy">
         <Link to="/categories">Categories</Link>
-        {ancestors.map(parent => <span key={parent.id} className="nx21-crumb"><span aria-hidden="true">›</span>
+        {ancestors.map(parent => <span key={parent.id} className="nx21-crumb"><UiIcon name="chevron-right" size={15}/>
           <Link to={`/categories/${encodeURIComponent(parent.slug)}`}>{parent.name}</Link></span>)}
-        <span aria-hidden="true">›</span><strong>{activeCategory.name}</strong>
+        <UiIcon name="chevron-right" size={15}/><strong>{activeCategory.name}</strong>
       </nav>}
       {selectedCategory&&<PromotionCarousel position="category" category={selectedCategory}/>}
       {category&&categories.some(c=>String(c.parentId)===String(category.id))&&<section className="nx17-subcategories" aria-label={`Shop ${category.name} subcategories`}>
         <h2>Explore {category.name}</h2>
         <div className="nx17-subcategory-shelf">{categories.filter(c=>String(c.parentId)===String(category.id)).map(child=><Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>
-          <CategoryArtwork category={child} /><strong>{child.name}</strong><span className="nx34-category-action" aria-hidden="true">Explore ↗</span></Link>)}</div>
+          <CategoryArtwork category={child} /><strong>{child.name}</strong><span className="nx34-category-action" aria-hidden="true">Explore <UiIcon name="up-right" size={17}/></span></Link>)}</div>
       </section>}
 
-      <div
-        className="category-filters category-tabs"
-        aria-label="Browse categories"
-      >
-        <button
-          className={!selectedCategory ? "is-active" : ""}
-          type="button"
-          onClick={() => chooseCategory("")}
-        >
-          All products
-        </button>
-        {rootCategories(categories).map((item) => (
-          <button
-            className={selectedCategory === item.slug ? "is-active" : ""}
-            type="button"
-            onClick={() => chooseCategory(item.slug)}
-            key={item.id}
-          >
-            {item.name}
+      <section className="nx48-departments" aria-label="Browse departments">
+        <div className="nx48-departments-top">
+          <div><span className="nx48-section-kicker">CURATED DEPARTMENTS</span><h2>Explore collections</h2></div>
+          <Link to="/categories" className="nx48-departments-all">All categories <UiIcon name="up-right" size={17}/></Link>
+        </div>
+        <div className="nx48-department-track" role="group" aria-label="Choose a department">
+          <button type="button" className={`nx48-department ${!selectedCategory ? "is-active" : ""}`}
+            aria-pressed={!selectedCategory} onClick={() => chooseCategory("")}>
+            <span className="nx48-department-icon"><UiIcon name="grid" size={22}/></span>
+            <span className="nx48-department-text"><strong>All products</strong><small>Everything in store</small></span>
+            <UiIcon name="up-right" size={17} className="nx48-department-arrow"/>
           </button>
-        ))}
-      </div>
+          {rootCategories(categories).map(item => {
+            const isActive = item.slug === selectedCategory || ancestors.some(ancestor => ancestor.slug === item.slug);
+            return <button key={item.id} type="button" className={`nx48-department ${isActive ? "is-active" : ""}`}
+              aria-pressed={isActive} onClick={() => chooseCategory(item.slug)}>
+              <span className="nx48-department-icon"><UiIcon name="bag" size={21}/></span>
+              <span className="nx48-department-text"><strong>{item.name}</strong><small>{Number(item.productCount)>0?`${item.productCount} products`:"View collection"}</small></span>
+              <UiIcon name="up-right" size={17} className="nx48-department-arrow"/>
+            </button>;
+          })}
+        </div>
+      </section>
 
       <div className="catalogue-results-bar">
         <p>
@@ -296,29 +290,3 @@ export default function ProductList() {
   );
 }
 
-function CatalogueSearch({ query, onSubmit }) {
-  const [searchDraft, setSearchDraft] = useState(query);
-
-  return (
-    <form
-      className="catalogue-search"
-      role="search"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSubmit(searchDraft);
-      }}
-    >
-      <label className="sr-only" htmlFor="catalogue-search">
-        Search products
-      </label>
-      <input
-        id="catalogue-search"
-        type="search"
-        value={searchDraft}
-        placeholder="Search by product, brand, model or specification"
-        onChange={(event) => setSearchDraft(event.target.value)}
-      />
-      <button type="submit">Search</button>
-    </form>
-  );
-}

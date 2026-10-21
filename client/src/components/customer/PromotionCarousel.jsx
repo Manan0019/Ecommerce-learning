@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import UiIcon from "../common/UiIcon";
 import { Link } from "react-router-dom";
 import { getBanners } from "../../services/bannerService";
 import { apiAssetUrl } from "../../services/apiClient";
@@ -8,11 +9,11 @@ function PromotionCard({ banner, primary = false, priority = false }) {
   const imageOnly = banner.showText === false;
   const external = banner.linkUrl.startsWith("https://");
   const content = <>
-    {imageOnly && <img className="nx44-promotion-backdrop" src={apiAssetUrl(banner.imageUrl)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
+    
     <span className="nx37-promotion-image-frame">
       <img src={apiAssetUrl(banner.imageUrl)} alt={imageOnly ? banner.title : ""} loading={priority ? "eager" : "lazy"} decoding="async" />
     </span>
-    {!imageOnly && <span className="nx37-promotion-copy"><strong>{banner.title}</strong>{banner.subtitle && <span>{banner.subtitle}</span>}<em>Explore offer <span aria-hidden="true">↗</span></em></span>}
+    {!imageOnly && <span className="nx37-promotion-copy"><strong>{banner.title}</strong>{banner.subtitle && <span>{banner.subtitle}</span>}<em>Explore offer <UiIcon name="up-right" size={17}/></em></span>}
     {imageOnly && <span className="sr-only">{banner.title}</span>}
   </>;
   const cls = `nx37-promotion-card${primary ? " is-primary" : ""}${imageOnly ? " is-image-only" : " has-overlay"}`;
@@ -117,18 +118,16 @@ export default function PromotionCarousel({ position = "home", category, product
     onTouchStart={touchStart} onTouchEnd={touchEnd} onTouchCancel={()=>{swipeStart.current=null;}}
     onClickCapture={e=>{if(Date.now()<preventClickUntil.current){e.preventDefault();e.stopPropagation();}}}>
     <div className="nx37-promotion-heading"><span>THE NEXORA EDIT <span aria-hidden="true">✦</span> CURATED FOR YOU</span>
-      {rotating && <div className="nx37-promotion-controls">
-        <button type="button" onClick={() => slide(-1)} aria-label="Previous promotions">←</button>
-        <span aria-live="polite">{active + 1} / {banners.length}</span>
-        <button type="button" onClick={() => slide(1)} aria-label="Next promotions">→</button>
-        {homeAutoplay && !reducedMotion && <button type="button" className="nx41-pause-button" aria-label={userPaused?"Play automatic promotion slideshow":"Pause automatic promotion slideshow"}
-          aria-pressed={userPaused} onClick={()=>setUserPaused(p=>!p)}>{userPaused?"▶":"Ⅱ"}</button>}
+      {rotating && <div className="nx47-promotion-status">
+        <span aria-live="polite">Collection {String(active+1).padStart(2, '0')} <small>/ {String(banners.length).padStart(2, '0')}</small></span>
+        {homeAutoplay && !reducedMotion && <button type="button" className="nx47-autoplay-toggle" aria-label={userPaused?"Resume automatic promotions":"Pause automatic promotions"}
+          aria-pressed={userPaused} onClick={()=>setUserPaused(p=>!p)}><UiIcon name={userPaused?'play':'pause'} size={16}/></button>}
       </div>}
     </div>
     <div className={`nx37-promotion-grid nx37-count-${count}${count>3?" nx41-multi-banner":""}`} ref={rail}>
       {visible.map((banner, index) => <PromotionCard key={`${banner.id}-${index}`} banner={banner} primary={index === 0} priority={position === "home" && index === 0} />)}
     </div>
-    {rotating && <div className="nx37-promotion-dots" aria-label="Select promotion set">{promotionDotIndices(banners.length,active).map((i) => <button type="button" key={banners[i].id} aria-label={`Start with promotion ${i + 1}`} aria-current={active === i ? "true" : undefined} className={active === i ? "is-active" : ""} onClick={() => setActive(i)} />)}</div>}
+    {rotating && <div className="nx47-promotion-segments" role="group" aria-label="Select promotion set">{promotionDotIndices(banners.length,active).map((i) => <button type="button" key={banners[i].id} aria-label={`Show promotion set ${i + 1}: ${banners[i].title}`} aria-current={active === i ? "true" : undefined} className={active === i ? "is-active" : ""} onClick={() => setActive(i)}><span>{String(i+1).padStart(2, '0')}</span><i aria-hidden="true" /></button>)}</div>}
     {failed && <p role="status">Some promotions are temporarily unavailable.</p>}
   </section>;
 }

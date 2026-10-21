@@ -1,102 +1,68 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import AdminLayout from "../../components/layout/AdminLayout";
-import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
-import { getAdminSummary } from "../../services/adminService";
-import { getAdminProducts } from "../../services/productService";
-import { getCodSummary } from "../../services/orderService";
-import { getLowStockAlerts } from "../../services/inventoryService";
-
-export default function AdminDashboard() {
-  const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [summary, setSummary] = useState(null);
-  const [orderSummary, setOrderSummary] = useState(null);
-  const [stockAlerts, setStockAlerts] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const controller = new AbortController();
-    async function loadDashboard() {
-      try {
-        const [productsData, summaryData] = await Promise.all([
-          getAdminProducts(controller.signal),
-          getAdminSummary(controller.signal)
-        ]);
-        setProducts(productsData.products);
-        setSummary(summaryData.summary);
-      } catch (requestError) {
-        if (isAuthenticationError(requestError)) {
-          navigate("/login", { replace: true });
-          return;
-        }
-        if (requestError.name !== "AbortError") setError(requestError.message);
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
-    }
-    loadDashboard();
-    getCodSummary(controller.signal).then(data => { if (!controller.signal.aborted) setOrderSummary(data.summary); }).catch(() => { /* Orders migration can be applied separately. */ });
-    getLowStockAlerts(5,controller.signal).then(data=>{if(!controller.signal.aborted)setStockAlerts(data);}).catch(()=>{});
-    return () => controller.abort();
-  }, [navigate]);
-
-  return <AdminLayout title="Dashboard" subtitle="A clear view of the store data currently available."
-    actions={<Link className="admin-primary-action" to="/admin/products/new">+ Add product</Link>}>
-    {error && <p className="admin-alert" role="alert">{error}</p>}
-    <section className="admin-stat-grid" aria-label="Store totals">
-      <article className="admin-stat-card">
-        <div><p>Total products</p><strong>{loading ? "—" : summary?.productCount ?? 0}</strong></div>
-        <span aria-hidden="true">□</span>
-        <Link to="/admin/products">Manage products →</Link>
-      </article>
-      <article className="admin-stat-card">
-        <div><p>Active products</p><strong>{loading ? "—" : summary?.activeProductCount ?? 0}</strong></div>
-        <span aria-hidden="true">✓</span>
-        <Link to="/admin/products">Review catalogue →</Link>
-      </article>
-      <article className="admin-stat-card">
-        <div><p>Registered customers</p><strong>{loading ? "—" : summary?.customerCount ?? 0}</strong></div>
-        <span aria-hidden="true">○</span>
-        <Link to="/admin/customers">View customers →</Link>
-      </article>
-      <article className="admin-stat-card">
-        <div><p>COD orders</p><strong>{orderSummary ? orderSummary.total : "—"}</strong></div>
-        <span aria-hidden="true">▤</span>
-        <Link to="/admin/orders">View orders →</Link>
-      </article>
-    </section>
-
-    <section className="admin-panel nx24-dashboard-stock" aria-label="Low-stock notifications">
-      <div className="nx24-stock-head"><div><h2>Inventory notifications</h2><p>Alert thresholds are set per SKU, or per simple product. Refresh to see changes from COD orders.</p></div>
-        <Link className="admin-secondary-action" to="/admin/inventory">Open Inventory Alerts →</Link></div>
-      {stockAlerts ? <><p className={stockAlerts.summary.total?'nx24-badge nx24-badge-warning':'nx24-badge nx24-badge-ok'}>
-        {stockAlerts.summary.total ? `${stockAlerts.summary.total} items need attention · ${stockAlerts.summary.outOfStock} out of stock` : 'No active low-stock alerts'}
-      </p>{stockAlerts.items.length>0&&<ul className="nx24-dash-alert-list">{stockAlerts.items.slice(0,5).map(x=><li key={`${x.productId}-${x.variantId||'simple'}`}>
-        <strong>{x.productName}{x.sku?` · ${x.sku}`:''}</strong><span>{x.available} left · alert at {x.threshold}</span><Link to={`/admin/products/${x.productId}/edit?tab=${x.variantId?'variants':'details'}`}>Restock →</Link>
-      </li>)}</ul>}</> : <p>Stock notifications load when the dashboard is opened. Check the Inventory Alerts page if no summary appears.</p>}
-    </section>
-    <section className="admin-dashboard-grid">
-      <article className="admin-panel admin-recent-panel">
-        <div className="admin-panel-heading"><div><h2>Recently added products</h2><p>Latest records from the product catalogue.</p></div><Link to="/admin/products">View all</Link></div>
-        {loading ? <div className="admin-empty">Loading products…</div> : products.length === 0
-          ? <div className="admin-empty">No products have been created yet.</div>
-          : <div className="admin-product-list">{products.slice(0, 5).map((product) => <Link to={`/admin/products/${product.id}/edit`} key={product.id}>
-            <img src={apiAssetUrl(product.imageUrl)} alt="" />
-            <div><strong>{product.name}</strong><small>{product.category} · ₹{Number(product.price).toFixed(2)}</small></div>
-            <span className={product.isActive ? "is-active" : "is-inactive"}>{product.isActive ? "Active" : "Inactive"}</span>
-          </Link>)}</div>}
-      </article>
-
-      <aside className="admin-panel admin-future-panel">
-        <p className="admin-eyebrow">Order workspace</p><h2>Cash on Delivery</h2>
-        <div><span>Awaiting confirmation</span><strong>{orderSummary?.placed ?? "—"}</strong></div>
-        <div><span>Confirmed / processing</span><strong>{orderSummary ? orderSummary.confirmed + orderSummary.processing : "—"}</strong></div>
-        <div><span>Non-cancelled order value</span><strong>{orderSummary ? `₹${Number(orderSummary.orderValue).toLocaleString("en-IN")}` : "—"}</strong></div>
-        <p>These totals reflect placed COD orders, not received payments.</p>
-        <Link className="text-link" to="/admin/orders">Manage COD orders →</Link>
-      </aside>
-    </section>
-  </AdminLayout>;
+import {useEffect,useMemo,useState} from 'react';
+import UiIcon from "../../components/common/UiIcon";
+import {Link,useNavigate} from 'react-router-dom';
+import AdminLayout from '../../components/layout/AdminLayout';
+import {apiAssetUrl,isAuthenticationError} from '../../services/apiClient';
+import {getAdminSummary} from '../../services/adminService';
+import {getAdminProducts} from '../../services/productService';
+import {getAdminOrders} from '../../services/orderService';
+import {getLowStockAlerts} from '../../services/inventoryService';
+import {getAdminAssignments} from '../../services/deliveryService';
+const money=v=>`₹${Number(v||0).toLocaleString('en-IN',{maximumFractionDigits:2,minimumFractionDigits:2})}`;
+const date=v=>new Date(v).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+export default function AdminDashboard(){
+ const navigate=useNavigate();const [summary,setSummary]=useState(null),[products,setProducts]=useState([]),[orders,setOrders]=useState([]),[alerts,setAlerts]=useState(null),[assignments,setAssignments]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
+ useEffect(()=>{const c=new AbortController();Promise.allSettled([
+  getAdminSummary(c.signal),getAdminProducts(c.signal),getAdminOrders(c.signal),getLowStockAlerts(5,c.signal),getAdminAssignments(c.signal)
+ ]).then(results=>{if(c.signal.aborted)return;
+  const [s,p,o,a,d]=results;
+  if(s.status==='fulfilled')setSummary(s.value.summary);
+  if(p.status==='fulfilled')setProducts(p.value.products||[]);
+  if(o.status==='fulfilled')setOrders(o.value.orders||[]);
+  if(a.status==='fulfilled')setAlerts(a.value);
+  if(d.status==='fulfilled')setAssignments(d.value.assignments||[]);
+  const denied=results.find(x=>x.status==='rejected'&&isAuthenticationError(x.reason));
+  if(denied){navigate('/login',{replace:true});return;}
+  const errors=results.filter(x=>x.status==='rejected'&&x.reason?.name!=='AbortError');
+  if(errors.length)setError('Some dashboard data could not load. Reload the page to try again.');
+ }).finally(()=>{if(!c.signal.aborted)setLoading(false);});return()=>c.abort();},[navigate]);
+ const insights=useMemo(()=>{
+  const active=orders.filter(o=>!['cancelled','payment_expired'].includes(o.status));
+  const paid=orders.filter(o=>o.paymentStatus==='razorpay_paid'||o.paymentStatus==='cod_collected');
+  return {total:orders.length,paidValue:paid.reduce((n,o)=>n+Number(o.total||0),0),awaiting:orders.filter(o=>['placed','payment_review','refund_review'].includes(o.status)||o.cancellationRequest?.status==='pending').length,
+  fulfillment:active.filter(o=>['confirmed','processing','shipped'].includes(o.status)).length,paidCount:paid.length,
+  cod:active.filter(o=>o.paymentMethod==='Cash on Delivery').length,online:active.filter(o=>o.paymentMethod==='Razorpay').length,refunds:orders.filter(o=>['refund_pending','refund_review'].includes(o.status)).length,
+  delivery:assignments.filter(a=>a.deliveryStatus==='out_for_delivery').length};
+ },[orders,assignments]);
+ return <AdminLayout title="Store overview" subtitle="Orders, revenue, inventory and fulfillment in one workspace." actions={<Link className="admin-primary-action" to="/admin/products/new">+ Add product</Link>}>
+  {error&&<p className="admin-alert" role="alert">{error}</p>}
+  <section className="nx46-dashboard-welcome"><div><p className="admin-eyebrow">NEXORA · OPERATIONS</p><h2>Your business at a glance</h2><p>Live database metrics from the most recent 200 orders and 100 products returned by the admin API.</p></div><div className="nx46-welcome-actions"><Link to="/admin/orders">Review orders <UiIcon name="right" size={17}/></Link><Link to="/admin/delivery">Delivery operations <UiIcon name="right" size={17}/></Link></div></section>
+  <section className="nx46-metrics nx46-dashboard-metrics" aria-label="Store performance">
+   {[
+    {label:'Total orders',value:loading?'—':insights.total,detail:'Recent 200 orders',to:'/admin/orders',icon:'▤'},
+    {label:'Recorded collected / paid',value:loading?'—':money(insights.paidValue),detail:`${insights.paidCount} verified paid orders`,to:'/admin/orders',icon:'₹'},
+    {label:'Needs attention',value:loading?'—':insights.awaiting,detail:'New orders / reviews',to:'/admin/orders',icon:'!'},
+    {label:'In fulfillment',value:loading?'—':insights.fulfillment,detail:`${insights.delivery} out for delivery`,to:'/admin/delivery',icon:'delivery'}
+   ].map(m=><Link className="nx46-metric-link" key={m.label} to={m.to}><article><span>{m.label}</span><strong>{m.value}</strong><small>{m.detail}</small><b aria-hidden="true">{m.icon==='delivery'?<UiIcon name="up-right" size={17}/>:m.icon}</b></article></Link>)}
+  </section>
+  <div className="nx46-dashboard-two">
+   <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Recent orders</h2><p>Quick access to the latest customer activity.</p></div><Link to="/admin/orders">View all <UiIcon name="right" size={17}/></Link></div>
+    {!orders.length?<div className="admin-empty">No orders to display yet.</div>:<div className="nx46-table-wrap"><table className="nx46-table"><thead><tr><th>Order / customer</th><th>Date</th><th>Amount</th><th>State</th></tr></thead><tbody>{orders.slice(0,6).map(o=><tr key={o.id}><td><strong>#{o.id}</strong><br/><small>{o.customerName||'Customer'}</small></td><td>{date(o.placedAt)}</td><td><strong>{money(o.total)}</strong></td><td><span className={`nx46-pill ${o.status==='delivered'?'good':o.status.includes('review')?'warning':''}`}>{o.status.replaceAll('_',' ')}</span></td></tr>)}</tbody></table></div>}
+   </section>
+   <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Order mix</h2><p>At a glance across the recent order queue.</p></div></div>
+    <div className="nx46-dashboard-bar"><span>COD orders</span><strong>{insights.cod}</strong><div className="nx46-bar-track"><i style={{width:`${Math.min(100,insights.cod/Math.max(1,insights.cod+insights.online)*100)}%`}}/></div></div>
+    <div className="nx46-dashboard-bar"><span>Razorpay orders</span><strong>{insights.online}</strong><div className="nx46-bar-track"><i style={{width:`${Math.min(100,insights.online/Math.max(1,insights.cod+insights.online)*100)}%`}}/></div></div>
+    <div className="nx46-dashboard-priorities"><div><span>Open refund reviews</span><strong>{insights.refunds}</strong></div><div><span>Low-stock alerts</span><strong>{alerts?.summary?.total??'—'}</strong></div><div><span>Active products</span><strong>{summary?.activeProductCount??'—'}</strong></div><div><span>Customers</span><strong>{summary?.customerCount??'—'}</strong></div></div>
+    <Link className="nx46-panel-link" to="/admin/inventory">Inventory alerts <UiIcon name="right" size={17}/></Link>
+   </section>
+  </div>
+  <div className="nx46-dashboard-two">
+   <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Recently added products</h2><p>Click a product to open its preview.</p></div><Link to="/admin/products">Manage products <UiIcon name="right" size={17}/></Link></div>
+    {!products.length?<div className="admin-empty">No products added yet.</div>:<div className="nx46-recent-products">{products.slice(0,5).map(p=><Link to={`/admin/products/${p.id}/preview`} key={p.id}><div className="nx46-recent-thumb">{p.imageUrl&&<img src={apiAssetUrl(p.imageUrl)} alt=""/>}</div><div><strong>{p.name}</strong><small>{p.category} · {money(p.displayPrice??p.price)}</small></div><UiIcon name="up-right" size={17}/></Link>)}</div>}
+   </section>
+   <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Inventory health</h2><p>Products requiring restocking attention.</p></div><Link to="/admin/inventory">View alerts <UiIcon name="right" size={17}/></Link></div>
+    {!alerts?.items?.length?<div className="nx46-healthy">✓ No current low-stock alerts</div>:<div className="nx46-recent-products">{alerts.items.slice(0,5).map(item=><Link to={`/admin/products/${item.productId}/preview`} key={`${item.productId}-${item.variantId||0}`}><div><strong>{item.productName}</strong><small>{item.sku||'Standard item'}</small></div><span className="nx46-pill warning">{item.available} left</span></Link>)}</div>}
+   </section>
+  </div>
+ </AdminLayout>;
 }

@@ -1,23 +1,23 @@
 import { useEffect, useRef, useState } from "react";
+import UiIcon from "../common/UiIcon";
 import { Link, useNavigate } from "react-router-dom";
 import { SITE_NAME } from "../../config/site";
 import BrandLogo from "../common/BrandLogo";
 import CategoryMegaMenu from "./CategoryMegaMenu";
+import NotificationBell from "../common/NotificationBell";
 import { useCart } from "../../hooks/useCart";
 import { apiAssetUrl } from "../../services/apiClient";
 import { getCurrentUser, logout as endSession } from "../../services/authService";
 import { getProductSuggestions } from "../../services/productService";
 
-function SearchIcon() {
-  return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" /></svg>;
-}
+function SearchIcon() { return <UiIcon name="search" size={21} />; }
 
 function HeartIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.8a5.6 5.6 0 0 0-7.9 0L12 5.7l-.9-.9a5.6 5.6 0 0 0-7.9 7.9L12 21l8.8-8.3a5.6 5.6 0 0 0 0-7.9Z" /></svg>;
 }
 
 function CartIcon() {
-  return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20 8H6m4 12h.01M17 20h.01" /></svg>;
+  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20 8H6m4 12h.01M17 20h.01" /></svg>;
 }
 
 export default function StoreHeader() {
@@ -131,28 +131,29 @@ export default function StoreHeader() {
 
         <form className="nav-search nx-nav-search" role="search" onSubmit={submitSearch} ref={searchRef} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setSearchFocused(false); }}>
           <label className="sr-only" htmlFor="nav-search-input">Search products</label>
-          <input id="nav-search-input" type="search" placeholder="Search products" value={query}
-            onFocus={() => setSearchFocused(true)} onChange={(event) => { setQuery(event.target.value); setSuggestionsLoading(event.target.value.trim().length >= 2); }} autoComplete="off" aria-autocomplete="list" aria-controls="nx-search-suggestions" aria-expanded={searchFocused && query.trim().length >= 2} />
-          <button type="submit" aria-label="Search"><SearchIcon /></button>
+          <input id="nav-search-input" type="search" placeholder="Search products, brands and collections" value={query}
+            onFocus={() => setSearchFocused(true)} onKeyDown={event => { if (event.key === "Escape") { setSearchFocused(false); event.currentTarget.blur(); } }} onChange={(event) => { setQuery(event.target.value); setSuggestionsLoading(event.target.value.trim().length >= 2); }} autoComplete="off" aria-autocomplete="list" aria-controls="nx-search-suggestions" aria-expanded={searchFocused && query.trim().length >= 2} />
+          <button type="submit" className="nx47-search-submit" aria-label="Search"><SearchIcon /></button>
           {searchFocused && query.trim().length >= 2 && <div className="nx-search-suggestions" id="nx-search-suggestions" role="region" aria-label="Search suggestions">
             <div className="nx-search-suggestion-heading">Search suggestions</div>
             {suggestionsLoading && <p className="nx-search-empty">Finding matches…</p>}
             {!suggestionsLoading && suggestions.categories.length > 0 && <div className="nx-search-group">
-              <span>Categories</span>{suggestions.categories.map(c => <Link onClick={chooseSuggestion} key={`c-${c.id}`} to={`/categories/${encodeURIComponent(c.slug)}`}>▦ {c.name}<small>Collection</small></Link>)}
+              <span>Categories</span>{suggestions.categories.map(c => <Link onClick={chooseSuggestion} key={`c-${c.id}`} to={`/categories/${encodeURIComponent(c.slug)}`}><span className="nx47-category-search-glyph"><UiIcon name="grid" size={15}/></span><span className="nx47-search-category">{c.name}<small>Collection</small></span></Link>)}
             </div>}
             {!suggestionsLoading && suggestions.products.length > 0 && <div className="nx-search-group"><span>Products</span>
               {suggestions.products.map(p => <Link key={`p-${p.cardKey || p.id}`} to={`/products/${p.id}${p.selectedVariantId ? `?variant=${encodeURIComponent(p.selectedVariantId)}` : ""}`} onClick={chooseSuggestion}>
-                {p.imageUrl ? <img src={apiAssetUrl(p.imageUrl)} alt="" /> : <span className="nx-search-placeholder">◈</span>}
+                {p.imageUrl ? <img src={apiAssetUrl(p.imageUrl)} alt="" /> : <span className="nx-search-placeholder"><UiIcon name="bag" size={18}/></span>}
                 <span className="nx-search-result-label">{p.name}<small>{p.brand || p.category}</small></span>
               </Link>)}
             </div>}
             {!suggestionsLoading && !suggestions.products.length && !suggestions.categories.length && <p className="nx-search-empty">No direct matches. Try a different product or brand.</p>}
-            <button type="submit" className="nx-search-view-all">View all results for “{query.trim()}” →</button>
+            <button type="submit" className="nx-search-view-all"><span>View all results for “{query.trim()}”</span><UiIcon name="right" size={17}/></button>
           </div>}
         </form>
       </div>
 
       <div className="nav-actions">
+        {user?.role === "customer" && <NotificationBell />}
         {user?.role === "admin" && <Link className="admin-return-link" to="/admin/dashboard">Admin Dashboard</Link>}
         <Link className="wishlist-header-link nx34-wishlist-icon" to="/wishlist" aria-label="View wishlist" title="Wishlist"><HeartIcon /></Link>
         <Link className="cart-link" to="/cart" aria-label={`Cart with ${itemCount} items`}>

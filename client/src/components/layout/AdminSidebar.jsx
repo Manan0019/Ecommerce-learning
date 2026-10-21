@@ -1,3 +1,4 @@
+import UiIcon from "../common/UiIcon";
 import { Link, NavLink } from "react-router-dom";
 import BrandLogo from "../common/BrandLogo";
 
@@ -10,6 +11,7 @@ const navigation = [
   { to: "/admin/banners", label: "Promotions", icon: "▧" },
   { to: "/admin/customers", label: "Customers", icon: "○" },
   { to: "/admin/orders", label: "Orders", icon: "▤" },
+  { to: "/admin/delivery", label: "Delivery Executives", icon: "▱" },
   { to: "/admin/analytics", label: "Analytics", icon: "⌁" },
   { to: "/admin/settings", label: "Shipping & Tax", icon: "⚙" },
   { to: "/admin/branding", label: "Branding & Logo", icon: "✦" }
@@ -30,7 +32,7 @@ export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAl
       </NavLink>)}
     </nav>
     <div className="admin-sidebar-footer">
-      <Link to="/" onClick={onClose}><span aria-hidden="true">↗</span>View Storefront</Link>
+      <Link to="/" onClick={onClose}><UiIcon name="up-right" size={17}/>View Storefront</Link>
       <button type="button" onClick={onLogout}><span aria-hidden="true">⇥</span>Logout</button>
       <div className="admin-identity">
         <span>{initials}</span>

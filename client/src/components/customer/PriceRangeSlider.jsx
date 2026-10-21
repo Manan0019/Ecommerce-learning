@@ -189,6 +189,5 @@ function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
       <button className="nx30-price-apply" type="button" onClick={apply} disabled={disabled || !dirty || !validation.valid}>Apply range</button>
       <button className="nx30-price-reset" type="button" onClick={reset} disabled={disabled || (!modified && !hasFilter)}>Reset</button>
     </div>
-    <p className="nx30-price-hint">Type a price or drag the handles</p>
   </div>;
 }

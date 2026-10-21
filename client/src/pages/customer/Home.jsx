@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import UiIcon from "../../components/common/UiIcon";
 import { Link } from "react-router-dom";
 import RecentlyViewed from "../../components/customer/RecentlyViewed";
 import ProductCard from "../../components/common/ProductCard";
@@ -47,7 +48,7 @@ export default function Home() {
           <p className="hero-description">Explore products across every category, discover new favorites and shop with confidence.</p>
           <div className="hero-actions">
             <Link className="button button-primary" to="/products">Explore products</Link>
-            <Link className="text-link" to="/about">Why shop with us <span aria-hidden="true">→</span></Link>
+            <Link className="text-link" to="/about">Why shop with us <UiIcon name="right" size={17}/></Link>
           </div>
           <dl className="hero-stats">
             <div><dt>Verified</dt><dd>Quality selection</dd></div>
@@ -69,7 +70,7 @@ export default function Home() {
       <section className="store-section" aria-labelledby="featured-heading">
         <div className="section-heading">
           <div><p className="eyebrow">Live catalogue</p><h2 id="featured-heading">Featured products</h2></div>
-          <Link className="text-link" to="/products">View all <span aria-hidden="true">→</span></Link>
+          <Link className="text-link" to="/products">View all <UiIcon name="right" size={17}/></Link>
         </div>
         {loading && <div className="product-grid" aria-label="Loading products">
           {[1, 2, 3, 4].map((item) => <div className="product-skeleton" key={item} />)}
@@ -84,7 +85,7 @@ export default function Home() {
       <section className="store-section category-section" id="categories" aria-labelledby="categories-heading">
         <div className="section-heading">
           <div><p className="eyebrow">Browse what you love</p><h2 id="categories-heading">Shop by category</h2></div>
-          <Link className="text-link" to="/categories">All categories →</Link>
+          <Link className="text-link" to="/categories">All categories <UiIcon name="right" size={17}/></Link>
         </div>
         {categoryError && <p className="store-alert" role="alert">{categoryError}</p>}
         {featuredCategories.length > 0 ? <div className="nx16-category-grid">

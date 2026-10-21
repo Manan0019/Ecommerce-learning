@@ -1,4 +1,5 @@
 import { rememberProduct } from "../../services/recentlyViewed";
+import UiIcon from "../../components/common/UiIcon";
 import WishlistButton from "../../components/customer/WishlistButton";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -7,16 +8,16 @@ import ProductMediaGallery from "../../components/customer/ProductMediaGallery";
 import ProductVariantSelector from "../../components/customer/ProductVariantSelector";
 import RelatedProducts from "../../components/customer/RelatedProducts";
 import PromotionCarousel from "../../components/customer/PromotionCarousel";
-import { getProduct, getProductMedia } from "../../services/productService";
+import { getProduct, getProductMedia, getAdminProduct } from "../../services/productService";
 import { getVariants } from "../../services/variantService";
 import { useCart } from "../../hooks/useCart";
 
-export default function ProductDetails() {
+export default function ProductDetails({adminPreview=false}) {
   const { id } = useParams();
-  return <ProductDetailsContent key={id} id={id} />;
+  return <ProductDetailsContent key={id} id={id} adminPreview={adminPreview} />;
 }
 
-function ProductDetailsContent({ id }) {
+function ProductDetailsContent({ id,adminPreview=false }) {
   const { addToCart } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedVariantId = searchParams.get("variant");
@@ -34,9 +35,9 @@ function ProductDetailsContent({ id }) {
     const controller = new AbortController();
     async function loadProduct() {
       try {
-        const data = await getProduct(id, controller.signal);
+        const data = await (adminPreview?getAdminProduct(id, controller.signal):getProduct(id, controller.signal));
         if (!controller.signal.aborted) { setProduct(data.product); rememberProduct(data.product); }
-        const [result,mediaResult]=await Promise.all([getVariants(id),getProductMedia(id)]);
+        const [result,mediaResult]=await Promise.all([getVariants(id,adminPreview),getProductMedia(id,adminPreview)]);
         if (!controller.signal.aborted) { setVariants(result.variants); setMedia(mediaResult.media||[]); setVariantId(result.variants.find(v => String(v.id) === String(initialVariantRef.current))?.id || result.variants.find(v => v.stock > 0)?.id || result.variants[0]?.id || ""); }
       } catch (requestError) {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -60,9 +61,10 @@ function ProductDetailsContent({ id }) {
   const effectiveMrp=selectedVariant?.mrp ?? effectivePrice;
   const discount=Number(effectiveMrp)>Number(effectivePrice)? Math.round((Number(effectiveMrp)-Number(effectivePrice))/Number(effectiveMrp)*100):0;
   const effectiveStock=selectedVariant?.stock ?? product?.stock ?? 0;
-  const canBuy=effectiveStock>0 && (!variants.length || Boolean(selectedVariant?.isActive));
+  const canBuy=!adminPreview && product?.isActive!==false && effectiveStock>0 && (!variants.length || Boolean(selectedVariant?.isActive));
 
   return <CustomerLayout mainClassName="product-page">
+      {adminPreview&&<div className="nx46-preview-banner">Admin product preview · Purchasing disabled in preview. <Link to="/admin/products">{/* back navigation */}<UiIcon name="left" size={16}/> Back to Manage Products</Link></div>}
       <nav className="breadcrumbs" aria-label="Breadcrumb">
         <Link to="/">Home</Link><span aria-hidden="true">/</span><Link to="/products">Shop</Link>
         {product && <><span aria-hidden="true">/</span><span>{product.name}</span></>}
@@ -78,7 +80,7 @@ function ProductDetailsContent({ id }) {
           {(product.brand || product.model) && <p className="detail-model">{[product.brand, product.model].filter(Boolean).join(" · ")}</p>}
           <h1 aria-live="polite">{displayTitle}</h1>
           <div className="detail-price-block" aria-live="polite">
-            {discount>0&&<strong className="detail-discount">↓{discount}%</strong>}
+            {discount>0&&<strong className="detail-discount">−{discount}%</strong>}
             {discount>0&&<s className="detail-mrp">₹{Number(effectiveMrp).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</s>}
             <strong className="detail-price">₹{Number(effectivePrice).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
           </div>
@@ -113,7 +115,7 @@ function ProductDetailsContent({ id }) {
                 {!canBuy ? "Out of stock" : "Add to cart"}
               </button>
             </div>
-            {added && <p className="added-message" role="status">Added to your cart. <Link to="/cart">View cart →</Link></p>}
+            {added && <p className="added-message" role="status">Added to your cart. <Link to="/cart">View cart <UiIcon name="right" size={16}/></Link></p>}
           </div>
           <ul className="product-assurances">
             <li><span>✓</span> Secure customer session</li>

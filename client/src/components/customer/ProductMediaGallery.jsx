@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import UiIcon from "../common/UiIcon";
 import { apiAssetUrl } from "../../services/apiClient";
 import { visibleProductMedia } from "./galleryMedia";
 
@@ -47,12 +48,12 @@ export default function ProductMediaGallery({ product, variantId = null, variant
           type="button" className="nx29-zoom-trigger"
           aria-label={`Enlarge image ${index + 1} of ${visible.length}`}
           onClick={() => { if (swipedRef.current) { swipedRef.current = false; return; } zoomRef.current?.showModal(); }}
-        >{mediaContent(current)}<span className="nx29-zoom-hint" aria-hidden="true">⤢ View larger</span></button>
+        >{mediaContent(current)}<span className="nx29-zoom-hint" aria-hidden="true"><UiIcon name="maximize" size={16}/> View larger</span></button>
           : mediaContent(current)}
       {visible.length > 1 && <div className="nx29-detail-controls">
-        <button type="button" onClick={() => moveSelection(-1)} aria-label="Previous product image">‹</button>
+        <button type="button" onClick={() => moveSelection(-1)} aria-label="Previous product image"><UiIcon name="chevron-left" size={18}/></button>
         <span aria-live="polite">{index + 1} / {visible.length}</span>
-        <button type="button" onClick={() => moveSelection(1)} aria-label="Next product image">›</button>
+        <button type="button" onClick={() => moveSelection(1)} aria-label="Next product image"><UiIcon name="chevron-right" size={18}/></button>
       </div>}
     </div>
     {visible.length > 1 && <div className="gallery-thumbnails nx29-gallery-thumbnails" aria-label="Product gallery thumbnails">
@@ -68,7 +69,6 @@ export default function ProductMediaGallery({ product, variantId = null, variant
         {item.type === "image" ? <img src={apiAssetUrl(item.url)} alt="" loading="lazy" /> : <span>▶ {item.type === "video" ? "Video" : "YouTube"}</span>}
       </button>)}
     </div>}
-    <p className="nx29-gallery-help">Hover over a thumbnail to preview it, or tap to keep it selected.</p>
     <dialog ref={zoomRef} className="nx29-image-dialog" aria-label={`${product.name} enlarged image`}>
       <button type="button" className="nx29-image-dialog-close" onClick={() => zoomRef.current?.close()} aria-label="Close enlarged image">×</button>
       {current?.type === "image" && <img src={apiAssetUrl(current.url)} alt={product.name} />}

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import UiIcon from "../../components/common/UiIcon";
 import AdminLayout from "../../components/layout/AdminLayout";
+import {Link} from "react-router-dom";
 import OrderTimeline from "../../components/customer/OrderTimeline";
 import OrderActionDialog from "../../components/admin/OrderActionDialog";
 import { getAdminOrders, updateCodStatus, confirmCodCollection, expireUnpaidRazorpayOrder, requestRazorpayRefund, reconcileRazorpayRefund, getRazorpayRefundConfig, declineOrderCancellation } from "../../services/orderService";
@@ -15,7 +17,16 @@ export default function AdminOrders(){
  useEffect(()=>{const c=new AbortController();getRazorpayRefundConfig(c.signal).then(setRefundConfig).catch(()=>{});return()=>c.abort();},[]);
  const openDialog=(type,order,status)=>{setDialog({type,order,status});setDialogError("");setError("");setNotice("");};
  const closeDialog=()=>{if(!busy){setDialog(null);setDialogError("");}};
- useEffect(()=>{const c=new AbortController();getAdminOrders(c.signal).then(d=>setOrders(d.orders||[])).catch(e=>{if(e.name!=="AbortError")setError(e.message)}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort();},[]);
+ useEffect(()=>{const c=new AbortController();getAdminOrders(c.signal).then(async d=>{
+  if(c.signal.aborted)return;
+  const initial=d.orders||[];setOrders(initial);
+  // A legacy refund webhook may have carried receipt:null. When admin opens
+  // Orders, reconcile at most two pending refunds against the provider API.
+  // No refund request is created here: reconciliation is read-only at Razorpay.
+  const pending=initial.filter(o=>o.paymentMethod==='Razorpay'&&o.refundStatus&&o.refundStatus!=='processed').slice(0,2);
+  if(pending.length){await Promise.allSettled(pending.map(o=>reconcileRazorpayRefund(o.id)));
+    if(!c.signal.aborted){try{const fresh=await getAdminOrders(c.signal);setOrders(fresh.orders||[]);}catch{/* Preserve loaded orders */}}}
+ }).catch(e=>{if(e.name!=="AbortError")setError(e.message)}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort();},[]);
  async function refreshOrders(){const result=await getAdminOrders();setOrders(result.orders||[]);}
  async function setStatus(order,status){
   if(status==="cancelled"&&order.paymentMethod==="Razorpay"){setError("Paid Razorpay orders cannot be cancelled here until their refund is reconciled.");return;}
@@ -69,14 +80,14 @@ export default function AdminOrders(){
  {error&&<div className="admin-alert" role="alert">{error}</div>}
  {notice&&<div className="nx44-admin-notice" role="status">{notice}<button type="button" onClick={()=>setNotice("")} aria-label="Dismiss message">×</button></div>}
  {refundConfig?.enabled===false&&<div className="nx44-admin-refund-status" role="status"><strong>Razorpay refunds disabled.</strong> {refundConfig.reason==='refund_opt_in_missing'?'Add RAZORPAY_REFUNDS_ENABLED=true to server/.env, keep RAZORPAY_MODE=test, and restart Express.':refundConfig.reason==='razorpay_unconfigured'?'Check test Razorpay API settings in server/.env.':'Refund access needs separate authorization in Live Mode.'}</div>}
- {pendingCancellationCount>0&&<button className="nx45-review-shortcut" type="button" onClick={()=>setFilter('cancellation_requested')}>Cancellation requests awaiting review <strong>{pendingCancellationCount}</strong><span>View requests →</span></button>}
+ {pendingCancellationCount>0&&<button className="nx45-review-shortcut" type="button" onClick={()=>setFilter('cancellation_requested')}>Cancellation requests awaiting review <strong>{pendingCancellationCount}</strong><span>View requests <UiIcon name="right" size={17}/></span></button>}
  <div className="nx-admin-summary nx-cod-admin-stats"><div><small>Orders loaded</small><strong>{orders.length}</strong></div><div><small>Awaiting review</small><strong>{totals.placed}</strong></div><div><small>In progress</small><strong>{totals.progress}</strong></div><div><small>Delivered</small><strong>{totals.delivered}</strong></div></div>
  <section className="admin-panel nx-admin-orders-panel"><div className="admin-panel-heading"><div><h2>Order queue</h2><p>COD and Razorpay orders. Online payment must be captured before fulfillment; COD collection is recorded manually.</p><small>Non-cancelled order value: {money(totals.orderValue)}</small></div></div>
  <div className="nx-cod-toolbar"><label><span className="sr-only">Search orders</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by order, customer or email" type="search"/></label><label>Status <select value={filter} onChange={e=>setFilter(e.target.value)}>{["all","cancellation_requested","placed","confirmed","processing","shipped","delivered","cancelled","payment_pending","payment_review","payment_expired","refund_pending","refund_review"].map(s=><option value={s} key={s}>{s==="cancellation_requested"?"Cancellation requests":s[0].toUpperCase()+s.slice(1)}</option>)}</select></label></div>
  {loading?<p role="status" className="nx-cod-padding">Loading orders…</p>:!visible.length?<p className="nx-cod-padding">No orders match this view.</p>:<div className="nx-admin-orders-grid">{visible.map(o=><article className="nx-admin-order-card" key={o.id}>
    <header><div><strong>Order #{o.id}</strong><small>{new Date(o.placedAt).toLocaleString("en-IN")}</small></div><span className={`nx-status nx-status-${o.status}`}>{o.status}</span></header>
    <div className="nx-admin-order-meta"><div><strong>{o.customerName||"Customer"}</strong><span>{o.customerEmail||""}</span></div><div className="nx34-order-total"><small>{o.paymentMethod==="Razorpay"?"Online total":"COD total"}</small><strong>{money(o.total)}</strong></div></div>
-   <div className="nx-admin-order-items">{o.items.map((item,i)=><div className="nx34-admin-order-line" key={`${item.productId}-${item.variantId||"base"}-${i}`}><div className="nx34-order-line-info"><strong>{item.name}</strong>{item.sku&&<small>SKU: {item.sku}</small>}</div><div className="nx34-order-line-numbers"><span className="nx34-order-quantity">Qty {item.quantity}</span><strong>{money(item.lineTotal??Number(item.unitPrice||0)*Number(item.quantity||0))}</strong></div></div>)}</div>
+   <div className="nx-admin-order-items">{o.items.map((item,i)=><div className="nx34-admin-order-line" key={`${item.productId}-${item.variantId||"base"}-${i}`}><div className="nx34-order-line-info"><Link className="nx46-product-title" to={`/admin/products/${item.productId}/preview`}>{item.name}</Link>{item.sku&&<small>SKU: {item.sku}</small>}</div><div className="nx34-order-line-numbers"><span className="nx34-order-quantity">Qty {item.quantity}</span><strong>{money(item.lineTotal??Number(item.unitPrice||0)*Number(item.quantity||0))}</strong></div></div>)}</div>
    <div className="nx25-order-breakdown"><span><span>Items subtotal</span><strong>{money(o.subtotal)}</strong></span><span><span>Shipping</span><strong>{money(o.shippingFee)}</strong></span><span><span>GST included</span><strong>{money(o.taxTotal)}</strong></span></div>
    <OrderTimeline order={o}/>
    {o.cancellationRequest&&<section className={`nx45-admin-request is-${o.cancellationRequest.status}`} aria-label="Customer cancellation request"><div><strong>Customer cancellation · {o.cancellationRequest.status}</strong><p>{o.cancellationRequest.reason}</p>{o.cancellationRequest.adminResponse&&<small>Admin response: {o.cancellationRequest.adminResponse}</small>}</div>{o.cancellationRequest.status==='pending'&&<div className="nx45-request-buttons"><button type="button" disabled={busy===o.id} onClick={()=>openDialog(o.paymentMethod==='Razorpay'?'refund':'cancel-cod',o,'cancelled')}>{o.paymentMethod==='Razorpay'?'Approve & refund':'Approve & cancel COD'}</button><button type="button" disabled={busy===o.id} onClick={()=>openDialog('decline-cancel',o)}>Decline request</button></div>}</section>}

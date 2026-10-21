@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import UiIcon from "../../components/common/UiIcon";
 import {Link} from 'react-router-dom';
 import AdminLayout from '../../components/layout/AdminLayout';
 import {getLowStockAlerts} from '../../services/inventoryService';
@@ -18,9 +19,9 @@ export default function AdminInventory(){
       {loading?<p>Loading stock alerts…</p>:data?.items.length===0?<p className="nx24-no-alerts">No active products or SKUs are at or below their low-stock thresholds.</p>:
       <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Product / SKU</th><th>Available</th><th>Alert at</th><th>State</th><th>Action</th></tr></thead><tbody>
         {data?.items.map((item,index)=><tr key={`${item.productId}:${item.variantId||'simple'}:${index}`}>
-          <td><strong>{item.productName}</strong><small>{item.sku?`SKU: ${item.sku}`:'Simple product'}{item.attributes&&Object.keys(item.attributes).length?` · ${Object.values(item.attributes).join(' / ')}`:''}</small></td>
+          <td><Link className="nx46-product-title" to={`/admin/products/${item.productId}/preview`}>{item.productName}</Link><small>{item.sku?`SKU: ${item.sku}`:'Simple product'}{item.attributes&&Object.keys(item.attributes).length?` · ${Object.values(item.attributes).join(' / ')}`:''}</small></td>
           <td>{item.available}</td><td>{item.threshold}</td><td><span className={item.available===0?'nx24-out':'nx24-low'}>{item.available===0?'Out of stock':'Low stock'}</span></td>
-          <td><Link to={`/admin/products/${item.productId}/edit?tab=${item.variantId?'variants':'details'}`}>Update stock →</Link></td>
+          <td><Link to={`/admin/products/${item.productId}/edit?tab=${item.variantId?'variants':'details'}`}>Update stock <UiIcon name="right" size={17}/></Link></td>
         </tr>)}</tbody></table></div>}
       {(data?.summary.total||0)>500&&<p>Showing the first 500 alerts. More inventory requires attention.</p>}
     </section>

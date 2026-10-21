@@ -24,6 +24,8 @@ import Orders from "./pages/customer/Orders";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminFeatured from "./pages/admin/AdminFeatured";
 import AdminInventory from "./pages/admin/AdminInventory";
+import AdminDelivery from './pages/admin/AdminDelivery';
+import DeliveryDashboard from './pages/delivery/DeliveryDashboard';
 import Wishlist from "./pages/customer/Wishlist";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import Home from "./pages/customer/Home";
@@ -61,6 +63,9 @@ import "./styles/phase39.css";
 import "./styles/phase41.css";
 import "./styles/phase44.css";
 import "./styles/phase45.css";
+import "./styles/phase46.css";
+import "./styles/phase47.css";
+import "./styles/phase48.css";
 
 export default function App() {
   return <StoreErrorBoundary><BrandingProvider><CartProvider><BrowserRouter><RouteExperience /><Routes>
@@ -78,6 +83,9 @@ export default function App() {
     <Route path="/admin/categories" element={<AdminCategories />} />
     <Route path="/admin/banners" element={<AdminBanners />} />
     <Route path="/admin/orders" element={<AdminOrders />} />
+    <Route path="/admin/delivery" element={<AdminDelivery />} />
+    <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
+    <Route path="/admin/products/:id/preview" element={<ProductDetails adminPreview />} />
     <Route path="/admin/featured" element={<AdminFeatured />} />
     <Route path="/admin/inventory" element={<AdminInventory />} />
     <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />

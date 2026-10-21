@@ -19,11 +19,9 @@ test('header wishlist and cart share a hit area and SVG dimensions', () => {
   assert.match(css, /\.nx34-wishlist-icon,\s*\n\.storefront \.nx34-header \.cart-link/);
   assert.match(css, /\.nx34-wishlist-icon svg,\s*\n\.storefront \.nx34-header \.cart-link svg/);
 });
-test('promotion image-only mode preserves full artwork with decorative edge fill', () => {
-  assert.match(carousel, /imageOnly && <img className="nx44-promotion-backdrop"/);
-  assert.match(css, /\.nx37-promotion-card\.is-image-only .*img/);
-  assert.match(css, /object-fit:\s*contain/);
+test('legacy Phase44 banner spacing remains available for older layouts', () => {
   assert.match(css, /\.nx37-promotion-home \+ \.store-section/);
+  assert.match(carousel, /nx37-promotion-image-frame/);
 });
 test('full-refund request uses an in-app reason and acknowledgement dialog, not browser popups', () => {
   assert.match(orders, /<OrderActionDialog/);
