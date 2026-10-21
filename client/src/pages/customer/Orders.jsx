@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import OrderTimeline from "../../components/customer/OrderTimeline";
-import { getMyOrders, reconcileRazorpayOrder, retryRazorpayCheckout, verifyRazorpayPayment } from "../../services/orderService";
+import OrderCancellationDialog from "../../components/customer/OrderCancellationDialog";
+import { getMyOrders, reconcileRazorpayOrder, retryRazorpayCheckout, verifyRazorpayPayment, requestOrderCancellation } from "../../services/orderService";
 import { isAuthenticationError } from "../../services/apiClient";
 import { loadRazorpayCheckout } from "../../services/razorpayCheckout";
 import {useCart} from "../../hooks/useCart";
@@ -11,6 +12,11 @@ const money=x=>`₹${Number(x||0).toLocaleString("en-IN",{minimumFractionDigits:
 export default function Orders(){
  const navigate=useNavigate(),location=useLocation(),{items:cartItems,clearCart}=useCart();
  const [orders,setOrders]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[success,setSuccess]=useState(''),[checkingId,setCheckingId]=useState('');
+ const [cancelOrder,setCancelOrder]=useState(null),[cancelBusy,setCancelBusy]=useState(false),[cancelError,setCancelError]=useState('');
+ async function sendCancellation(reason){setCancelBusy(true);setCancelError('');try{
+  await requestOrderCancellation(cancelOrder.id,reason);const updated=await getMyOrders();setOrders(updated.orders||[]);
+  setSuccess(`Cancellation request sent for order #${cancelOrder.id}. Awaiting store review.`);setCancelOrder(null);
+ }catch(e){setCancelError(e.message);}finally{setCancelBusy(false);}}
  async function checkPayment(id){setCheckingId(id);setError('');try{
   const result=await reconcileRazorpayOrder(id);
   const refreshed=await getMyOrders();setOrders(refreshed.orders||[]);
@@ -61,11 +67,14 @@ export default function Orders(){
     <button type="button" className="nx42-recheck-payment" disabled={Boolean(checkingId)} onClick={()=>checkPayment(o.id)}>{checkingId===o.id?'Checking with Razorpay…':'Check payment status'}</button>
     <button type="button" className="nx42-recheck-payment" disabled={Boolean(checkingId)} onClick={()=>retryPayment(o)}>Retry payment securely</button>
    </div>}
+   {o.cancellationRequest&&<div className={`nx45-cancellation-status is-${o.cancellationRequest.status}`} role="status"><strong>Cancellation request: {o.cancellationRequest.status==='pending'?'Awaiting review':o.cancellationRequest.status==='approved'?'Approved':'Declined'}</strong><p>{o.cancellationRequest.status==='approved'&&o.paymentMethod==='Razorpay'&&o.refundStatus==='failed'?'Razorpay refund failed. Nexora must review it; your order has not been cancelled yet.':o.cancellationRequest.status==='approved'&&o.paymentMethod==='Razorpay'&&o.refundStatus!=='processed'?'Your refund is under verification. Order cancellation is finalized only after Razorpay confirms processing.':o.cancellationRequest.status==='pending'?'Your request is with the Nexora team. Fulfillment is paused while it is reviewed.':o.cancellationRequest.adminResponse||'Your cancellation request has been reviewed.'}</p>{o.cancellationRequest.status==='declined'&&o.cancellationRequest.adminResponse&&<small>Reason: {o.cancellationRequest.adminResponse}</small>}</div>}
+   {['placed','confirmed'].includes(o.status)&&!o.refundStatus&&!o.cancellationRequest&&((o.paymentMethod==='Razorpay'&&o.paymentStatus==='razorpay_paid')||(o.paymentMethod!=='Razorpay'&&o.paymentStatus==='cod_pending'))&&<div className="nx45-customer-actions"><button type="button" onClick={()=>{setCancelOrder(o);setCancelError('');}}>Request cancellation</button></div>}
    <div className="nx-order-items">{o.items.map((item,i)=><div className="nx-order-product" key={`${item.productId}-${item.variantId||"base"}-${i}`}><div><strong>{item.name}</strong><small>{item.sku||"Standard"} · Qty {item.quantity}</small></div><span>{money(item.lineTotal)}</span></div>)}</div>
    <div className="nx25-order-breakdown nx38-order-breakdown"><span><span>Items</span><strong>{money(o.subtotal)}</strong></span><span><span>Shipping</span><strong>{money(o.shippingFee)}</strong></span><span><span>Included GST</span><strong>{money(o.taxTotal)}</strong></span><span><span>{o.paymentMethod==="Razorpay"?"Order total":"Amount due on delivery"}</span><strong>{money(o.total)}</strong></span></div>
    <div className="nx-order-footer"><span>{o.paymentMethod==='Razorpay'
     ? o.refundStatus==='processed'?'Full refund processed · order cancelled':o.refundStatus==='failed'?'Refund failed · store review required':o.refundStatus?'Full refund in progress · do not pay again':o.paymentStatus==='razorpay_paid'?'✓ Paid online (Razorpay)':o.paymentStatus==='razorpay_review'?'Payment requires manual review':o.paymentStatus==='razorpay_expired'?'Unpaid payment reservation expired':'Awaiting captured online payment · do not repay until checked'
     : `Cash on Delivery · ${o.paymentStatus === 'cod_collected' ? 'Collection recorded' : 'Awaiting cash on delivery'}`}</span><span>{o.address?.city}, {o.address?.state}</span></div>
  </article>)}</div>}
+ {cancelOrder&&<OrderCancellationDialog order={cancelOrder} busy={cancelBusy} error={cancelError} onClose={()=>{if(!cancelBusy)setCancelOrder(null);}} onConfirm={sendCancellation}/>}
  </CustomerLayout>;
 }

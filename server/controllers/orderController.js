@@ -6,6 +6,8 @@ import { acceptedQuoteError, quoteMatchesAccepted, quoteSummary } from "../servi
 import { deductStock } from "../services/stockDeduction.js";
 import { canChangeOrderStatus, canConfirmCodCollection, validateDispatch, makeOrderLine, normalizeAddress, validOrderId, validRequestKey, validateAddress } from "../services/codOrderRules.js";
 
+import { canRequestCancellation } from "../services/cancellationRules.js";
+
 const statementError = (res, error, label) => {
   console.error(label, error);
   if (error.code === "42P01" || error.code === "42703") return res.status(503).json({ message: "COD database migrations through 022 may be missing. Please review and apply them." });
@@ -111,6 +113,14 @@ async function loadEvents(db,orderIds){
  for(const e of r.rows){const id=String(e.order_id);if(!events.has(id))events.set(id,[]);events.get(id).push({type:e.event_type,notes:e.notes,at:e.recorded_at});}
  return events;
 }
+async function loadCancellationRequests(db,orderIds){
+ if (!orderIds.length) return new Map();
+ const found=await db.query(`SELECT order_id,reason,status,requested_at,reviewed_at,admin_response
+   FROM order_cancellation_requests WHERE order_id=ANY($1::bigint[])`,[orderIds]);
+ return new Map(found.rows.map(r=>[String(r.order_id),{
+   reason:r.reason,status:r.status,requestedAt:r.requested_at,reviewedAt:r.reviewed_at,adminResponse:r.admin_response
+ }]));
+}
 async function loadItems(db,orderIds){
  if (!orderIds.length) return new Map();
  const result=await db.query(`SELECT order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total
@@ -118,12 +128,12 @@ async function loadItems(db,orderIds){
  const map=new Map();for(const r of result.rows){ const key=String(r.order_id);if(!map.has(key))map.set(key,[]);map.get(key).push({productId:String(r.product_id),variantId:r.variant_id?String(r.variant_id):null,name:r.name_snapshot,sku:r.sku_snapshot,attributes:r.attributes_snapshot,imageUrl:r.image_snapshot,quantity:r.quantity,unitPrice:r.unit_price,lineTotal:r.line_total});}return map;
 }
 export async function myOrders(req,res){
- try {const r=await pool.query("SELECT * FROM cod_orders WHERE customer_id=$1 ORDER BY placed_at DESC,id DESC LIMIT 100",[req.user.id]);const ids=r.rows.map(x=>x.id);const [items,events]=await Promise.all([loadItems(pool,ids),loadEvents(pool,ids)]);res.json({orders:r.rows.map(x=>({...serializeOrder(x),items:items.get(String(x.id))??[],events:events.get(String(x.id))??[]}))});}
+ try {const r=await pool.query("SELECT * FROM cod_orders WHERE customer_id=$1 ORDER BY placed_at DESC,id DESC LIMIT 100",[req.user.id]);const ids=r.rows.map(x=>x.id);const [items,events,cancellations]=await Promise.all([loadItems(pool,ids),loadEvents(pool,ids),loadCancellationRequests(pool,ids)]);res.json({orders:r.rows.map(x=>({...serializeOrder(x),cancellationRequest:cancellations.get(String(x.id))??null,items:items.get(String(x.id))??[],events:events.get(String(x.id))??[]}))});}
  catch(e){return statementError(res,e,"Customer orders:");}
 }
 export async function adminOrders(req,res){
  try {const r=await pool.query(`SELECT o.*,u.full_name AS customer_name,u.email AS customer_email FROM cod_orders o JOIN users u ON u.id=o.customer_id
- ORDER BY o.placed_at DESC,o.id DESC LIMIT 200`);const ids=r.rows.map(x=>x.id);const [items,events]=await Promise.all([loadItems(pool,ids),loadEvents(pool,ids)]);return res.json({orders:r.rows.map(x=>({...serializeOrder(x),items:items.get(String(x.id))??[],events:events.get(String(x.id))??[]}))});}
+ ORDER BY o.placed_at DESC,o.id DESC LIMIT 200`);const ids=r.rows.map(x=>x.id);const [items,events,cancellations]=await Promise.all([loadItems(pool,ids),loadEvents(pool,ids),loadCancellationRequests(pool,ids)]);return res.json({orders:r.rows.map(x=>({...serializeOrder(x),cancellationRequest:cancellations.get(String(x.id))??null,items:items.get(String(x.id))??[],events:events.get(String(x.id))??[]}))});}
  catch(e){return statementError(res,e,"Admin orders:");}
 }
 export async function changeCodOrderStatus(req,res){
@@ -142,6 +152,13 @@ export async function changeCodOrderStatus(req,res){
     const invalid=validateDispatch(req.body);
     if(invalid){await db.query('ROLLBACK');open=false;return res.status(400).json({message:invalid});}
   }
+  const requestCheck=await db.query('SELECT status FROM order_cancellation_requests WHERE order_id=$1 FOR UPDATE',[id]);
+  if(requestCheck.rows[0]?.status==='pending' && status!=='cancelled'){
+    await db.query('ROLLBACK');open=false;return res.status(409).json({message:'A customer cancellation request is pending. Approve or decline it before fulfilling this order.'});
+  }
+  if(status==='cancelled' && !canRequestCancellation(order)){
+    await db.query('ROLLBACK');open=false;return res.status(409).json({message:'This order cannot be cancelled in its current payment state.'});
+  }
   if(status==='cancelled'){
     const items=await db.query("SELECT product_id,variant_id,quantity FROM cod_order_items WHERE order_id=$1 ORDER BY id",[id]);
     for(const item of items.rows){
@@ -158,6 +175,11 @@ export async function changeCodOrderStatus(req,res){
     changed=await db.query("UPDATE cod_orders SET status='delivered',delivered_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *",[id]);
   }else{
     changed=await db.query("UPDATE cod_orders SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *",[id,status]);
+  }
+  if(status==='cancelled' && requestCheck.rows[0]?.status==='pending') {
+    await db.query(`UPDATE order_cancellation_requests SET status='approved',reviewed_at=NOW(),reviewed_by=$2,
+      admin_response='Approved: COD order cancelled and stock restored.' WHERE order_id=$1`,[id,req.user.id]);
+    await db.query(`INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'cancellation_approved',$2,'Administrator approved COD cancellation.')`,[id,req.user.id]);
   }
   await db.query('INSERT INTO cod_order_events(order_id,event_type,actor_user_id) VALUES($1,$2,$3)',[id,status,req.user.id]);
   await db.query("COMMIT");open=false;return res.json({order:serializeOrder(changed.rows[0])});

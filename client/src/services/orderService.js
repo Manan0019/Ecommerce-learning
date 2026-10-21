@@ -21,3 +21,6 @@ export function requestRazorpayRefund(id, reason){return apiRequest(`/api/paymen
 export function reconcileRazorpayRefund(id){return apiRequest(`/api/payments/razorpay/admin/orders/${id}/refund/reconcile`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'}});}
 
 export function getRazorpayRefundConfig(signal){return apiRequest('/api/payments/razorpay/admin/refund-config',{...sessionOptions,signal});}
+
+export function requestOrderCancellation(id,reason){return apiRequest(`/api/orders/${id}/cancellation-request`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason})});}
+export function declineOrderCancellation(id,reason){return apiRequest(`/api/admin/orders/${id}/cancellation-decline`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason})});}

@@ -90,6 +90,10 @@ export async function requestFullRefund(req,res){
       const key=`nx_order_${id}_full_refund_v1`;
       const changed=await db.query(`UPDATE cod_orders SET status='refund_pending',refund_status='requested',
         refund_request_key=$2,refund_reason=$3,refund_requested_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[id,key,reason.trim()]);
+      const customerRequest=await db.query(`UPDATE order_cancellation_requests SET status='approved',
+        reviewed_at=NOW(),reviewed_by=$2,admin_response='Approved: full Razorpay refund initiated.'
+        WHERE order_id=$1 AND status='pending' RETURNING order_id`,[id,req.user.id]);
+      if(customerRequest.rows.length)await addEvent(db,id,req.user.id,'cancellation_approved','Administrator approved cancellation subject to Razorpay refund processing.');
       await addEvent(db,id,req.user.id,'refund_requested',`Administrator requested a full Razorpay refund. Reason: ${reason.trim()}`);
       await db.query('COMMIT');open=false;order=changed.rows[0];
     }finally{if(open)await rollback(db);db.release();}

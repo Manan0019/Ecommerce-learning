@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireCustomer, requireAdmin } from "../middleware/authMiddleware.js";
 import { placeCodOrder, estimateCodOrder, myOrders, adminOrders, changeCodOrderStatus, adminCodSummary, confirmCodCollection } from "../controllers/orderController.js";
+import { requestOrderCancellation, declineCancellation } from "../controllers/orderCancellationController.js";
 function checkWriteOrigin(req, res, next) {
   const origin = req.get("origin");
   const trusted = process.env.CLIENT_ORIGIN || "http://localhost:5173";
@@ -12,10 +13,12 @@ customer.use(requireCustomer);
 customer.post("/cod", checkWriteOrigin, placeCodOrder);
 customer.post("/estimate",checkWriteOrigin,estimateCodOrder);
 customer.get("/mine", myOrders);
+customer.post("/:id/cancellation-request", checkWriteOrigin, requestOrderCancellation);
 const admin = Router();
 admin.use(requireAdmin);
 admin.get("/summary", adminCodSummary);
 admin.get("/", adminOrders);
 admin.patch("/:id/status", checkWriteOrigin, changeCodOrderStatus);
 admin.post("/:id/collect", checkWriteOrigin, confirmCodCollection);
+admin.post("/:id/cancellation-decline", checkWriteOrigin, declineCancellation);
 export {customer as customerOrderRoutes,admin as adminOrderRoutes};
