@@ -28,6 +28,10 @@ export default function CustomerDashboard() {
     async function loadProfile() {
       try {
         const data = await getCurrentUser(controller.signal);
+        if (data.user.role === "delivery") {
+          navigate("/delivery/dashboard", { replace: true });
+          return;
+        }
         if (data.user.role === "admin") {
           navigate("/admin/dashboard", { replace: true });
           return;

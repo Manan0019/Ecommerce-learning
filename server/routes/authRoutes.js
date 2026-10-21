@@ -8,6 +8,7 @@ import pool from "../config/db.js";
 import { sendOtpEmail } from "../config/mailer.js";
 
 import { requireAuthenticated, requireCustomer } from "../middleware/authMiddleware.js";
+import { deliveryAccessDecision } from "../services/deliverySessionRules.js";
 // Customer profile photos are no longer accepted. Existing stored photos are
 // retained in old records for backwards compatibility; the UI no longer uses them.
 
@@ -411,9 +412,17 @@ router.post(["/login", "/admin/login"], loginLimiter, async (req, res) => {
     }
 
     if (!["admin", "customer", "delivery"].includes(user.role)) {
-      return res.status(403).json({
-        message: "Access denied."
-      });
+      return res.status(403).json({ message: "Access denied." });
+    }
+
+    // A disabled courier must never receive a new session. Check this before
+    // regenerating/saving a cookie; the same rule is enforced per API request.
+    if (user.role === "delivery") {
+      const activeProfile = await pool.query(
+        "SELECT is_active FROM delivery_staff_profiles WHERE user_id=$1", [user.id]
+      );
+      const decision = deliveryAccessDecision(user.role, activeProfile.rows[0]?.is_active === true);
+      if (!decision.ok) return res.status(decision.status).json({ message: decision.message });
     }
 
     req.session.regenerate((error) => {

@@ -118,8 +118,7 @@ export default function PromotionCarousel({ position = "home", category, product
     onTouchStart={touchStart} onTouchEnd={touchEnd} onTouchCancel={()=>{swipeStart.current=null;}}
     onClickCapture={e=>{if(Date.now()<preventClickUntil.current){e.preventDefault();e.stopPropagation();}}}>
     <div className="nx37-promotion-heading"><span>THE NEXORA EDIT <span aria-hidden="true">✦</span> CURATED FOR YOU</span>
-      {rotating && <div className="nx47-promotion-status">
-        <span aria-live="polite">Collection {String(active+1).padStart(2, '0')} <small>/ {String(banners.length).padStart(2, '0')}</small></span>
+      {rotating && <div className="nx47-promotion-status nx52-promotion-controls">
         {homeAutoplay && !reducedMotion && <button type="button" className="nx47-autoplay-toggle" aria-label={userPaused?"Resume automatic promotions":"Pause automatic promotions"}
           aria-pressed={userPaused} title={userPaused?"Resume slideshow":"Pause slideshow"} onClick={()=>setUserPaused(p=>!p)}><UiIcon name={userPaused?'play':'pause'} size={16}/></button>}
       </div>}
@@ -127,7 +126,7 @@ export default function PromotionCarousel({ position = "home", category, product
     <div className={`nx37-promotion-grid nx37-count-${count}${count>3?" nx41-multi-banner":""}`} ref={rail}>
       {visible.map((banner, index) => <PromotionCard key={`${banner.id}-${index}`} banner={banner} primary={index === 0} priority={position === "home" && index === 0} />)}
     </div>
-    {rotating && <div className="nx47-promotion-segments" role="group" aria-label="Select promotion set">{promotionDotIndices(banners.length,active).map((i) => <button type="button" key={banners[i].id} aria-label={`Show promotion set ${i + 1}: ${banners[i].title}`} aria-current={active === i ? "true" : undefined} className={active === i ? "is-active" : ""} onClick={() => setActive(i)}><span>{String(i+1).padStart(2, '0')}</span><i aria-hidden="true" /></button>)}</div>}
+    {rotating && <div className="nx52-promotion-progress" role="group" aria-label="Choose promotion">{promotionDotIndices(banners.length,active).map((i) => <button type="button" key={banners[i].id} aria-label={`Show promotion: ${banners[i].title}`} aria-current={active === i ? "true" : undefined} className={active === i ? "is-active" : ""} onClick={() => setActive(i)}><span aria-hidden="true" /></button>)}</div>}
     {failed && <p role="status">Some promotions are temporarily unavailable.</p>}
   </section>;
 }

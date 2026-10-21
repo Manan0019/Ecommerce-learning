@@ -5,6 +5,7 @@ import {
   Link
 } from "react-router-dom";
 import { login } from "../../services/authService";
+import { getDeliverySession } from "../../services/deliveryService";
 import AuthLayout from "../../components/auth/AuthLayout";
 import PasswordField from "../../components/auth/PasswordField";
 
@@ -29,7 +30,14 @@ export default function CustomerLogin() {
       const data = await login({ email: email.trim(), password });
 
       const returnTo = ["/checkout", "/orders", "/addresses", "/wishlist"].includes(location.state?.from) ? location.state.from : "/";
-      navigate(data.user.role === "admin" ? "/admin/dashboard" : returnTo, { replace: true });
+      if (data.user.role === "delivery") {
+        // Do not show a successful sign-in unless the cookie and delivery role
+        // are both accepted by the running backend.
+        await getDeliverySession();
+        navigate("/delivery/dashboard", { replace: true });
+      } else {
+        navigate(data.user.role === "admin" ? "/admin/dashboard" : returnTo, { replace: true });
+      }
 
     } catch (error) {
       setFeedback({ text: error.message, type: "error" });
@@ -73,6 +81,7 @@ export default function CustomerLogin() {
       </form>
 
       <p className="auth-switch">New here? <Link to="/signup">Create an account</Link></p>
+      <p className="auth-switch">Delivery team? <Link to="/delivery/login">Open delivery sign in</Link></p>
       <p className="nx32-security-line">Your password is never displayed publicly.</p>
     </AuthLayout>;
 }

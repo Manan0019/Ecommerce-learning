@@ -9,9 +9,9 @@ test('search icon visible, all-results remains full width and category suggestio
  const source=read('components/layout/StoreHeader.jsx');assert.match(source,/function SearchIcon\(\).*UiIcon name="search"/);
  assert.match(source,/getProductSuggestions/);assert.match(css,/\.nx-search-view-all \{[^}]*width:100%!important/);
 });
-test('promotion navigation uses accessible numbered segments, autoplay, swipe and no arrow buttons',()=>{
+test('promotion navigation uses accessible minimalist progress scrubber, autoplay, swipe and no arrow buttons',()=>{
  const s=read('components/customer/PromotionCarousel.jsx');
- assert.match(s,/nx47-promotion-segments/);assert.match(s,/aria-label=\{`Show promotion set/);
+ assert.match(s,/nx52-promotion-progress/);assert.match(s,/aria-label=\{`Show promotion:/);
  assert.match(s,/onTouchStart=\{touchStart\}/);assert.match(s,/nx47-autoplay-toggle/);
  assert.doesNotMatch(s,/>←<|>→</);assert.match(css,/object-fit:cover!important/);
 });
@@ -23,7 +23,7 @@ test('deep category promotions use bounded searchable selector for placement and
  const s=read('pages/admin/AdminBanners.jsx');const picker=read('components/admin/PromotionCategorySelect.jsx');
  assert.match(s,/Choose display category" categories=\{categories\}/);assert.match(s,/Choose redirect category" categories=\{categories\}/);
  assert.match(picker,/categoryPaths\(categories\)/);assert.match(picker,/type="search"/);
- assert.match(picker,/role="listbox"/);assert.match(css,/max-height:min\(32vh,270px\)/);
+ assert.match(picker,/nx52-category-breadcrumbs/);assert.match(picker,/nx52-category-drill/);assert.match(picker,/nx52-category-list/);
 });
 test('icons are vector paths, not unicode arrow glyphs in navigational JSX',()=>{
  const jsx=read('components/common/UiIcon.jsx');assert.match(jsx,/viewBox="0 0 24 24"/);

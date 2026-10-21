@@ -26,6 +26,7 @@ import AdminFeatured from "./pages/admin/AdminFeatured";
 import AdminInventory from "./pages/admin/AdminInventory";
 import AdminDelivery from './pages/admin/AdminDelivery';
 import DeliveryDashboard from './pages/delivery/DeliveryDashboard';
+import DeliveryLogin from './pages/delivery/DeliveryLogin';
 import Wishlist from "./pages/customer/Wishlist";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import Home from "./pages/customer/Home";
@@ -69,6 +70,7 @@ import "./styles/phase48.css";
 import "./styles/phase49.css";
 import "./styles/phase50.css";
 import "./styles/phase51.css";
+import "./styles/phase52.css";
 
 export default function App() {
   return <StoreErrorBoundary><BrandingProvider><CartProvider><BrowserRouter><RouteExperience /><Routes>
@@ -88,6 +90,7 @@ export default function App() {
     <Route path="/admin/orders" element={<AdminOrders />} />
     <Route path="/admin/delivery" element={<AdminDelivery />} />
     <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
+    <Route path="/delivery/login" element={<DeliveryLogin />} />
     <Route path="/admin/products/:id/preview" element={<ProductDetails adminPreview />} />
     <Route path="/admin/featured" element={<AdminFeatured />} />
     <Route path="/admin/inventory" element={<AdminInventory />} />

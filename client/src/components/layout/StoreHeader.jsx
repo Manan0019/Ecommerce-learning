@@ -42,7 +42,7 @@ export default function StoreHeader() {
     async function loadUser() {
       try {
         const data = await getCurrentUser(controller.signal);
-        if (data.user?.role === "customer" || data.user?.role === "admin") setUser(data.user);
+        if (["customer", "admin", "delivery"].includes(data.user?.role)) setUser(data.user);
       } catch (error) {
         if (error.name !== "AbortError") setAuthError("Account status is unavailable.");
       }
@@ -170,11 +170,12 @@ export default function StoreHeader() {
       <div className="nav-actions">
         {user?.role === "customer" && <NotificationBell />}
         {user?.role === "admin" && <Link className="admin-return-link" to="/admin/dashboard">Admin Dashboard</Link>}
-        <Link className="wishlist-header-link nx34-wishlist-icon" to="/wishlist" aria-label="View wishlist" title="Wishlist"><HeartIcon /></Link>
-        <Link className="cart-link" to="/cart" aria-label={`Cart with ${itemCount} items`}>
+        {user?.role === "delivery" && <Link className="admin-return-link" to="/delivery/dashboard">Delivery workspace</Link>}
+        {user?.role !== "delivery" && <Link className="wishlist-header-link nx34-wishlist-icon" to="/wishlist" aria-label="View wishlist" title="Wishlist"><HeartIcon /></Link>}
+        {user?.role !== "delivery" && <Link className="cart-link" to="/cart" aria-label={`Cart with ${itemCount} items`}>
           <CartIcon />
           {itemCount > 0 && <span className="cart-count">{itemCount > 99 ? "99+" : itemCount}</span>}
-        </Link>
+        </Link>}
 
         {user ? <div className="profile-menu" ref={profileRef}>
           <button className="avatar-button" type="button" aria-label="Open account menu" title="Account"
@@ -184,8 +185,8 @@ export default function StoreHeader() {
           </button>
           {profileOpen && <div className="profile-dropdown" role="menu">
             <p>{user.fullName}</p>
-            {user.role === "admin" ? <Link role="menuitem" to="/admin/dashboard" onClick={() => setProfileOpen(false)}>Back to Admin Dashboard</Link> : <><Link role="menuitem" to="/dashboard" onClick={() => setProfileOpen(false)}>My Profile</Link><Link role="menuitem" to="/orders" onClick={() => setProfileOpen(false)}>My Orders</Link><Link role="menuitem" to="/addresses" onClick={() => setProfileOpen(false)}>Saved Addresses</Link></>}
-            <Link role="menuitem" to="/wishlist" onClick={() => setProfileOpen(false)}>Wishlist</Link>
+            {user.role === "admin" ? <Link role="menuitem" to="/admin/dashboard" onClick={() => setProfileOpen(false)}>Back to Admin Dashboard</Link> : user.role === "delivery" ? <Link role="menuitem" to="/delivery/dashboard" onClick={() => setProfileOpen(false)}>Delivery workspace</Link> : <><Link role="menuitem" to="/dashboard" onClick={() => setProfileOpen(false)}>My Profile</Link><Link role="menuitem" to="/orders" onClick={() => setProfileOpen(false)}>My Orders</Link><Link role="menuitem" to="/addresses" onClick={() => setProfileOpen(false)}>Saved Addresses</Link></>}
+            {user.role !== 'delivery' && <Link role="menuitem" to="/wishlist" onClick={() => setProfileOpen(false)}>Wishlist</Link>}
             <button role="menuitem" type="button" onClick={logout}>Logout</button>
             {authError && <small role="alert">{authError}</small>}
           </div>}
