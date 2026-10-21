@@ -3,12 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import NotificationBell from '../../components/common/NotificationBell';
 import UiIcon from '../../components/common/UiIcon';
 import { logout } from '../../services/authService';
-import { getDeliverySession, getMyAssignments, updateMyDelivery } from '../../services/deliveryService';
+import { getDeliverySession, getMyAssignments, updateMyDelivery, reportDeliveryIssue } from '../../services/deliveryService';
 import { cleanPhone, deliveryNextAction, deliveryTabMatch, mapSearchUrl } from '../../services/deliveryViewRules';
 
 const money = value => `₹${Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits:2,maximumFractionDigits:2 })}`;
 const dates = value => value ? new Date(value).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : 'Not yet';
 const statuses = { assigned:'Assigned', out_for_delivery:'Out for delivery', delivered:'Delivered' };
+const initialIssue = {kind:'failed_attempt',reason:'',requestedDate:''};
 const tabs = [ ['all','All deliveries'], ['ready','Assigned'], ['route','On the way'], ['delivered','Completed'] ];
 
 export default function DeliveryDashboard() {
@@ -24,6 +25,8 @@ export default function DeliveryDashboard() {
   const [notice, setNotice] = useState('');
   const [sessionProblem, setSessionProblem] = useState(false);
   const [confirmOrder, setConfirmOrder] = useState(null);
+  const [issueOrder,setIssueOrder] = useState(null);
+  const [issueForm,setIssueForm] = useState(initialIssue);
   const refresh = useCallback(async (signal) => {
     const response = await getMyAssignments(signal);
     if (!signal?.aborted) setAssignments(response.assignments || []);
@@ -66,6 +69,16 @@ export default function DeliveryDashboard() {
       setError(e.message);
     } finally {setBusy('');}
   }
+  async function submitIssue(event){
+    event.preventDefault();if(!issueOrder)return;
+    setBusy(String(issueOrder.orderId));setError('');setNotice('');
+    try{
+      await reportDeliveryIssue(issueOrder.orderId,{kind:issueForm.kind,reason:issueForm.reason.trim(),
+        requestedDate:issueForm.kind==='reschedule_requested'?issueForm.requestedDate:null});
+      await refresh();setIssueOrder(null);setIssueForm({...initialIssue});
+      setNotice(`Issue reported for order #${issueOrder.orderId}. Await admin review before another delivery attempt.`);
+    }catch(e){setError(e.message);}finally{setBusy('');}
+  }
   async function signOut() {
     try {await logout();navigate('/delivery/login', {replace:true});}
     catch(e) {setError(e.message);}
@@ -83,8 +96,13 @@ export default function DeliveryDashboard() {
       </div></div>
       <div className="nx52-order-finance"><span>Total <strong>{money(a.total)}</strong></span><span>Payment <strong>{a.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Paid online'}</strong></span><span>Order <strong>{a.orderStatus?.replaceAll('_',' ')}</strong></span></div>
       <ol className="nx52-delivery-timeline"><li className="is-complete"><span>Assigned</span><small>{dates(a.assignedAt)}</small></li><li className={a.outForDeliveryAt?'is-complete':''}><span>Out for delivery</span><small>{dates(a.outForDeliveryAt)}</small></li><li className={a.deliveredAt?'is-complete':''}><span>Delivered</span><small>{dates(a.deliveredAt)}</small></li></ol>
+      {a.pendingIssue && <div className="nx54-issue-waiting" role="status"><strong>Awaiting admin review</strong>
+        <p>{a.pendingIssue.kind==='reschedule_requested'?'Delivery rescheduling requested':'Unsuccessful delivery attempt'} · {a.pendingIssue.reason}</p>
+        {a.pendingIssue.requestedDate&&<small>Requested date: {String(a.pendingIssue.requestedDate).slice(0,10)}</small>}
+      </div>}
       {a.paymentMethod === 'cod' && <p className="nx52-cod-reminder">COD cash collection is recorded separately by the administrator. Marking delivery complete does not record a payment.</p>}
-      {action ? <button className="nx52-action-primary" type="button" disabled={!!busy} onClick={()=>action.status==='delivered'?setConfirmOrder(a):update(a,action.status)}>{busy === String(a.orderId) ? 'Updating…' : action.label}<UiIcon name="right" size={17}/></button>
+      {!a.pendingIssue&&a.deliveryStatus==='out_for_delivery'&&a.orderStatus==='shipped'&&<button type="button" className="nx54-report-action" disabled={!!busy} onClick={()=>{setError('');setIssueOrder(a);setIssueForm({...initialIssue});}}>Report delivery issue</button>}
+      {a.pendingIssue ? <p className="nx52-action-help">Delivery is paused until your administrator reviews this report.</p> : action ? <button className="nx52-action-primary" type="button" disabled={!!busy} onClick={()=>action.status==='delivered'?setConfirmOrder(a):update(a,action.status)}>{busy === String(a.orderId) ? 'Updating…' : action.label}<UiIcon name="right" size={17}/></button>
         : <p className="nx52-action-help">{a.deliveryStatus === 'delivered' ? 'Delivery complete.' : 'Awaiting admin dispatch. Delivery actions unlock after dispatch.'}</p>}
     </>;
   }
@@ -111,6 +129,24 @@ export default function DeliveryDashboard() {
           </section>
         </>}
     </main>
+    {issueOrder && <div className="nx52-confirm-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setIssueOrder(null);}}>
+      <form className="nx52-confirm-panel nx54-report-panel" role="dialog" aria-modal="true" aria-labelledby="nx54-report-title" onSubmit={submitIssue}>
+        <span className="nx52-eyebrow">DELIVERY EXCEPTION</span><h2 id="nx54-report-title">Report issue · Order #{issueOrder.orderId}</h2>
+        <p>Record what happened. This pauses completion until an administrator approves another delivery attempt; it does not cancel the order.</p>
+        <label>Issue type<select value={issueForm.kind} disabled={!!busy} onChange={e=>setIssueForm(x=>({...x,kind:e.target.value,requestedDate:''}))}>
+          <option value="failed_attempt">Delivery attempt unsuccessful</option><option value="reschedule_requested">Request a new delivery date</option>
+        </select></label>
+        {issueForm.kind==='reschedule_requested'&&<label>Proposed date (next 30 days)<input type="date" required disabled={!!busy}
+          min={new Date().toLocaleDateString('en-CA')} value={issueForm.requestedDate}
+          onChange={e=>setIssueForm(x=>({...x,requestedDate:e.target.value}))}/></label>}
+        <label>Reason / delivery notes<textarea minLength={10} maxLength={300} required rows={4} disabled={!!busy}
+          placeholder="E.g. customer unavailable after calling; please arrange another attempt."
+          value={issueForm.reason} onChange={e=>setIssueForm(x=>({...x,reason:e.target.value}))}/></label>
+        {error&&<p className="nx52-delivery-warning" role="alert">{error}</p>}
+        <div className="nx52-confirm-actions"><button type="button" disabled={!!busy} onClick={()=>setIssueOrder(null)}>Go back</button>
+          <button type="submit" disabled={!!busy||issueForm.reason.trim().length<10||issueForm.reason.trim().length>300||(issueForm.kind==='reschedule_requested'&&!issueForm.requestedDate)}>{busy?'Submitting…':'Send to admin'}</button></div>
+      </form>
+    </div>}
     {confirmOrder && <div className="nx52-confirm-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setConfirmOrder(null);}}>
       <section className="nx52-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="nx52-confirm-title">
         <span className="nx52-eyebrow">DELIVERY CONFIRMATION</span>

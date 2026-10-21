@@ -4,6 +4,8 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import {Link} from "react-router-dom";
 import OrderTimeline from "../../components/customer/OrderTimeline";
 import OrderActionDialog from "../../components/admin/OrderActionDialog";
+import DeliveryExecutivePicker from "../../components/admin/DeliveryExecutivePicker";
+import { getDeliveryStaff, getAdminAssignments, assignDelivery } from "../../services/deliveryService";
 import { getAdminOrders, updateCodStatus, confirmCodCollection, expireUnpaidRazorpayOrder, requestRazorpayRefund, reconcileRazorpayRefund, getRazorpayRefundConfig, declineOrderCancellation } from "../../services/orderService";
 const money=x=>`₹${Number(x||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const nextStatuses={placed:["confirmed","cancelled"],confirmed:["processing","cancelled"],processing:["shipped"],shipped:["delivered"],delivered:[],cancelled:[]};
@@ -14,6 +16,29 @@ export default function AdminOrders(){
  const [dispatchId,setDispatchId]=useState(null),[partner,setPartner]=useState(""),[tracking,setTracking]=useState("");
  const [dialog,setDialog]=useState(null),[dialogError,setDialogError]=useState(""),[notice,setNotice]=useState("");
  const [refundConfig,setRefundConfig]=useState(null);
+ const [assignmentOrderId,setAssignmentOrderId]=useState(null);
+ const [assignmentData,setAssignmentData]=useState({staff:[],assignments:[]});
+ const [assignmentLoading,setAssignmentLoading]=useState(false);
+ const [assignmentError,setAssignmentError]=useState("");
+ const assignmentOrder=orders.find(o=>String(o.id)===String(assignmentOrderId));
+ const existingAssignment=assignmentData.assignments.find(a=>String(a.orderId)===String(assignmentOrderId));
+ async function openAssignmentPicker(order){
+   setAssignmentOrderId(order.id);setAssignmentLoading(true);setAssignmentError("");
+   try {const [team,history]=await Promise.all([getDeliveryStaff(),getAdminAssignments()]);
+    setAssignmentData({staff:team.staff||[],assignments:history.assignments||[]});}
+   catch(e){setAssignmentError(e.message);}
+   finally{setAssignmentLoading(false);}
+ }
+ function closeAssignmentPicker(){if(!assignmentLoading&&!busy){setAssignmentOrderId(null);setAssignmentError("");}}
+ async function submitAssignment(executiveId){
+   if(!assignmentOrder)return;
+   setBusy(String(assignmentOrder.id));setAssignmentError("");
+   try{await assignDelivery(assignmentOrder.id,executiveId);
+     await refreshOrders();setAssignmentOrderId(null);
+     setNotice(`Order #${assignmentOrder.id} assigned to the selected executive.`);}
+   catch(e){setAssignmentError(e.message);}
+   finally{setBusy("");}
+ }
  useEffect(()=>{const c=new AbortController();getRazorpayRefundConfig(c.signal).then(setRefundConfig).catch(()=>{});return()=>c.abort();},[]);
  const openDialog=(type,order,status)=>{setDialog({type,order,status});setDialogError("");setError("");setNotice("");};
  const closeDialog=()=>{if(!busy){setDialog(null);setDialogError("");}};
@@ -99,11 +124,12 @@ export default function AdminOrders(){
      {o.refundStatus&&o.refundStatus!=='processed'&&<button type="button" className="nx38-neutral-action" disabled={busy===o.id} onClick={()=>checkRefund(o)}>Check refund status</button>}
      {o.status==='payment_pending'&&<button type="button" className="nx38-neutral-action" disabled={busy===o.id} onClick={()=>openDialog("expire",o)}>Verify & expire after 60 min</button>}
      {(o.cancellationRequest?.status==='pending'?[]:(nextStatuses[o.status]||[])).filter(status=>!(o.paymentMethod==='Razorpay'&&status==='cancelled')).map(status=>status==="shipped"?<button key={status} type="button" className="nx-cod-action" disabled={busy===o.id} onClick={()=>{setDispatchId(o.id);setError("")}}>Enter dispatch</button>:<button key={status} type="button" disabled={busy===o.id} className={status==="cancelled"?"nx-danger-action":"nx-cod-action"} onClick={()=>status==="cancelled"?openDialog("cancel-cod",o,status):status==="delivered"?openDialog("delivered",o,status):setStatus(o,status)}>{status==="cancelled"?"Cancel order":labels[status]||status}</button>)}
-     {['confirmed','processing','shipped'].includes(o.status)&&o.cancellationRequest?.status!=='pending'&&(o.paymentMethod!=='Razorpay'||o.paymentStatus==='razorpay_paid')&&<Link className="nx53-orders-link" to={`/admin/delivery?orderId=${encodeURIComponent(o.id)}`}>Choose delivery executive <UiIcon name="right" size={16}/></Link>}
+     {['confirmed','processing','shipped'].includes(o.status)&&o.cancellationRequest?.status!=='pending'&&(o.paymentMethod!=='Razorpay'||o.paymentStatus==='razorpay_paid')&&<button type="button" className="nx53-orders-link" disabled={!!busy||assignmentLoading} onClick={()=>openAssignmentPicker(o)}>Choose delivery executive <UiIcon name="users" size={16}/></button>}
      {o.status==="delivered"&&o.paymentMethod!=="Razorpay"&&o.paymentStatus!=="cod_collected"&&<button type="button" className="nx38-collect-action" disabled={busy===o.id} onClick={()=>openDialog("collect",o)}>Record cash received</button>}
    </div></footer>
  </article>)}</div>}
  </section>
+ {assignmentOrder&&<DeliveryExecutivePicker key={assignmentOrder.id} order={assignmentOrder} current={existingAssignment} staff={assignmentData.staff} assignments={assignmentData.assignments} busy={assignmentLoading||!!busy} error={assignmentError} onAssign={submitAssignment} onClose={closeAssignmentPicker}/>}
  {dialog&&<OrderActionDialog key={`${dialog.type}-${dialog.order.id}`} dialog={dialog} busy={String(busy)===String(dialog.order.id)} error={dialogError} refundConfig={refundConfig} onClose={closeDialog} onConfirm={confirmDialog}/>}
  </AdminLayout>;
 }

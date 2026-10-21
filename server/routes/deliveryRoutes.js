@@ -1,7 +1,7 @@
 import {Router} from 'express';
 import pool from '../config/db.js';
 import {requireAdmin,requireDelivery,requireAuthenticated} from '../middleware/authMiddleware.js';
-import {listDeliveryStaff,createDeliveryStaff,setDeliveryStaffActive,listDeliveryAssignments,assignDelivery,updateMyDelivery} from '../controllers/deliveryController.js';
+import {listDeliveryStaff,createDeliveryStaff,setDeliveryStaffActive,listDeliveryAssignments,assignDelivery,updateMyDelivery,reportDeliveryIssue,reviewDeliveryIssue} from '../controllers/deliveryController.js';
 import {listNotifications,markNotificationRead} from '../controllers/notificationsController.js';
 function originGuard(req,res,next){const origin=req.get('origin');if(origin&&origin!==(process.env.CLIENT_ORIGIN||'http://localhost:5173'))return res.status(403).json({message:'Request origin not allowed.'});next();}
 const admin=Router();admin.use(requireAdmin);
@@ -18,10 +18,12 @@ admin.post('/staff',originGuard,createDeliveryStaff);
 admin.patch('/staff/:id',originGuard,setDeliveryStaffActive);
 admin.get('/assignments',listDeliveryAssignments);
 admin.post('/orders/:orderId/assign',originGuard,assignDelivery);
+admin.post('/orders/:orderId/retry-delivery',originGuard,reviewDeliveryIssue);
 const delivery=Router();delivery.use(requireDelivery);
 delivery.get('/session',(req,res)=>res.json({ready:true,role:'delivery',user:{id:String(req.user.id),fullName:req.user.full_name,email:req.user.email,role:'delivery'}}));
 delivery.get('/assignments',listDeliveryAssignments);
 delivery.patch('/assignments/:orderId',originGuard,updateMyDelivery);
+delivery.post('/assignments/:orderId/issues',originGuard,reportDeliveryIssue);
 export {admin,delivery};
 export const notificationRoutes=Router();
 notificationRoutes.get('/',requireAuthenticated,listNotifications);

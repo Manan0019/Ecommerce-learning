@@ -158,6 +158,10 @@ export async function changeCodOrderStatus(req,res){
   if(requestCheck.rows[0]?.status==='pending' && status!=='cancelled'){
     await db.query('ROLLBACK');open=false;return res.status(409).json({message:'A customer cancellation request is pending. Approve or decline it before fulfilling this order.'});
   }
+  if(status==='delivered'){
+    const openIssue=await db.query("SELECT id FROM delivery_issues WHERE order_id=$1 AND state='pending'",[id]);
+    if(openIssue.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Delivery issue awaits admin review. Approve another delivery attempt before marking delivered.'});}
+  }
   if(status==='cancelled' && !canRequestCancellation(order)){
     await db.query('ROLLBACK');open=false;return res.status(409).json({message:'This order cannot be cancelled in its current payment state.'});
   }

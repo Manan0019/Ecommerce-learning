@@ -12,3 +12,8 @@ export const getNotifications=signal=>apiRequest('/api/notifications',{...opts,s
 export const markNotificationRead=id=>apiRequest(`/api/notifications/${id}/read`,{...opts,method:'PATCH'});
 
 export const getDeliverySession=signal=>apiRequest('/api/delivery/session',{credentials:'include',signal});
+
+export const reportDeliveryIssue=(orderId,body)=>apiRequest(`/api/delivery/assignments/${orderId}/issues`,{
+ ...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+export const retryDeliveryIssue=orderId=>apiRequest(`/api/admin/delivery/orders/${orderId}/retry-delivery`,{
+ ...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'retry'})});

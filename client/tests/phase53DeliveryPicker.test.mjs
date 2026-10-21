@@ -32,11 +32,13 @@ test('assignment dialog requires deliberate confirmation and disables inactive e
  assert.match(dialog,/openDeliveries/);
  assert.match(dialog,/Search by name, mobile or email/);
 });
-test('delivery operations replaces native dropdown and orders can deep-link to picker',()=>{
+test('delivery operations keeps picker and Orders uses in-place picker without navigation',()=>{
  const admin=src('../src/pages/admin/AdminDelivery.jsx'),orders=src('../src/pages/admin/AdminOrders.jsx');
  assert.match(admin,/DeliveryExecutivePicker/);
  assert.match(admin,/requestedOrderId=searchParams.get\('orderId'\)/);
  assert.match(admin,/Choose executive/);
  assert.doesNotMatch(admin,/<select aria-label=\{`Executive for order/);
- assert.match(orders,/\/admin\/delivery\?orderId=/);
+ assert.match(orders,/openAssignmentPicker\(o\)/);
+ assert.match(orders,/DeliveryExecutivePicker/);
+ assert.doesNotMatch(orders,/\/admin\/delivery\?orderId=/);
 });
