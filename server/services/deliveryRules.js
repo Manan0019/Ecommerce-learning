@@ -1,5 +1,5 @@
 export function eligibleForAssignment(order){
- return Boolean(order && ['confirmed','processing','shipped'].includes(order.status) &&
+ return Boolean(order && !order.refund_status && ['confirmed','processing','shipped'].includes(order.status) &&
   (order.payment_method==='cod' || (order.payment_method==='razorpay' && order.payment_status==='razorpay_paid')));
 }
 export function canUpdateDelivery(order,assignment,next){
@@ -26,4 +26,14 @@ export function validateDeliveryIssue(body) {
 }
 export function canReportDeliveryIssue(order,assignment,pendingIssue){
  return Boolean(order?.status==='shipped' && !order.refund_status && assignment?.status==='out_for_delivery' && !pendingIssue);
+}
+
+
+/** Bound bulk actions to a small, unambiguous set of order ids. */
+export function validateBulkDeliveryAssignment(body) {
+ if(!body || !validId(body.executiveId))return 'Choose an active delivery executive.';
+ if(!Array.isArray(body.orderIds) || body.orderIds.length<2 || body.orderIds.length>25)return 'Select between 2 and 25 distinct orders.';
+ const ids=body.orderIds.map(String);
+ if(ids.some(id=>!validId(id)) || new Set(ids).size!==ids.length)return 'Order IDs must be valid and unique.';
+ return null;
 }

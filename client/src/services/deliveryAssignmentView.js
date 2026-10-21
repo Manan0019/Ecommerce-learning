@@ -12,7 +12,7 @@ export function deliveryTeamWithWorkload(staff = [], assignments = []) {
   }
   return staff.map(person => ({
     ...person,
-    openDeliveries: openCounts.get(String(person.id)) || 0
+    openDeliveries: Math.max(Number(person.openDeliveries || 0),openCounts.get(String(person.id)) || 0)
   })).sort((a, b) => {
     if (Boolean(a.isActive) !== Boolean(b.isActive)) return a.isActive ? -1 : 1;
     return String(a.fullName || '').localeCompare(String(b.fullName || ''));

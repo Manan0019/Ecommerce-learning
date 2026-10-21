@@ -1,14 +1,18 @@
 import bcrypt from 'bcrypt';
 import pool from '../config/db.js';
-import { eligibleForAssignment,canUpdateDelivery,canReportDeliveryIssue,validateDeliveryIssue,validId,validNewPassword } from '../services/deliveryRules.js';
+import { eligibleForAssignment,canUpdateDelivery,canReportDeliveryIssue,validateDeliveryIssue,validId,validNewPassword,validateBulkDeliveryAssignment } from '../services/deliveryRules.js';
 import { notifyAdmins, notifyUser } from '../services/notificationService.js';
 
 const scrub = r => ({id:String(r.id),fullName:r.full_name,email:r.email,mobile:r.mobile_number,isActive:r.is_active});
 const err = (res,e) => {console.error('Delivery operation:',e);return res.status(500).json({message:'Delivery operation could not be completed.'});};
 export async function listDeliveryStaff(_req,res){
- try{const r=await pool.query(`SELECT u.id,u.full_name,u.email,u.mobile_number,p.is_active
-   FROM delivery_staff_profiles p JOIN users u ON u.id=p.user_id ORDER BY u.full_name`);
-  res.json({staff:r.rows.map(scrub)});
+ try{const r=await pool.query(`SELECT u.id,u.full_name,u.email,u.mobile_number,p.is_active,
+     COUNT(a.order_id) FILTER (WHERE a.status <> 'delivered' AND o.status NOT IN ('cancelled','delivered'))::int AS open_deliveries
+   FROM delivery_staff_profiles p JOIN users u ON u.id=p.user_id
+   LEFT JOIN delivery_assignments a ON a.executive_id=p.user_id
+   LEFT JOIN cod_orders o ON o.id=a.order_id
+   GROUP BY u.id,u.full_name,u.email,u.mobile_number,p.is_active ORDER BY u.full_name`);
+  res.json({staff:r.rows.map(row=>({...scrub(row),openDeliveries:row.open_deliveries}))});
  }catch(e){err(res,e);}
 }
 export async function createDeliveryStaff(req,res){
@@ -55,7 +59,7 @@ export async function listDeliveryAssignments(req,res){
    JOIN users u ON u.id=a.executive_id JOIN users c ON c.id=o.customer_id
    LEFT JOIN LATERAL (SELECT i.* FROM delivery_issues i WHERE i.order_id=a.order_id AND i.state='pending' ORDER BY i.id DESC LIMIT 1) issue ON TRUE
    ${worker?'WHERE a.executive_id=$1':''}
-   ORDER BY a.assigned_at DESC LIMIT 200`,worker?[req.user.id]:[]);
+   ORDER BY a.assigned_at DESC LIMIT ${worker?500:200}`,worker?[req.user.id]:[]);
   res.json({assignments:r.rows.map(x=>({orderId:String(x.order_id),executiveId:String(x.executive_id),executiveName:x.executive_name,
     deliveryStatus:x.delivery_status,orderStatus:x.order_status,paymentMethod:x.payment_method,paymentStatus:x.payment_status,
     total:x.grand_total,address:x.address_snapshot,customerName:x.customer_name,customerPhone:x.customer_phone,
@@ -89,6 +93,36 @@ export async function assignDelivery(req,res){
   await db.query('COMMIT');open=false;res.json({ok:true});
  }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});err(res,e);}finally{db.release();}
 }
+/** Safely assign 2–25 different orders to one active executive in ONE transaction.
+ * Any ineligible/already-assigned order rolls back the entire batch. This does
+ * not change the one-executive-per-order ownership rule. */
+export async function assignDeliveryBatch(req,res){
+ const problem=validateBulkDeliveryAssignment(req.body);
+ if(problem)return res.status(400).json({message:problem});
+ const executiveId=String(req.body.executiveId);
+ const ids=[...req.body.orderIds].map(String).sort((a,b)=>BigInt(a)<BigInt(b)?-1:BigInt(a)>BigInt(b)?1:0);
+ const db=await pool.connect();let open=false;
+ try{
+  await db.query('BEGIN');open=true;
+  const staff=await db.query('SELECT user_id FROM delivery_staff_profiles WHERE user_id=$1 AND is_active=TRUE FOR SHARE',[executiveId]);
+  if(!staff.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'The selected delivery executive is disabled or missing.'});}
+  for(const id of ids){
+   const r=await db.query('SELECT * FROM cod_orders WHERE id=$1 FOR UPDATE',[id]);
+   if(!r.rows.length||!eligibleForAssignment(r.rows[0])){
+    await db.query('ROLLBACK');open=false;return res.status(409).json({message:`Order #${id} is no longer eligible for delivery assignment. No orders were assigned.`});
+   }
+   const pending=await db.query("SELECT 1 FROM order_cancellation_requests WHERE order_id=$1 AND status='pending'",[id]);
+   if(pending.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:`Order #${id} has a pending cancellation. No orders were assigned.`});}
+   const prior=await db.query('SELECT order_id FROM delivery_assignments WHERE order_id=$1 FOR UPDATE',[id]);
+   if(prior.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:`Order #${id} is already assigned. Use its individual reassignment control. No orders were assigned.`});}
+   await db.query('INSERT INTO delivery_assignments(order_id,executive_id,assigned_by) VALUES($1,$2,$3)',[id,executiveId,req.user.id]);
+   await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'delivery_assigned',$2,$3)",[id,req.user.id,`Assigned to delivery executive ${executiveId} from the batch assignment workspace`]);
+   await notifyUser(db,executiveId,{key:`delivery:${id}:assigned:${executiveId}`,kind:'delivery',title:'New delivery assigned',message:`Order #${id} is ready for your delivery queue.`,path:'/delivery/dashboard'});
+  }
+  await db.query('COMMIT');open=false;res.json({ok:true,assignedCount:ids.length,orderIds:ids});
+ }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});return err(res,e);}finally{db.release();}
+}
+
 export async function updateMyDelivery(req,res){
  const {orderId}=req.params,{status}=req.body??{};
  if(!validId(orderId)||!['out_for_delivery','delivered'].includes(status))return res.status(400).json({message:'Invalid delivery update.'});
