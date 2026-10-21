@@ -27,8 +27,9 @@ export default function AdminFeatured(){
           onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();move(dragged,index);setDragged(null);}}
           onDragEnd={()=>setDragged(null)} className={dragged===index?'is-dragged':''}>
           <span className="nx24-grip" aria-hidden="true">⠿</span><span className="nx24-position">{index+1}</span>
-          {item.imageUrl?<img className="nx24-thumb" src={apiAssetUrl(item.imageUrl)} alt=""/>:<span className="nx24-thumb nx24-placeholder">No image</span>}
-          <div className="nx24-entry"><strong>{item.name}</strong><small>{item.category}{item.isActive?'':' · Inactive (hidden publicly)'}</small></div>
+          <Link className="nx50-feature-thumb" to={`/admin/products/${item.id}/preview`} state={{from:"/admin/featured"}} aria-label={`Preview ${item.name}`}>
+            {item.imageUrl?<img className="nx24-thumb" src={apiAssetUrl(item.imageUrl)} alt=""/>:<span className="nx24-thumb nx24-placeholder">No image</span>}</Link>
+          <div className="nx24-entry"><Link className="nx46-product-title" to={`/admin/products/${item.id}/preview`} state={{from:"/admin/featured"}}>{item.name}</Link><small>{item.category}{item.isActive?'':' · Inactive (hidden publicly)'}</small></div>
           <label className="nx24-jump">Position<select aria-label={`Move ${item.name} to position`} value={index} disabled={saving} onChange={e=>move(index,Number(e.target.value))}>
             {items.map((_,i)=><option key={i} value={i}>{i+1}</option>)}
           </select></label>
@@ -40,7 +41,8 @@ export default function AdminFeatured(){
     <section className="admin-panel nx24-featured-panel"><h2>Add featured products</h2><p>Search existing active products. A product with many sizes or colors still occupies just one featured slot.</p>
       <label className="nx24-search">Search catalogue<input type="search" value={search} maxLength={100} onChange={e=>setSearch(e.target.value)} placeholder="Name or brand"/></label>
       <div className="nx24-candidates">{candidates.map(p=><div key={p.id} className="nx24-candidate">
-        {p.imageUrl&&<img src={apiAssetUrl(p.imageUrl)} alt=""/>}<span><strong>{p.name}</strong><small>{p.category}</small></span>
+        <Link className="nx50-feature-thumb" to={`/admin/products/${p.id}/preview`} state={{from:"/admin/featured"}} aria-label={`Preview ${p.name}`}>
+          {p.imageUrl?<img src={apiAssetUrl(p.imageUrl)} alt=""/>:<span className="nx24-thumb nx24-placeholder">No image</span>}</Link><span><Link className="nx46-product-title" to={`/admin/products/${p.id}/preview`} state={{from:"/admin/featured"}}>{p.name}</Link><small>{p.category}</small></span>
         <button type="button" className="admin-secondary-action" disabled={saving||dirty} onClick={()=>change(p.id,true)}>+ Feature</button>
       </div>)}{candidates.length===0&&<p>No matching active products available.</p>}</div>
     </section>

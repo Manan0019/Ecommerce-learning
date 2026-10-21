@@ -58,10 +58,10 @@ export default function AdminDashboard(){
   </div>
   <div className="nx46-dashboard-two">
    <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Recently added products</h2><p>Click a product to open its preview.</p></div><Link to="/admin/products">Manage products <UiIcon name="right" size={17}/></Link></div>
-    {!products.length?<div className="admin-empty">No products added yet.</div>:<div className="nx46-recent-products">{products.slice(0,5).map(p=><Link to={`/admin/products/${p.id}/preview`} key={p.id}><div className="nx46-recent-thumb">{p.imageUrl&&<img src={apiAssetUrl(p.imageUrl)} alt=""/>}</div><div><strong>{p.name}</strong><small>{p.category} · {money(p.displayPrice??p.price)}</small></div><UiIcon name="up-right" size={17}/></Link>)}</div>}
+    {!products.length?<div className="admin-empty">No products added yet.</div>:<div className="nx46-recent-products">{products.slice(0,5).map(p=><Link to={`/admin/products/${p.id}/preview`} state={{from:"/admin/dashboard"}} key={p.id}><div className="nx46-recent-thumb">{p.imageUrl&&<img src={apiAssetUrl(p.imageUrl)} alt=""/>}</div><div><strong>{p.name}</strong><small>{p.category} · {money(p.displayPrice??p.price)}</small></div><UiIcon name="up-right" size={17}/></Link>)}</div>}
    </section>
    <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Inventory health</h2><p>Products requiring restocking attention.</p></div><Link to="/admin/inventory">View alerts <UiIcon name="right" size={17}/></Link></div>
-    {!alerts?.items?.length?<div className="nx46-healthy">✓ No current low-stock alerts</div>:<div className="nx46-recent-products">{alerts.items.slice(0,5).map(item=><Link to={`/admin/products/${item.productId}/preview`} key={`${item.productId}-${item.variantId||0}`}><div><strong>{item.productName}</strong><small>{item.sku||'Standard item'}</small></div><span className="nx46-pill warning">{item.available} left</span></Link>)}</div>}
+    {!alerts?.items?.length?<div className="nx46-healthy">✓ No current low-stock alerts</div>:<div className="nx46-recent-products">{alerts.items.slice(0,5).map(item=><Link to={`/admin/products/${item.productId}/preview`} state={{from:"/admin/dashboard"}} key={`${item.productId}-${item.variantId||0}`}><div><strong>{item.productName}</strong><small>{item.sku||'Standard item'}</small></div><span className="nx46-pill warning">{item.available} left</span></Link>)}</div>}
    </section>
   </div>
  </AdminLayout>;

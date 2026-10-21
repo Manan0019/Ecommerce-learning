@@ -1,8 +1,9 @@
 import { rememberProduct } from "../../services/recentlyViewed";
 import UiIcon from "../../components/common/UiIcon";
+import AdminProductEditDialog from "../../components/admin/AdminProductEditDialog";
 import WishlistButton from "../../components/customer/WishlistButton";
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import ProductMediaGallery from "../../components/customer/ProductMediaGallery";
 import ProductVariantSelector from "../../components/customer/ProductVariantSelector";
@@ -19,9 +20,25 @@ export default function ProductDetails({adminPreview=false}) {
 
 function ProductDetailsContent({ id,adminPreview=false }) {
   const { addToCart } = useCart();
+  const location = useLocation();
+  const returnTo = /^\/admin\/(?:products|inventory|featured|dashboard|orders)(?:\/?|\?.*)$/.test(location.state?.from||"")
+    ? location.state.from : "/admin/products";
+  const [editTab, setEditTab] = useState(null);
+  const [previewVersion, setPreviewVersion] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedVariantId = searchParams.get("variant");
   const initialVariantRef = useRef(requestedVariantId);
+  useEffect(() => {
+    const tab = searchParams.get("edit");
+    if (adminPreview && ["details", "variants", "gallery"].includes(tab)) setEditTab(tab);
+  }, [adminPreview, searchParams]);
+  function closeEditor() {
+    setEditTab(null);
+    if (searchParams.has("edit")) {
+      setSearchParams(previous => { const next = new URLSearchParams(previous); next.delete("edit"); return next; }, { replace:true });
+    }
+    setPreviewVersion(old => old + 1); // Reload details, SKUs and gallery after modal edits.
+  }
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -36,7 +53,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
     async function loadProduct() {
       try {
         const data = await (adminPreview?getAdminProduct(id, controller.signal):getProduct(id, controller.signal));
-        if (!controller.signal.aborted) { setProduct(data.product); rememberProduct(data.product); }
+        if (!controller.signal.aborted) { setProduct(data.product); if (!adminPreview) rememberProduct(data.product); }
         const [result,mediaResult]=await Promise.all([getVariants(id,adminPreview),getProductMedia(id,adminPreview)]);
         if (!controller.signal.aborted) { setVariants(result.variants); setMedia(mediaResult.media||[]); setVariantId(result.variants.find(v => String(v.id) === String(initialVariantRef.current))?.id || result.variants.find(v => v.stock > 0)?.id || result.variants[0]?.id || ""); }
       } catch (requestError) {
@@ -47,7 +64,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
     }
     loadProduct();
     return () => controller.abort();
-  }, [id]);
+  }, [id,adminPreview,previewVersion]);
 
   function addProduct() {
     if (variants.length && !selectedVariant) return;
@@ -61,12 +78,22 @@ function ProductDetailsContent({ id,adminPreview=false }) {
   const effectiveMrp=selectedVariant?.mrp ?? effectivePrice;
   const discount=Number(effectiveMrp)>Number(effectivePrice)? Math.round((Number(effectiveMrp)-Number(effectivePrice))/Number(effectiveMrp)*100):0;
   const effectiveStock=selectedVariant?.stock ?? product?.stock ?? 0;
-  const canBuy=!adminPreview && product?.isActive!==false && effectiveStock>0 && (!variants.length || Boolean(selectedVariant?.isActive));
+  const isAvailable=product?.isActive!==false && effectiveStock>0 && (!variants.length || Boolean(selectedVariant?.isActive));
+  const canBuy=!adminPreview && isAvailable;
 
   return <CustomerLayout mainClassName="product-page">
-      {adminPreview&&<div className="nx46-preview-banner">Admin product preview · Purchasing disabled in preview. <Link to="/admin/products">{/* back navigation */}<UiIcon name="left" size={16}/> Back to Manage Products</Link></div>}
+      {adminPreview&&<section className="nx50-preview-toolbar" aria-label="Admin product preview controls">
+        <div className="nx50-preview-intro"><span className="nx50-preview-kicker">ADMIN PRODUCT PREVIEW</span><strong>{product?.name || "Loading product"}</strong><small>Review the product page before editing. Checkout is unavailable in preview.</small></div>
+        <div className="nx50-preview-actions">
+          <Link className="nx50-back-link" to={returnTo}><UiIcon name="left" size={16}/> Back</Link>
+          {product?.isActive&&<Link className="nx50-live-link" to={`/products/${id}`}><UiIcon name="up-right" size={16}/> Storefront</Link>}
+          <button className="nx50-preview-edit" type="button" disabled={!product} onClick={()=>setEditTab("details")}>
+            <UiIcon name="edit" size={16}/> Edit product</button>
+        </div>
+      </section>}
       <nav className="breadcrumbs" aria-label="Breadcrumb">
-        <Link to="/">Home</Link><span aria-hidden="true">/</span><Link to="/products">Shop</Link>
+        {adminPreview ? <><Link to="/admin/dashboard">Admin</Link><span aria-hidden="true">/</span><Link to="/admin/products">Products</Link></>
+          : <><Link to="/">Home</Link><span aria-hidden="true">/</span><Link to="/products">Shop</Link></>}
         {product && <><span aria-hidden="true">/</span><span>{product.name}</span></>}
       </nav>
       {loading && <div className="detail-skeleton" aria-label="Loading product" />}
@@ -85,15 +112,15 @@ function ProductDetailsContent({ id,adminPreview=false }) {
             <strong className="detail-price">₹{Number(effectivePrice).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
           </div>
           <details className="nx17-description"><summary>Product information</summary><p className="detail-description">{product.description}</p></details>
-          <div className={`stock-status ${canBuy ? "in-stock" : "out-of-stock"}`}>
-            <span />{canBuy ? `${effectiveStock} available` : "Currently unavailable"}
+          <div className={`stock-status ${isAvailable ? "in-stock" : "out-of-stock"}`}>
+            <span />{isAvailable ? `${effectiveStock} available` : "Currently unavailable"}
           </div>
           <ProductVariantSelector variants={variants} selectedVariant={selectedVariant} media={media}
             coverUrl={product.imageUrl} onSelect={selected=>{
               setVariantId(selected); setQuantity(1); setAdded(false);
               setSearchParams(previous => { const next = new URLSearchParams(previous); next.set("variant", selected); return next; }, {replace: true});
             }}/>
-          <WishlistButton productId={product.id} />
+          {!adminPreview&&<><WishlistButton productId={product.id} />
           <div className="purchase-panel">
             <label htmlFor="product-quantity">Quantity</label>
             <div className="purchase-row">
@@ -121,7 +148,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
             <li><span>✓</span> Secure customer session</li>
             <li><span>✓</span> Live price and stock</li>
             <li><span>✓</span> Carefully selected quality</li>
-          </ul>
+          </ul></>}
         </div>
       </article>}
       {product && <PromotionCarousel position="product" product={product.id} />}
@@ -140,5 +167,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
         </div>
       </section>}
       {product && <RelatedProducts productId={product.id} />}
+      {adminPreview&&editTab&&<AdminProductEditDialog productId={id} name={product?.name} initialTab={editTab}
+        onClose={closeEditor} onSaved={()=>setPreviewVersion(version=>version+1)}/>}
   </CustomerLayout>;
 }

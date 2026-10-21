@@ -11,6 +11,7 @@ const shapes = {
   search: <><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4.5 4.5" /></>,
   pause: <><path d="M8 5v14M16 5v14" /></>,
   play: <path d="m8 5 11 7-11 7z" />,
+  edit: <><path d="M12 20h9"/><path d="M16 4a2.2 2.2 0 0 1 3.1 3.1L8.9 17.3l-4.2 1.1 1.1-4.2L16 4Z"/></>,
   grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
   bag: <><path d="M4 8h16l-1.25 13H5.25L4 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></>,
   images: <><rect x="3" y="5" width="15" height="15" rx="2"/><path d="M7 15l3-3 2.5 2.5 2-2 3.5 4"/><path d="M8 3h11a2 2 0 0 1 2 2v11"/></>,
