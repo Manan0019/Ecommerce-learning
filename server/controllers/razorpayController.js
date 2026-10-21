@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { processRefundWebhook } from './razorpayRefundController.js';
 import pool from '../config/db.js';
 import { fromPaise, validateCartItems } from '../services/cartPricing.js';
 import { calculateCheckout } from '../services/checkoutPricing.js';
@@ -141,7 +142,7 @@ export async function initiateRazorpayOrder(req,res) {
 }
 async function applyCapturedPayment(db,order,payment,actorId=null){
   if(!capturedPaymentMatches(payment,order))return {error:'Payment amount, currency, order or captured status does not match.'};
-  if(order.payment_status==='razorpay_paid'){
+  if(['razorpay_paid','razorpay_refunded'].includes(order.payment_status)){
     return order.razorpay_payment_id===payment.id?{order,alreadyPaid:true}:{error:'Order was already paid with another transaction.'};
   }
   if(order.payment_method!=='razorpay')return {error:'Payment method mismatch.'};
@@ -250,6 +251,11 @@ export async function razorpayWebhook(req,res){
     const logged=await db.query(`INSERT INTO razorpay_webhook_events(event_id,event_type) VALUES($1,$2)
       ON CONFLICT(event_id) DO NOTHING RETURNING event_id`,[eventId,type]);
     if(!logged.rows.length){await db.query('COMMIT');begun=false;return res.json({received:true,duplicate:true});}
+    if(['refund.created','refund.processed','refund.failed'].includes(type)){
+      const refund=payload?.payload?.refund?.entity;
+      const applied=await processRefundWebhook(db,refund);
+      if(applied.error){await rollback(db);begun=false;return res.status(409).json({message:'Refund needs reconciliation.'});}
+    }
     if(type==='payment.captured'){
       const found=await db.query('SELECT * FROM cod_orders WHERE razorpay_order_id=$1 FOR UPDATE',[payment.order_id]);
       if(!found.rows.length){

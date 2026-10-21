@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requestFullRefund, reconcileFullRefund } from '../controllers/razorpayRefundController.js';
 import { rateLimit } from 'express-rate-limit';
 import { requireCustomer, requireAdmin } from '../middleware/authMiddleware.js';
 import { paymentConfig, initiateRazorpayOrder, verifyRazorpayOrder,
@@ -17,4 +18,6 @@ router.get('/orders/:id',requireCustomer,myRazorpayPaymentStatus);
 router.get('/orders/:id/checkout',requireCustomer,retryRazorpayCheckout);
 router.post('/orders/:id/reconcile',requireCustomer,originGuard,reconcileRazorpayOrder);
 router.post('/admin/orders/:id/expire',requireAdmin,originGuard,expirePendingOnlineOrder);
+router.post('/admin/orders/:id/refund',requireAdmin,originGuard,paymentRateLimit,requestFullRefund);
+router.post('/admin/orders/:id/refund/reconcile',requireAdmin,originGuard,paymentRateLimit,reconcileFullRefund);
 export default router;

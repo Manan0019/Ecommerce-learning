@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import OrderTimeline from "../../components/customer/OrderTimeline";
-import { getAdminOrders, updateCodStatus, confirmCodCollection, expireUnpaidRazorpayOrder } from "../../services/orderService";
+import { getAdminOrders, updateCodStatus, confirmCodCollection, expireUnpaidRazorpayOrder, requestRazorpayRefund, reconcileRazorpayRefund } from "../../services/orderService";
 const money=x=>`₹${Number(x||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const nextStatuses={placed:["confirmed","cancelled"],confirmed:["processing","cancelled"],processing:["shipped"],shipped:["delivered"],delivered:[],cancelled:[]};
 const labels={confirmed:"Confirm order",processing:"Mark preparing",delivered:"Mark delivered"};
@@ -25,17 +25,34 @@ export default function AdminOrders(){
   if(!window.confirm(`Check Razorpay and expire unpaid reservation for #${order.id}? This is only allowed after 60 minutes, and cannot be undone.`))return;
   setBusy(order.id);setError('');try{await expireUnpaidRazorpayOrder(order.id);await refreshOrders();window.dispatchEvent(new Event('nexora:inventory-updated'));}catch(e){setError(e.message)}finally{setBusy('')}
  }
+ async function requestRefund(order){
+  const reason=window.prompt(`Reason for issuing a FULL Razorpay refund for order #${order.id}? (10–200 characters)`);
+  if(reason===null)return;
+  if(reason.trim().length<10||reason.trim().length>200){setError('Refund reason must be 10–200 characters.');return;}
+  if(!window.confirm(`Issue a FULL Razorpay refund of ${money(order.total)} for #${order.id}? This is a financial action and cannot be undone. The order will be cancelled and stock restored ONLY after Razorpay confirms the refund is processed.`))return;
+  setBusy(order.id);setError('');try{
+   const result=await requestRazorpayRefund(order.id,reason.trim());
+   await refreshOrders();if(result.message)window.alert(result.message);
+   window.dispatchEvent(new Event('nexora:inventory-updated'));
+  }catch(e){setError(e.message)}finally{setBusy('')}
+ }
+ async function checkRefund(order){
+  setBusy(order.id);setError('');try{const result=await reconcileRazorpayRefund(order.id);
+   await refreshOrders();if(result.message)window.alert(result.message);
+   window.dispatchEvent(new Event('nexora:inventory-updated'));
+  }catch(e){setError(e.message)}finally{setBusy('')}
+ }
  async function collectCash(order){
   if(!window.confirm(`Record that the full COD amount ${money(order.total)} was received for order #${order.id}? This is a manual acknowledgement.`))return;
   setBusy(order.id);setError("");try{await confirmCodCollection(order.id);await refreshOrders();}catch(e){setError(e.message)}finally{setBusy("")}
  }
- const totals=useMemo(()=>({placed:orders.filter(o=>o.status==="placed").length,progress:orders.filter(o=>["confirmed","processing","shipped"].includes(o.status)).length,delivered:orders.filter(o=>o.status==="delivered").length,orderValue:orders.filter(o=>!['cancelled','payment_pending','payment_expired','payment_review'].includes(o.status)).reduce((a,o)=>a+Number(o.total),0)}),[orders]);
+ const totals=useMemo(()=>({placed:orders.filter(o=>o.status==="placed").length,progress:orders.filter(o=>["confirmed","processing","shipped"].includes(o.status)).length,delivered:orders.filter(o=>o.status==="delivered").length,orderValue:orders.filter(o=>!['cancelled','payment_pending','payment_expired','payment_review','refund_pending','refund_review'].includes(o.status)).reduce((a,o)=>a+Number(o.total),0)}),[orders]);
  const visible=orders.filter(o=>(filter==="all"||filter===o.status)&&`${o.id} ${o.customerName} ${o.customerEmail}`.toLowerCase().includes(search.toLowerCase()));
  return <AdminLayout title="Orders & fulfillment" subtitle="Track COD and Razorpay payments, then process verified orders for dispatch and delivery.">
  {error&&<div className="admin-alert" role="alert">{error}</div>}
  <div className="nx-admin-summary nx-cod-admin-stats"><div><small>Orders loaded</small><strong>{orders.length}</strong></div><div><small>Awaiting review</small><strong>{totals.placed}</strong></div><div><small>In progress</small><strong>{totals.progress}</strong></div><div><small>Delivered</small><strong>{totals.delivered}</strong></div></div>
  <section className="admin-panel nx-admin-orders-panel"><div className="admin-panel-heading"><div><h2>Order queue</h2><p>COD and Razorpay orders. Online payment must be captured before fulfillment; COD collection is recorded manually.</p><small>Non-cancelled order value: {money(totals.orderValue)}</small></div></div>
- <div className="nx-cod-toolbar"><label><span className="sr-only">Search orders</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by order, customer or email" type="search"/></label><label>Status <select value={filter} onChange={e=>setFilter(e.target.value)}>{["all","placed","confirmed","processing","shipped","delivered","cancelled","payment_pending","payment_review","payment_expired"].map(s=><option value={s} key={s}>{s[0].toUpperCase()+s.slice(1)}</option>)}</select></label></div>
+ <div className="nx-cod-toolbar"><label><span className="sr-only">Search orders</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by order, customer or email" type="search"/></label><label>Status <select value={filter} onChange={e=>setFilter(e.target.value)}>{["all","placed","confirmed","processing","shipped","delivered","cancelled","payment_pending","payment_review","payment_expired","refund_pending","refund_review"].map(s=><option value={s} key={s}>{s[0].toUpperCase()+s.slice(1)}</option>)}</select></label></div>
  {loading?<p role="status" className="nx-cod-padding">Loading orders…</p>:!visible.length?<p className="nx-cod-padding">No orders match this view.</p>:<div className="nx-admin-orders-grid">{visible.map(o=><article className="nx-admin-order-card" key={o.id}>
    <header><div><strong>Order #{o.id}</strong><small>{new Date(o.placedAt).toLocaleString("en-IN")}</small></div><span className={`nx-status nx-status-${o.status}`}>{o.status}</span></header>
    <div className="nx-admin-order-meta"><div><strong>{o.customerName||"Customer"}</strong><span>{o.customerEmail||""}</span></div><div className="nx34-order-total"><small>{o.paymentMethod==="Razorpay"?"Online total":"COD total"}</small><strong>{money(o.total)}</strong></div></div>
@@ -44,7 +61,9 @@ export default function AdminOrders(){
    <OrderTimeline order={o}/>
    <details><summary>Delivery address</summary><p>{o.address.fullName}, {o.address.phone}</p><p>{o.address.addressLine1}, {o.address.addressLine2}</p><p>{o.address.city}, {o.address.state} — {o.address.pincode}</p></details>
    {dispatchId===o.id&&<form className="nx38-dispatch-form" onSubmit={e=>{e.preventDefault();setStatus(o,"shipped")}}><h3>Dispatch details</h3><label>Delivery partner <span aria-hidden="true">*</span><input required maxLength={80} value={partner} onChange={e=>setPartner(e.target.value)} placeholder="e.g. Local delivery or your courier"/></label><label>Tracking reference (optional)<input maxLength={100} value={tracking} onChange={e=>setTracking(e.target.value)} placeholder="Enter courier tracking ID if available"/></label><div><button className="nx-cod-action" type="submit" disabled={busy===o.id}>Confirm dispatch</button><button type="button" className="nx38-neutral-action" onClick={()=>setDispatchId(null)}>Back</button></div></form>}
-   <footer><small>{o.paymentMethod==='Razorpay'?(o.paymentStatus==='razorpay_paid'?'✓ Paid via Razorpay':o.paymentStatus==='razorpay_review'?'Payment requires manual review':o.paymentStatus==='razorpay_expired'?'Unpaid reservation expired':'Awaiting payment · stock reserved'):(o.paymentStatus==='cod_collected'?'COD cash collection recorded':'COD · cash collection not recorded')}</small><div>
+   <footer><small>{o.paymentMethod==='Razorpay'?(o.refundStatus==='processed'?'Full refund processed · order cancelled':o.refundStatus==='failed'?'Refund failed · manual review required':o.refundStatus?'Refund '+o.refundStatus+' · awaiting confirmation':o.paymentStatus==='razorpay_paid'?'✓ Paid via Razorpay':o.paymentStatus==='razorpay_review'?'Payment requires manual review':o.paymentStatus==='razorpay_expired'?'Unpaid reservation expired':'Awaiting payment · stock reserved'):(o.paymentStatus==='cod_collected'?'COD cash collection recorded':'COD · cash collection not recorded')}</small><div>
+     {o.paymentMethod==='Razorpay'&&['placed','confirmed'].includes(o.status)&&o.paymentStatus==='razorpay_paid'&&!o.refundStatus&&<button type="button" className="nx-danger-action" disabled={busy===o.id} onClick={()=>requestRefund(o)}>Full refund & cancel</button>}
+     {o.refundStatus&&o.refundStatus!=='processed'&&<button type="button" className="nx38-neutral-action" disabled={busy===o.id} onClick={()=>checkRefund(o)}>Check refund status</button>}
      {o.status==='payment_pending'&&<button type="button" className="nx38-neutral-action" disabled={busy===o.id} onClick={()=>expirePayment(o)}>Verify & expire after 60 min</button>}
      {(nextStatuses[o.status]||[]).filter(status=>!(o.paymentMethod==='Razorpay'&&status==='cancelled')).map(status=>status==="shipped"?<button key={status} type="button" className="nx-cod-action" disabled={busy===o.id} onClick={()=>{setDispatchId(o.id);setError("")}}>Enter dispatch</button>:<button key={status} type="button" disabled={busy===o.id} className={status==="cancelled"?"nx-danger-action":"nx-cod-action"} onClick={()=>setStatus(o,status)}>{status==="cancelled"?"Cancel order":labels[status]||status}</button>)}
      {o.status==="delivered"&&o.paymentMethod!=="Razorpay"&&o.paymentStatus!=="cod_collected"&&<button type="button" className="nx38-collect-action" disabled={busy===o.id} onClick={()=>collectCash(o)}>Record cash received</button>}

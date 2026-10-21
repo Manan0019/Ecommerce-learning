@@ -12,9 +12,9 @@ function secretKey() {
   if (!razorpaySettings().enabled) throw new Error('Razorpay is not correctly configured.');
   return process.env.RAZORPAY_KEY_SECRET.trim();
 }
-export async function razorpayApi(method, path, payload) {
+export async function razorpayApi(method, path, payload, extraHeaders = {}) {
   const key = razorpaySettings();
-  if (!key.enabled || !/^\/(?:orders|payments)(?:\/[A-Za-z0-9_-]+)*(?:\/payments)?$/.test(path))
+  if (!key.enabled || !/^\/(?:orders(?:\/[A-Za-z0-9_-]+(?:\/payments)?)?|payments\/[A-Za-z0-9_-]+(?:\/refunds?)?)$/.test(path))
     throw new Error('Payment provider configuration or endpoint is invalid.');
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 9000);
@@ -22,7 +22,7 @@ export async function razorpayApi(method, path, payload) {
     const response = await fetch(`https://api.razorpay.com/v1${path}`, {
       method,
       headers: { Authorization: `Basic ${Buffer.from(`${key.keyId}:${secretKey()}`).toString('base64')}`,
-        'Content-Type': 'application/json' },
+        'Content-Type': 'application/json', ...extraHeaders },
       ...(payload ? { body: JSON.stringify(payload) } : {}), signal: controller.signal,
     });
     const data = await response.json().catch(() => ({}));
@@ -36,6 +36,8 @@ export async function razorpayApi(method, path, payload) {
 }
 export const createGatewayOrder = payload => razorpayApi('POST','/orders',payload);
 export const fetchGatewayPayment = paymentId => razorpayApi('GET',`/payments/${paymentId}`);
+export const createGatewayRefund = (paymentId, amount, receipt, idempotencyKey) => razorpayApi('POST',`/payments/${paymentId}/refund`,{amount,speed:'normal',receipt,notes:{source:'Nexora',order:receipt}}, {'X-Refund-Idempotency':idempotencyKey});
+export const fetchGatewayRefunds = paymentId => razorpayApi('GET',`/payments/${paymentId}/refunds`);
 export const fetchGatewayOrder = gatewayId => razorpayApi('GET',`/orders/${gatewayId}`);
 export const fetchGatewayOrderPayments = gatewayId => razorpayApi('GET',`/orders/${gatewayId}/payments`);
 function matchingHmac(input, signature, secret) {

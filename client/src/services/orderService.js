@@ -16,3 +16,6 @@ export function getRazorpayOrderStatus(id,signal){return apiRequest(`/api/paymen
 export function expireUnpaidRazorpayOrder(id){return apiRequest(`/api/payments/razorpay/admin/orders/${id}/expire`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'}});}
 export function reconcileRazorpayOrder(id){return apiRequest(`/api/payments/razorpay/orders/${id}/reconcile`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'}});}
 export function retryRazorpayCheckout(id){return apiRequest(`/api/payments/razorpay/orders/${id}/checkout`,{...sessionOptions});}
+
+export function requestRazorpayRefund(id, reason){return apiRequest(`/api/payments/razorpay/admin/orders/${id}/refund`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason})});}
+export function reconcileRazorpayRefund(id){return apiRequest(`/api/payments/razorpay/admin/orders/${id}/refund/reconcile`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'}});}
