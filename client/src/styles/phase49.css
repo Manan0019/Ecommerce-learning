@@ -1,0 +1,89 @@
+/* Phase 49: photographic category icons and centered compact navigation controls. */
+.storefront .nx49-category-mini {
+  box-sizing: border-box;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #f4f0fc;
+  border: 1px solid #e8e2f4;
+  border-radius: 10px;
+  color: #5842c8;
+}
+.storefront .nx49-category-mini img { display:block; width:100%; height:100%; object-fit:contain; padding:2px; }
+.storefront .nx49-category-initial {font-size:.9rem; font-weight:850; line-height:1; }
+
+/* Use actual uploaded menu icons for category suggestions. Keep the row readable. */
+.storefront .nx-search-group .nx49-search-category-icon { width:36px;height:36px;min-width:36px;flex-basis:36px; }
+.storefront .nx-search-group .nx49-search-category-icon img {width:100%;height:100%;object-fit:contain;border-radius:0;background:transparent;}
+.storefront .nx-search-group a {align-items:center;min-height:52px;}
+.storefront .nx-search-suggestions .nx-search-view-all .nx49-suggestion-action {
+  display:grid;place-items:center;width:29px;height:29px;flex:0 0 29px;
+  background:#f1edff;border:1px solid #e7e0ff;border-radius:9px;color:#5640c6;
+}
+.storefront .nx-search-suggestions .nx-search-view-all .nx49-suggestion-action .nx47-icon {
+  display:block;width:16px;height:16px;transform:none!important;
+}
+
+/* The collection tiles use the category's small icon, not a repeated shopping bag. */
+.storefront .nx48-department .nx49-category-mini.nx48-department-icon {
+  width:43px;height:43px;flex:0 0 43px;background:#f5f2fb;
+  border:1px solid #ece7f4;border-radius:12px;color:#5842d3;
+}
+.storefront .nx48-department .nx49-category-mini.nx48-department-icon img {padding:3px;object-fit:contain;}
+.storefront .nx48-department.is-active .nx49-category-mini.nx48-department-icon {background:#fff;border-color:#d3c7fb;color:#5842d3;}
+.storefront .nx49-department-arrow {
+  margin-left:auto;display:grid;place-items:center;width:26px;height:26px;
+  flex:0 0 26px;color:#6553be;border-radius:50%;background:#f3efff;
+}
+.storefront .nx49-department-arrow .nx47-icon {display:block;transform:none!important;}
+.storefront .nx48-department:hover .nx49-department-arrow,
+.storefront .nx48-department.is-active .nx49-department-arrow {background:#e4dbff;color:#4c39ac;}
+
+/* Flyout arrows are precise, centered buttons; no inherited sideways SVG shift. */
+.storefront .nx35-category-item-row {gap:3px;min-height:44px;}
+.storefront .nx35-category-item .nx35-category-link {padding:9px 7px;}
+.storefront .nx35-category-expand {
+  box-sizing:border-box;display:grid!important;place-items:center!important;
+  width:32px;height:36px;min-height:36px;flex:0 0 32px;
+  border-radius:10px;background:transparent;padding:0!important;color:#62568a;
+  line-height:1;transition:background .18s,color .18s;
+}
+.storefront .nx35-category-expand .nx47-icon {
+  display:block!important;margin:0!important;vertical-align:middle;transform:none!important;
+}
+.storefront .nx35-category-item:hover>.nx35-category-item-row .nx35-category-expand,
+.storefront .nx35-category-expand:hover,
+.storefront .nx35-category-expand:focus-visible {color:#513dc2;background:#e9e2ff;}
+.storefront .nx35-category-expand:focus-visible {outline:2px solid #755ce3;outline-offset:1px;}
+.storefront .nx35-menu-parent-link a {gap:10px;min-height:44px;}
+.storefront .nx35-menu-parent-link a .nx47-icon {display:block;margin-left:auto;transform:none!important;}
+.storefront .nx35-category-heading a {display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.storefront .nx35-category-heading a .nx47-icon {display:block;transform:none!important;}
+
+/* A stable, keyboard-visible state for the promotion playback control. */
+.storefront .nx47-autoplay-toggle {transition:background .16s ease,border-color .16s ease,box-shadow .16s ease;}
+.storefront .nx47-autoplay-toggle:hover {background:#ede8ff;border-color:#b5a8ed;box-shadow:0 3px 10px #3a25851c;}
+.storefront .nx47-autoplay-toggle .nx47-icon {display:block;transform:none!important;}
+@media(max-width:580px){
+  .storefront .nx49-category-mini {width:32px;height:32px;min-width:32px;flex-basis:32px;}
+  .storefront .nx48-department .nx49-category-mini.nx48-department-icon {width:38px;height:38px;flex-basis:38px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .storefront .nx47-autoplay-toggle,.storefront .nx35-category-expand {transition:none!important;}
+}
+
+/* A four-image miniature collage makes “All products” a real department tile. */
+.storefront .nx49-all-departments-mosaic {
+  display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);
+  gap:2px;width:100%;height:100%;padding:3px;
+}
+.storefront .nx49-all-departments-mosaic .nx49-category-mini {
+  box-sizing:border-box;width:100%;height:100%;min-width:0;min-height:0;
+  border-radius:4px;border:0;background:#fff;overflow:hidden;
+}
+.storefront .nx49-all-departments-mosaic .nx49-category-mini img {padding:0;object-fit:cover;}
+.storefront .nx49-all-departments-mosaic .nx49-category-initial {font-size:.52rem;}

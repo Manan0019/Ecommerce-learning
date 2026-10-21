@@ -3,6 +3,7 @@ import UiIcon from "../../components/common/UiIcon";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ProductCard from "../../components/common/ProductCard";
 import CategoryArtwork from "../../components/customer/CategoryArtwork";
+import CategoryMiniArtwork from "../../components/customer/CategoryMiniArtwork";
 import PromotionCarousel from "../../components/customer/PromotionCarousel";
 import ProductFilters from "../../components/customer/ProductFilters";
 import ActiveFilterChips from "../../components/customer/ActiveFilterChips";
@@ -156,17 +157,21 @@ export default function ProductList() {
         <div className="nx48-department-track" role="group" aria-label="Choose a department">
           <button type="button" className={`nx48-department ${!selectedCategory ? "is-active" : ""}`}
             aria-pressed={!selectedCategory} onClick={() => chooseCategory("")}>
-            <span className="nx48-department-icon"><UiIcon name="grid" size={22}/></span>
+            <span className="nx48-department-icon nx49-all-departments-icon" aria-hidden="true">
+              {rootCategories(categories).length ? <span className="nx49-all-departments-mosaic">
+                {rootCategories(categories).slice(0, 4).map(root => <CategoryMiniArtwork key={root.id} category={root} />)}
+              </span> : <UiIcon name="grid" size={20}/>}
+            </span>
             <span className="nx48-department-text"><strong>All products</strong><small>Everything in store</small></span>
-            <UiIcon name="up-right" size={17} className="nx48-department-arrow"/>
+            <span className="nx49-department-arrow"><UiIcon name="chevron-right" size={16}/></span>
           </button>
           {rootCategories(categories).map(item => {
             const isActive = item.slug === selectedCategory || ancestors.some(ancestor => ancestor.slug === item.slug);
             return <button key={item.id} type="button" className={`nx48-department ${isActive ? "is-active" : ""}`}
               aria-pressed={isActive} onClick={() => chooseCategory(item.slug)}>
-              <span className="nx48-department-icon"><UiIcon name="bag" size={21}/></span>
+              <CategoryMiniArtwork category={item} className="nx48-department-icon" />
               <span className="nx48-department-text"><strong>{item.name}</strong><small>{Number(item.productCount)>0?`${item.productCount} products`:"View collection"}</small></span>
-              <UiIcon name="up-right" size={17} className="nx48-department-arrow"/>
+              <span className="nx49-department-arrow"><UiIcon name="chevron-right" size={16}/></span>
             </button>;
           })}
         </div>

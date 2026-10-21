@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
+import CategoryMiniArtwork from "../customer/CategoryMiniArtwork";
 import { Link, useNavigate } from "react-router-dom";
 import { SITE_NAME } from "../../config/site";
 import BrandLogo from "../common/BrandLogo";
@@ -9,6 +10,7 @@ import { useCart } from "../../hooks/useCart";
 import { apiAssetUrl } from "../../services/apiClient";
 import { getCurrentUser, logout as endSession } from "../../services/authService";
 import { getProductSuggestions } from "../../services/productService";
+import { getCategories } from "../../services/categoryService";
 
 function SearchIcon() { return <UiIcon name="search" size={21} />; }
 
@@ -29,6 +31,7 @@ export default function StoreHeader() {
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [suggestions, setSuggestions] = useState({ products: [], categories: [] });
+  const [categoryArtwork, setCategoryArtwork] = useState({});
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -65,6 +68,18 @@ export default function StoreHeader() {
       document.removeEventListener("keydown", closeMenus);
       document.removeEventListener("pointerdown", closeMenus);
     };
+  }, []);
+
+  // The suggestion endpoint supplies category names/slugs; the public category
+  // directory supplies the uploaded icon artwork without changing the API.
+  useEffect(() => {
+    const controller = new AbortController();
+    getCategories(controller.signal).then(result => {
+      if (!controller.signal.aborted) {
+        setCategoryArtwork(Object.fromEntries((result.categories || []).map(category => [category.slug, category])));
+      }
+    }).catch(() => { /* Text suggestions remain usable if artwork is unavailable. */ });
+    return () => controller.abort();
   }, []);
 
   // Suggestions are real active database records; stale requests are cancelled.
@@ -138,7 +153,7 @@ export default function StoreHeader() {
             <div className="nx-search-suggestion-heading">Search suggestions</div>
             {suggestionsLoading && <p className="nx-search-empty">Finding matches…</p>}
             {!suggestionsLoading && suggestions.categories.length > 0 && <div className="nx-search-group">
-              <span>Categories</span>{suggestions.categories.map(c => <Link onClick={chooseSuggestion} key={`c-${c.id}`} to={`/categories/${encodeURIComponent(c.slug)}`}><span className="nx47-category-search-glyph"><UiIcon name="grid" size={15}/></span><span className="nx47-search-category">{c.name}<small>Collection</small></span></Link>)}
+              <span>Categories</span>{suggestions.categories.map(c => <Link onClick={chooseSuggestion} key={`c-${c.id}`} to={`/categories/${encodeURIComponent(c.slug)}`}><CategoryMiniArtwork category={categoryArtwork[c.slug] || c} className="nx49-search-category-icon"/><span className="nx47-search-category">{c.name}<small>Collection</small></span></Link>)}
             </div>}
             {!suggestionsLoading && suggestions.products.length > 0 && <div className="nx-search-group"><span>Products</span>
               {suggestions.products.map(p => <Link key={`p-${p.cardKey || p.id}`} to={`/products/${p.id}${p.selectedVariantId ? `?variant=${encodeURIComponent(p.selectedVariantId)}` : ""}`} onClick={chooseSuggestion}>
@@ -147,7 +162,7 @@ export default function StoreHeader() {
               </Link>)}
             </div>}
             {!suggestionsLoading && !suggestions.products.length && !suggestions.categories.length && <p className="nx-search-empty">No direct matches. Try a different product or brand.</p>}
-            <button type="submit" className="nx-search-view-all"><span>View all results for “{query.trim()}”</span><UiIcon name="right" size={17}/></button>
+            <button type="submit" className="nx-search-view-all"><span>View all results for “{query.trim()}”</span><span className="nx49-suggestion-action"><UiIcon name="chevron-right" size={16}/></span></button>
           </div>}
         </form>
       </div>

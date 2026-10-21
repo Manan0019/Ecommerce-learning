@@ -121,7 +121,7 @@ export default function PromotionCarousel({ position = "home", category, product
       {rotating && <div className="nx47-promotion-status">
         <span aria-live="polite">Collection {String(active+1).padStart(2, '0')} <small>/ {String(banners.length).padStart(2, '0')}</small></span>
         {homeAutoplay && !reducedMotion && <button type="button" className="nx47-autoplay-toggle" aria-label={userPaused?"Resume automatic promotions":"Pause automatic promotions"}
-          aria-pressed={userPaused} onClick={()=>setUserPaused(p=>!p)}><UiIcon name={userPaused?'play':'pause'} size={16}/></button>}
+          aria-pressed={userPaused} title={userPaused?"Resume slideshow":"Pause slideshow"} onClick={()=>setUserPaused(p=>!p)}><UiIcon name={userPaused?'play':'pause'} size={16}/></button>}
       </div>}
     </div>
     <div className={`nx37-promotion-grid nx37-count-${count}${count>3?" nx41-multi-banner":""}`} ref={rail}>
