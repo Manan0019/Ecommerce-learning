@@ -22,6 +22,8 @@ import { publicBrandingRoutes, adminBrandingRoutes } from "./routes/brandingRout
 import razorpayRoutes from "./routes/razorpayRoutes.js";
 import { razorpayWebhook } from "./controllers/razorpayController.js";
 
+import {admin as adminDeliveryRoutes,delivery as deliveryRoutes,notificationRoutes} from './routes/deliveryRoutes.js';
+
 const app = express();
 app.disable("x-powered-by");
 if(process.env.TRUST_PROXY === "1") app.set("trust proxy", 1);
@@ -65,6 +67,9 @@ app.use("/api/payments/razorpay", razorpayRoutes);
 app.use("/api/orders", customerOrderRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/admin/delivery",adminDeliveryRoutes);
+app.use("/api/delivery",deliveryRoutes);
+app.use("/api/notifications",notificationRoutes);
 app.use((error, _req, res, _next) => {
   console.error("Unhandled Express error:", error);
   res.status(500).json({ message: "Internal server error." });

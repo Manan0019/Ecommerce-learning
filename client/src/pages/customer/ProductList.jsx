@@ -143,12 +143,6 @@ export default function ProductList() {
         <UiIcon name="chevron-right" size={15}/><strong>{activeCategory.name}</strong>
       </nav>}
       {selectedCategory&&<PromotionCarousel position="category" category={selectedCategory}/>}
-      {category&&categories.some(c=>String(c.parentId)===String(category.id))&&<section className="nx17-subcategories" aria-label={`Shop ${category.name} subcategories`}>
-        <h2>Explore {category.name}</h2>
-        <div className="nx17-subcategory-shelf">{categories.filter(c=>String(c.parentId)===String(category.id)).map(child=><Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>
-          <CategoryArtwork category={child} /><strong>{child.name}</strong><span className="nx34-category-action" aria-hidden="true">Explore <UiIcon name="up-right" size={17}/></span></Link>)}</div>
-      </section>}
-
       <section className="nx48-departments" aria-label="Browse departments">
         <div className="nx48-departments-top">
           <div><span className="nx48-section-kicker">CURATED DEPARTMENTS</span><h2>Explore collections</h2></div>
@@ -176,6 +170,12 @@ export default function ProductList() {
           })}
         </div>
       </section>
+
+      {category&&categories.some(c=>String(c.parentId)===String(category.id))&&<section className="nx17-subcategories" aria-label={`Shop ${category.name} subcategories`}>
+        <h2>Explore {category.name}</h2>
+        <div className="nx17-subcategory-shelf">{categories.filter(c=>String(c.parentId)===String(category.id)).map(child=><Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>
+          <CategoryArtwork category={child} /><strong>{child.name}</strong><span className="nx34-category-action" aria-hidden="true">Explore <UiIcon name="up-right" size={17}/></span></Link>)}</div>
+      </section>}
 
       <div className="catalogue-results-bar">
         <p>

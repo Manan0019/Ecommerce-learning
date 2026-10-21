@@ -1,0 +1,30 @@
+/* Phase 51: clear category hierarchy and resilient, readable administration tables. */
+.storefront .catalogue-page .nx48-departments{margin-top:22px;margin-bottom:20px}
+.storefront .catalogue-page .nx17-subcategories{margin-top:16px;margin-bottom:25px}
+.storefront .catalogue-page .nx17-subcategories>h2{font-size:clamp(1.08rem,1.5vw,1.35rem);letter-spacing:-.025em;margin-bottom:12px}
+/* Tables must not inherit the legacy global nowrap rule: it made long names overlap price/stock. */
+.nx34-admin-main .nx-products-panel{min-width:0;max-width:100%;overflow:hidden}
+.nx34-admin-main .nx-products-panel .admin-table-wrap{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.nx34-admin-main .admin-product-table{width:100%;table-layout:fixed;border-collapse:collapse;min-width:860px}
+.nx34-admin-main .admin-product-table th:nth-child(1){width:30%}
+.nx34-admin-main .admin-product-table th:nth-child(2){width:13%}
+.nx34-admin-main .admin-product-table th:nth-child(3){width:12%}
+.nx34-admin-main .admin-product-table th:nth-child(4){width:12%}
+.nx34-admin-main .admin-product-table th:nth-child(5){width:10%}
+.nx34-admin-main .admin-product-table th:nth-child(6){width:23%}
+.nx34-admin-main .admin-product-table th,.nx34-admin-main .admin-product-table td{padding:12px 9px;white-space:normal;overflow-wrap:anywhere;vertical-align:middle;min-width:0}
+.nx34-admin-main .admin-product-table .admin-product-cell{min-width:0;max-width:100%;display:flex;align-items:center;gap:10px}
+.nx34-admin-main .admin-product-table .admin-product-cell>div{min-width:0!important;max-width:100%;flex:1 1 auto;display:grid;gap:5px}
+.nx34-admin-main .admin-product-table .nx46-product-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-clamp:2;overflow:hidden;text-overflow:ellipsis;overflow-wrap:anywhere;line-height:1.4;max-width:100%;white-space:normal}
+.nx34-admin-main .admin-product-table .admin-product-cell small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.nx34-admin-main .admin-product-table td>strong{display:block;white-space:nowrap;font-size:.79rem;font-variant-numeric:tabular-nums}
+.nx34-admin-main .admin-product-table td>small{display:block;font-size:.64rem;line-height:1.35;color:#8290a4;white-space:normal;margin-top:4px}
+.nx34-admin-main .admin-product-table .admin-row-actions{display:flex;flex-wrap:wrap;gap:5px;max-width:100%;white-space:normal;justify-content:flex-start}
+.nx34-admin-main .admin-product-table .admin-row-actions a,.nx34-admin-main .admin-product-table .admin-row-actions button{font-size:.66rem;min-height:31px;padding:6px 8px;border-radius:8px;white-space:nowrap}
+.nx34-admin-main .admin-product-table .admin-status{white-space:nowrap}
+.nx51-dashboard-notice{display:flex;justify-content:space-between;gap:16px;align-items:center;background:#fdf7ed;border:1px solid #f0d7a2;color:#60451c;border-radius:15px;padding:15px 17px;margin:0 0 18px}
+.nx51-dashboard-notice strong{display:block;font-size:.9rem}.nx51-dashboard-notice p{font-size:.8rem;margin:4px 0;line-height:1.5}.nx51-dashboard-notice small{display:block;line-height:1.5}
+.nx51-dashboard-notice button{flex-shrink:0;background:#fff;border:1px solid #c2a170;padding:8px 15px;border-radius:9px;color:#684a1c;font-weight:800}
+.nx51-service-warning{display:block!important;max-width:100%;padding:15px 18px}.nx51-service-warning p{margin:6px 0;font-size:.85rem;line-height:1.5}
+@media(max-width:980px){.nx34-admin-main .admin-product-table{min-width:890px}.nx51-dashboard-notice{flex-wrap:wrap}}
+@media(max-width:620px){.nx51-dashboard-notice button{width:100%}.nx51-dashboard-notice{align-items:stretch}}

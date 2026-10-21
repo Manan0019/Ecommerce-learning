@@ -11,7 +11,7 @@ import {getAdminAssignments} from '../../services/deliveryService';
 const money=v=>`₹${Number(v||0).toLocaleString('en-IN',{maximumFractionDigits:2,minimumFractionDigits:2})}`;
 const date=v=>new Date(v).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
 export default function AdminDashboard(){
- const navigate=useNavigate();const [summary,setSummary]=useState(null),[products,setProducts]=useState([]),[orders,setOrders]=useState([]),[alerts,setAlerts]=useState(null),[assignments,setAssignments]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
+ const navigate=useNavigate();const [summary,setSummary]=useState(null),[products,setProducts]=useState([]),[orders,setOrders]=useState([]),[alerts,setAlerts]=useState(null),[assignments,setAssignments]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[serviceIssues,setServiceIssues]=useState([]),[revision,setRevision]=useState(0);
  useEffect(()=>{const c=new AbortController();Promise.allSettled([
   getAdminSummary(c.signal),getAdminProducts(c.signal),getAdminOrders(c.signal),getLowStockAlerts(5,c.signal),getAdminAssignments(c.signal)
  ]).then(results=>{if(c.signal.aborted)return;
@@ -23,9 +23,11 @@ export default function AdminDashboard(){
   if(d.status==='fulfilled')setAssignments(d.value.assignments||[]);
   const denied=results.find(x=>x.status==='rejected'&&isAuthenticationError(x.reason));
   if(denied){navigate('/login',{replace:true});return;}
-  const errors=results.filter(x=>x.status==='rejected'&&x.reason?.name!=='AbortError');
-  if(errors.length)setError('Some dashboard data could not load. Reload the page to try again.');
- }).finally(()=>{if(!c.signal.aborted)setLoading(false);});return()=>c.abort();},[navigate]);
+  const labels=['Store summary','Products','Orders','Inventory alerts','Delivery assignments'];
+  const issues=results.flatMap((x,i)=>x.status==='rejected'&&x.reason?.name!=='AbortError'?[{label:labels[i],status:x.reason?.status,message:x.reason?.message||'Request failed'}]:[]);
+  setServiceIssues(issues);
+  setError(issues.filter(x=>x.label!=='Delivery assignments').length?'Some store metrics are unavailable. See the services below for details.':'');
+ }).finally(()=>{if(!c.signal.aborted)setLoading(false);});return()=>c.abort();},[navigate,revision]);
  const insights=useMemo(()=>{
   const active=orders.filter(o=>!['cancelled','payment_expired'].includes(o.status));
   const paid=orders.filter(o=>o.paymentStatus==='razorpay_paid'||o.paymentStatus==='cod_collected');
@@ -35,7 +37,13 @@ export default function AdminDashboard(){
   delivery:assignments.filter(a=>a.deliveryStatus==='out_for_delivery').length};
  },[orders,assignments]);
  return <AdminLayout title="Store overview" subtitle="Orders, revenue, inventory and fulfillment in one workspace." actions={<Link className="admin-primary-action" to="/admin/products/new">+ Add product</Link>}>
-  {error&&<p className="admin-alert" role="alert">{error}</p>}
+  {serviceIssues.length>0&&<section className="nx51-dashboard-notice" aria-label="Dashboard service health">
+    <div><strong>{serviceIssues.some(i=>i.label!=='Delivery assignments')?'Some dashboard sections are unavailable':'Delivery metrics are temporarily unavailable'}</strong>
+    <p>{serviceIssues.map(i=>`${i.label}${i.status===404?' (API route missing)':''}`).join(' · ')}</p>
+    {serviceIssues.some(i=>i.label==='Delivery assignments'&&i.status===404)&&<small>Update the Phase 46/51 delivery backend, run migration 028 and restart Express. Other dashboard data remains available.</small>}
+    </div><button type="button" onClick={()=>{setLoading(true);setRevision(x=>x+1);}}>Retry data</button>
+  </section>}
+  {error&&!serviceIssues.length&&<p className="admin-alert" role="alert">{error}</p>}
   <section className="nx46-dashboard-welcome"><div><p className="admin-eyebrow">NEXORA · OPERATIONS</p><h2>Your business at a glance</h2><p>Live database metrics from the most recent 200 orders and 100 products returned by the admin API.</p></div><div className="nx46-welcome-actions"><Link to="/admin/orders">Review orders <UiIcon name="right" size={17}/></Link><Link to="/admin/delivery">Delivery operations <UiIcon name="right" size={17}/></Link></div></section>
   <section className="nx46-metrics nx46-dashboard-metrics" aria-label="Store performance">
    {[

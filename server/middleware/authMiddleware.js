@@ -17,7 +17,7 @@ export async function requireAuthenticated(req, res, next) {
 
     const user = result.rows[0];
 
-    if (!user || !["admin", "customer"].includes(user.role)) {
+    if (!user || !["admin", "customer", "delivery"].includes(user.role)) {
       return res.status(403).json({
         message: "Access denied."
       });
@@ -48,3 +48,8 @@ function requireRole(role) {
 
 export const requireCustomer = requireRole("customer");
 export const requireAdmin = requireRole("admin");
+export const requireDelivery = (req,res,next) => requireRole("delivery")(req,res,async()=>{
+  try{const active=await pool.query("SELECT 1 FROM delivery_staff_profiles WHERE user_id=$1 AND is_active=TRUE",[req.user.id]);
+    if(!active.rows.length)return res.status(403).json({message:"Delivery account disabled."});return next();
+  }catch(e){console.error("Delivery access:",e);return res.status(500).json({message:"Delivery access unavailable."});}
+});

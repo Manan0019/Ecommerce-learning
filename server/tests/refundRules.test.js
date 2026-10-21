@@ -36,3 +36,9 @@ test('Razorpay expected refund statuses',()=>{
  for(const state of ['created','pending','processed','failed'])assert.equal(isRefundStatus(state),true);
  assert.equal(isRefundStatus('paid'),false);
 });
+
+test('provider webhook receipt may be null; server-generated notes identify the exact refund',()=>{
+  assert.equal(refundMatchesOrder({...refund,receipt:null,notes:{order:order.refund_request_key}},order),true);
+  assert.equal(refundMatchesOrder({...refund,receipt:null,notes:{order:'another_order'}},order),false);
+  assert.equal(refundMatchesOrder({...refund,receipt:null,notes:{order:order.refund_request_key},amount:100},order),false);
+});

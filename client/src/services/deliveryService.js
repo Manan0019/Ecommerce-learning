@@ -1,5 +1,6 @@
 import {apiRequest} from './apiClient';
 const opts={credentials:'include'};
+export const getDeliveryHealth=signal=>apiRequest('/api/admin/delivery/health',{...opts,signal});
 export const getDeliveryStaff=signal=>apiRequest('/api/admin/delivery/staff',{...opts,signal});
 export const createDeliveryStaff=body=>apiRequest('/api/admin/delivery/staff',{...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 export const setDeliveryStaffActive=(id,isActive)=>apiRequest(`/api/admin/delivery/staff/${id}`,{...opts,method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({isActive})});

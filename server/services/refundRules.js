@@ -22,7 +22,7 @@ export function refundMatchesOrder(refund,order) {
   if(!paise || refund.amount!==paise || refund.currency!=='INR' || refund.payment_id!==order.razorpay_payment_id)return false;
   // Once we know the provider refund ID, never accept a different refund via receipt alone.
   if (order.razorpay_refund_id) return refund.id === order.razorpay_refund_id;
-  return Boolean(order.refund_request_key && refund.receipt === order.refund_request_key);
+  return Boolean(order.refund_request_key && (refund.receipt === order.refund_request_key || refund.notes?.order === order.refund_request_key));
 }
 export function isRefundStatus(value) {
   return ['pending','processed','failed','created'].includes(value);

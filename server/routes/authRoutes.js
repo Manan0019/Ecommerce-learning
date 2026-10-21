@@ -410,7 +410,7 @@ router.post(["/login", "/admin/login"], loginLimiter, async (req, res) => {
       });
     }
 
-    if (!["admin", "customer"].includes(user.role)) {
+    if (!["admin", "customer", "delivery"].includes(user.role)) {
       return res.status(403).json({
         message: "Access denied."
       });

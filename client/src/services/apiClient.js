@@ -18,10 +18,12 @@ export async function apiRequest(path, options = {}) {
     try {
       data = JSON.parse(responseText);
     } catch {
-      throw new ApiError(
-        `Server returned HTTP ${response.status}: ${responseText.slice(0, 150)}`,
-        response.status
-      );
+      const isHtml = /^\s*<!doctype html|^\s*<html/i.test(responseText) || (response.headers.get('content-type') || '').includes('text/html');
+      const explanation = response.status === 404 && path.startsWith('/api/')
+        ? 'API endpoint not found on the running Express server (HTTP 404). Check that the backend source is updated and the old server process has been restarted.'
+        : isHtml ? `Unexpected HTML response from the API (HTTP ${response.status}). Check the configured API address and running backend.`
+        : `Server returned HTTP ${response.status}.`;
+      throw new ApiError(explanation, response.status);
     }
   }
 

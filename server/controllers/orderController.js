@@ -7,6 +7,7 @@ import { deductStock } from "../services/stockDeduction.js";
 import { canChangeOrderStatus, canConfirmCodCollection, validateDispatch, makeOrderLine, normalizeAddress, validOrderId, validRequestKey, validateAddress } from "../services/codOrderRules.js";
 
 import { canRequestCancellation } from "../services/cancellationRules.js";
+import { notifyAdmins, notifyUser } from '../services/notificationService.js';
 
 const statementError = (res, error, label) => {
   console.error(label, error);
@@ -101,6 +102,7 @@ export async function placeCodOrder(req,res){
       VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12)`,[order.id,line.productId,line.variantId,line.name,line.sku,JSON.stringify(line.attributes),line.imageUrl,line.quantity,fromPaise(line.unitPrice),fromPaise(line.lineTotal),line.gstPercent,amounts.itemTaxes[i]]);
     await deductStock(db,line);
   }
+  await notifyAdmins(db,{key:`order:${order.id}:placed`,kind:'order',title:'New COD order',message:`New Cash on Delivery order #${order.id} was placed.`,path:'/admin/orders'});
   await db.query('COMMIT');open=false;return res.status(201).json({order:serializeOrder(order),alreadyPlaced:false});
  }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});return statementError(res,e,'Place COD order:');}
  finally{db.release();}
@@ -182,6 +184,8 @@ export async function changeCodOrderStatus(req,res){
     await db.query(`INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'cancellation_approved',$2,'Administrator approved COD cancellation.')`,[id,req.user.id]);
   }
   await db.query('INSERT INTO cod_order_events(order_id,event_type,actor_user_id) VALUES($1,$2,$3)',[id,status,req.user.id]);
+  if(status==='delivered')await db.query("UPDATE delivery_assignments SET status='delivered',delivered_at=COALESCE(delivered_at,NOW()),updated_at=NOW() WHERE order_id=$1",[id]);
+  await notifyUser(db,order.customer_id,{key:`order:${id}:status:${status}`,kind:'order',title:'Order status updated',message:`Your order #${id} is now ${status}.`,path:'/orders'});
   await db.query("COMMIT");open=false;return res.json({order:serializeOrder(changed.rows[0])});
  }catch(e){if(open)await db.query("ROLLBACK").catch(()=>{});return statementError(res,e,"Update COD order:");}
  finally{db.release();}

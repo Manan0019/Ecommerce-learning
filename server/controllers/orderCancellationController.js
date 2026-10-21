@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { notifyAdmins,notifyUser } from '../services/notificationService.js';
 import { validOrderId } from '../services/codOrderRules.js';
 import { canRequestCancellation, cancellationReasonValid } from '../services/cancellationRules.js';
 
@@ -22,6 +23,7 @@ export async function requestOrderCancellation(req,res) {
       VALUES($1,$2,$3) RETURNING *`,[id,req.user.id,reason.trim()]);
     await db.query(`INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes)
       VALUES($1,'cancellation_requested',$2,'Customer requested cancellation; pending administrator review.')`,[id,req.user.id]);
+    await notifyAdmins(db,{key:`order:${id}:cancel-request`,kind:'cancellation',title:'Cancellation requested',message:`Customer requests cancellation of order #${id}.`,path:'/admin/orders'});
     await db.query('COMMIT');started=false;
     return res.status(201).json({message:'Cancellation request sent. The store will review it before any cancellation or refund.',request:saved.rows[0]});
   }catch(err){if(started)await db.query('ROLLBACK').catch(()=>{});return failure(res,err);}finally{db.release();}
@@ -40,6 +42,7 @@ export async function declineCancellation(req,res) {
     const saved=await db.query(`UPDATE order_cancellation_requests SET status='declined',reviewed_at=NOW(),reviewed_by=$2,
       admin_response=$3 WHERE order_id=$1 RETURNING *`,[id,req.user.id,reason.trim()]);
     await db.query(`INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'cancellation_declined',$2,$3)`,[id,req.user.id,reason.trim()]);
+    await notifyUser(db,found.rows[0].customer_id,{key:`order:${id}:cancellation-declined`,kind:'cancellation',title:'Cancellation request reviewed',message:`Your cancellation request for order #${id} was declined.`,path:'/orders'});
     await db.query('COMMIT');started=false;return res.json({request:saved.rows[0]});
   }catch(err){if(started)await db.query('ROLLBACK').catch(()=>{});return failure(res,err);}finally{db.release();}
 }
