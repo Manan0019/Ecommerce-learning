@@ -1,6 +1,6 @@
 import pool from '../config/db.js';
 import { validOrderId } from '../services/codOrderRules.js';
-import { refundWritesEnabled, eligibleForFullRefund, totalPaise, refundMatchesOrder, isRefundStatus } from '../services/refundRules.js';
+import { refundWritesEnabled, refundConfiguration, eligibleForFullRefund, totalPaise, refundMatchesOrder, isRefundStatus } from '../services/refundRules.js';
 import { createGatewayRefund, fetchGatewayRefunds, fetchGatewayPayment, validGatewayIdentifier } from '../services/razorpayService.js';
 
 function publicRefund(order) {
@@ -62,11 +62,19 @@ async function applyInTransaction(orderId,refund,actorId){
     await db.query('COMMIT');open=false;return applied;
   }finally{if(open)await rollback(db);db.release();}
 }
+// Admin-only, read-only status used to explain a missing server opt-in.
+export function getRefundConfiguration(_req,res){
+  return res.json(refundConfiguration());
+}
 export async function requestFullRefund(req,res){
   const id=req.params.id,reason=req.body?.reason;
   if(!validOrderId(id)||typeof reason!=='string'||reason.trim().length<10||reason.trim().length>200)
     return res.status(400).json({message:'Enter a refund reason of 10–200 characters.'});
-  if(!refundWritesEnabled())return res.status(403).json({message:'Refund initiation is disabled in this environment.'});
+  if(!refundWritesEnabled())return res.status(403).json({
+    message:'Refund initiation is disabled on the server. For test refunds, set RAZORPAY_REFUNDS_ENABLED=true and RAZORPAY_MODE=test in server/.env, then restart the backend. Live refunds require separate explicit authorization.',
+    code:'NX_REFUNDS_DISABLED',
+    configuration:refundConfiguration(),
+  });
   let order;
   try{
     const pre=await pool.query('SELECT * FROM cod_orders WHERE id=$1',[id]);order=pre.rows[0];

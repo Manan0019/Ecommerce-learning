@@ -27,3 +27,13 @@ export function refundMatchesOrder(refund,order) {
 export function isRefundStatus(value) {
   return ['pending','processed','failed','created'].includes(value);
 }
+
+// Read-only diagnostics; never expose API keys, secrets, or private payment data.
+export function refundConfiguration(env = process.env, settings = razorpaySettings()) {
+  const enabled = refundWritesEnabled(env, settings);
+  const reason = !settings.enabled ? 'razorpay_unconfigured'
+    : env.RAZORPAY_REFUNDS_ENABLED !== 'true' ? 'refund_opt_in_missing'
+    : settings.mode === 'live' && env.RAZORPAY_LIVE_REFUNDS_ENABLED !== 'true' ? 'live_refund_opt_in_missing'
+    : null;
+  return { enabled, mode: settings.mode, reason };
+}

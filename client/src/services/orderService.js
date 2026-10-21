@@ -19,3 +19,5 @@ export function retryRazorpayCheckout(id){return apiRequest(`/api/payments/razor
 
 export function requestRazorpayRefund(id, reason){return apiRequest(`/api/payments/razorpay/admin/orders/${id}/refund`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason})});}
 export function reconcileRazorpayRefund(id){return apiRequest(`/api/payments/razorpay/admin/orders/${id}/refund/reconcile`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'}});}
+
+export function getRazorpayRefundConfig(signal){return apiRequest('/api/payments/razorpay/admin/refund-config',{...sessionOptions,signal});}

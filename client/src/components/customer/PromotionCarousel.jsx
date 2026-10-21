@@ -8,6 +8,7 @@ function PromotionCard({ banner, primary = false, priority = false }) {
   const imageOnly = banner.showText === false;
   const external = banner.linkUrl.startsWith("https://");
   const content = <>
+    {imageOnly && <img className="nx44-promotion-backdrop" src={apiAssetUrl(banner.imageUrl)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
     <span className="nx37-promotion-image-frame">
       <img src={apiAssetUrl(banner.imageUrl)} alt={imageOnly ? banner.title : ""} loading={priority ? "eager" : "lazy"} decoding="async" />
     </span>

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import OrderTimeline from "../../components/customer/OrderTimeline";
-import { getAdminOrders, updateCodStatus, confirmCodCollection, expireUnpaidRazorpayOrder, requestRazorpayRefund, reconcileRazorpayRefund } from "../../services/orderService";
+import OrderActionDialog from "../../components/admin/OrderActionDialog";
+import { getAdminOrders, updateCodStatus, confirmCodCollection, expireUnpaidRazorpayOrder, requestRazorpayRefund, reconcileRazorpayRefund, getRazorpayRefundConfig } from "../../services/orderService";
 const money=x=>`₹${Number(x||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const nextStatuses={placed:["confirmed","cancelled"],confirmed:["processing","cancelled"],processing:["shipped"],shipped:["delivered"],delivered:[],cancelled:[]};
 const labels={confirmed:"Confirm order",processing:"Mark preparing",delivered:"Mark delivered"};
@@ -9,47 +10,63 @@ const labels={confirmed:"Confirm order",processing:"Mark preparing",delivered:"M
 export default function AdminOrders(){
  const [orders,setOrders]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(""),[busy,setBusy]=useState(""),[filter,setFilter]=useState("all"),[search,setSearch]=useState("");
  const [dispatchId,setDispatchId]=useState(null),[partner,setPartner]=useState(""),[tracking,setTracking]=useState("");
+ const [dialog,setDialog]=useState(null),[dialogError,setDialogError]=useState(""),[notice,setNotice]=useState("");
+ const [refundConfig,setRefundConfig]=useState(null);
+ useEffect(()=>{const c=new AbortController();getRazorpayRefundConfig(c.signal).then(setRefundConfig).catch(()=>{});return()=>c.abort();},[]);
+ const openDialog=(type,order,status)=>{setDialog({type,order,status});setDialogError("");setError("");setNotice("");};
+ const closeDialog=()=>{if(!busy){setDialog(null);setDialogError("");}};
  useEffect(()=>{const c=new AbortController();getAdminOrders(c.signal).then(d=>setOrders(d.orders||[])).catch(e=>{if(e.name!=="AbortError")setError(e.message)}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort();},[]);
  async function refreshOrders(){const result=await getAdminOrders();setOrders(result.orders||[]);}
  async function setStatus(order,status){
   if(status==="cancelled"&&order.paymentMethod==="Razorpay"){setError("Paid Razorpay orders cannot be cancelled here until their refund is reconciled.");return;}
-  if(status==="cancelled"&&!window.confirm(`Cancel order #${order.id}? Stock will be restored. This cannot be undone.`))return;
-  if(status==="delivered"&&!window.confirm(`Confirm order #${order.id} was delivered? This is a manual status update.`))return;
   if(status==="shipped"&&!partner.trim()){setError("Enter a delivery partner before dispatching the order.");return;}
   setBusy(order.id);setError("");try{
    await updateCodStatus(order.id,status,status==="shipped"?{deliveryPartner:partner,trackingReference:tracking}:{});
-   await refreshOrders();setDispatchId(null);setPartner("");setTracking("");window.dispatchEvent(new Event("nexora:inventory-updated"));
-  }catch(e){setError(e.message)}finally{setBusy("")}
+   await refreshOrders();setDispatchId(null);setPartner("");setTracking("");window.dispatchEvent(new Event("nexora:inventory-updated"));return true;
+  }catch(e){setError(e.message);return false}finally{setBusy("")}
  }
  async function expirePayment(order){
-  if(!window.confirm(`Check Razorpay and expire unpaid reservation for #${order.id}? This is only allowed after 60 minutes, and cannot be undone.`))return;
-  setBusy(order.id);setError('');try{await expireUnpaidRazorpayOrder(order.id);await refreshOrders();window.dispatchEvent(new Event('nexora:inventory-updated'));}catch(e){setError(e.message)}finally{setBusy('')}
+  setBusy(order.id);setError('');try{await expireUnpaidRazorpayOrder(order.id);await refreshOrders();window.dispatchEvent(new Event('nexora:inventory-updated'));return true;}catch(e){setError(e.message);return false}finally{setBusy('')}
  }
- async function requestRefund(order){
-  const reason=window.prompt(`Reason for issuing a FULL Razorpay refund for order #${order.id}? (10–200 characters)`);
-  if(reason===null)return;
-  if(reason.trim().length<10||reason.trim().length>200){setError('Refund reason must be 10–200 characters.');return;}
-  if(!window.confirm(`Issue a FULL Razorpay refund of ${money(order.total)} for #${order.id}? This is a financial action and cannot be undone. The order will be cancelled and stock restored ONLY after Razorpay confirms the refund is processed.`))return;
-  setBusy(order.id);setError('');try{
-   const result=await requestRazorpayRefund(order.id,reason.trim());
-   await refreshOrders();if(result.message)window.alert(result.message);
+ async function submitRefund(order,reason){
+  setBusy(order.id);setError('');setDialogError('');try{
+   const result=await requestRazorpayRefund(order.id,reason);
+   await refreshOrders();setDialog(null);
+   if(result.message)setNotice(result.message);
    window.dispatchEvent(new Event('nexora:inventory-updated'));
-  }catch(e){setError(e.message)}finally{setBusy('')}
+  }catch(e){setDialogError(e.message);
+   if(e.message?.includes('disabled'))getRazorpayRefundConfig().then(setRefundConfig).catch(()=>{});
+  }finally{setBusy('')}
+ }
+ async function confirmDialog(reason){
+  if(!dialog)return;
+  const {type,order,status}=dialog;
+  if(type==='refund')return submitRefund(order,reason);
+  if(type==='cancel-cod'||type==='delivered'){
+   const ok=await setStatus(order,status,true);if(ok)setDialog(null);else setDialogError('Action failed. Review the message above and try again.');return;
+  }
+  if(type==='expire'){
+   const ok=await expirePayment(order);if(ok)setDialog(null);else setDialogError('Action failed. Review the message above.');return;
+  }
+  if(type==='collect'){
+   const ok=await collectCash(order);if(ok)setDialog(null);else setDialogError('Action failed. Review the message above.');
+  }
  }
  async function checkRefund(order){
   setBusy(order.id);setError('');try{const result=await reconcileRazorpayRefund(order.id);
-   await refreshOrders();if(result.message)window.alert(result.message);
+   await refreshOrders();if(result.message)setNotice(result.message);
    window.dispatchEvent(new Event('nexora:inventory-updated'));
   }catch(e){setError(e.message)}finally{setBusy('')}
  }
  async function collectCash(order){
-  if(!window.confirm(`Record that the full COD amount ${money(order.total)} was received for order #${order.id}? This is a manual acknowledgement.`))return;
-  setBusy(order.id);setError("");try{await confirmCodCollection(order.id);await refreshOrders();}catch(e){setError(e.message)}finally{setBusy("")}
+  setBusy(order.id);setError("");try{await confirmCodCollection(order.id);await refreshOrders();return true;}catch(e){setError(e.message);return false}finally{setBusy("")}
  }
  const totals=useMemo(()=>({placed:orders.filter(o=>o.status==="placed").length,progress:orders.filter(o=>["confirmed","processing","shipped"].includes(o.status)).length,delivered:orders.filter(o=>o.status==="delivered").length,orderValue:orders.filter(o=>!['cancelled','payment_pending','payment_expired','payment_review','refund_pending','refund_review'].includes(o.status)).reduce((a,o)=>a+Number(o.total),0)}),[orders]);
  const visible=orders.filter(o=>(filter==="all"||filter===o.status)&&`${o.id} ${o.customerName} ${o.customerEmail}`.toLowerCase().includes(search.toLowerCase()));
  return <AdminLayout title="Orders & fulfillment" subtitle="Track COD and Razorpay payments, then process verified orders for dispatch and delivery.">
  {error&&<div className="admin-alert" role="alert">{error}</div>}
+ {notice&&<div className="nx44-admin-notice" role="status">{notice}<button type="button" onClick={()=>setNotice("")} aria-label="Dismiss message">×</button></div>}
+ {refundConfig?.enabled===false&&<div className="nx44-admin-refund-status" role="status"><strong>Razorpay refunds disabled.</strong> {refundConfig.reason==='refund_opt_in_missing'?'Add RAZORPAY_REFUNDS_ENABLED=true to server/.env, keep RAZORPAY_MODE=test, and restart Express.':refundConfig.reason==='razorpay_unconfigured'?'Check test Razorpay API settings in server/.env.':'Refund access needs separate authorization in Live Mode.'}</div>}
  <div className="nx-admin-summary nx-cod-admin-stats"><div><small>Orders loaded</small><strong>{orders.length}</strong></div><div><small>Awaiting review</small><strong>{totals.placed}</strong></div><div><small>In progress</small><strong>{totals.progress}</strong></div><div><small>Delivered</small><strong>{totals.delivered}</strong></div></div>
  <section className="admin-panel nx-admin-orders-panel"><div className="admin-panel-heading"><div><h2>Order queue</h2><p>COD and Razorpay orders. Online payment must be captured before fulfillment; COD collection is recorded manually.</p><small>Non-cancelled order value: {money(totals.orderValue)}</small></div></div>
  <div className="nx-cod-toolbar"><label><span className="sr-only">Search orders</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by order, customer or email" type="search"/></label><label>Status <select value={filter} onChange={e=>setFilter(e.target.value)}>{["all","placed","confirmed","processing","shipped","delivered","cancelled","payment_pending","payment_review","payment_expired","refund_pending","refund_review"].map(s=><option value={s} key={s}>{s[0].toUpperCase()+s.slice(1)}</option>)}</select></label></div>
@@ -62,13 +79,14 @@ export default function AdminOrders(){
    <details><summary>Delivery address</summary><p>{o.address.fullName}, {o.address.phone}</p><p>{o.address.addressLine1}, {o.address.addressLine2}</p><p>{o.address.city}, {o.address.state} — {o.address.pincode}</p></details>
    {dispatchId===o.id&&<form className="nx38-dispatch-form" onSubmit={e=>{e.preventDefault();setStatus(o,"shipped")}}><h3>Dispatch details</h3><label>Delivery partner <span aria-hidden="true">*</span><input required maxLength={80} value={partner} onChange={e=>setPartner(e.target.value)} placeholder="e.g. Local delivery or your courier"/></label><label>Tracking reference (optional)<input maxLength={100} value={tracking} onChange={e=>setTracking(e.target.value)} placeholder="Enter courier tracking ID if available"/></label><div><button className="nx-cod-action" type="submit" disabled={busy===o.id}>Confirm dispatch</button><button type="button" className="nx38-neutral-action" onClick={()=>setDispatchId(null)}>Back</button></div></form>}
    <footer><small>{o.paymentMethod==='Razorpay'?(o.refundStatus==='processed'?'Full refund processed · order cancelled':o.refundStatus==='failed'?'Refund failed · manual review required':o.refundStatus?'Refund '+o.refundStatus+' · awaiting confirmation':o.paymentStatus==='razorpay_paid'?'✓ Paid via Razorpay':o.paymentStatus==='razorpay_review'?'Payment requires manual review':o.paymentStatus==='razorpay_expired'?'Unpaid reservation expired':'Awaiting payment · stock reserved'):(o.paymentStatus==='cod_collected'?'COD cash collection recorded':'COD · cash collection not recorded')}</small><div>
-     {o.paymentMethod==='Razorpay'&&['placed','confirmed'].includes(o.status)&&o.paymentStatus==='razorpay_paid'&&!o.refundStatus&&<button type="button" className="nx-danger-action" disabled={busy===o.id} onClick={()=>requestRefund(o)}>Full refund & cancel</button>}
+     {o.paymentMethod==='Razorpay'&&['placed','confirmed'].includes(o.status)&&o.paymentStatus==='razorpay_paid'&&!o.refundStatus&&<button type="button" className="nx-danger-action" disabled={busy===o.id} onClick={()=>openDialog("refund",o)}>Full refund & cancel</button>}
      {o.refundStatus&&o.refundStatus!=='processed'&&<button type="button" className="nx38-neutral-action" disabled={busy===o.id} onClick={()=>checkRefund(o)}>Check refund status</button>}
-     {o.status==='payment_pending'&&<button type="button" className="nx38-neutral-action" disabled={busy===o.id} onClick={()=>expirePayment(o)}>Verify & expire after 60 min</button>}
-     {(nextStatuses[o.status]||[]).filter(status=>!(o.paymentMethod==='Razorpay'&&status==='cancelled')).map(status=>status==="shipped"?<button key={status} type="button" className="nx-cod-action" disabled={busy===o.id} onClick={()=>{setDispatchId(o.id);setError("")}}>Enter dispatch</button>:<button key={status} type="button" disabled={busy===o.id} className={status==="cancelled"?"nx-danger-action":"nx-cod-action"} onClick={()=>setStatus(o,status)}>{status==="cancelled"?"Cancel order":labels[status]||status}</button>)}
-     {o.status==="delivered"&&o.paymentMethod!=="Razorpay"&&o.paymentStatus!=="cod_collected"&&<button type="button" className="nx38-collect-action" disabled={busy===o.id} onClick={()=>collectCash(o)}>Record cash received</button>}
+     {o.status==='payment_pending'&&<button type="button" className="nx38-neutral-action" disabled={busy===o.id} onClick={()=>openDialog("expire",o)}>Verify & expire after 60 min</button>}
+     {(nextStatuses[o.status]||[]).filter(status=>!(o.paymentMethod==='Razorpay'&&status==='cancelled')).map(status=>status==="shipped"?<button key={status} type="button" className="nx-cod-action" disabled={busy===o.id} onClick={()=>{setDispatchId(o.id);setError("")}}>Enter dispatch</button>:<button key={status} type="button" disabled={busy===o.id} className={status==="cancelled"?"nx-danger-action":"nx-cod-action"} onClick={()=>status==="cancelled"?openDialog("cancel-cod",o,status):status==="delivered"?openDialog("delivered",o,status):setStatus(o,status)}>{status==="cancelled"?"Cancel order":labels[status]||status}</button>)}
+     {o.status==="delivered"&&o.paymentMethod!=="Razorpay"&&o.paymentStatus!=="cod_collected"&&<button type="button" className="nx38-collect-action" disabled={busy===o.id} onClick={()=>openDialog("collect",o)}>Record cash received</button>}
    </div></footer>
  </article>)}</div>}
  </section>
+ {dialog&&<OrderActionDialog key={`${dialog.type}-${dialog.order.id}`} dialog={dialog} busy={String(busy)===String(dialog.order.id)} error={dialogError} refundConfig={refundConfig} onClose={closeDialog} onConfirm={confirmDialog}/>}
  </AdminLayout>;
 }
