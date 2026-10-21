@@ -13,7 +13,7 @@ const statementError = (res, error, label) => {
   if (error.code === "40P01" || error.code === "40001") return res.status(409).json({ message: "Stock changed while ordering. Check your cart and retry." });
   return res.status(500).json({ message: "Could not complete the requested order operation." });
 };
-const serializeOrder = r => ({ taxTotal:r.tax_total, taxableValue:r.taxable_value, cgst:r.cgst, sgst:r.sgst, igst:r.igst, id: String(r.id), status: r.status, paymentMethod: "Cash on Delivery", paymentStatus: r.payment_status, deliveryPartner: r.delivery_partner ?? null, trackingReference: r.tracking_reference ?? null, shippedAt: r.shipped_at ?? null, deliveredAt: r.delivered_at ?? null, codCollectedAt: r.cod_collected_at ?? null, subtotal: r.subtotal, shippingFee: r.shipping_fee, total: r.grand_total, address: r.address_snapshot, placedAt: r.placed_at, updatedAt: r.updated_at, customerName: r.customer_name ?? null, customerEmail: r.customer_email ?? null });
+const serializeOrder = r => ({ taxTotal:r.tax_total, taxableValue:r.taxable_value, cgst:r.cgst, sgst:r.sgst, igst:r.igst, id: String(r.id), status: r.status, paymentMethod: r.payment_method === "razorpay" ? "Razorpay" : "Cash on Delivery", paymentStatus: r.payment_status, razorpayPaymentId: r.razorpay_payment_id ?? null, paidAt: r.paid_at ?? null, paymentReviewNote: r.payment_review_note ?? null, deliveryPartner: r.delivery_partner ?? null, trackingReference: r.tracking_reference ?? null, shippedAt: r.shipped_at ?? null, deliveredAt: r.delivered_at ?? null, codCollectedAt: r.cod_collected_at ?? null, subtotal: r.subtotal, shippingFee: r.shipping_fee, total: r.grand_total, address: r.address_snapshot, placedAt: r.placed_at, updatedAt: r.updated_at, customerName: r.customer_name ?? null, customerEmail: r.customer_email ?? null });
 
 // Item identity/price/stock checks are identical for estimate and final COD placement.
 async function loadOrderLines(db, items, lock = false) {
@@ -135,6 +135,8 @@ export async function changeCodOrderStatus(req,res){
   const r=await db.query("SELECT * FROM cod_orders WHERE id=$1 FOR UPDATE",[id]);
   if(!r.rows.length){await db.query("ROLLBACK");open=false;return res.status(404).json({message:"Order not found."});}
   const order=r.rows[0];
+  if(order.payment_method==='razorpay' && order.payment_status!=='razorpay_paid'){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Only captured online payments can proceed to fulfillment. Reconcile payment first.'});}
+  if(order.payment_method==='razorpay' && status==='cancelled'){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Online paid orders require a verified refund workflow before cancellation. Contact the administrator and process the refund in Razorpay Dashboard.'});}
   if(!canChangeOrderStatus(order.status,status)){await db.query("ROLLBACK");open=false;return res.status(409).json({message:`Cannot change an order from ${order.status} to ${status}.`});}
   if(status==='shipped'){
     const invalid=validateDispatch(req.body);
@@ -168,7 +170,7 @@ export async function adminCodSummary(_req,res){
  COUNT(*) FILTER (WHERE status='confirmed')::int AS confirmed_count,
  COUNT(*) FILTER (WHERE status='processing')::int AS processing_count,
  COALESCE(SUM(grand_total) FILTER (WHERE status <> 'cancelled'),0)::numeric(12,2) AS order_value
- FROM cod_orders`);return res.json({summary:{total:r.rows[0].total_count,placed:r.rows[0].pending_count,confirmed:r.rows[0].confirmed_count,processing:r.rows[0].processing_count,orderValue:r.rows[0].order_value}});}
+ FROM cod_orders WHERE status NOT IN ('payment_pending','payment_review','payment_expired')`);return res.json({summary:{total:r.rows[0].total_count,placed:r.rows[0].pending_count,confirmed:r.rows[0].confirmed_count,processing:r.rows[0].processing_count,orderValue:r.rows[0].order_value}});}
  catch(e){return statementError(res,e,"COD summary:");}
 }
 
@@ -183,6 +185,7 @@ export async function confirmCodCollection(req,res) {
   if(!found.rows.length){await db.query('ROLLBACK');open=false;return res.status(404).json({message:'Order not found.'});}
   const order=found.rows[0];
   if(order.payment_status==='cod_collected'){await db.query('COMMIT');open=false;return res.json({order:serializeOrder(order),alreadyCollected:true});}
+  if(order.payment_method!=='cod'){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Only COD orders support cash collection.'});}
   if(!canConfirmCodCollection(order.status,order.payment_status)){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Cash collection can only be recorded after delivery.'});}
   const updated=await db.query("UPDATE cod_orders SET payment_status='cod_collected',cod_collected_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *",[id]);
   await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'cod_collected',$2,$3)",[id,req.user.id,'Cash collection manually recorded by administrator.']);

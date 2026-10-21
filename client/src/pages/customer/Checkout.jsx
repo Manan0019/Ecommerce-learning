@@ -7,7 +7,8 @@ import {useCart} from '../../hooks/useCart';
 import {quoteCart} from '../../services/cartService';
 import {getCurrentUser} from '../../services/authService';
 import {getAddresses,createAddress} from '../../services/addressService';
-import {createCodOrder,estimateCodOrder} from '../../services/orderService';
+import {createCodOrder,estimateCodOrder,getRazorpayConfig,initiateRazorpayOrder,verifyRazorpayPayment} from '../../services/orderService';
+import {loadRazorpayCheckout} from '../../services/razorpayCheckout';
 import {apiAssetUrl,isAuthenticationError} from '../../services/apiClient';
 import {checkoutIntentKey,checkoutAcceptable} from '../../services/checkoutIntent';
 
@@ -16,6 +17,7 @@ export default function Checkout(){
  const navigate=useNavigate(),{items,clearCart}=useCart();
  const [addresses,setAddresses]=useState([]),[selectedId,setSelectedId]=useState('new'),[address,setAddress]=useState({...blankAddress});
  const [quote,setQuote]=useState(null),[estimate,setEstimate]=useState(null),[codEnabled,setCodEnabled]=useState(false);
+ const [paymentMethod,setPaymentMethod]=useState('cod'),[razorpayEnabled,setRazorpayEnabled]=useState(false);
  const [checking,setChecking]=useState(true),[posting,setPosting]=useState(false),[estimating,setEstimating]=useState(false);
  const [error,setError]=useState(''),[needsCartReview,setNeedsCartReview]=useState(false),[role,setRole]=useState(null),[saveNew,setSaveNew]=useState(true);
  const [estimateFor,setEstimateFor]=useState(''),[quotedCart,setQuotedCart]=useState(''),[updatedQuote,setUpdatedQuote]=useState(false);
@@ -26,14 +28,14 @@ export default function Checkout(){
   const account=await getCurrentUser(controller.signal);
   if(account.user?.role!=='customer'){navigate(account.user?.role==='admin'?'/admin/dashboard':'/login',{replace:true});return}
   setRole('customer');setAddress(old=>({...old,fullName:account.user.fullName||'',phone:account.user.mobileNumber||''}));
-  const [q,saved]=await Promise.all([quoteCart(items,controller.signal),getAddresses(controller.signal)]);
-  if(!controller.signal.aborted){setQuote(q);setQuotedCart(cartKey);setAddresses(saved.addresses||[]);const preferred=(saved.addresses||[]).find(a=>a.isDefault)||(saved.addresses||[])[0];if(preferred)setSelectedId(preferred.id);}
+  const [q,saved,paymentConfig]=await Promise.all([quoteCart(items,controller.signal),getAddresses(controller.signal),getRazorpayConfig(controller.signal).catch(()=>({enabled:false}))]);
+  if(!controller.signal.aborted){setQuote(q);setQuotedCart(cartKey);setRazorpayEnabled(Boolean(paymentConfig.enabled));setAddresses(saved.addresses||[]);const preferred=(saved.addresses||[]).find(a=>a.isDefault)||(saved.addresses||[])[0];if(preferred)setSelectedId(preferred.id);}
  }catch(e){if(isAuthenticationError(e))navigate('/login',{replace:true,state:{from:'/checkout',message:'Sign in to complete checkout.'}});else if(!controller.signal.aborted)setError(e.message)}finally{if(!controller.signal.aborted)setChecking(false)}}load();return()=>controller.abort()},[items,navigate,cartKey]);
  const activeAddress=selectedId==='new'?address:addresses.find(a=>a.id===selectedId);
  const validAddress=activeAddress&&activeAddress.pincode?.length===6&&activeAddress.state?.trim()&&activeAddress.city?.trim()&&activeAddress.addressLine1?.length>=5&&activeAddress.fullName?.length>=2&&activeAddress.phone?.length>=10;
  const intentKey=checkoutIntentKey(items,selectedId,address);
  const cartValid=quotedCart===cartKey && quote?.valid;
- const canSubmit=checkoutAcceptable({estimate,estimateFor,intentKey,cartValid,codEnabled,posting,estimating});
+ const canSubmit=checkoutAcceptable({estimate,estimateFor,intentKey,cartValid,codEnabled:paymentMethod==='cod'?codEnabled:razorpayEnabled,posting,estimating});
  useEffect(()=>{
   if(!cartValid||!items.length||!validAddress)return;
   const ctrl=new AbortController();
@@ -52,24 +54,64 @@ export default function Checkout(){
   e.preventDefault();
   if(submitLock.current||!canSubmit||!items.length)return;
   submitLock.current=true;setPosting(true);setError('');setNeedsCartReview(false);
+  let checkoutOpened=false;
+  const release=()=>{submitLock.current=false;setPosting(false)};
+  const selectedAddress=selectedId==='new'?{address}:{addressId:selectedId};
+  const finishOrder=async (order,paidOnline=false)=>{
+    if(selectedId==='new'&&saveNew)try{await createAddress({...address,label:'Home',isDefault:addresses.length===0})}catch{/* Optional address save must not invalidate paid order. */}
+    clearCart();navigate('/orders',{replace:true,state:{placedId:order.id,paidOnline,alreadyPlaced:false}});
+  };
   try{
-    if(requestRef.current.intent!==intentKey)requestRef.current={intent:intentKey,key:crypto.randomUUID()};
-    const result=await createCodOrder({items,...(selectedId==='new'?{address}:{addressId:selectedId}),paymentMethod:'cod',requestKey:requestRef.current.key,acceptedQuote:estimate});
-    // The order already committed; optional address persistence must not duplicate it.
-    if(selectedId==='new'&&saveNew)try{await createAddress({...address,label:'Home',isDefault:addresses.length===0})}catch{ /* optional */ }
-    clearCart();navigate('/orders',{replace:true,state:{placedId:result.order.id,alreadyPlaced:result.alreadyPlaced}});
+    const signature=`${intentKey}::${paymentMethod}`;
+    if(requestRef.current.intent!==signature)requestRef.current={intent:signature,key:crypto.randomUUID()};
+    const payload={items,...selectedAddress,paymentMethod,requestKey:requestRef.current.key,acceptedQuote:estimate};
+    if(paymentMethod==='razorpay'){
+      // Load the provider UI first so script-blocking does not reserve any inventory.
+      await loadRazorpayCheckout();
+      const result=await initiateRazorpayOrder(payload);
+      if(result.alreadyPaid){await finishOrder(result.order,true);return;}
+      const payment=result.payment;
+      let paymentHandled=false;
+      const rzp=new window.Razorpay({
+        key:payment.keyId,amount:payment.amountPaise,currency:payment.currency,
+        order_id:payment.gatewayOrderId,name:'Nexora',description:`Order #${payment.orderId}`,
+        prefill:{name:activeAddress?.fullName||'',contact:activeAddress?.phone||''},
+        theme:{color:'#6952c4'},
+        handler:async response=>{
+          paymentHandled=true;
+          try{
+            const confirmed=await verifyRazorpayPayment({orderId:payment.orderId,...response});
+            if(confirmed.paid){await finishOrder(confirmed.order,true);return;}
+            setError(confirmed.needsReview?'Payment requires store review. Please contact support.':'Payment is processing. Do not pay a second time; check Orders for confirmation.');
+          }catch(error){setError(`Payment verification is pending: ${error.message}. Check Orders before trying again.`)}
+          finally{release()}
+        },
+        modal:{ondismiss:()=>{
+          if(paymentHandled)return;
+          setError('Payment window closed. No online order is confirmed yet. Your pending payment is visible in Orders; you may reopen checkout with the same order.');
+          release();
+        }},
+      });
+      rzp.on('payment.failed',()=>{
+        setError('This payment attempt failed. You can retry through Razorpay; your order is not yet confirmed.');
+      });
+      rzp.open();
+      checkoutOpened=true;
+      return;
+    }
+    const result=await createCodOrder(payload);
+    await finishOrder(result.order,false);
   }catch(e){
     if(isAuthenticationError(e))navigate('/login',{replace:true});
     else if(e?.data?.requiresEstimateReview&&e.data.latestEstimate){
-      // No order was saved. Make the customer explicitly confirm the revised amount.
       setEstimate(e.data.latestEstimate);setEstimateFor(intentKey);setUpdatedQuote(true);
       setError(e.message||'The total changed. Review it and confirm again.');
-      try{const fresh=await quoteCart(items);if(fresh){setQuote(fresh);setQuotedCart(cartKey)}}catch{ /* keep prior cart and allow correction from Cart */ }
-    }else {setNeedsCartReview(e?.data?.requiresCartReview===true);setError(e.message)};
-  }finally{submitLock.current=false;setPosting(false)}
+      try{const fresh=await quoteCart(items);if(fresh){setQuote(fresh);setQuotedCart(cartKey)}}catch{/* keep cart */}
+    }else {setNeedsCartReview(e?.data?.requiresCartReview===true);setError(e.message)}
+  }finally{if(!checkoutOpened)release()}
  }
  return <CustomerLayout mainClassName="nx-cod-page nx25-checkout">
-  <div className="nx-page-intro"><Link className="nx-back-link" to="/cart">← Back to cart</Link><p className="eyebrow">Secure COD checkout</p><h1>Delivery & payment</h1><p>Choose an address, review shipping and included taxes, and place your Cash on Delivery order.</p></div>
+  <div className="nx-page-intro"><Link className="nx-back-link" to="/cart">← Back to cart</Link><p className="eyebrow">Secure checkout</p><h1>Delivery & payment</h1><p>Choose an address, review shipping and included GST, then pay online with Razorpay or choose Cash on Delivery.</p></div>
   {checking&&<p className="nx-cod-message" role="status">Checking items, account and saved addresses…</p>}
   {error&&<p role="alert" className="nx-cod-message nx-cod-error">{error} {needsCartReview&&<Link to="/cart">Review your cart →</Link>}</p>}
   {!checking&&role==='customer'&&<div className="nx-cod-grid">
@@ -79,11 +121,17 @@ export default function Checkout(){
     <label className="nx25-address-choice"><input type="radio" name="selectedAddress" checked={selectedId==='new'} disabled={posting} onChange={()=>{setSelectedId('new');setEstimate(null);setEstimateFor('');setUpdatedQuote(false);setError('')}}/> <strong>+ Use a new address</strong></label>
     {selectedId==='new'&&<><AddressFields address={address} onChange={v=>{setAddress(v);setEstimate(null);setEstimateFor('');setUpdatedQuote(false)}} disabled={posting}/><label className="nx25-check"><input type="checkbox" checked={saveNew} onChange={e=>setSaveNew(e.target.checked)}/> Save this address to my account</label></>}
     <Link to="/addresses" className="nx25-manage-link">Manage saved addresses →</Link>
-    <div className="nx-cod-method"><div className="nx-section-heading"><span className="nx-step-number">02</span><div><h2>Payment method</h2><p>Online payments are not available.</p></div></div><div className="nx-cod-method-selected"><span>✓</span><div><strong>Cash on Delivery</strong><small>Pay when your order arrives.</small></div></div></div>
-    {!codEnabled&&validAddress&&quote?.valid&&<p className="nx-cod-message nx-cod-error" role="status">The store has not enabled COD checkout yet. Please contact the store.</p>}
-    <button className="button button-primary nx-cod-submit" type="submit" disabled={checking||!validAddress||!canSubmit}>{posting?'Placing order…':updatedQuote?`Confirm revised total · ${money(estimate?.total)}`:`Place COD order · ${money(estimate?.total)}`}</button>
+    <div className="nx-cod-method"><div className="nx-section-heading"><span className="nx-step-number">02</span><div><h2>Payment method</h2><p>Select your preferred payment method.</p></div></div>
+      <div className="nx42-payment-choices">
+       {razorpayEnabled&&<label className={`nx25-address-choice ${paymentMethod==='razorpay'?'is-selected':''}`}><input type="radio" name="paymentMethod" checked={paymentMethod==='razorpay'} disabled={posting} onChange={()=>{setPaymentMethod('razorpay');setError('')}}/><span><strong>Pay securely online · Razorpay</strong><small>UPI, cards, net banking and enabled methods. Paid only after server verification.</small></span></label>}
+       <label className={`nx25-address-choice ${paymentMethod==='cod'?'is-selected':''}`}><input type="radio" name="paymentMethod" checked={paymentMethod==='cod'} disabled={posting} onChange={()=>{setPaymentMethod('cod');setError('')}}/><span><strong>Cash on Delivery</strong><small>Pay when your order arrives.</small></span></label>
+      </div>
+      {!razorpayEnabled&&<p className="nx-cod-note">Online checkout is unavailable. Configure Razorpay Test Mode on the backend to enable it.</p>}
+     </div>
+    {paymentMethod==='cod'&&!codEnabled&&validAddress&&quote?.valid&&<p className="nx-cod-message nx-cod-error" role="status">The store has not enabled COD checkout yet. Please contact the store.</p>}
+    <button className="button button-primary nx-cod-submit" type="submit" disabled={checking||!validAddress||!canSubmit}>{posting?(paymentMethod==='razorpay'?'Opening secure payment…':'Placing order…'):updatedQuote?`Confirm revised total · ${money(estimate?.total)}`:paymentMethod==='razorpay'?`Pay online · ${money(estimate?.total)}`:`Place COD order · ${money(estimate?.total)}`}</button>
     {updatedQuote&&<p className="nx-cod-message nx40-review" role="status">Your prices, shipping or included tax changed. Review the amount due and select Confirm revised total to place the order.</p>}
-    <p className="nx-cod-note">Your shown subtotal, shipping and included GST must match the final server quote. Stock is checked again and no online charge is made.</p>
+    <p className="nx-cod-note">Your shown subtotal, shipping and included GST must match the final server quote. Stock is rechecked by the server. Online stock is reserved during payment and released only after safe reconciliation.</p>
    </form>
    <aside className="nx-cod-panel nx-cod-summary"><div className="nx-section-heading"><span className="nx-step-number">03</span><div><h2>Order summary</h2><p>Amounts are in INR, including GST where configured.</p></div></div>
     {!quote?.valid&&<p className="nx-cod-message nx-cod-error">Some items are unavailable. <Link to="/cart">Review your cart</Link>.</p>}
@@ -91,7 +139,7 @@ export default function Checkout(){
     <div className="nx-cod-summary-line"><span>Products subtotal</span><strong>{money(estimateFor===intentKey?estimate?.subtotal:quote?.availableSubtotal)}</strong></div>
     <div className="nx-cod-summary-line"><span>Shipping</span><strong>{estimateFor===intentKey&&estimate?Number(estimate.shippingFee)===0?'Free':money(estimate.shippingFee):'Enter address'}</strong></div>
     {estimateFor===intentKey&&estimate&&<><div className="nx-cod-summary-line"><span>Included GST ({estimate.taxType})</span><strong>{money(estimate.includedTax)}</strong></div><div className="nx25-tax-details"><small>Taxable value: {money(estimate.taxableValue)}</small><small>{estimate.taxType==='IGST'?`IGST: ${money(estimate.igst)}`:`CGST: ${money(estimate.cgst)} · SGST: ${money(estimate.sgst)}`}</small></div></>}
-    <div className="nx-cod-total"><span>Pay on delivery</span><strong>{estimateFor===intentKey&&estimate?money(estimate.total):'—'}</strong></div>
+    <div className="nx-cod-total"><span>{paymentMethod==='razorpay'?'Pay securely online':'Pay on delivery'}</span><strong>{estimateFor===intentKey&&estimate?money(estimate.total):'—'}</strong></div>
     <p className="nx-cod-note">Tax shown is included in item prices and shipping charges; it is not added again. Verify final tax rules before live sales.</p>
    </aside>
   </div>}

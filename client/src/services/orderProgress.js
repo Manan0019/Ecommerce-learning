@@ -2,7 +2,7 @@ export const orderStages = Object.freeze(["placed", "confirmed", "processing", "
 export const orderStageNames = Object.freeze({
   placed: "Placed", confirmed: "Confirmed", processing: "Preparing",
   shipped: "Dispatched", delivered: "Delivered", cancelled: "Cancelled",
-  cod_collected: "Cash received"
+  cod_collected: "Cash received", payment_pending:"Awaiting payment", payment_verified:"Online payment verified", payment_review:"Payment review", payment_expired:"Payment expired"
 });
 export function getOrderStageProgress(status) {
   const step = orderStages.indexOf(status);

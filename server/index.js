@@ -19,6 +19,8 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import publicCategoryRoutes from "./routes/publicCategoryRoutes.js";
 import {publicBannerRoutes,adminBannerRoutes} from "./routes/bannerRoutes.js";
 import { publicBrandingRoutes, adminBrandingRoutes } from "./routes/brandingRoutes.js";
+import razorpayRoutes from "./routes/razorpayRoutes.js";
+import { razorpayWebhook } from "./controllers/razorpayController.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -27,6 +29,8 @@ const PORT = Number(process.env.PORT) || 4000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+// Signature verification needs exact raw webhook bytes; register BEFORE express.json().
+app.post("/api/payments/razorpay/webhook", express.raw({type:"application/json",limit:"256kb"}), razorpayWebhook);
 app.use(express.json({ limit: "100kb" }));
 app.use(sessionMiddleware);
 app.get("/", (_req, res) => res.json({ message: "Ecommerce API is running." }));
@@ -57,6 +61,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/addresses",addressRoutes);
 app.get("/api/admin/checkout-settings",requireAdmin,getCheckoutSettings);
 app.put("/api/admin/checkout-settings",requireAdmin,(req,res,next)=>{const origin=req.get('origin');if(origin&&origin!==(process.env.CLIENT_ORIGIN||'http://localhost:5173'))return res.status(403).json({message:'Request origin not allowed.'});next();},updateCheckoutSettings);
+app.use("/api/payments/razorpay", razorpayRoutes);
 app.use("/api/orders", customerOrderRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/wishlist", wishlistRoutes);

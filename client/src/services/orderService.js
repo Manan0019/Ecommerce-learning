@@ -8,3 +8,11 @@ export function getCodSummary(signal) { return apiRequest("/api/admin/orders/sum
 export function updateCodStatus(id,status,details={}) { return apiRequest(`/api/admin/orders/${id}/status`, { ...sessionOptions, method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status,...details }) }); }
 
 export function confirmCodCollection(id){return apiRequest(`/api/admin/orders/${id}/collect`, {...sessionOptions,method:"POST",headers:{"Content-Type":"application/json"}});}
+
+export function getRazorpayConfig(signal){return apiRequest('/api/payments/razorpay/config',{...sessionOptions,signal});}
+export function initiateRazorpayOrder(payload){return apiRequest('/api/payments/razorpay/initiate',{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
+export function verifyRazorpayPayment(payload){return apiRequest('/api/payments/razorpay/verify',{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
+export function getRazorpayOrderStatus(id,signal){return apiRequest(`/api/payments/razorpay/orders/${id}`,{...sessionOptions,signal});}
+export function expireUnpaidRazorpayOrder(id){return apiRequest(`/api/payments/razorpay/admin/orders/${id}/expire`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'}});}
+export function reconcileRazorpayOrder(id){return apiRequest(`/api/payments/razorpay/orders/${id}/reconcile`,{...sessionOptions,method:'POST',headers:{'Content-Type':'application/json'}});}
+export function retryRazorpayCheckout(id){return apiRequest(`/api/payments/razorpay/orders/${id}/checkout`,{...sessionOptions});}
