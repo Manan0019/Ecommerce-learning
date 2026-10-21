@@ -35,6 +35,23 @@ function placementLabel(item){
   return `Product page: ${item.productName||item.productId}`;
 }
 
+
+const previewCaptions={
+  1:"One large feature",2:"Two side-by-side features",3:"Original: one lead, two supporting",
+  4:"Balanced: two columns, two rows",5:"Editorial: one lead, four supporting",
+  6:"Campaign wall: two wide, four supporting",
+};
+function PromotionLayoutPreview({count}){
+  const n=Math.max(1,Math.min(6,Number(count)||3));
+  return <div className="nx41-admin-layout-preview" aria-label={`${n} banner arrangement preview`}>
+    <span className="nx39-eyebrow">DESKTOP LAYOUT PREVIEW</span>
+    <div className={`nx41-admin-preview-grid nx41-admin-preview-${n}`} aria-hidden="true">
+      {Array.from({length:n},(_,i)=><span key={i}>{i+1}</span>)}
+    </div>
+    <small>{previewCaptions[n]}. On phones, the carousel shows one slide at a time.</small>
+  </div>;
+}
+
 export default function AdminBanners(){
   const [items,setItems]=useState([]),[categories,setCategories]=useState([]),[draft,setDraft]=useState(blank),[editing,setEditing]=useState(null);
   const [opened,setOpened]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
@@ -95,15 +112,16 @@ export default function AdminBanners(){
       <div><strong>{upcoming.length}</strong><span>Scheduled next</span></div>
     </section>
     <div className="nx39-layout-panel"><div><span className="nx39-eyebrow">HOMEPAGE LAYOUT</span><h2>How many banners appear together?</h2>
-      <p>Choose 1–6 banners visible together on desktop. Every active banner remains in the slideshow, even if you add more than six. On phones, one banner is shown at a time.</p></div>
+      <p>Choose a curated layout: 3 = one large + two supporting banners, 4 = a 2×2 grid, 5 = one featured + four tiles, 6 = two wide features + four tiles. More promotions rotate into these positions automatically. Phones show one at a time.</p></div>
       <label><span>Visible banners</span><select value={homeCount} onChange={e=>setHomeCount(Number(e.target.value))}>
-        {[1,2,3,4,5,6].map(n=><option key={n} value={n}>{n} {n===1?"banner":"banners"}</option>)}
+        {[1,2,3,4,5,6].map(n=><option key={n} value={n}>{({1:"1 · Full-width",2:"2 · Side by side",3:"3 · Featured + 2 (original)",4:"4 · 2 × 2 balanced",5:"5 · Featured + 4 mosaic",6:"6 · Twin features + 4 tiles"})[n]}</option>)}
       </select></label>
       <label className="nx41-autoplay-toggle"><span>Automatic slideshow</span><input type="checkbox" checked={homeAutoplay} onChange={e=>setHomeAutoplay(e.target.checked)} aria-label="Automatically rotate promotion banners"/></label>
       <label><span>Change banner every</span><select value={homeRotateSeconds} disabled={!homeAutoplay} onChange={e=>setHomeRotateSeconds(Number(e.target.value))}>
         {[3,4,5,6,7,8,9,10,12,15].map(n=><option key={n} value={n}>{n} seconds</option>)}
       </select></label>
       <button type="button" className="admin-primary-action" disabled={savingDisplay} onClick={saveDisplay}>{savingDisplay?"Saving…":"Save layout"}</button>
+      <PromotionLayoutPreview count={homeCount}/>
     </div>
     <PromotionOrderManager items={items} onSaved={reload}/>
     <div className="nx39-section-heading"><span className="nx39-eyebrow">BANNER LIBRARY</span><h2>All promotions</h2><p>Modify content, placement, destination, visibility and schedule here.</p></div>

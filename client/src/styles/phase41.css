@@ -1,28 +1,146 @@
-/* Phase 41: multi-banner rotating carousel, compatible with the Phase 37 grid and Phase 39 studio. */
-.storefront .nx37-promotion-grid.nx41-multi-banner{
-  display:grid;grid-template-columns:repeat(var(--nx41-columns,4),minmax(0,1fr));grid-template-rows:minmax(0,1fr);
-  height:clamp(180px,18vw,285px);gap:12px;
+/* Phase 41 / 41B: A purpose-built composition for every banner count.
+   Preserve the original Phase 37 layout when three banners are chosen.
+   Desktop: 4 = balanced 2x2, 5 = editorial hero + four tiles,
+   6 = two wide features + four tiles. Mobile: a single swipeable slide.
+   All banner images, click targets, schedules, image-only mode and rotation
+   still come from the existing PromotionCarousel component. */
+.storefront .nx37-promotion-grid.nx41-multi-banner {
+  display: grid;
+  grid-template-rows: repeat(2,minmax(0,1fr));
+  gap: clamp(9px,1.1vw,15px);
+  height: clamp(350px,34vw,475px);
+  min-width: 0;
 }
-.storefront .nx41-multi-banner .nx37-promotion-card{grid-row:auto!important;grid-column:auto!important;border-radius:15px;animation:nx41-reveal .3s ease-out both}
-.storefront .nx41-multi-banner .nx37-promotion-copy{padding:clamp(9px,1.4vw,20px);gap:6px}
+.storefront .nx37-promotion-grid.nx41-multi-banner .nx37-promotion-card {
+  grid-column: auto;
+  grid-row: auto;
+  min-width: 0;
+  min-height: 0;
+  border-radius: clamp(13px,1.3vw,21px);
+  animation: nx41-reveal .3s ease-out both;
+}
+/* Four: two columns and two rows, never four cramped columns. */
+.storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-4 {
+  grid-template-columns: repeat(2,minmax(0,1fr));
+}
+/* Five: one lead editorial panel, with a compact 2x2 grid on the right. */
+.storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-5 {
+  grid-template-columns: minmax(0,1.35fr) repeat(2,minmax(0,1fr));
+}
+.storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-5 .nx37-promotion-card:first-child {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+/* Six: a pair of wide lead banners above a curated row of four cards. */
+.storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-6 {
+  grid-template-columns: repeat(4,minmax(0,1fr));
+}
+.storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-6 .nx37-promotion-card:nth-child(1) {
+  grid-column: 1 / span 2;
+  grid-row: 1;
+}
+.storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-6 .nx37-promotion-card:nth-child(2) {
+  grid-column: 3 / span 2;
+  grid-row: 1;
+}
+/* Give small tiles appropriately sized lettering; image-only artwork is never dimmed. */
+.storefront .nx41-multi-banner .nx37-promotion-copy {
+  padding: clamp(12px,1.8vw,27px);
+  gap: clamp(4px,.6vw,9px);
+  max-width: 100%;
+}
 .storefront .nx41-multi-banner .nx37-promotion-copy strong,
-.storefront .nx41-multi-banner .nx37-promotion-card:not(.is-primary) .nx37-promotion-copy strong{font-size:clamp(.8rem,1.3vw,1.35rem);line-height:1.2}
-.storefront .nx41-multi-banner .nx37-promotion-copy span{font-size:clamp(.7rem,.9vw,.83rem)}
-.storefront .nx41-multi-banner .nx37-promotion-card.is-image-only img{object-fit:contain}
-.storefront .nx37-promotion-controls .nx41-pause-button{font-size:.89rem;font-weight:900}
-.nx39-layout-panel .nx41-autoplay-toggle{display:flex;align-items:center;gap:13px;flex-direction:row;min-height:42px}
-.nx39-layout-panel .nx41-autoplay-toggle input{width:19px;height:19px;accent-color:#6143dc;cursor:pointer}
-@keyframes nx41-reveal{from{opacity:.65;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-@media (max-width:960px) and (min-width:721px){
-  .storefront .nx37-promotion-grid.nx41-multi-banner{gap:7px;height:205px}
-  .storefront .nx41-multi-banner .nx37-promotion-copy span,.storefront .nx41-multi-banner .nx37-promotion-copy em{display:none}
+.storefront .nx41-multi-banner .nx37-promotion-card:not(.is-primary) .nx37-promotion-copy strong {
+  font-size: clamp(.94rem,1.55vw,1.75rem);
+  line-height: 1.18;
 }
-@media(max-width:720px){
-  .storefront .nx37-promotion-grid.nx41-multi-banner{display:flex;overflow-x:hidden;height:auto;gap:0;padding:2px 3px 10px;scroll-snap-type:none}
-  .storefront .nx37-promotion-grid.nx41-multi-banner .nx37-promotion-card{flex:0 0 100%;width:100%;max-width:100%;min-height:205px;height:clamp(200px,53vw,275px)}
-  .storefront .nx37-promotion-grid:not(.nx41-multi-banner) .nx37-promotion-card:nth-child(n+2){display:none}
-  .storefront .nx37-promotion-grid.nx41-multi-banner .nx37-promotion-card:nth-child(n+2){display:none}
-  .storefront .nx37-promotion-heading{flex-wrap:wrap}
-  .storefront .nx37-promotion-controls{margin-left:auto}
+.storefront .nx41-multi-banner.nx37-count-5 .nx37-promotion-card:first-child .nx37-promotion-copy strong,
+.storefront .nx41-multi-banner.nx37-count-6 .nx37-promotion-card:nth-child(-n+2) .nx37-promotion-copy strong {
+  font-size: clamp(1.2rem,2.1vw,2.35rem);
 }
-@media(prefers-reduced-motion:reduce){.storefront .nx41-multi-banner .nx37-promotion-card{animation:none!important}}
+.storefront .nx41-multi-banner .nx37-promotion-copy span { font-size: clamp(.7rem,.88vw,.9rem); }
+.storefront .nx41-multi-banner.nx37-count-5 .nx37-promotion-card:not(:first-child) .nx37-promotion-copy span,
+.storefront .nx41-multi-banner.nx37-count-6 .nx37-promotion-card:nth-child(n+3) .nx37-promotion-copy span {
+  display: none;
+}
+.storefront .nx41-multi-banner .nx37-promotion-card.is-image-only img { object-fit: contain; }
+.storefront .nx37-promotion-controls .nx41-pause-button { font-size: .89rem; font-weight: 900; }
+.nx39-layout-panel .nx41-autoplay-toggle { display: flex; align-items: center; gap: 13px; flex-direction: row; min-height: 42px; }
+.nx39-layout-panel .nx41-autoplay-toggle input { width: 19px; height: 19px; accent-color: #6143dc; cursor: pointer; }
+/* Instant admin preview of each desktop composition, before Save is pressed. */
+.nx39-layout-panel .nx41-admin-layout-preview { flex:1 1 100%; border-top:1px solid #e9e7f3; padding-top:16px; display:flex; flex-direction:column; gap:9px; min-width:0; }
+.nx41-admin-layout-preview>small { font-size:.77rem; line-height:1.4; color:#6d718c; }
+.nx41-admin-preview-grid { width:min(100%,510px);height:154px;display:grid;gap:6px;grid-template-columns:minmax(0,1.47fr) minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr)); }
+.nx41-admin-preview-grid>span { display:grid;place-items:center;border-radius:10px;color:#fff;font-size:1rem;font-weight:850;background:linear-gradient(135deg,#4a35a7,#9786e1);min-width:0;min-height:0; }
+.nx41-admin-preview-grid>span:nth-child(2){background:linear-gradient(135deg,#7648a6,#b796df)}
+.nx41-admin-preview-grid>span:nth-child(3){background:linear-gradient(135deg,#256c85,#80bccb)}
+.nx41-admin-preview-grid>span:nth-child(4){background:linear-gradient(135deg,#8d508a,#dab5d6)}
+.nx41-admin-preview-grid>span:nth-child(5){background:linear-gradient(135deg,#a66f43,#e4b886)}
+.nx41-admin-preview-grid>span:nth-child(6){background:linear-gradient(135deg,#367e66,#93caba)}
+.nx41-admin-preview-1{grid-template-columns:1fr;grid-template-rows:1fr}
+.nx41-admin-preview-2{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr}
+.nx41-admin-preview-3>span:first-child{grid-row:1 / span 2}
+.nx41-admin-preview-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+.nx41-admin-preview-5{grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr))}
+.nx41-admin-preview-5>span:first-child{grid-row:1 / span 2}
+.nx41-admin-preview-6{grid-template-columns:repeat(4,minmax(0,1fr))}
+.nx41-admin-preview-6>span:first-child{grid-column:1 / span 2}
+.nx41-admin-preview-6>span:nth-child(2){grid-column:3 / span 2}
+
+@keyframes nx41-reveal { from { opacity: .65; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+/* Tablet widths: protect readability rather than forcing four tiny columns.
+   Four remains 2x2; five becomes a full-width feature + four tiles;
+   six becomes a consistent 2x3 magazine grid. */
+@media (min-width:721px) and (max-width:1100px) {
+  .storefront .nx37-promotion-grid.nx41-multi-banner { gap: 10px; height: 465px; }
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-4 { height: 385px; }
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-5,
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-6 {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-rows: repeat(3,minmax(0,1fr));
+    height: 505px;
+  }
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-5 .nx37-promotion-card:first-child {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-6 .nx37-promotion-card:nth-child(1),
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-6 .nx37-promotion-card:nth-child(2) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+/* Phone: one banner at a time, with existing swipe, dots and autoplay. */
+@media (max-width:720px) {
+  .storefront .nx37-promotion-grid.nx41-multi-banner,
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-4,
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-5,
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-6 {
+    display: flex;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 0;
+    gap: 0;
+    padding: 2px 3px 10px;
+    scroll-snap-type: none;
+  }
+  .storefront .nx37-promotion-grid.nx41-multi-banner .nx37-promotion-card,
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-5 .nx37-promotion-card:first-child,
+  .storefront .nx37-promotion-grid.nx41-multi-banner.nx37-count-6 .nx37-promotion-card:nth-child(-n+2) {
+    grid-column: auto;
+    grid-row: auto;
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    height: clamp(190px,53vw,275px);
+  }
+  .storefront .nx37-promotion-grid.nx41-multi-banner .nx37-promotion-card:nth-child(n+2) { display: none; }
+  .storefront .nx37-promotion-grid:not(.nx41-multi-banner) .nx37-promotion-card:nth-child(n+2) { display: none; }
+  .storefront .nx41-multi-banner .nx37-promotion-copy strong { font-size: 1.4rem; }
+  .storefront .nx37-promotion-heading { flex-wrap: wrap; }
+  .storefront .nx37-promotion-controls { margin-left: auto; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .storefront .nx41-multi-banner .nx37-promotion-card { animation: none !important; }
+}

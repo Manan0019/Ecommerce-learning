@@ -33,10 +33,15 @@ export default function PromotionCarousel({ position = "home", category, product
   const [homeRotateSeconds,setHomeRotateSeconds] = useState(6);
   const [userPaused,setUserPaused] = useState(false);
   const [interactionPaused,setInteractionPaused] = useState(false);
+  const [phoneView,setPhoneView] = useState(() => typeof window !== "undefined" && Boolean(window.matchMedia?.("(max-width: 720px)").matches));
   const [reducedMotion,setReducedMotion] = useState(() => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
   const rail = useRef(null);
   const swipeStart = useRef(null);
   const preventClickUntil = useRef(0);
+  const visibleCount = Math.min(banners.length,position === "home" ? homeVisibleCount : 2);
+  // All banners already on screen need not reshuffle on desktop. On phones only
+  // one banner is visible, so the same collection should keep sliding.
+  const canAdvance = banners.length > (phoneView ? 1 : visibleCount);
   useEffect(() => {
     const controller=new AbortController();
     let first=true;
@@ -70,6 +75,13 @@ export default function PromotionCarousel({ position = "home", category, product
   }, [banners.length]);
 
   useEffect(() => {
+    const query=window.matchMedia?.("(max-width: 720px)");
+    if(!query) return;
+    const update=()=>setPhoneView(query.matches);
+    query.addEventListener?.("change",update);
+    return ()=>query.removeEventListener?.("change",update);
+  },[]);
+  useEffect(() => {
     const query=window.matchMedia?.("(prefers-reduced-motion: reduce)");
     if(!query) return;
     const update=()=>setReducedMotion(query.matches);
@@ -77,12 +89,12 @@ export default function PromotionCarousel({ position = "home", category, product
     return ()=>query.removeEventListener?.("change",update);
   },[]);
   useEffect(() => {
-    if(!homeAutoplay || userPaused || interactionPaused || reducedMotion || banners.length<=1) return;
+    if(!homeAutoplay || userPaused || interactionPaused || reducedMotion || !canAdvance) return;
     const timer=window.setInterval(()=>{
       if(document.visibilityState !== "hidden") setActive(current=>movePromotionSlide(current,1,banners.length));
     }, Math.max(3,Math.min(15,homeRotateSeconds))*1000);
     return ()=>window.clearInterval(timer);
-  },[banners.length,homeAutoplay,homeRotateSeconds,userPaused,interactionPaused,reducedMotion]);
+  },[banners.length,homeAutoplay,homeRotateSeconds,userPaused,interactionPaused,reducedMotion,canAdvance]);
   const touchStart = e => {swipeStart.current=e.touches[0]?.clientX??null;};
   const touchEnd = e => {
     if(swipeStart.current==null)return;
@@ -95,9 +107,9 @@ export default function PromotionCarousel({ position = "home", category, product
   const handleBlur=e=>{if(!e.currentTarget.contains(e.relatedTarget))setInteractionPaused(false);};
 
   if (!banners.length) return loaded ? fallback : null;
-  const count = Math.min(banners.length, position === "home" ? homeVisibleCount : 2);
+  const count = visibleCount;
   const visible = visiblePromotionWindow(banners,active,count);
-  const rotating = banners.length>1;
+  const rotating = canAdvance;
   return <section className={`nx37-promotion-section ${position === "home" ? "nx37-promotion-home" : "nx37-promotion-inner"}`}
     aria-label="Current store promotions" onMouseEnter={()=>setInteractionPaused(true)} onMouseLeave={()=>setInteractionPaused(false)}
     onFocusCapture={()=>setInteractionPaused(true)} onBlurCapture={handleBlur}
@@ -112,7 +124,7 @@ export default function PromotionCarousel({ position = "home", category, product
           aria-pressed={userPaused} onClick={()=>setUserPaused(p=>!p)}>{userPaused?"▶":"Ⅱ"}</button>}
       </div>}
     </div>
-    <div className={`nx37-promotion-grid nx37-count-${count}${count>3?" nx41-multi-banner":""}`} ref={rail} style={{"--nx41-columns":count}}>
+    <div className={`nx37-promotion-grid nx37-count-${count}${count>3?" nx41-multi-banner":""}`} ref={rail}>
       {visible.map((banner, index) => <PromotionCard key={`${banner.id}-${index}`} banner={banner} primary={index === 0} priority={position === "home" && index === 0} />)}
     </div>
     {rotating && <div className="nx37-promotion-dots" aria-label="Select promotion set">{promotionDotIndices(banners.length,active).map((i) => <button type="button" key={banners[i].id} aria-label={`Start with promotion ${i + 1}`} aria-current={active === i ? "true" : undefined} className={active === i ? "is-active" : ""} onClick={() => setActive(i)} />)}</div>}
