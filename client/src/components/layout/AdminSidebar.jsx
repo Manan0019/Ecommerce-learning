@@ -11,6 +11,7 @@ const navigation = [
   { to: "/admin/banners", label: "Promotions", icon: "▧" },
   { to: "/admin/customers", label: "Customers", icon: "○" },
   { to: "/admin/orders", label: "Orders", icon: "▤" },
+  { to: "/admin/reviews", label: "Customer Reviews", icon: "★" },
   { to: "/admin/delivery", label: "Delivery Executives", icon: "▱" },
   { to: "/admin/analytics", label: "Analytics", icon: "⌁" },
   { to: "/admin/settings", label: "Shipping & Tax", icon: "⚙" },

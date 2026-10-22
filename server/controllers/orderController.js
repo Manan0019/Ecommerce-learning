@@ -130,7 +130,7 @@ async function loadItems(db,orderIds){
   FROM cod_order_items WHERE order_id=ANY($1::bigint[]) ORDER BY id`,[orderIds]);
  const map=new Map();for(const r of result.rows){ const key=String(r.order_id);if(!map.has(key))map.set(key,[]);map.get(key).push({productId:String(r.product_id),variantId:r.variant_id?String(r.variant_id):null,name:r.name_snapshot,sku:r.sku_snapshot,attributes:r.attributes_snapshot,imageUrl:r.image_snapshot,quantity:r.quantity,unitPrice:r.unit_price,lineTotal:r.line_total});}
  const flat=[...map.values()].flat();
- if (flat.some(line=>!line.imageUrl)) {
+ if (flat.length) {
    const filled=await attachOrderImages(db,flat,{preserveSnapshots:true});
    let cursor=0;for(const [id,rows] of map){map.set(id,filled.slice(cursor,cursor+rows.length));cursor+=rows.length;}
  }

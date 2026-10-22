@@ -6,6 +6,7 @@ import {
   listAdminProducts,
   updateProduct,
   updateProductImage,
+  setProductSaleBadge,
   updateProductStatus
 } from "../controllers/productController.js";
 import { deleteProduct } from "../controllers/productDeleteController.js";
@@ -26,6 +27,7 @@ router.get("/:id", getAdminProduct);
 router.post("/", catalogImageUpload.single("image"), createProduct);
 router.put("/:id", updateProduct);
 router.patch("/:id/status", updateProductStatus);
+router.patch("/:id/sale-badge",setProductSaleBadge);
 router.put("/:id/image", catalogImageUpload.single("image"), updateProductImage);
 const productVideoUpload = multer({
  storage:multer.memoryStorage(),

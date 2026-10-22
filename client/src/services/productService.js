@@ -105,3 +105,5 @@ export function assignProductMediaScope(id,mediaId,assignment){
 export function setProductCardCover(id, mediaId) {
   return apiRequest(`/api/admin/products/${id}/media/${mediaId}/card-cover`, {method:"PUT",credentials:"include"});
 }
+
+export function setSaleBadge(id,showSaleBadge){return apiRequest(`/api/admin/products/${id}/sale-badge`,{method:"PATCH",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({showSaleBadge})});}

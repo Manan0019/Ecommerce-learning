@@ -3,6 +3,8 @@ import UiIcon from "../../components/common/UiIcon";
 import { Link } from "react-router-dom";
 import RecentlyViewed from "../../components/customer/RecentlyViewed";
 import ProductCard from "../../components/common/ProductCard";
+import NewsletterPopup from "../../components/customer/NewsletterPopup";
+import FeaturedTestimonials from "../../components/customer/FeaturedTestimonials";
 import PromotionCarousel from "../../components/customer/PromotionCarousel";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import CategoryTile from "../../components/customer/CategoryTile";
@@ -95,6 +97,7 @@ export default function Home() {
 
 
 
+      <FeaturedTestimonials />
       <RecentlyViewed />
 
       <section className="editorial-banner">
@@ -103,5 +106,6 @@ export default function Home() {
         <p>Explore products by category, brand and price, with useful details and a clear shopping cart.</p>
         <Link className="button button-light" to="/products">Browse products</Link>
       </section>
+    <NewsletterPopup />
   </CustomerLayout>;
 }

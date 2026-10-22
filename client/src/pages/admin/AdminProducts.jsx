@@ -4,7 +4,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import Modal from "../../components/common/Modal";
 import AdminProductEditDialog from "../../components/admin/AdminProductEditDialog";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
-import { getAdminProducts, updateProductStatus, deleteProductPermanently } from "../../services/productService";
+import { getAdminProducts, updateProductStatus, deleteProductPermanently, setSaleBadge } from "../../services/productService";
 
 const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
@@ -59,6 +59,13 @@ export default function AdminProducts() {
     finally { setBusyId(null); }
   }
 
+  async function toggleSaleBadge(product) {
+    setBusyId(product.id);setError("");
+    try{const result=await setSaleBadge(product.id,!product.showSaleBadge);
+      setProducts(previous=>previous.map(p=>p.id===product.id?{...p,showSaleBadge:result.showSaleBadge}:p));
+    }catch(e){setError(e.message);}finally{setBusyId(null);}
+  }
+
   async function remove() {
     if (!deleteTarget || deleteConfirmation !== deleteTarget.name) return;
     setBusyId(deleteTarget.id); setError("");
@@ -100,6 +107,7 @@ export default function AdminProducts() {
             <td><div className="admin-row-actions nx-actions">
               <Link className="nx46-view-product" to={`/admin/products/${product.id}/preview`} state={{from:"/admin/products"}}>Preview</Link><button className="nx-edit-button" type="button" onClick={() => setEditor({ id: product.id, name: product.name })}>Edit</button>
               <button type="button" disabled={busyId === product.id} onClick={() => changeStatus(product)}>{product.isActive ? "Deactivate" : "Activate"}</button>
+              <button type="button" disabled={busyId === product.id} title="Manually control the Sale label on customer cards" onClick={() => toggleSaleBadge(product)}>{product.showSaleBadge ? "Hide sale" : "Show sale"}</button>
               <button className="admin-danger-action" type="button" disabled={busyId === product.id} onClick={() => { setDeleteTarget(product); setDeleteConfirmation(""); setError(""); }}>Delete</button>
             </div></td>
           </tr>)}</tbody>
@@ -114,7 +122,8 @@ export default function AdminProducts() {
       {error && <p className="admin-alert" role="alert">{error}</p>}
       <div className="nx-delete-warning"><strong>{deleteTarget.name}</strong><p>All related SKU and media database records will be removed if the server determines deletion is safe. Local image/video files stay on disk for separate cleanup.</p></div>
       <label className="nx-confirm-label">Enter the exact product name to confirm<input autoComplete="off" value={deleteConfirmation} onChange={e => setDeleteConfirmation(e.target.value)} placeholder={deleteTarget.name}/></label>
-      <div className="admin-form-actions"><button className="admin-danger-action" type="button" disabled={busyId !== null || deleteConfirmation !== deleteTarget.name} onClick={remove}>{busyId !== null ? "Deleting…" : "Yes, delete permanently"}</button><button type="button" onClick={() => { setDeleteTarget(null); setDeleteConfirmation(""); }} disabled={busyId !== null}>Cancel</button></div>
+      <div className="admin-form-actions"><button type="button" disabled={busyId === product.id} title="Manually control the Sale label on customer cards" onClick={() => toggleSaleBadge(product)}>{product.showSaleBadge ? "Hide sale" : "Show sale"}</button>
+              <button className="admin-danger-action" type="button" disabled={busyId !== null || deleteConfirmation !== deleteTarget.name} onClick={remove}>{busyId !== null ? "Deleting…" : "Yes, delete permanently"}</button><button type="button" onClick={() => { setDeleteTarget(null); setDeleteConfirmation(""); }} disabled={busyId !== null}>Cancel</button></div>
     </Modal>}
   </AdminLayout>;
 }

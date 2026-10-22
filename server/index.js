@@ -20,6 +20,7 @@ import publicCategoryRoutes from "./routes/publicCategoryRoutes.js";
 import {publicBannerRoutes,adminBannerRoutes} from "./routes/bannerRoutes.js";
 import { publicBrandingRoutes, adminBrandingRoutes } from "./routes/brandingRoutes.js";
 import razorpayRoutes from "./routes/razorpayRoutes.js";
+import engagementRoutes from "./routes/engagementRoutes.js";
 import { razorpayWebhook } from "./controllers/razorpayController.js";
 
 import {admin as adminDeliveryRoutes,delivery as deliveryRoutes,notificationRoutes} from './routes/deliveryRoutes.js';
@@ -75,6 +76,7 @@ app.use("/api/payments/razorpay", razorpayRoutes);
 app.use("/api/orders", customerOrderRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/engagement", engagementRoutes);
 app.use("/api/admin/delivery",adminDeliveryRoutes);
 app.use("/api/delivery",deliveryRoutes);
 app.use("/api/notifications",notificationRoutes);

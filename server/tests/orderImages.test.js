@@ -36,3 +36,15 @@ test('no image fetch needed when all historical order snapshots already exist',a
  const result=await attachOrderImages({query(){throw Error('unnecessary query')}},rows,{preserveSnapshots:true});
  assert.equal(result,rows);
 });
+test('variant order lines prefer selected SKU image over earlier generic snapshot',async()=>{
+ const fake={query:async(sql)=>sql.includes('FROM product_media')?{rows:pictures}:{rows:[{id:9,image_url:'/uploads/products/generic.webp'}]}};
+ const lines=[{productId:'9',variantId:'11',attributes:{Color:'Blue'},imageUrl:'/uploads/products/generic.webp'}];
+ const result=await attachOrderImages(fake,lines,{preserveSnapshots:true});
+ assert.equal(result[0].imageUrl,'/uploads/products/blue.webp');
+});
+test('variant images do not use another colour when exact media is missing',async()=>{
+ const fake={query:async(sql)=>sql.includes('FROM product_media')?{rows:pictures}:{rows:[{id:9,image_url:'/uploads/products/generic.webp'}]}};
+ const lines=[{productId:'9',variantId:'99',attributes:{Color:'Green'},imageUrl:'/uploads/products/generic.webp'}];
+ const result=await attachOrderImages(fake,lines,{preserveSnapshots:true});
+ assert.equal(result[0].imageUrl,null);
+});

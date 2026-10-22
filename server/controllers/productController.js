@@ -68,6 +68,7 @@ function mapProduct(product) {
     displayPrice: product.display_price ?? product.price,
     displayStock: product.display_stock ?? product.stock,
     isFeatured: product.is_featured,
+    showSaleBadge: Boolean(product.show_sale_badge),
     featuredPosition: product.featured_position,
     createdAt: product.created_at,
     updatedAt: product.updated_at
@@ -78,7 +79,7 @@ const productSelect = `
   SELECT p.id, p.name, p.description, p.short_description, p.category_id, c.name AS category_name,
          c.slug AS category_slug, c.is_active AS category_active, p.brand, p.model,
          p.specifications, p.price, p.mrp, p.stock, p.low_stock_threshold, p.gst_percent,
-         p.image_url, p.is_active, p.is_featured, p.featured_position, p.created_at, p.updated_at
+         p.image_url, p.is_active, p.is_featured, p.show_sale_badge, p.featured_position, p.created_at, p.updated_at
   FROM products p
   JOIN categories c ON c.id = p.category_id`;
 
@@ -263,4 +264,15 @@ export async function updateProductImage(req, res) {
     if (!committed) await removeCatalogImage(saved);
     return routeError(res, error, "Replacing product image");
   }
+}
+
+// Explicit merchandising preference; an MRP discount alone never creates a SALE label.
+export async function setProductSaleBadge(req,res) {
+  if(!validId(req.params.id)||typeof req.body?.showSaleBadge!=="boolean")return res.status(400).json({message:"Invalid sale badge option."});
+  try {const {rows}=await pool.query(`UPDATE products p SET show_sale_badge=$1,updated_at=now() WHERE p.id=$2 AND
+    ($1=FALSE OR p.mrp>p.price OR EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id=p.id AND v.is_active AND v.mrp>v.price))
+    RETURNING p.id,p.show_sale_badge`,[req.body.showSaleBadge,req.params.id]);
+    if(!rows.length)return res.status(409).json({message:'Product not found or no discounted price is configured.'});
+    return res.json({showSaleBadge:rows[0].show_sale_badge});
+  }catch(e){return routeError(res,e,'Updating sale badge');}
 }

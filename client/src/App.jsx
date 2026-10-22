@@ -30,6 +30,9 @@ import DeliveryLogin from './pages/delivery/DeliveryLogin';
 import Wishlist from "./pages/customer/Wishlist";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import Home from "./pages/customer/Home";
+import Compare from "./pages/customer/Compare";
+import Faq from "./pages/public/Faq";
+import AdminReviews from "./pages/admin/AdminReviews";
 import ProductDetails from "./pages/customer/ProductDetails";
 import ProductList from "./pages/customer/ProductList";
 import About from "./pages/public/About";
@@ -76,6 +79,7 @@ import "./styles/phase54.css";
 import "./styles/phase55.css";
 import "./styles/phase56.css";
 import "./styles/phase57.css";
+import "./styles/phase61.css";
 
 export default function App() {
   return <StoreErrorBoundary><BrandingProvider><CartProvider><BrowserRouter><RouteExperience /><Routes>
@@ -111,6 +115,9 @@ export default function App() {
     <Route path="/addresses" element={<Addresses />} />
     <Route path="/orders" element={<Orders />} />
     <Route path="/wishlist" element={<Wishlist />} />
+    <Route path="/compare" element={<Compare />} />
+    <Route path="/faq" element={<Faq />} />
+    <Route path="/admin/reviews" element={<AdminReviews />} />
     <Route path="/about" element={<About />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="*" element={<NotFound />} />

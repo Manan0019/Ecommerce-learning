@@ -6,7 +6,7 @@ const colorOf = attributes => {
   const found = Object.entries(attributes).find(([key]) => /^(color|colour)$/i.test(key));
   return normalized(found?.[1]);
 };
-export function selectOrderImage(line, images, fallback = null) {
+export function selectOrderImage(line, images, fallback = null, { exactVariant = false } = {}) {
   const chosenId = line.variantId == null ? '' : String(line.variantId);
   const color = colorOf(line.attributes);
   const candidates = images.filter(media =>
@@ -19,15 +19,17 @@ export function selectOrderImage(line, images, fallback = null) {
     if (media.variant_id == null && media.option_key == null) return 2;
     return 100; // Another colour or variant must never represent this order line.
   }
-  const selected = candidates.filter(media => rank(media) < 100).sort((a,b) =>
+  const selected = candidates.filter(media => rank(media) < (exactVariant ? 2 : 100)).sort((a,b) =>
     rank(a) - rank(b) || Number(Boolean(b.is_card_cover)) - Number(Boolean(a.is_card_cover)) ||
     Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0) || Number(a.id ?? 0) - Number(b.id ?? 0)
   )[0];
-  return selected?.media_url || (typeof fallback === 'string' && fallback.trim() ? fallback : null);
+  return selected?.media_url || (exactVariant ? null : (typeof fallback === 'string' && fallback.trim() ? fallback : null));
 }
 export async function attachOrderImages(db, lines, { preserveSnapshots = false } = {}) {
   if (!lines.length) return lines;
-  const pending = preserveSnapshots ? lines.filter(line => !line.imageUrl?.trim()) : lines;
+  // Check all lines: historical order snapshots may contain only the parent cover.
+  // The response may replace that generic URL when the exact SKU media exists.
+  const pending = preserveSnapshots ? lines.filter(line => !line.imageUrl?.trim() || line.variantId || colorOf(line.attributes)) : lines;
   if (!pending.length) return lines;
   const ids = [...new Set(pending.map(line => String(line.productId)))];
   const [mediaResult, productResult] = await Promise.all([
@@ -37,7 +39,14 @@ export async function attachOrderImages(db, lines, { preserveSnapshots = false }
   ]);
   const fallbackById = new Map(productResult.rows.map(p => [String(p.id), p.image_url]));
   return lines.map(line => {
-    if (preserveSnapshots && line.imageUrl?.trim()) return line;
-    return {...line, imageUrl: selectOrderImage(line, mediaResult.rows, fallbackById.get(String(line.productId)) || line.imageUrl)};
+    const generic=fallbackById.get(String(line.productId)) || null;
+    const hasVariant=Boolean(line.variantId || colorOf(line.attributes));
+    const exact=selectOrderImage(line,mediaResult.rows,null,{exactVariant:hasVariant});
+    // Never replace a distinct historical SKU photo, even when today's gallery changes.
+    if (preserveSnapshots && line.imageUrl?.trim() && line.imageUrl!==generic) return line;
+    if(exact) return {...line,imageUrl:exact};
+    if(hasVariant) return {...line,imageUrl:null}; // Wrong colour is worse than a placeholder.
+    if(preserveSnapshots && line.imageUrl?.trim()) return line;
+    return {...line,imageUrl:selectOrderImage(line,mediaResult.rows,generic||line.imageUrl)};
   });
 }

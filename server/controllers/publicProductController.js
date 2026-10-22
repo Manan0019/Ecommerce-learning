@@ -15,7 +15,7 @@ const selectFields = `
   category.name AS category_name, category.slug AS category_slug,
   product.brand, product.model, product.specifications,
   pricing.effective_price AS price, pricing.effective_mrp AS mrp, pricing.effective_stock AS stock,
-  pricing.has_variants, product.is_featured, product.image_url, product.created_at`;
+  pricing.has_variants, product.is_featured, product.show_sale_badge, product.image_url, product.created_at`;
 
 // One row per parent product, even when it has many variants.
 // Existing products without configured variants retain their original price/stock.
@@ -58,6 +58,7 @@ function asPublicProduct(product) {
     stock: product.stock,
     hasVariants: product.has_variants,
     isFeatured: Boolean(product.is_featured),
+    showSaleBadge: Boolean(product.show_sale_badge),
     imageUrl: product.image_url,
     createdAt: product.created_at
   };

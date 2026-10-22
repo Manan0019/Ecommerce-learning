@@ -2,6 +2,7 @@ import { rememberProduct } from "../../services/recentlyViewed";
 import UiIcon from "../../components/common/UiIcon";
 import AdminProductEditDialog from "../../components/admin/AdminProductEditDialog";
 import WishlistButton from "../../components/customer/WishlistButton";
+import ProductReviews from "../../components/customer/ProductReviews";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
@@ -172,6 +173,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
           </article>)}
         </div>
       </details>}
+      {product && <ProductReviews productId={product.id} adminPreview={adminPreview} />}
       {product && <RelatedProducts productId={product.id} />}
       {adminPreview&&editTab&&<AdminProductEditDialog productId={id} name={product?.name} initialTab={editTab}
         onClose={closeEditor} onSaved={()=>setPreviewVersion(version=>version+1)}/>}

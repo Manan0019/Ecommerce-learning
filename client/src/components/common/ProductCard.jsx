@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import UiIcon from "./UiIcon";
+import StorefrontCardActions from "../customer/StorefrontCardActions";
 import { Link } from "react-router-dom";
 import { apiAssetUrl } from "../../services/apiClient";
 
@@ -52,7 +53,9 @@ export default function ProductCard({ product }) {
         {current ? <img key={current} className="nx29-card-image" src={apiAssetUrl(current)} alt={product.name} loading="lazy" onError={() => { setFailedImages(prev => prev.includes(current) ? prev : [...prev, current]); setActive(0); }} />
           : <div className="missing-image">Image coming soon</div>}
         {product.stock === 0 && <span className="product-badge">Sold out</span>}
+        {product.showSaleBadge && Number(product.stock)>0 && Number(product.mrp)>Number(product.price) && <span className="nx61-sale-label">Sale</span>}
       </Link>
+      <StorefrontCardActions product={product} detailUrl={detailUrl} imageUrl={current || product.imageUrl} />
       {availableImages.length > 1 && <>
         <div className="nx29-card-arrows" aria-label="Preview product images">
           <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}><UiIcon name="chevron-left" size={18}/></button>
