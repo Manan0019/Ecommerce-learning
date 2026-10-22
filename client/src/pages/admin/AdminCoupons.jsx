@@ -1,3 +1,4 @@
+import UiIcon from "../../components/common/UiIcon";
 import {useCallback,useEffect,useState} from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import {apiRequest} from '../../services/apiClient';
@@ -37,7 +38,7 @@ export default function AdminCoupons(){
  <fieldset className="nx63-coupon-fieldset"><legend>Where should this coupon work?</legend>
  <div className="nx63-choice-row">{[['order','Whole order'],['products','Selected products'],['categories','Selected categories']].map(([key,name])=><label key={key} className={form.scope===key?'is-active':''}><input type="radio" name="scope" value={key} checked={form.scope===key} onChange={()=>setForm(f=>({...f,scope:key,productIds:[],categoryIds:[]}))}/>{name}</label>)}</div>
  {form.scope!=='order'&&<div className="nx63-target-picker"><strong>{form.scope==='categories'?'Choose eligible categories':'Choose eligible products'}</strong>{lookupError&&<p role="alert">{lookupError}</p>}
- <input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Search by name…" aria-label="Search coupon targets"/>
+ <input type="search" value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Search by name…" aria-label="Search coupon targets"/>
  <div className="nx63-target-list">{displayed.map(p=>{const key=form.scope==='categories'?'categoryIds':'productIds';const id=Number(p.id);return <label key={p.id}><input type="checkbox" checked={form[key].includes(id)} onChange={e=>updateMulti(key,id,e.target.checked)}/><span>{p.name||p.title} <small>#{p.id}</small></span></label>;})}</div>
  <small>{form.scope==='categories'?form.categoryIds.length:form.productIds.length} selected. Search all catalog records, up to 80 matches per search.</small>
  </div>}
@@ -58,6 +59,6 @@ export default function AdminCoupons(){
  </section>
  <button type="submit" className="admin-primary-action" disabled={busy}>{busy?'Saving…':editing?'Update coupon draft':'Save coupon draft'}</button>{editing&&<button className="nx62-secondary" type="button" onClick={reset}>Cancel editing</button>}
  </form>
- <div className="nx62-coupon-list"><h2>Saved coupon rules</h2>{!coupons.length?<p>No coupon drafts created yet.</p>:coupons.map(c=><article key={c.code} className="nx62-coupon-item nx63-coupon-item"><div><strong>{c.code}</strong><small>{c.kind==='percent'?`${c.value}% off`:`₹${c.value} off`} · {c.scope==='products'?'Specific products':c.scope==='categories'?'Specific categories':'Whole order'}</small><small>Min cart ₹{c.minimumSubtotal} · Limit {c.maxRedemptions} · Draft</small></div><div className="nx63-coupon-actions"><button type="button" disabled={busy} onClick={()=>beginEdit(c)}>Edit</button><button type="button" disabled={busy} onClick={()=>remove(c.code)}>Delete</button></div></article>)}</div>
+ <div className="nx62-coupon-list"><h2>Saved coupon rules</h2>{!coupons.length?<p>No coupon drafts created yet.</p>:coupons.map(c=><article key={c.code} className="nx62-coupon-item nx63-coupon-item"><div><strong>{c.code}</strong><small>{c.kind==='percent'?`${c.value}% off`:`₹${c.value} off`} · {c.scope==='products'?'Specific products':c.scope==='categories'?'Specific categories':'Whole order'}</small><small>Min cart ₹{c.minimumSubtotal} · Limit {c.maxRedemptions} · Draft</small></div><div className="nx63-coupon-actions nx69-row-actions"><button type="button" className="nx69-icon-action" aria-label={`Edit coupon ${c.code}`} title="Edit draft" disabled={busy} onClick={()=>beginEdit(c)}><UiIcon name="edit" size={18}/></button><button type="button" className="nx69-icon-action nx69-icon-danger" title="Delete draft" aria-label={`Delete coupon ${c.code}`} disabled={busy} onClick={()=>remove(c.code)}><UiIcon name="trash" size={18}/></button></div></article>)}</div>
  </section></AdminLayout>;
 }

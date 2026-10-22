@@ -2,6 +2,7 @@ import {useEffect,useState} from "react";
 import PromotionCategorySelect from "../../components/admin/PromotionCategorySelect";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Modal from "../../components/common/Modal";
+import UiIcon from "../../components/common/UiIcon";
 import PromotionProductPicker from "../../components/admin/PromotionProductPicker";
 import {apiAssetUrl} from "../../services/apiClient";
 import {getAdminCategories} from "../../services/categoryService";
@@ -55,6 +56,7 @@ function PromotionLayoutPreview({count}){
 
 export default function AdminBanners(){
   const [items,setItems]=useState([]),[categories,setCategories]=useState([]),[draft,setDraft]=useState(blank),[editing,setEditing]=useState(null);
+  const [promotionSearch,setPromotionSearch]=useState(""),[promotionFilter,setPromotionFilter]=useState("all");
   const [opened,setOpened]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
   const [homeCount,setHomeCount]=useState(3),[homeAutoplay,setHomeAutoplay]=useState(true),[homeRotateSeconds,setHomeRotateSeconds]=useState(6),[savingDisplay,setSavingDisplay]=useState(false);
   async function reload(){const [b,c]=await Promise.all([getAdminBanners(),getAdminCategories()]);setItems(b.banners||[]);setCategories(c.categories||[]);setHomeCount(b.homeVisibleCount??3);setHomeAutoplay(b.homeAutoplay??true);setHomeRotateSeconds(b.homeRotateSeconds??6);}
@@ -117,22 +119,23 @@ export default function AdminBanners(){
       <label><span>Visible banners</span><select value={homeCount} onChange={e=>setHomeCount(Number(e.target.value))}>
         {[1,2,3,4,5,6].map(n=><option key={n} value={n}>{({1:"1 · Full-width",2:"2 · Side by side",3:"3 · Featured + 2 (original)",4:"4 · 2 × 2 balanced",5:"5 · Featured + 4 mosaic",6:"6 · Twin features + 4 tiles"})[n]}</option>)}
       </select></label>
-      <label className="nx41-autoplay-toggle"><span>Automatic slideshow</span><input type="checkbox" checked={homeAutoplay} onChange={e=>setHomeAutoplay(e.target.checked)} aria-label="Automatically rotate promotion banners"/></label>
+      <label className="nx41-autoplay-toggle"><input type="checkbox" checked={homeAutoplay} onChange={e=>setHomeAutoplay(e.target.checked)} aria-label="Automatically rotate promotion banners"/><span>Automatic slideshow</span></label>
       <label><span>Change banner every</span><select value={homeRotateSeconds} disabled={!homeAutoplay} onChange={e=>setHomeRotateSeconds(Number(e.target.value))}>
         {[3,4,5,6,7,8,9,10,12,15].map(n=><option key={n} value={n}>{n} seconds</option>)}
       </select></label>
-      <button type="button" className="admin-primary-action" disabled={savingDisplay} onClick={saveDisplay}>{savingDisplay?"Saving…":"Save layout"}</button>
+      <button type="button" className="admin-primary-action" disabled={savingDisplay} onClick={saveDisplay}><><UiIcon name="save" size={17}/>{savingDisplay?"Saving…":"Save layout"}</></button>
       <PromotionLayoutPreview count={homeCount}/>
     </div>
     <PromotionOrderManager items={items} onSaved={reload}/>
     <div className="nx39-section-heading"><span className="nx39-eyebrow">BANNER LIBRARY</span><h2>All promotions</h2><p>Modify content, placement, destination, visibility and schedule here.</p></div>
-    <section className="nx17-admin-banner-grid">{items.map((item,i)=><article className="nx17-banner-card nx39-library-card" key={item.id}>
+    <div className="nx69-promotion-toolbar"><label className="admin-search nx69-search"><span className="sr-only">Search promotions</span><UiIcon name="search" size={19}/><input type="search" placeholder="Search promotions" value={promotionSearch} onChange={e=>setPromotionSearch(e.target.value)}/></label><select aria-label="Filter promotions by status" value={promotionFilter} onChange={e=>setPromotionFilter(e.target.value)}><option value="all">All promotions</option><option value="live">Live</option><option value="scheduled">Scheduled</option><option value="disabled">Not live</option></select></div>
+    <section className="nx17-admin-banner-grid">{items.filter(item=>(!promotionSearch||`${item.title} ${item.subtitle||''} ${placementLabel(item)}`.toLowerCase().includes(promotionSearch.toLowerCase()))&&(promotionFilter==='all'||(promotionFilter==='disabled'?bannerStatus(item)!=='Live':bannerStatus(item).toLowerCase()===promotionFilter))).map((item,i)=><article className="nx17-banner-card nx39-library-card" key={item.id}>
       <img src={apiAssetUrl(item.imageUrl)} alt="" loading="lazy"/><div><div className="nx39-card-titles"><strong>{item.title}</strong><span className={`nx39-status nx39-${bannerStatus(item).toLowerCase()}`}>{bannerStatus(item)}</span></div>
       <p><strong>#{i+1}</strong> · {placementLabel(item)} · {item.showText===false?"Image only":"Text overlay"}</p>
       <p className="nx19-banner-destination">Redirects to: <code>{item.linkUrl}</code></p>
       {(item.startsAt||item.endsAt)&&<p className="nx39-schedule-caption">{item.startsAt?`From ${new Date(item.startsAt).toLocaleString()}`:"Immediately"} / {item.endsAt?new Date(item.endsAt).toLocaleString():"No end date"}</p>}
-      <div className="nx17-banner-actions"><button type="button" onClick={()=>edit(item)}>Edit</button>
-        <button type="button" disabled={busy} onClick={()=>toggle(item)}>{item.isActive?"Disable":"Enable"}</button></div></div>
+      <div className="nx17-banner-actions nx69-row-actions"><button className="nx69-icon-action" type="button" onClick={()=>edit(item)} aria-label={`Edit ${item.title}`} title="Edit promotion"><UiIcon name="edit" size={18}/></button>
+        <button className={`nx69-icon-action ${item.isActive?'nx69-icon-danger':''}`} type="button" disabled={busy} onClick={()=>toggle(item)} aria-label={`${item.isActive?'Disable':'Enable'} ${item.title}`} title={item.isActive?'Disable promotion':'Enable promotion'}><UiIcon name={item.isActive?'ban':'check'} size={18}/></button></div></div>
     </article>)}{!items.length&&<div className="admin-empty">No promotions yet. Add a banner to get started.</div>}</section>
     {opened&&<Modal title={editing?"Edit promotion":"New promotion"} size="medium" onClose={()=>!busy&&setOpened(false)} closeDisabled={busy}>
       <form className="admin-form nx17-banner-form" onSubmit={submit}>

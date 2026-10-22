@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "../common/Modal";
+import UiIcon from "../common/UiIcon";
 import { moveSelectedMedia } from "./mediaSelectionOrder";
 import { getVariants } from "../../services/variantService";
 import { apiAssetUrl } from "../../services/apiClient";
@@ -271,7 +272,7 @@ export default function ProductMediaManager({ productId, initialFeatured = false
           <button type="button" disabled={busy} onClick={() => { setAssignment(item); setAssignmentScope(initialScope(item)); setError(""); }}>Visibility</button>
           {item.type === "image" && <button type="button" disabled={busy || item.url === coverUrl} onClick={() => void setCover(item)}>Main cover</button>}
           {item.type === "image" && (item.optionKey || item.variantId) && <button type="button" disabled={busy || item.isCardCover} onClick={() => void setCardCover(item)}>Color/SKU card cover</button>}
-          <button type="button" className="nx15-remove" disabled={busy} onClick={() => { setRemoval(item); setError(""); }}>Remove</button>
+          <button type="button" className="nx69-icon-action nx69-icon-danger" title="Remove media" aria-label="Remove media" disabled={busy} onClick={() => { setRemoval(item); setError(""); }}><UiIcon name="trash" size={18}/></button>
         </div>
       </article>)}
     </div>

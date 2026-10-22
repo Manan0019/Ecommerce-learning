@@ -28,8 +28,8 @@ export default function PromotionOrderManager({ items, onSaved }) {
   return <section className="nx39-order-panel" aria-label="Promotion positions">
     <div className="nx39-order-top"><div><span className="nx39-eyebrow">DISPLAY SEQUENCE</span><h2>Promotion positions</h2>
       <p>Position 1 appears first. Drag a banner, choose its number, or use the move controls. All locations share this order.</p></div>
-      <div className="nx39-order-actions"><button type="button" disabled={!dirty||busy} onClick={()=>{setPendingIds(null);setMessage("");}}>Discard</button>
-        <button type="button" className="admin-primary-action" disabled={!dirty||busy} onClick={save}>{busy?"Saving…":"Save positions"}</button></div>
+      <div className="nx39-order-actions"><button type="button" className="nx69-icon-action nx69-icon-danger" title="Discard unsaved order changes" aria-label="Discard unsaved order changes" disabled={!dirty||busy} onClick={()=>{setPendingIds(null);setMessage("");}}><UiIcon name="x" size={18}/><span className="sr-only">Discard changes</span></button>
+        <button type="button" className="admin-primary-action" disabled={!dirty||busy} onClick={save}><UiIcon name="save" size={17}/>{busy?"Saving…":"Save positions"}</button></div>
     </div>
     {message&&<p className="nx39-feedback" role="status">{message}</p>}
     <ol className="nx39-order-list">{ids.map((id,i)=>{

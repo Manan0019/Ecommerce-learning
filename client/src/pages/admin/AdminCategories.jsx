@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Modal from "../../components/common/Modal";
+import UiIcon from "../../components/common/UiIcon";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import {
   createCategory,
@@ -11,10 +12,25 @@ import {
   updateCategoryStatus
 } from "../../services/categoryService";
 
+function categoryPath(category, categories) {
+  if (!category) return '';
+  const segments=[category.name], seen=new Set([String(category.id)]);
+  let current=category;
+  while (current.parentId && !seen.has(String(current.parentId))) {
+    seen.add(String(current.parentId));
+    const parent=categories.find(item=>String(item.id)===String(current.parentId));
+    if (!parent) break;
+    segments.unshift(parent.name);current=parent;
+  }
+  return segments.join(' / ');
+}
 export default function AdminCategories() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [query, setQuery] = useState("");
+  const [layout,setLayout]=useState('table');
+  const [levelFilter,setLevelFilter]=useState('all');
+  const [statusFilter,setStatusFilter]=useState('all');
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
   const [menuIcon, setMenuIcon] = useState(null);
@@ -52,10 +68,27 @@ export default function AdminCategories() {
 
   const filteredCategories = useMemo(() => {
     const cleanQuery = query.trim().toLowerCase();
-    if (!cleanQuery) return categories;
-    return categories.filter((category) =>
-      `${category.name} ${category.slug}`.toLowerCase().includes(cleanQuery));
-  }, [categories, query]);
+    return categories.filter(category => {
+      const path=categoryPath(category,categories);
+      return (!cleanQuery || `${path} ${category.slug}`.toLowerCase().includes(cleanQuery))
+        && (levelFilter==='all'||(levelFilter==='root'?!category.parentId:Boolean(category.parentId)))
+        && (statusFilter==='all'||(statusFilter==='active'?category.isActive:!category.isActive));
+    });
+  }, [categories, query,levelFilter,statusFilter]);
+  const parentChoices = useMemo(()=>categories.filter(candidate=>{
+    if(String(candidate.id)===String(editing?.id))return false;
+    if(!editing)return true;
+    let cursor=candidate;
+    const visited=new Set();
+    while(cursor&&!visited.has(String(cursor.id))){
+      if(String(cursor.id)===String(editing.id))return false;
+      visited.add(String(cursor.id));
+      cursor=categories.find(item=>String(item.id)===String(cursor.parentId));
+    }
+    return true;
+  }).sort((a,b)=>categoryPath(a,categories).localeCompare(categoryPath(b,categories))),[categories,editing?.id]);
+  const selectedParent=categories.find(c=>String(c.id)===String(parentId));
+  const newPath=`${selectedParent?`${categoryPath(selectedParent,categories)} / `:''}${name.trim()||'New category'}`;
 
   function resetForm() {
     setName("");
@@ -162,7 +195,7 @@ export default function AdminCategories() {
     actions={<button type="button" className="admin-primary-action" onClick={() => { setEditing(null); setName(""); setImage(null); setParentId(""); setError(""); setMessage(""); setModalOpen(true); }}>+ Add category</button>}>
     <div className="admin-category-layout nx-category-layout">
       {modalOpen && <Modal title={editing ? "Edit category" : "Add category"} subtitle="Choose a cover image and an optional square icon for the dropdown." size="medium" closeDisabled={saving} onClose={resetForm}>
-      <section className="admin-panel admin-form-panel admin-category-form">
+      <section className="admin-panel admin-form-panel admin-category-form nx69-category-form">
         <div className="admin-panel-heading">
           <div>
             <h2>{editing ? "Edit category" : "Create category"}</h2>
@@ -171,7 +204,9 @@ export default function AdminCategories() {
           {editing && <button className="admin-text-button" type="button" onClick={resetForm}>Cancel</button>}
         </div>
         <form className="admin-form" onSubmit={saveCategory}>
-          <label>Parent category <select value={parentId} onChange={event=>setParentId(event.target.value)}><option value="">Top-level category</option>{categories.filter(c=>String(c.id)!==String(editing?.id)).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+          <div className="nx69-category-guide"><h3>Where will this category appear?</h3><p>Choose <strong>Main category</strong> for a new department. To add a subcategory, choose the department it belongs to. For a deeper level, choose the existing subcategory as its parent.</p><div className="nx69-category-steps"><span>1 · Main category</span><span>2 · Subcategory</span><span>3 · Nested category</span></div></div>
+          <label>Place inside <select value={parentId} onChange={event=>setParentId(event.target.value)}><option value="">Main category — top level</option>{parentChoices.map(c=><option key={c.id} value={c.id}>{categoryPath(c,categories)}</option>)}</select></label>
+          <p className="nx69-category-preview" aria-live="polite"><UiIcon name="grid" size={17}/> Category path: <strong>{newPath}</strong></p>
           <label><span className="nx34-field-label">Category name <b className="nx34-required" aria-hidden="true">*</b></span>
             <input value={name} onChange={(event) => setName(event.target.value)}
               minLength={2} maxLength={80} required />
@@ -218,20 +253,26 @@ export default function AdminCategories() {
         </form>
       </Modal>}
 
-      <section className="admin-panel admin-category-list">
+      <section className="admin-panel admin-category-list nx69-category-directory">
         {message && !modalOpen && !deleting && <p role="status" className="admin-form-message">{message}</p>}
         {error && !modalOpen && !deleting && <p role="alert" className="admin-alert">{error}</p>}
         <div className="admin-panel-heading admin-category-heading">
-          <div><h2>Category directory</h2><p>Empty leaf categories can be permanently deleted; those in use can be deactivated.</p></div>
-          <label className="admin-search">
-            <span className="sr-only">Search categories</span>
-            <input type="search" placeholder="Search categories" value={query}
-              onChange={(event) => setQuery(event.target.value)} />
-          </label>
+          <div><h2>Category directory</h2><p>Browse departments and nested categories. Select a category to edit its name, placement or images.</p></div>
+        </div>
+        <div className="nx69-category-toolbar">
+          <label className="admin-search nx69-search"><span className="sr-only">Search categories</span><UiIcon name="search" size={18}/><input type="search" placeholder="Search categories or paths" value={query} onChange={event=>setQuery(event.target.value)}/></label>
+          <select aria-label="Filter by category level" value={levelFilter} onChange={e=>setLevelFilter(e.target.value)}><option value="all">All levels</option><option value="root">Main categories</option><option value="nested">Subcategories</option></select>
+          <select aria-label="Filter by category status" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+          <div className="nx69-view-switch" aria-label="Directory layout"><button type="button" aria-label="Table view" aria-pressed={layout==='table'} onClick={()=>setLayout('table')}><UiIcon name="grid" size={17}/><span>Table</span></button><button type="button" aria-label="Card view" aria-pressed={layout==='cards'} onClick={()=>setLayout('cards')}><UiIcon name="images" size={17}/><span>Cards</span></button></div>
         </div>
         {loading ? <div className="admin-empty">Loading categories…</div>
           : categories.length === 0 ? <div className="admin-empty">No categories yet. Create the first category.</div>
           : filteredCategories.length === 0 ? <div className="admin-empty">No categories match “{query}”.</div>
+          : layout==='table' ? <div className="admin-table-wrap nx69-category-table-wrap"><table className="admin-table nx69-category-table"><thead><tr><th>Category / path</th><th>Level</th><th>Products</th><th>Status</th><th>Manage</th></tr></thead><tbody>{filteredCategories.map(category=><tr key={category.id}>
+             <td><div className="nx69-category-name-cell">{category.imageUrl?<img src={apiAssetUrl(category.imageUrl)} alt=""/>:<span className="nx69-category-initial">{category.name.slice(0,1)}</span>}<span><strong>{category.name}</strong><small>{categoryPath(category,categories)}</small></span></div></td>
+             <td>{category.parentId?'Subcategory':'Main category'}</td><td>{category.productCount}</td><td><span className={`admin-status ${category.isActive?'is-active':'is-inactive'}`}>{category.isActive?'Active':'Inactive'}</span></td>
+             <td><div className="admin-row-actions nx69-row-actions"><button className="nx69-icon-action" type="button" onClick={()=>beginEdit(category)} aria-label={`Edit ${category.name}`} title="Edit category"><UiIcon name="edit" size={17}/></button><button className="nx69-icon-action" type="button" disabled={busyId===category.id} onClick={()=>changeStatus(category)} aria-label={`${category.isActive?'Deactivate':'Activate'} ${category.name}`} title={category.isActive?'Deactivate':'Activate'}><UiIcon name={category.isActive?'ban':'check'} size={17}/></button><button className="nx69-icon-action nx69-icon-danger" type="button" disabled={busyId===category.id} onClick={()=>{setDeleting(category);setDeleteName('');setError('');setMessage('');}} aria-label={`Delete ${category.name}`} title="Delete category"><UiIcon name="trash" size={17}/></button></div></td>
+            </tr>)}</tbody></table></div>
           : <div className="admin-category-grid">
             {filteredCategories.map((category) => <article className="admin-category-card" key={category.id}>
               <div className="admin-category-image">
@@ -245,11 +286,9 @@ export default function AdminCategories() {
                   <div><dt>Status</dt><dd><span className={`admin-status ${category.isActive ? "is-active" : "is-inactive"}`}>
                     {category.isActive ? "Active" : "Inactive"}</span></dd></div></dl>
                 <div className="admin-row-actions">
-                  <button type="button" onClick={() => beginEdit(category)}>Edit</button>
-                  <button type="button" disabled={busyId === category.id} onClick={() => changeStatus(category)}>
-                    {busyId === category.id ? "Saving…" : category.isActive ? "Deactivate" : "Activate"}
-                  </button>
-                  <button type="button" className="nx21-delete-button" disabled={busyId === category.id} onClick={() => { setDeleting(category); setDeleteName(""); setError(""); setMessage(""); }}>Delete</button>
+                  <button type="button" className="nx69-icon-action" aria-label={`Edit ${category.name}`} title="Edit category" onClick={() => beginEdit(category)}><UiIcon name="edit" size={18}/></button>
+                  <button type="button" className="nx69-icon-action" aria-label={`${category.isActive?'Deactivate':'Activate'} ${category.name}`} title={category.isActive?'Deactivate':'Activate'} disabled={busyId === category.id} onClick={() => changeStatus(category)}><UiIcon name={category.isActive?'ban':'check'} size={18}/></button>
+                  <button type="button" className="nx69-icon-action nx69-icon-danger" aria-label={`Delete ${category.name}`} title="Delete category" disabled={busyId === category.id} onClick={() => { setDeleting(category); setDeleteName(""); setError(""); setMessage(""); }}><UiIcon name="trash" size={18}/></button>
                 </div>
               </div>
             </article>)}

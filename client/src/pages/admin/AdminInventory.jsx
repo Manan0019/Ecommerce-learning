@@ -25,7 +25,7 @@ export default function AdminInventory(){
           <td>{item.available}</td><td>{item.threshold}</td><td><span className={item.available===0?'nx24-out':'nx24-low'}>{item.available===0?'Out of stock':'Low stock'}</span></td>
           <td><button className="nx50-inventory-edit" type="button"
             onClick={() => setEditor({id:item.productId,name:item.productName,tab:item.variantId?'variants':'details'})}>
-            Update stock <UiIcon name="right" size={17}/></button></td>
+            Update stock <UiIcon name="edit" size={17}/></button></td>
         </tr>)}</tbody></table></div>}
       {(data?.summary.total||0)>500&&<p>Showing the first 500 alerts. More inventory requires attention.</p>}
     </section>

@@ -61,7 +61,7 @@ export default function CartPage() {
                   disabled={!item.available || item.quantity >= 99 || item.quantity >= item.availableStock}
                   onClick={() => updateQuantity(item.productId,item.quantity + 1,item.variantId)}>+</button>
               </div>
-              <button type="button" className="remove-button" onClick={() => removeFromCart(item.productId,item.variantId)}>Remove</button>
+              <button type="button" className="remove-button nx69-icon-action nx69-icon-danger" title="Remove from cart" aria-label={`Remove ${item.name} from cart`} onClick={() => removeFromCart(item.productId,item.variantId)}><UiIcon name="trash" size={18}/></button>
               {!item.available && item.productId && <Link className="text-link" to={`/products/${item.productId}`}>Review product options</Link>}
             </div>
           </div>

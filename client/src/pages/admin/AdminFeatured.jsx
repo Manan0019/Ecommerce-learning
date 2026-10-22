@@ -1,3 +1,4 @@
+import UiIcon from "../../components/common/UiIcon";
 import {useCallback,useEffect,useState} from 'react';
 import {Link} from 'react-router-dom';
 import AdminLayout from '../../components/layout/AdminLayout';
@@ -20,7 +21,7 @@ export default function AdminFeatured(){
     {error&&<p className="admin-alert" role="alert">{error}</p>}
     {notice&&<p className="admin-form-message" role="status">{notice}</p>}
     <section className="admin-panel nx24-featured-panel">
-      <header className="nx24-panel-header"><div><h2>Homepage display order</h2><p>{items.length} parent products. Each appears once, regardless of its SKUs.</p></div><div className="nx24-actions"><button type="button" className="admin-secondary-action" disabled={!dirty||saving} onClick={()=>load().catch(e=>setError(e.message))}>Discard</button><button type="button" className="admin-primary-action" disabled={!dirty||saving} onClick={save}>{saving?'Saving…':'Save order'}</button></div></header>
+      <header className="nx24-panel-header"><div><h2>Homepage display order</h2><p>{items.length} parent products. Each appears once, regardless of its SKUs.</p></div><div className="nx24-actions"><button type="button" className="nx69-icon-action nx69-icon-danger" aria-label="Discard unsaved featured order" title="Discard" disabled={!dirty||saving} onClick={()=>load().catch(e=>setError(e.message))}><UiIcon name="x" size={18}/></button><button type="button" className="admin-primary-action" disabled={!dirty||saving} onClick={save}><><UiIcon name="save" size={17}/>{saving?'Saving…':'Save order'}</></button></div></header>
       {items.length===0?<div className="admin-empty">Nothing featured yet. Search below to add a product.</div>:<ol className="nx24-featured-list" aria-label="Featured product ranking">
         {items.map((item,index)=><li key={item.id} draggable={!saving}
           onDragStart={e=>{e.dataTransfer.effectAllowed='move';setDragged(index);}}
@@ -33,7 +34,7 @@ export default function AdminFeatured(){
           <label className="nx24-jump">Position<select aria-label={`Move ${item.name} to position`} value={index} disabled={saving} onChange={e=>move(index,Number(e.target.value))}>
             {items.map((_,i)=><option key={i} value={i}>{i+1}</option>)}
           </select></label>
-          <button type="button" className="admin-danger-action" disabled={saving} onClick={()=>change(item.id,false)}>Remove</button>
+          <button type="button" className="nx69-icon-action nx69-icon-danger" disabled={saving} title="Remove featured product" aria-label={`Remove ${item.name} from featured`} onClick={()=>change(item.id,false)}><UiIcon name="trash" size={18}/></button>
         </li>)}
       </ol>}
       <p className="nx24-helper">Drag and drop the row to a new position. Use the position selector if dragging isn't convenient. Save once when finished.</p>

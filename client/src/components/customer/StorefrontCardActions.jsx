@@ -38,7 +38,7 @@ export default function StorefrontCardActions({product,detailUrl,imageUrl}) {
     {!needsOptions && Number(product.stock)>0 && <button className="nx61-quick-add" type="button" onClick={quickAdd}>
       <UiIcon name="bag" size={17}/>Quick Add
     </button>}
-    {message&&<span role="status" className="nx61-card-feedback">{message}</span>}
+    {message&&<span role="status" className="nx61-card-feedback">{message} {message.includes('compare') && <Link to="/compare" className="nx69-feedback-link">View comparison</Link>}</span>}
     {quick&&<Modal size="large" title="Quick view" onClose={()=>setQuick(false)}>
       <ProductQuickView productId={parentId} detailUrl={detailUrl} onAdd={(id,qty,variantId)=>{addToCart(id,qty,variantId);setQuick(false);setMessage('Added to cart');}}/>
     </Modal>}

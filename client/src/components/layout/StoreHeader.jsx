@@ -29,6 +29,8 @@ export default function StoreHeader() {
   const profileRef = useRef(null);
   const searchRef = useRef(null);
   const [user, setUser] = useState(null);
+  const [compareCount, setCompareCount] = useState(() => { try { return JSON.parse(localStorage.getItem('nexora_comparisons_v1')||'[]').length; } catch { return 0; } });
+  useEffect(() => { const sync = () => { try { setCompareCount(JSON.parse(localStorage.getItem('nexora_comparisons_v1')||'[]').length); } catch { setCompareCount(0); } }; window.addEventListener('nexora:compare-changed',sync); window.addEventListener('storage',sync); return () => {window.removeEventListener('nexora:compare-changed',sync);window.removeEventListener('storage',sync);}; }, []);
   const [storeCopy,setStoreCopy]=useState(null);
   useEffect(()=>{const controller=new AbortController();getStorefrontCopy(controller.signal).then(d=>{if(!controller.signal.aborted)setStoreCopy(d.copy);}).catch(()=>{});return ()=>controller.abort();},[]);
   const [query, setQuery] = useState("");
@@ -174,6 +176,7 @@ export default function StoreHeader() {
         {user?.role === "customer" && <NotificationBell />}
         {user?.role === "admin" && <Link className="admin-return-link" to="/admin/dashboard">Admin Dashboard</Link>}
         {user?.role === "delivery" && <Link className="admin-return-link" to="/delivery/dashboard">Delivery workspace</Link>}
+        {user?.role !== "delivery" && <Link className="nx69-header-compare" to="/compare" title="Compare products" aria-label={`Compare products (${compareCount} selected)`}><UiIcon name="compare" size={22}/>{compareCount > 0 && <span className="nx69-compare-count">{compareCount}</span>}</Link>}
         {user?.role !== "delivery" && <Link className="wishlist-header-link nx34-wishlist-icon" to="/wishlist" aria-label="View wishlist" title="Wishlist"><HeartIcon /></Link>}
         {user?.role !== "delivery" && <Link className="cart-link" to="/cart" aria-label={`Cart with ${itemCount} items`}>
           <CartIcon />
@@ -189,6 +192,7 @@ export default function StoreHeader() {
           {profileOpen && <div className="profile-dropdown" role="menu">
             <p>{user.fullName}</p>
             {user.role === "admin" ? <Link role="menuitem" to="/admin/dashboard" onClick={() => setProfileOpen(false)}>Back to Admin Dashboard</Link> : user.role === "delivery" ? <Link role="menuitem" to="/delivery/dashboard" onClick={() => setProfileOpen(false)}>Delivery workspace</Link> : <><Link role="menuitem" to="/dashboard" onClick={() => setProfileOpen(false)}>My Profile</Link><Link role="menuitem" to="/orders" onClick={() => setProfileOpen(false)}>My Orders</Link><Link role="menuitem" to="/addresses" onClick={() => setProfileOpen(false)}>Saved Addresses</Link></>}
+            {user.role !== 'delivery' && <Link role="menuitem" to="/compare" onClick={() => setProfileOpen(false)}>Compare products ({compareCount})</Link>}
             {user.role !== 'delivery' && <Link role="menuitem" to="/wishlist" onClick={() => setProfileOpen(false)}>Wishlist</Link>}
             <button role="menuitem" type="button" onClick={logout}>Logout</button>
             {authError && <small role="alert">{authError}</small>}
