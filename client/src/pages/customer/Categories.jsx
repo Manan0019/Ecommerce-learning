@@ -26,7 +26,7 @@ export default function Categories() {
         return <section className="nx37-category-group" key={category.id}>
           <CategoryTile category={category} index={index} directory />
           {children.length > 0 && <div className="nx37-subcategory-row" aria-label={`${category.name} subcategories`}>
-            {children.map(child => <Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>{child.name}<UiIcon name="up-right" size={17}/></Link>)}
+            {children.map(child => <Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>{child.name}<UiIcon name="chevron-right" size={17}/></Link>)}
           </div>}
         </section>;
       })}

@@ -136,7 +136,7 @@ export default function ProductList() {
       <header className="catalogue-hero">
         <div className="nx25-hero-copy"><p className="eyebrow">Discover products across every category</p>
         <h1>{category?.name || "Explore our collection"}</h1></div>
-        <Link to="/categories" className="nx48-hero-collections">Explore collections <UiIcon name="up-right" size={18} /></Link>
+        <Link to="/categories" className="nx48-hero-collections">Explore collections <UiIcon name="chevron-right" size={18} /></Link>
       </header>
 
       {activeCategory && <nav className="nx18-category-breadcrumb" aria-label="Category hierarchy">
@@ -149,7 +149,7 @@ export default function ProductList() {
       <section className="nx48-departments" aria-label="Browse departments">
         <div className="nx48-departments-top">
           <div><span className="nx48-section-kicker">CURATED DEPARTMENTS</span><h2>Explore collections</h2></div>
-          <Link to="/categories" className="nx48-departments-all">All categories <UiIcon name="up-right" size={17}/></Link>
+          <Link to="/categories" className="nx48-departments-all">All categories <UiIcon name="chevron-right" size={17}/></Link>
         </div>
         <div className="nx48-department-track" role="group" aria-label="Choose a department">
           <button type="button" className={`nx48-department ${!selectedCategory ? "is-active" : ""}`}
@@ -177,7 +177,7 @@ export default function ProductList() {
       {category&&categories.some(c=>String(c.parentId)===String(category.id))&&<section className="nx17-subcategories" aria-label={`Shop ${category.name} subcategories`}>
         <h2>Explore {category.name}</h2>
         <div className="nx17-subcategory-shelf">{categories.filter(c=>String(c.parentId)===String(category.id)).map(child=><Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>
-          <CategoryArtwork category={child} /><strong>{child.name}</strong><span className="nx34-category-action" aria-hidden="true">Explore <UiIcon name="up-right" size={17}/></span></Link>)}</div>
+          <CategoryArtwork category={child} /><strong>{child.name}</strong><span className="nx34-category-action" aria-hidden="true">Explore <UiIcon name="chevron-right" size={17}/></span></Link>)}</div>
       </section>}
 
       <div className="catalogue-results-bar">

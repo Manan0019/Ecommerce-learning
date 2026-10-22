@@ -134,9 +134,9 @@ export default function CustomerDashboard() {
       <div className="nx37-account-heading"><div><span className="eyebrow">YOUR SPACE</span><h1>Good to see you, {user.fullName?.split(" ")[0] || "there"}.</h1><p>Everything about your account in one place.</p></div><span className="nx37-account-illustration" aria-hidden="true">✦</span></div>
       <div className="nx37-account-identity"><div className="nx35-account-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20c.35-4.25 3.1-6.35 7.2-6.35s6.85 2.1 7.2 6.35"/></svg></div><div><strong>{user.fullName}</strong><span>{user.email}</span><small>{user.mobileNumber || "Mobile number not available"}</small></div></div>
       <nav className="nx37-account-shortcuts" aria-label="Account shortcuts">
-        <Link to="/orders"><span aria-hidden="true">▣</span><strong>My orders</strong><small>View order status and totals</small><em aria-hidden="true"><UiIcon name="up-right" size={17}/></em></Link>
-        <Link to="/addresses"><span aria-hidden="true">⌂</span><strong>Saved addresses</strong><small>Manage where orders arrive</small><em aria-hidden="true"><UiIcon name="up-right" size={17}/></em></Link>
-        <Link to="/wishlist"><span aria-hidden="true">♡</span><strong>Favourites</strong><small>Return to things you loved</small><em aria-hidden="true"><UiIcon name="up-right" size={17}/></em></Link>
+        <Link to="/orders"><span aria-hidden="true">▣</span><strong>My orders</strong><small>View order status and totals</small><em aria-hidden="true"><UiIcon name="chevron-right" size={17}/></em></Link>
+        <Link to="/addresses"><span aria-hidden="true">⌂</span><strong>Saved addresses</strong><small>Manage where orders arrive</small><em aria-hidden="true"><UiIcon name="chevron-right" size={17}/></em></Link>
+        <Link to="/wishlist"><span aria-hidden="true">♡</span><strong>Favourites</strong><small>Return to things you loved</small><em aria-hidden="true"><UiIcon name="chevron-right" size={17}/></em></Link>
       </nav>
       <div className="nx37-account-settings"><section className="nx37-account-panel"><div className="nx37-account-section-head"><span className="eyebrow">PERSONAL DETAILS</span><h2>Change your name</h2><p>Your email and account role cannot be changed here.</p></div>
         <form onSubmit={updateName}><label htmlFor="nx37-account-name">Full name <span className="nx37-required">*</span></label><input id="nx37-account-name" type="text" autoComplete="name" value={fullName} onChange={event => setFullName(event.target.value)} minLength={2} maxLength={100} required/><button type="submit" disabled={savingName}>{savingName ? "Saving…" : "Save changes"}</button>{nameMessage && <p role="status" className="nx37-account-feedback">{nameMessage}</p>}</form>
@@ -146,7 +146,7 @@ export default function CustomerDashboard() {
           <label htmlFor="nx37-confirm-password">Confirm password <span className="nx37-required">*</span></label><input id="nx37-confirm-password" type="password" value={passwords.confirmPassword} onChange={event => setPasswords(v => ({ ...v, confirmPassword: event.target.value }))} minLength={12} autoComplete="new-password" required />
           <button type="submit" disabled={savingPassword}>{savingPassword ? "Updating…" : "Update password"}</button>{passwordMessage && <p role="status" className="nx37-account-feedback">{passwordMessage}</p>}</form>
       </section></div>
-      <div className="nx37-account-bottom"><span>Need to switch accounts?</span><button type="button" onClick={handleLogout}>Sign out <UiIcon name="up-right" size={17}/></button></div>
+      <div className="nx37-account-bottom"><span>Need to switch accounts?</span><button type="button" onClick={handleLogout}>Sign out <UiIcon name="chevron-right" size={17}/></button></div>
     </div>
   </CustomerLayout>;
 }

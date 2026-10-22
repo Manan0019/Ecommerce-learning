@@ -15,7 +15,9 @@ const navigation = [
   { to: "/admin/delivery", label: "Delivery Executives", icon: "▱" },
   { to: "/admin/analytics", label: "Analytics", icon: "⌁" },
   { to: "/admin/settings", label: "Shipping & Tax", icon: "⚙" },
-  { to: "/admin/branding", label: "Branding & Logo", icon: "✦" }
+  { to: "/admin/branding", label: "Branding & Logo", icon: "✦" },
+  { to: "/admin/footer", label: "Footer & Moving Banner", icon: "≈" },
+  { to: "/admin/coupons", label: "Coupons (Drafts)", icon: "%" }
 ];
 
 export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAlertCount = 0 }) {
@@ -33,7 +35,7 @@ export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAl
       </NavLink>)}
     </nav>
     <div className="admin-sidebar-footer">
-      <Link to="/" onClick={onClose}><UiIcon name="up-right" size={17}/>View Storefront</Link>
+      <Link to="/" onClick={onClose}><UiIcon name="chevron-right" size={17}/>View Storefront</Link>
       <button type="button" onClick={onLogout}><span aria-hidden="true">⇥</span>Logout</button>
       <div className="admin-identity">
         <span>{initials}</span>

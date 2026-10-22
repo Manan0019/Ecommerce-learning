@@ -33,9 +33,10 @@ export default function StorefrontCardActions({product,detailUrl,imageUrl}) {
       <button type="button" title="Add to wishlist" aria-label={`Save ${product.name} to wishlist`} aria-pressed={saved} onClick={save}><UiIcon name="heart" size={18}/></button>
       <button type="button" title="Add to compare" aria-label={`Compare ${product.name}`} onClick={()=>setMessage(saveCompareProduct(product))}><UiIcon name="compare" size={18}/></button>
     </div>
-    <button className="nx61-quick-add" type="button" disabled={Number(product.stock)<=0} onClick={quickAdd}>
-      <UiIcon name="bag" size={17}/>{needsOptions?'Select options':'Quick Add'}
-    </button>
+
+    {!needsOptions && Number(product.stock)>0 && <button className="nx61-quick-add" type="button" onClick={quickAdd}>
+      <UiIcon name="bag" size={17}/>Quick Add
+    </button>}
     {message&&<span role="status" className="nx61-card-feedback">{message}</span>}
     {quick&&<Modal size="medium" title="Quick view" onClose={()=>setQuick(false)}>
       <div className="nx61-quick-view">

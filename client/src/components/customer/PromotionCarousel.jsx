@@ -13,7 +13,7 @@ function PromotionCard({ banner, primary = false, priority = false }) {
     <span className="nx37-promotion-image-frame">
       <img src={apiAssetUrl(banner.imageUrl)} alt={imageOnly ? banner.title : ""} loading={priority ? "eager" : "lazy"} decoding="async" />
     </span>
-    {!imageOnly && <span className="nx37-promotion-copy"><strong>{banner.title}</strong>{banner.subtitle && <span>{banner.subtitle}</span>}<em>Explore offer <UiIcon name="up-right" size={17}/></em></span>}
+    {!imageOnly && <span className="nx37-promotion-copy"><strong>{banner.title}</strong>{banner.subtitle && <span>{banner.subtitle}</span>}<em>Explore offer <UiIcon name="chevron-right" size={17}/></em></span>}
     {imageOnly && <span className="sr-only">{banner.title}</span>}
   </>;
   const cls = `nx37-promotion-card${primary ? " is-primary" : ""}${imageOnly ? " is-image-only" : " has-overlay"}`;

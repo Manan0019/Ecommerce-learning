@@ -13,7 +13,7 @@ export default function AuthLayout({ eyebrow, title, description, children, comp
         <p>DISCOVER YOUR NEXT FAVOURITE</p>
         <h2>Great finds. One happy place.</h2>
         <span>Fashion, technology and everyday essentials, thoughtfully brought together.</span>
-        <Link to="/" className="nx36-auth-explore">Explore the store <UiIcon name="up-right" size={17}/></Link>
+        <Link to="/" className="nx36-auth-explore">Explore the store <UiIcon name="chevron-right" size={17}/></Link>
         <div className="nx32-auth-trust" aria-label="What you can do at Nexora">
           <span>✦ Discover products</span>
           <span>♡ Save favourites</span>

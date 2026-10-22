@@ -41,7 +41,7 @@ function MenuBranch({ category, close, depth = 0, ancestors = [] }) {
         onClick={() => setExpanded(open => !open)}><UiIcon name="chevron-right" size={16}/></button>}
     </div>
     {hasChildren && <ul className="nx35-category-submenu" aria-label={`${category.name} subcategories`}>
-      <li className="nx35-menu-parent-link"><Link to={target} onClick={close}>View all {category.name} <UiIcon name="up-right" size={15}/></Link></li>
+      <li className="nx35-menu-parent-link"><Link to={target} onClick={close}>View all {category.name} <UiIcon name="chevron-right" size={15}/></Link></li>
       {children.map(child => <MenuBranch key={child.id} category={child} close={close} depth={depth+1} ancestors={[...ancestors,id]} />)}
     </ul>}
   </li>;
@@ -71,7 +71,7 @@ export default function CategoryMegaMenu({ mobileOpen, onNavigate }) {
       </button>
     </div>
     <nav className="nx35-category-dropdown" aria-label="Category and subcategory navigation">
-      <div className="nx35-category-heading"><span>EXPLORE BY CATEGORY</span><Link to="/categories" onClick={close}>View all <UiIcon name="up-right" size={15}/></Link></div>
+      <div className="nx35-category-heading"><span>EXPLORE BY CATEGORY</span><Link to="/categories" onClick={close}>View all <UiIcon name="chevron-right" size={15}/></Link></div>
       {data.error ? <p className="nx35-category-empty" role="alert">Categories are temporarily unavailable. <Link to="/categories" onClick={close}>Browse collections</Link></p>
         : categories.length ? <ul className="nx35-category-roots">{categories.map(category => <MenuBranch key={category.id} category={category} close={close}/>)}</ul>
           : <p className="nx35-category-empty">Loading categories…</p>}

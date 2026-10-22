@@ -18,6 +18,7 @@ export default function ProductCard({ product }) {
   const timer = useRef(null);
   const touch = useRef(null);
   const swiped = useRef(false);
+  const manuallyNavigated = useRef(false);
   const current = availableImages[Math.min(active, availableImages.length - 1)];
 
   function stopPreview(reset = false) {
@@ -27,11 +28,16 @@ export default function ProductCard({ product }) {
   }
   function startPreview() {
     stopPreview();
+    if (manuallyNavigated.current) return;
     if (availableImages.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     timer.current = window.setInterval(() => setActive(index => (index + 1) % availableImages.length), 1600);
   }
   useEffect(() => () => { if (timer.current != null) window.clearInterval(timer.current); }, []);
-  function choose(index) { if (availableImages.length) setActive((index + availableImages.length) % availableImages.length); }
+  function choose(index) {
+    stopPreview(); // A manual action always wins over the hover slideshow.
+    manuallyNavigated.current = true;
+    if (availableImages.length) setActive((index + availableImages.length) % availableImages.length);
+  }
   function onTouchStart(event) {
     touch.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
     swiped.current = false;
@@ -48,7 +54,7 @@ export default function ProductCard({ product }) {
   }
 
   return <article className="product-card nx29-preview-card">
-    <div className="nx29-card-stage" onMouseEnter={() => { if (window.matchMedia("(hover: hover)").matches) startPreview(); }} onMouseLeave={() => stopPreview(true)} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className="nx29-card-stage" onMouseEnter={() => { if (window.matchMedia("(hover: hover)").matches) startPreview(); }} onMouseLeave={() => { stopPreview(true); manuallyNavigated.current = false; }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <Link className="product-image-link" to={detailUrl} aria-label={`View ${product.name}`} onClick={event => { if (swiped.current) { event.preventDefault(); swiped.current = false; } }}>
         {current ? <img key={current} className="nx29-card-image" src={apiAssetUrl(current)} alt={product.name} loading="lazy" onError={() => { setFailedImages(prev => prev.includes(current) ? prev : [...prev, current]); setActive(0); }} />
           : <div className="missing-image">Image coming soon</div>}

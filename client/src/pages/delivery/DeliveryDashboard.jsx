@@ -107,8 +107,8 @@ export default function DeliveryDashboard() {
     return <>
       <div className="nx52-order-head"><div><small>ORDER #{a.orderId}</small><h3>{a.customerName}</h3></div><span className={`nx52-delivery-status is-${a.deliveryStatus}`}>{statuses[a.deliveryStatus] || a.deliveryStatus}</span></div>
       <div className="nx52-delivery-address"><strong>Delivery address</strong><p>{address || 'Address unavailable'}</p><div className="nx52-contact-actions">
-        {phone && <a href={`tel:${phone}`}>Call customer <UiIcon name="up-right" size={15}/></a>}
-        {maps && <a href={maps} target="_blank" rel="noopener noreferrer">Open in Maps <UiIcon name="up-right" size={15}/></a>}
+        {phone && <a href={`tel:${phone}`}>Call customer <UiIcon name="chevron-right" size={15}/></a>}
+        {maps && <a href={maps} target="_blank" rel="noopener noreferrer">Open in Maps <UiIcon name="chevron-right" size={15}/></a>}
       </div></div>
       <div className="nx52-order-finance"><span>Total <strong>{money(a.total)}</strong></span><span>Payment <strong>{a.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Paid online'}</strong></span><span>Order <strong>{a.orderStatus?.replaceAll('_',' ')}</strong></span></div>
       <ol className="nx52-delivery-timeline"><li className="is-complete"><span>Assigned</span><small>{dates(a.assignedAt)}</small></li><li className={a.outForDeliveryAt?'is-complete':''}><span>Out for delivery</span><small>{dates(a.outForDeliveryAt)}</small></li><li className={a.deliveredAt?'is-complete':''}><span>Delivered</span><small>{dates(a.deliveredAt)}</small></li></ol>

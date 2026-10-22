@@ -92,7 +92,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
         <div className="nx50-preview-intro"><span className="nx50-preview-kicker">ADMIN PRODUCT PREVIEW</span><strong>{product?.name || "Loading product"}</strong><small>Review the product page before editing. Checkout is unavailable in preview.</small></div>
         <div className="nx50-preview-actions">
           <Link className="nx50-back-link" to={returnTo}><UiIcon name="left" size={16}/> Back</Link>
-          {product?.isActive&&<Link className="nx50-live-link" to={`/products/${id}`}><UiIcon name="up-right" size={16}/> Storefront</Link>}
+          {product?.isActive&&<Link className="nx50-live-link" to={`/products/${id}`}><UiIcon name="chevron-right" size={16}/> Storefront</Link>}
           <button className="nx50-preview-edit" type="button" disabled={!product} onClick={()=>setEditTab("details")}>
             <UiIcon name="edit" size={16}/> Edit product</button>
         </div>

@@ -4,6 +4,8 @@ import RouteExperience from "./components/common/RouteExperience";
 import CartProvider from "./context/CartProvider";
 import BrandingProvider from "./context/BrandingProvider";
 import AdminBranding from "./pages/admin/AdminBranding";
+import AdminFooter from "./pages/admin/AdminFooter";
+import AdminCoupons from "./pages/admin/AdminCoupons";
 import AddProduct from "./pages/admin/AddProduct";
 import AdminComingSoon from "./pages/admin/AdminComingSoon";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -80,6 +82,7 @@ import "./styles/phase55.css";
 import "./styles/phase56.css";
 import "./styles/phase57.css";
 import "./styles/phase61.css";
+import "./styles/phase62.css";
 
 export default function App() {
   return <StoreErrorBoundary><BrandingProvider><CartProvider><BrowserRouter><RouteExperience /><Routes>
@@ -106,6 +109,8 @@ export default function App() {
     <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />
     <Route path="/admin/settings" element={<AdminCheckoutSettings />} />
     <Route path="/admin/branding" element={<AdminBranding />} />
+    <Route path="/admin/footer" element={<AdminFooter />} />
+    <Route path="/admin/coupons" element={<AdminCoupons />} />
     <Route path="/products" element={<ProductList />} />
     <Route path="/products/:id" element={<ProductDetails />} />
     <Route path="/categories" element={<Categories />} />
