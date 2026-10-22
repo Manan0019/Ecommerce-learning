@@ -3,8 +3,8 @@ import UiIcon from "../common/UiIcon";
 import { SITE_NAME } from "../../config/site";
 import BrandLogo from "../common/BrandLogo";
 
-export default function AuthLayout({ eyebrow, title, description, children, compact = false }) {
-  return <main className={`auth-shell nx32-auth-shell${compact ? " auth-shell-compact" : ""}`}>
+export default function AuthLayout({ eyebrow, title, description, children, compact = false, reflection = false }) {
+  return <main className={`auth-shell nx32-auth-shell${compact ? " auth-shell-compact" : ""}${reflection ? " nx68-auth-reflect" : ""}`}>
     <section className="auth-visual" aria-label={`${SITE_NAME} introduction`}>
       <Link className="auth-brand" to="/" aria-label={`${SITE_NAME} home`}>
         <BrandLogo markClassName="auth-brand-mark" />

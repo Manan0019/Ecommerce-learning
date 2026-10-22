@@ -133,7 +133,7 @@ export default function Checkout(){
       {!razorpayEnabled&&<p className="nx-cod-note">Online payment is temporarily unavailable. Please choose Cash on Delivery.</p>}
      </div>
     {paymentMethod==='cod'&&!codEnabled&&validAddress&&quote?.valid&&<p className="nx-cod-message nx-cod-error" role="status">The store has not enabled COD checkout yet. Please contact the store.</p>}
-    <button className="button button-primary nx-cod-submit" type="submit" disabled={checking||!validAddress||!canSubmit}>{posting?(paymentMethod==='razorpay'?'Opening secure payment…':'Placing order…'):updatedQuote?`Confirm revised total · ${money(estimate?.total)}`:paymentMethod==='razorpay'?`Pay online · ${money(estimate?.total)}`:`Place COD order · ${money(estimate?.total)}`}</button>
+    <button className="button button-primary nx-cod-submit nx68-order-action" type="submit" disabled={checking||!validAddress||!canSubmit}>{posting?(paymentMethod==='razorpay'?'Opening secure payment…':'Placing order…'):updatedQuote?`Confirm revised total · ${money(estimate?.total)}`:paymentMethod==='razorpay'?`Pay online · ${money(estimate?.total)}`:`Place COD order · ${money(estimate?.total)}`}</button>
     {updatedQuote&&<p className="nx-cod-message nx40-review" role="status">Your prices, shipping or tax changed. Review the amount due and select Confirm revised total to place the order.</p>}
     <p className="nx-cod-note">Review your items and delivery details before placing your order.</p>
    </form>

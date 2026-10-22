@@ -47,7 +47,7 @@ export default function CustomerLogin() {
     }
   }
 
-  return <AuthLayout eyebrow="Unified account access" title="Welcome back."
+  return <AuthLayout reflection eyebrow="Unified account access" title="Welcome back."
     description="Sign in to save favourites, manage addresses and follow your orders.">
       <form className="auth-form" onSubmit={handleLogin} aria-busy={loading}>
         <label className="auth-field" htmlFor="login-email">

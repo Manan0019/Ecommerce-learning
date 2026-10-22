@@ -60,7 +60,7 @@ export default function CustomerSignup() {
     }
   }
 
-  return <AuthLayout eyebrow="Create your account" title="A little of everything starts here."
+  return <AuthLayout reflection eyebrow="Create your account" title="A little of everything starts here."
     description="Save favourites, manage delivery addresses and track your orders in one place.">
       <form className="auth-form auth-signup-form nx37-signup-form" onSubmit={handleSubmit}>
         <div className="nx37-signup-note"><span aria-hidden="true">✦</span> One account for favourites, addresses and orders.</div>

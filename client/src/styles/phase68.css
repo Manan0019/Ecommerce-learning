@@ -1,0 +1,158 @@
+/* Phase 68 — Nexora reflection accents.
+   These effects are purely decorative. They never gate authentication,
+   checkout results, payment verification, order status, or navigation. */
+
+/* A single reflected highlight stays inside the curved surface. */
+.nx68-order-reflect,
+.nx68-auth-reflect .auth-card {
+  position: relative;
+  isolation: isolate;
+}
+.nx68-order-reflect::after,
+.nx68-auth-reflect .auth-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background-image: linear-gradient(
+    110deg,
+    transparent 26%,
+    rgba(255, 255, 255, .02) 36%,
+    rgba(255, 255, 255, .66) 49%,
+    rgba(215, 204, 255, .22) 54%,
+    transparent 66%
+  );
+  background-size: 290% 100%;
+  background-position: 140% center;
+  transition: background-position .78s cubic-bezier(.2,.68,.2,1), opacity .3s ease;
+}
+.nx68-order-reflect:is(:hover, :focus-within)::after,
+.nx68-auth-reflect .auth-card:is(:hover, :focus-within)::after {
+  opacity: .42;
+  background-position: -135% center;
+}
+
+/* Customer orders: calm glass surface and soft purple edge on hover.
+   All links, timeline buttons and expanded content remain usable. */
+.nx60-orders-page .nx68-order-reflect {
+  border: 1px solid #e5e4f4;
+  border-radius: 19px;
+  background: #fff;
+  transition: border-color .28s ease, box-shadow .3s ease, transform .3s ease;
+}
+.nx60-orders-page .nx68-order-reflect:hover {
+  border-color: #b9aaee;
+  box-shadow: 0 17px 42px rgba(67, 52, 141, .10), 0 0 0 1px rgba(112, 84, 220, .06);
+  transform: translateY(-2px);
+}
+.nx60-orders-page .nx68-order-reflect:focus-within {
+  border-color: #b19ced;
+}
+
+/* Sign-in and sign-up: frosted white form card without changing the form
+   markup, validation, submit transitions, or existing enter animation. */
+.nx68-auth-reflect .auth-card {
+  border: 1px solid rgba(124, 99, 204, .17);
+  border-radius: 24px;
+  background: linear-gradient(150deg, rgba(255,255,255,.97), rgba(250,247,255,.92));
+  box-shadow: 0 20px 64px -39px rgba(47, 27, 119, .24), inset 0 1px 0 rgba(255,255,255,.9);
+  padding: clamp(21px, 3vw, 30px);
+  transition: border-color .3s ease, box-shadow .32s ease;
+}
+.nx68-auth-reflect .auth-card:is(:hover, :focus-within) {
+  border-color: rgba(113, 79, 222, .40);
+  box-shadow: 0 25px 66px -40px rgba(67, 38, 169, .32),
+              0 0 24px -17px rgba(111, 79, 219, .2),
+              inset 0 1px 0 rgba(255,255,255,.95);
+}
+/* The reflection sits over the glass, not over focus outlines or field hit areas. */
+.nx68-auth-reflect .auth-card > * {
+  position: relative;
+  z-index: 3;
+}
+
+/* Preserve the current angled showcase positions; only sweep their glass. */
+.nx68-auth-reflect .nx32-showcase-card {
+  overflow: hidden;
+  transition: border-color .35s ease, box-shadow .35s ease;
+}
+.nx68-auth-reflect .nx32-showcase-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.27) 51%, transparent 70%);
+  background-size: 290% 100%;
+  background-position: 140% center;
+  opacity: 0;
+  transition: background-position .7s cubic-bezier(.2,.68,.2,1), opacity .3s ease;
+}
+.nx68-auth-reflect .nx32-showcase-card:hover::after {
+  background-position: -130% center;
+  opacity: .9;
+}
+.nx68-auth-reflect .nx32-showcase-card:hover {
+  border-color: rgba(233,220,255,.6);
+  box-shadow: 0 25px 65px rgba(14,6,51,.32);
+}
+
+/* Order Now (COD / Razorpay) and Login / Sign-up buttons:
+   a one-time reflection on actual interaction, never a fake loading loop. */
+.nx68-order-action,
+.nx68-auth-reflect .auth-submit {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.nx68-order-action::after,
+.nx68-auth-reflect .auth-submit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.37) 50%, transparent 70%);
+  background-size: 260% 100%;
+  background-position: 140% center;
+  opacity: 0;
+  transition: background-position .63s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
+}
+.nx68-order-action:not(:disabled):is(:hover, :focus-visible)::after,
+.nx68-auth-reflect .auth-submit:not(:disabled):is(:hover, :focus-visible)::after {
+  opacity: .9;
+  background-position: -130% center;
+}
+.nx68-order-action:disabled::after,
+.nx68-auth-reflect .auth-submit:disabled::after {
+  opacity: 0;
+  transition: none;
+}
+
+@media (max-width: 600px) {
+  .nx68-auth-reflect .auth-card {border-radius: 19px; padding: 21px;}
+  .nx60-orders-page .nx68-order-reflect:hover {transform:none;}
+}
+@media (prefers-reduced-motion: reduce) {
+  .nx68-order-reflect, .nx68-auth-reflect .auth-card,
+  .nx68-auth-reflect .nx32-showcase-card,
+  .nx68-order-reflect::after, .nx68-auth-reflect .auth-card::after,
+  .nx68-auth-reflect .nx32-showcase-card::after,
+  .nx68-order-action::after, .nx68-auth-reflect .auth-submit::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .nx68-order-reflect::after, .nx68-auth-reflect .auth-card::after,
+  .nx68-auth-reflect .nx32-showcase-card::after,
+  .nx68-order-action::after, .nx68-auth-reflect .auth-submit::after {opacity:0!important;}
+  .nx60-orders-page .nx68-order-reflect:hover {transform:none;}
+}
+@media (forced-colors: active) {
+  .nx68-order-reflect::after, .nx68-auth-reflect .auth-card::after,
+  .nx68-auth-reflect .nx32-showcase-card::after,
+  .nx68-order-action::after, .nx68-auth-reflect .auth-submit::after {opacity:0!important;}
+  .nx68-auth-reflect .auth-card {border:1px solid CanvasText;}
+}
