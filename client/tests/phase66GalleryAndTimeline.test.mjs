@@ -40,8 +40,8 @@ test('decorative catalogue arrows are gone while clickable controls and current 
  assert.doesNotMatch(src,/nx49-department-arrow/);
  assert.match(src,/nx66-department-accent/);
  const card=source('components/common/ProductCard.jsx');
- assert.match(card,/>Prev<\/button>/);
- assert.match(card,/>Next<\/button>/);
+ assert.match(card,/name="chevron-left"/);
+ assert.match(card,/name="chevron-right"/);
  assert.match(card,/nx66-product-price/);
 });
 test('timeline has aligned rail and consistent numeric typography with reduced-motion safeguards',()=>{

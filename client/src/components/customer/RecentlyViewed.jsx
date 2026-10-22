@@ -26,7 +26,7 @@ export default function RecentlyViewed() {
   },[items]);
   if (!items.length) return null;
   return <section className="store-section nx37-recent-section nx48-recent-section" aria-labelledby="nx-recent-heading">
-    <div className="section-heading"><div><p className="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2 id="nx-recent-heading">Recently viewed</h2></div><button className="nx37-text-button" type="button" onClick={() => { clearRecentlyViewed(); setItems([]); setLiveProducts({}); }}>Clear viewed items</button></div>
+    <div className="section-heading"><div><p className="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2 id="nx-recent-heading">Recently viewed</h2></div><button className="nx37-text-button nx67-clear-history" type="button" onClick={() => { clearRecentlyViewed(); setItems([]); setLiveProducts({}); }}>Clear viewed items</button></div>
     <div className="nx48-recent-grid">{items.map(item => {
       const detailUrl = `/products/${encodeURIComponent(item.id)}`;
       const latest=liveProducts[item.id];

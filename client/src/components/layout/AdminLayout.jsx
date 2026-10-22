@@ -6,12 +6,15 @@ import { logout as endSession } from "../../services/authService";
 import AdminSidebar from "./AdminSidebar";
 import { getLowStockAlerts } from "../../services/inventoryService";
 import { Link } from "react-router-dom";
+import NotificationBell from "../common/NotificationBell";
 import { guardNumberKey, guardNumericPaste, guardNumericBeforeInput, showInvalidField, clearValidField } from "../admin/formValidation";
+
+let lastVerifiedAdmin = null; // In-memory only; cleared on logout or auth failure.
 
 export default function AdminLayout({ title, subtitle, actions, children }) {
   const navigate = useNavigate();
-  const [admin, setAdmin] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [admin, setAdmin] = useState(() => lastVerifiedAdmin);
+  const [loading, setLoading] = useState(() => !lastVerifiedAdmin);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stockAlertCount, setStockAlertCount] = useState(0);
@@ -21,9 +24,12 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
     async function loadAdmin() {
       try {
         const data = await getAdmin(controller.signal);
+        lastVerifiedAdmin = data.user;
         setAdmin(data.user);
       } catch (requestError) {
         if (isAuthenticationError(requestError)) {
+          lastVerifiedAdmin = null;
+          setAdmin(null);
           navigate("/login", { replace: true });
           return;
         }
@@ -68,6 +74,7 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
     setError("");
     try {
       await endSession();
+      lastVerifiedAdmin = null;
       navigate("/login", { replace: true });
     } catch (requestError) {
       setError(requestError.message);
@@ -90,7 +97,7 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
     <main className="admin-main nx34-admin-main" onPasteCapture={guardNumericPaste} onBeforeInputCapture={guardNumericBeforeInput} onKeyDownCapture={guardNumberKey} onInvalidCapture={showInvalidField} onInputCapture={clearValidField}>
       <header className="admin-page-header">
         <div><p className="admin-eyebrow">Admin workspace</p><h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>
-        <div className="admin-header-actions">{stockAlertCount > 0 && <Link className="nx24-stock-link" to="/admin/inventory" aria-label={`${stockAlertCount} inventory alerts`}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg> {stockAlertCount} needs attention</Link>}{actions}</div>
+        <div className="admin-header-actions"><NotificationBell />{stockAlertCount > 0 && <Link className="nx24-stock-link" to="/admin/inventory" aria-label={`${stockAlertCount} inventory alerts`}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg> {stockAlertCount} needs attention</Link>}{actions}</div>
       </header>
       {error && <p className="admin-alert" role="alert">{error}</p>}
       {children}

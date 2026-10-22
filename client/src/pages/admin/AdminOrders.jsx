@@ -13,13 +13,13 @@ const money=x=>`₹${Number(x||0).toLocaleString("en-IN",{minimumFractionDigits:
 const nextStatuses={placed:["confirmed","cancelled"],confirmed:["processing","cancelled"],processing:["shipped"],shipped:["delivered"],delivered:[],cancelled:[]};
 const labels={confirmed:"Confirm order",processing:"Mark preparing",delivered:"Mark delivered"};
 
-export default function AdminOrders(){
+export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, onOrdersChanged }){
  const [orders,setOrders]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(""),[busy,setBusy]=useState(""),[filter,setFilter]=useState("all"),[search,setSearch]=useState("");
  const [dispatchId,setDispatchId]=useState(null),[partner,setPartner]=useState(""),[tracking,setTracking]=useState("");
  const [dialog,setDialog]=useState(null),[dialogError,setDialogError]=useState(""),[notice,setNotice]=useState("");
  const [refundConfig,setRefundConfig]=useState(null);
  const [assignmentOrderId,setAssignmentOrderId]=useState(null);
- const [selectedOrderId,setSelectedOrderId]=useState(null);
+ const [selectedOrderId,setSelectedOrderId]=useState(embeddedOrderId);
  const [orderPage,setOrderPage]=useState(1),[orderSort,setOrderSort]=useState("newest");
  const [assignmentData,setAssignmentData]=useState({staff:[],assignments:[]});
  const [assignmentLoading,setAssignmentLoading]=useState(false);
@@ -56,7 +56,7 @@ export default function AdminOrders(){
   if(pending.length){await Promise.allSettled(pending.map(o=>reconcileRazorpayRefund(o.id)));
     if(!c.signal.aborted){try{const fresh=await getAdminOrders(c.signal);setOrders(fresh.orders||[]);}catch{/* Preserve loaded orders */}}}
  }).catch(e=>{if(e.name!=="AbortError")setError(e.message)}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort();},[]);
- async function refreshOrders(){const result=await getAdminOrders();setOrders(result.orders||[]);}
+ async function refreshOrders(){const result=await getAdminOrders();setOrders(result.orders||[]);onOrdersChanged?.();}
  async function setStatus(order,status){
   if(status==="cancelled"&&order.paymentMethod==="Razorpay"){setError("Paid Razorpay orders cannot be cancelled here until their refund is reconciled.");return;}
   if(status==="shipped"&&!partner.trim()){setError("Enter a delivery partner before dispatching the order.");return;}
@@ -106,7 +106,7 @@ export default function AdminOrders(){
  const pendingCancellationCount=orders.filter(o=>o.cancellationRequest?.status==="pending").length;
  const visible=orders.filter(o=>(filter==="all" || (filter==="active" ? ['placed','confirmed','processing','shipped'].includes(o.status) : filter==="payments" ? ['payment_pending','payment_review','refund_pending','refund_review','payment_expired'].includes(o.status) : filter==="archive" ? ['delivered','cancelled','payment_expired'].includes(o.status) : filter==="cancellation_requested" ? o.cancellationRequest?.status==="pending" : filter===o.status)) && `${o.id} ${o.customerName} ${o.customerEmail}`.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>orderSort==='oldest'?new Date(a.placedAt)-new Date(b.placedAt):new Date(b.placedAt)-new Date(a.placedAt));
  const perPage=25;const pages=Math.max(1,Math.ceil(visible.length/perPage));const currentPage=Math.min(orderPage,pages);const pageOrders=visible.slice((currentPage-1)*perPage,currentPage*perPage);
- return <AdminLayout title="Orders & fulfillment" subtitle="Track COD and Razorpay payments, then process verified orders for dispatch and delivery.">
+ return <>{!embeddedOrderId && <AdminLayout title="Orders & fulfillment" subtitle="Track COD and Razorpay payments, then process verified orders for dispatch and delivery.">
  {error&&<div className="admin-alert" role="alert">{error}</div>}
  {notice&&<div className="nx44-admin-notice" role="status">{notice}<button type="button" onClick={()=>setNotice("")} className="nx64-animated-close nx65-close-control" aria-label="Dismiss message"><UiIcon name="x" size={15}/></button></div>}
  {refundConfig?.enabled===false&&<div className="nx44-admin-refund-status" role="status"><strong>Razorpay refunds disabled.</strong> {refundConfig.reason==='refund_opt_in_missing'?'Add RAZORPAY_REFUNDS_ENABLED=true to server/.env, keep RAZORPAY_MODE=test, and restart Express.':refundConfig.reason==='razorpay_unconfigured'?'Check test Razorpay API settings in server/.env.':'Refund access needs separate authorization in Live Mode.'}</div>}
@@ -124,8 +124,13 @@ export default function AdminOrders(){
    </tr>)}</tbody></table></div>
    <div className="nx57-order-pagination"><span>Showing {(currentPage-1)*perPage+1}–{Math.min(visible.length,currentPage*perPage)} of {visible.length} orders</span><div><button type="button" disabled={currentPage<=1} onClick={()=>{setOrderPage(currentPage-1);setSelectedOrderId(null);}}>Previous</button><span>Page {currentPage} / {pages}</span><button type="button" disabled={currentPage>=pages} onClick={()=>{setOrderPage(currentPage+1);setSelectedOrderId(null);}}>Next</button></div></div>
    <p className="nx57-orders-hint">Open an order to manage fulfillment, payment, delivery and refunds without leaving this list.</p>
-   {orders.filter(o=>String(o.id)===String(selectedOrderId)).map(o=><Modal key={o.id} size="order" title={`Manage order #${o.id}`} subtitle={`${o.customerName||"Customer"} · ${new Date(o.placedAt).toLocaleString("en-IN")}`} closeDisabled={!!busy} onClose={()=>{setSelectedOrderId(null);setDispatchId(null);setError("");}}>
-    <div className="nx59-order-detail" aria-label={`Order ${o.id} details`}>{error&&<div className="admin-alert" role="alert">{error}</div>}
+ </div>}
+ </section>
+ </AdminLayout>}
+ {embeddedOrderId && loading && <Modal title={`Manage order #${embeddedOrderId}`} size="order" onClose={onEmbeddedClose}><div className="nx65-order-loading" role="status">Loading order details…</div></Modal>}
+   {embeddedOrderId && !loading && !orders.some(o=>String(o.id)===String(selectedOrderId)) && <Modal title={`Manage order #${embeddedOrderId}`} size="order" onClose={onEmbeddedClose}><p role="alert">{error || "This order is not available. Refresh the dashboard and try again."}</p></Modal>}
+   {orders.filter(o=>String(o.id)===String(selectedOrderId)).map(o=><Modal key={o.id} size="order" title={`Manage order #${o.id}`} subtitle={`${o.customerName||"Customer"} · ${new Date(o.placedAt).toLocaleString("en-IN")}`} closeDisabled={!!busy} onClose={()=>{setSelectedOrderId(null);setDispatchId(null);setError("");onEmbeddedClose?.();}}>
+    <div className="nx59-order-detail" aria-label={`Order ${o.id} details`}>{error&&<div className="admin-alert" role="alert">{error}</div>}{notice&&<div className="nx44-admin-notice" role="status">{notice}</div>}
     <div className="nx-admin-orders-grid"><article className="nx-admin-order-card">   <header><div><strong>Order #{o.id}</strong><small>{new Date(o.placedAt).toLocaleString("en-IN")}</small></div><span className={`nx-status nx-status-${o.status}`}>{o.status}</span></header>
    <div className="nx-admin-order-meta nx65-order-overview"><div className="nx65-customer-details"><span className="nx65-label">CUSTOMER</span><strong>{o.customerName||"Customer"}</strong><span title={o.customerEmail||""}>{o.customerEmail||"No email on order"}</span></div><div className="nx34-order-total nx65-total-details"><small>{o.paymentMethod==="Razorpay"?"ONLINE PAYMENT":"CASH ON DELIVERY"}</small><strong>{money(o.total)}</strong></div></div>
    <div className="nx-admin-order-items nx65-order-items">{o.items.map((item,i)=><div className="nx34-admin-order-line" key={`${item.productId}-${item.variantId||"base"}-${i}`}><div className="nx65-order-product">{item.imageUrl&&<img className="nx65-order-thumb" src={apiAssetUrl(item.imageUrl)} alt="" loading="lazy" onError={event=>{event.currentTarget.hidden=true;}}/>}<div className="nx34-order-line-info"><Link className="nx46-product-title" to={`/admin/products/${item.productId}/preview`} state={{from:"/admin/orders"}}>{item.name}</Link>{item.sku&&<small>SKU: {item.sku}</small>}</div></div><div className="nx34-order-line-numbers"><span className="nx34-order-quantity">Qty {item.quantity}</span><strong>{money(item.lineTotal??Number(item.unitPrice||0)*Number(item.quantity||0))}</strong></div></div>)}</div>
@@ -144,9 +149,7 @@ export default function AdminOrders(){
      {o.status==="delivered"&&o.paymentMethod!=="Razorpay"&&o.paymentStatus!=="cod_collected"&&<button type="button" className="nx38-collect-action" disabled={busy===o.id} onClick={()=>openDialog("collect",o)}>Record cash received</button>}
    </div></footer>
  </article></div></div></Modal>)}
- </div>}
- </section>
  {assignmentOrder&&<DeliveryExecutivePicker key={assignmentOrder.id} order={assignmentOrder} current={existingAssignment} staff={assignmentData.staff} assignments={assignmentData.assignments} busy={assignmentLoading||!!busy} error={assignmentError} onAssign={submitAssignment} onClose={closeAssignmentPicker}/>}
  {dialog&&<OrderActionDialog key={`${dialog.type}-${dialog.order.id}`} dialog={dialog} busy={String(busy)===String(dialog.order.id)} error={dialogError} refundConfig={refundConfig} onClose={closeDialog} onConfirm={confirmDialog}/>}
- </AdminLayout>;
+ </>;
 }

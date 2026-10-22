@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import StorefrontCardActions from "../customer/StorefrontCardActions";
+import UiIcon from "./UiIcon";
 import { Link } from "react-router-dom";
 import { apiAssetUrl } from "../../services/apiClient";
 
@@ -64,8 +65,8 @@ export default function ProductCard({ product }) {
       <StorefrontCardActions product={product} detailUrl={detailUrl} imageUrl={current || product.imageUrl} />
       {availableImages.length > 1 && <>
         <div className="nx29-card-arrows" aria-label="Preview product images">
-          <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}>Prev</button>
-          <button type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}>Next</button>
+          <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}><UiIcon name="chevron-left" size={17}/></button>
+          <button type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}><UiIcon name="chevron-right" size={17}/></button>
         </div>
         <div className="nx56-card-preview-track" aria-hidden="true">
           <span className="nx56-card-preview-fill" style={{ width: `${(Math.min(active + 1, availableImages.length) / availableImages.length) * 100}%` }} />

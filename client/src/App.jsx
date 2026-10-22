@@ -86,6 +86,7 @@ import "./styles/phase61.css";
 import "./styles/phase62.css";
 import "./styles/phase63.css";
 import "./styles/phase66.css";
+import "./styles/phase67.css";
 
 export default function App() {
   return <StoreErrorBoundary><BrandingProvider><CartProvider><BrowserRouter><RouteExperience /><Routes>

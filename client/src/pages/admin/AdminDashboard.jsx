@@ -1,5 +1,6 @@
 import {useEffect,useMemo,useState} from 'react';
 import UiIcon from "../../components/common/UiIcon";
+import AdminOrders from './AdminOrders';
 import {Link,useNavigate} from 'react-router-dom';
 import AdminLayout from '../../components/layout/AdminLayout';
 import {apiAssetUrl,isAuthenticationError} from '../../services/apiClient';
@@ -11,7 +12,7 @@ import {getAdminAssignments} from '../../services/deliveryService';
 const money=v=>`₹${Number(v||0).toLocaleString('en-IN',{maximumFractionDigits:2,minimumFractionDigits:2})}`;
 const date=v=>new Date(v).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
 export default function AdminDashboard(){
- const navigate=useNavigate();const [summary,setSummary]=useState(null),[products,setProducts]=useState([]),[orders,setOrders]=useState([]),[alerts,setAlerts]=useState(null),[assignments,setAssignments]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[serviceIssues,setServiceIssues]=useState([]),[revision,setRevision]=useState(0);
+ const navigate=useNavigate();const [openDashboardOrder,setOpenDashboardOrder]=useState(null);const [summary,setSummary]=useState(null),[products,setProducts]=useState([]),[orders,setOrders]=useState([]),[alerts,setAlerts]=useState(null),[assignments,setAssignments]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[serviceIssues,setServiceIssues]=useState([]),[revision,setRevision]=useState(0);
  useEffect(()=>{const c=new AbortController();Promise.allSettled([
   getAdminSummary(c.signal),getAdminProducts(c.signal),getAdminOrders(c.signal),getLowStockAlerts(5,c.signal),getAdminAssignments(c.signal)
  ]).then(results=>{if(c.signal.aborted)return;
@@ -54,8 +55,8 @@ export default function AdminDashboard(){
    ].map(m=><Link className="nx46-metric-link" key={m.label} to={m.to}><article><span>{m.label}</span><strong>{m.value}</strong><small>{m.detail}</small><b aria-hidden="true">{m.icon==='delivery'?<UiIcon name="truck" size={17}/>:m.icon}</b></article></Link>)}
   </section>
   <div className="nx46-dashboard-two">
-   <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Recent orders</h2><p>Quick access to the latest customer activity.</p></div><Link to="/admin/orders">View all <UiIcon name="right" size={17}/></Link></div>
-    {!orders.length?<div className="admin-empty">No orders to display yet.</div>:<div className="nx46-table-wrap"><table className="nx46-table"><thead><tr><th>Order / customer</th><th>Date</th><th>Amount</th><th>State</th></tr></thead><tbody>{orders.slice(0,6).map(o=><tr key={o.id}><td><strong>#{o.id}</strong><br/><small>{o.customerName||'Customer'}</small></td><td>{date(o.placedAt)}</td><td><strong>{money(o.total)}</strong></td><td><span className={`nx46-pill ${o.status==='delivered'?'good':o.status.includes('review')?'warning':''}`}>{o.status.replaceAll('_',' ')}</span></td></tr>)}</tbody></table></div>}
+   <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Recent orders</h2><p>Select any order to manage it here, without leaving the dashboard.</p></div><Link to="/admin/orders">View all <UiIcon name="right" size={17}/></Link></div>
+    {!orders.length?<div className="admin-empty">No orders to display yet.</div>:<div className="nx46-table-wrap"><table className="nx46-table"><thead><tr><th>Order / customer</th><th>Date</th><th>Amount</th><th>State</th></tr></thead><tbody>{orders.slice(0,6).map(o=><tr key={o.id} className="nx67-order-table-row" onClick={()=>setOpenDashboardOrder(o.id)}  title={`Manage order #${o.id}`}><td><button type="button" className="nx67-dashboard-order-open" onClick={event=>{event.stopPropagation();setOpenDashboardOrder(o.id);}} aria-label={`Manage order ${o.id}`}>#{o.id}</button><br/><small>{o.customerName||'Customer'}</small></td><td>{date(o.placedAt)}</td><td><strong>{money(o.total)}</strong></td><td><span className={`nx46-pill ${o.status==='delivered'?'good':o.status.includes('review')?'warning':''}`}>{o.status.replaceAll('_',' ')}</span></td></tr>)}</tbody></table></div>}
    </section>
    <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Order mix</h2><p>At a glance across the recent order queue.</p></div></div>
     <div className="nx46-dashboard-bar"><span>COD orders</span><strong>{insights.cod}</strong><div className="nx46-bar-track"><i style={{width:`${Math.min(100,insights.cod/Math.max(1,insights.cod+insights.online)*100)}%`}}/></div></div>
@@ -72,5 +73,6 @@ export default function AdminDashboard(){
     {!alerts?.items?.length?<div className="nx46-healthy">✓ No current low-stock alerts</div>:<div className="nx46-recent-products">{alerts.items.slice(0,5).map(item=><Link to={`/admin/products/${item.productId}/preview`} state={{from:"/admin/dashboard"}} key={`${item.productId}-${item.variantId||0}`}><div><strong>{item.productName}</strong><small>{item.sku||'Standard item'}</small></div><span className="nx46-pill warning">{item.available} left</span></Link>)}</div>}
    </section>
   </div>
+  {openDashboardOrder != null && <AdminOrders embeddedOrderId={openDashboardOrder} onEmbeddedClose={()=>setOpenDashboardOrder(null)} onOrdersChanged={()=>setRevision(value=>value+1)}/>}
  </AdminLayout>;
 }

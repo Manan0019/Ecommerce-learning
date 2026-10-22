@@ -1,4 +1,5 @@
 import UiIcon from "../common/UiIcon";
+import { useLayoutEffect, useRef } from "react";
 import { Link, NavLink } from "react-router-dom";
 import BrandLogo from "../common/BrandLogo";
 
@@ -21,7 +22,13 @@ const navigation = [
   { to: "/admin/storefront-copy", label: "Storefront Wording", icon: "✎" }
 ];
 
+let rememberedAdminNavScroll = 0;
+
 export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAlertCount = 0 }) {
+  const scrollRef = useRef(null);
+  useLayoutEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = rememberedAdminNavScroll;
+  }, []);
   const initials = admin.fullName.split(/\s+/).slice(0, 2)
     .map((part) => part[0]).join("").toUpperCase();
 
@@ -29,7 +36,7 @@ export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAl
     <Link className="admin-brand" to="/admin/dashboard" onClick={onClose}>
       <BrandLogo markClassName="admin-brand-mark" showAdminLabel />
     </Link>
-    <div className="nx64-sidebar-scroll"><nav className="admin-nav" aria-label="Admin navigation">
+    <div className="nx64-sidebar-scroll" ref={scrollRef} onScroll={event => { rememberedAdminNavScroll = event.currentTarget.scrollTop; }}><nav className="admin-nav" aria-label="Admin navigation">
       <p>Workspace</p>
       {navigation.map((item) => <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}>
         <span aria-hidden="true">{item.icon}</span>{item.label}{item.to === "/admin/inventory" && stockAlertCount > 0 && <span className="nx24-sidebar-count">{stockAlertCount}</span>}
