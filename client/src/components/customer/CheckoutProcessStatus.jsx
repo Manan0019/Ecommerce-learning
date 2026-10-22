@@ -10,6 +10,8 @@ export default function CheckoutProcessStatus({phase,amount}){
  if(!phase||phase==='idle'||phase==='provider')return null;
  const complete=phase==='confirmed';
  const label=labels[phase]||labels.opening;
+ const steps=phase==='placing'?['Create COD order','Save order','Confirmation']:['Open payment','Verify payment','Confirmation'];
+ const activeStep=complete?2:phase==='verifying'?1:0;
  return <div className="nx64-checkout-overlay" role="status" aria-live="polite" aria-label={label}>
   <div className={`nx64-checkout-card ${complete?'is-ready':''}`}>
    <div className="nx64-checkout-stage" aria-hidden="true">
@@ -19,6 +21,7 @@ export default function CheckoutProcessStatus({phase,amount}){
    </div>
    <strong>{label}</strong>
    <span className="nx64-checkout-amount">{amount}</span>
+   <ol className="nx65-checkout-steps" aria-label="Checkout stages">{steps.map((name,index)=><li key={name} className={index<activeStep?'is-complete':index===activeStep?'is-active':''} aria-current={index===activeStep&&!complete?'step':undefined}><span aria-hidden="true"/>{name}</li>)}</ol>
    <div className="nx64-checkout-track" role="progressbar" aria-label={label} aria-valuetext={complete?'Complete':label} {...(complete?{'aria-valuemin':0,'aria-valuemax':100,'aria-valuenow':100}:{})}><span /></div>
    <p>{complete?'Verified by Nexora. Opening your orders.':phase==='verifying'?'Checking the confirmed payment with our server. Please do not pay again.':'Please keep this page open while we prepare your order.'}</p>
   </div>

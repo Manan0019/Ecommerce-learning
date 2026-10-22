@@ -6,6 +6,7 @@ import './styles/phase58.css'
 import './styles/phase59.css'
 import './styles/phase60.css'
 import './styles/phase64.css'
+import './styles/phase65.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(

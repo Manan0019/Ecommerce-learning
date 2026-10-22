@@ -6,5 +6,6 @@ export default function ProductLoadingSkeleton(){
   <div className="nx64-skeleton-shape nx64-skeleton-title" />
   <div className="nx64-skeleton-shape nx64-skeleton-title short" />
   <div className="nx64-skeleton-shape nx64-skeleton-price" />
+  <div className="nx64-skeleton-shape nx65-skeleton-action" />
  </div>;
 }

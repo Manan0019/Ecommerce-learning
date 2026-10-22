@@ -69,7 +69,7 @@ export default function OrderActionDialog({ dialog, busy, error, refundConfig, o
       <form onSubmit={submit}>
         <header className="nx44-dialog-head">
           <div><span className="nx44-dialog-kicker">{action.eyebrow}</span><h2 id="nx44-dialog-heading">{action.heading}</h2></div>
-          <button ref={!needsReason ? initialRef : undefined} type="button" className="nx44-dialog-close nx64-animated-close" aria-label="Close dialog" onClick={onClose} disabled={busy}><UiIcon name="x" size={17}/></button>
+          <button ref={!needsReason ? initialRef : undefined} type="button" className="nx44-dialog-close nx64-animated-close nx65-close-control" aria-label="Close dialog" onClick={onClose} disabled={busy}><UiIcon name="x" size={17}/></button>
         </header>
         <div className="nx44-dialog-body">
           <div className="nx44-order-summary"><span>Order #{dialog.order.id}</span><strong>{money(dialog.order.total)}</strong></div>

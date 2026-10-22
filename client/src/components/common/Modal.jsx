@@ -41,7 +41,7 @@ export default function Modal({ title, subtitle, children, onClose, size = "wide
         onInvalidCapture={showInvalidField} onInputCapture={clearValidField}>
         <header className="nx-modal-header">
           <div><h2 id={headingId}>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>
-          <button ref={closeRef} type="button" className="nx-icon-button" aria-label="Close dialog" disabled={closeDisabled} onClick={onClose}><UiIcon name="x" size={18} /></button>
+          <button ref={closeRef} type="button" className="nx-icon-button nx65-close-control" aria-label="Close dialog" disabled={closeDisabled} onClick={onClose}><UiIcon name="x" size={18} /></button>
         </header>
         <div className="nx-modal-body">{children}</div>
       </section>

@@ -238,7 +238,7 @@ export default function ProductList() {
         />
         <section className="catalogue-results" aria-live="polite">
           {loading && (
-            <div className="product-grid">
+            <div className="product-grid" role="status" aria-label="Loading products" aria-busy="true">
               {Array.from({ length: 6 }, (_, index) => (
                 <ProductLoadingSkeleton key={index} />
               ))}

@@ -1,0 +1,167 @@
+/* Phase 65 — modal readability and meaningful, accessible motion. */
+
+/* Order management: each field occupies its own layout cell, never a shared text line. */
+.nx-modal-order .nx-modal-header { padding:20px clamp(17px,3vw,28px);align-items:center }
+.nx-modal-order .nx-modal-body { padding:clamp(10px,2vw,22px);overflow-y:auto }
+.nx-modal-order .nx59-order-detail .nx-admin-order-card {
+  padding:clamp(15px,2.7vw,27px);border:1px solid #e5e8f2;
+  border-radius:18px;background:#fff;
+}
+.nx-modal-order .nx59-order-detail .nx-admin-order-card>header { align-items:center;margin-bottom:16px }
+.nx-modal-order .nx59-order-detail .nx-admin-order-card>header strong { font-size:17px }
+.nx-modal-order .nx65-order-overview {
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,max-content);
+  align-items:start;gap:20px;margin:0 0 17px;
+  background:#f8f7fd;border:1px solid #ebe7f7;border-radius:13px;padding:17px;
+}
+.nx-modal-order .nx65-order-overview .nx65-customer-details { display:grid;gap:6px;min-width:0 }
+.nx-modal-order .nx65-order-overview .nx65-customer-details strong {
+  margin:0!important;display:block;color:#17233e;font-size:15px;line-height:1.4;
+}
+.nx-modal-order .nx65-order-overview .nx65-customer-details>span:last-child {
+  display:block;overflow-wrap:anywhere;color:#6e7793;font-size:12px;line-height:1.55;
+}
+.nx-modal-order .nx65-order-overview .nx65-label,
+.nx-modal-order .nx65-order-overview .nx34-order-total small {
+  color:#73779a;letter-spacing:.08em;font-size:10px;font-weight:850;
+}
+.nx-modal-order .nx65-order-overview .nx65-total-details { display:grid;gap:7px;min-width:0;justify-items:end;text-align:right }
+.nx-modal-order .nx65-order-overview .nx65-total-details strong {
+  margin:0!important;color:#27204f;font-size:clamp(18px,2.8vw,24px);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.nx-modal-order .nx65-order-items { display:grid;padding:0;border:1px solid #e9eaf4;border-radius:13px;overflow:hidden;margin:0 0 16px }
+.nx-modal-order .nx65-order-items .nx34-admin-order-line {
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+  gap:17px;margin:0;padding:13px 15px;border:0;
+}
+.nx-modal-order .nx65-order-items .nx34-admin-order-line+.nx34-admin-order-line {border-top:1px solid #eeedf5}
+.nx-modal-order .nx65-order-product {display:flex;align-items:center;gap:12px;min-width:0}
+.nx-modal-order .nx65-order-thumb {height:55px;width:55px;object-fit:contain;border-radius:10px;border:1px solid #ececf3;background:#f8f9fc;flex-shrink:0}
+.nx-modal-order .nx65-order-product .nx34-order-line-info {display:grid;gap:6px;min-width:0}
+.nx-modal-order .nx65-order-product .nx34-order-line-info a {line-height:1.45;font-size:13px;font-weight:800;overflow-wrap:anywhere;text-decoration:none}
+.nx-modal-order .nx65-order-product .nx34-order-line-info small {display:block;color:#848ba4;font-size:11px;overflow-wrap:anywhere}
+.nx-modal-order .nx65-order-items .nx34-order-line-numbers {display:grid;gap:7px;text-align:right;justify-items:end;align-self:center}
+.nx-modal-order .nx65-order-items .nx34-order-line-numbers span {color:#737c99;font-size:11px;white-space:nowrap}
+.nx-modal-order .nx65-order-items .nx34-order-line-numbers strong {margin:0!important;white-space:nowrap;color:#192545;font-size:14px;font-variant-numeric:tabular-nums}
+.nx-modal-order .nx59-order-detail .nx25-order-breakdown {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+  padding:0;border:0;margin:0 0 18px;
+}
+.nx-modal-order .nx59-order-detail .nx25-order-breakdown>span {
+  padding:13px;background:#fafaff;border-radius:12px;border:1px solid #eeeaf7;
+  display:grid;gap:6px;min-width:0;
+}
+.nx-modal-order .nx59-order-detail .nx25-order-breakdown>span>span {font-size:11px;color:#707992}
+.nx-modal-order .nx59-order-detail .nx25-order-breakdown>span>strong {font-size:13px;color:#1c2947;margin:0!important;word-break:break-word;font-variant-numeric:tabular-nums}
+.nx-modal-order .nx59-order-detail footer {align-items:start;padding-top:18px}
+.nx-modal-order .nx59-order-detail footer>div {justify-content:flex-start;row-gap:10px}
+
+/* Delivery assignment: padding protects borders and keyboard focus rings from clipping. */
+.nx-modal-assignment {width:min(760px,calc(100vw - 32px))}
+.nx-modal-assignment .nx-modal-body {overflow-y:auto;overflow-x:hidden;padding:20px 23px 23px}
+.nx-modal-assignment .nx53-assignment-dialog {min-width:0;gap:15px}
+.nx-modal-assignment .nx53-team-list {padding:6px 8px 9px;max-height:min(37dvh,345px);margin:0 -2px;scrollbar-gutter:stable}
+.nx-modal-assignment .nx53-team-card {min-width:0;outline:0;box-shadow:none;overflow:visible}
+.nx-modal-assignment .nx53-team-card.is-selected {border-color:#7760de;background:#f7f5ff;box-shadow:inset 0 0 0 1px #7760de}
+.nx-modal-assignment .nx53-team-card:focus-within {outline:0}
+.nx-modal-assignment .nx53-team-card:has(input:focus-visible) {outline:2px solid #6b50df;outline-offset:2px}
+.nx-modal-assignment .nx53-team-identity {overflow:hidden}
+.nx-modal-assignment .nx53-team-meta {justify-items:end}
+.nx-modal-assignment .nx53-picker-footer {min-width:0;gap:10px;flex-wrap:wrap;padding-top:15px}
+.nx-modal-assignment .nx53-picker-footer>div {margin-left:auto;min-width:0}
+
+/* Close controls: expanding halo and gentle cross reveal, never rotating the X. */
+.nx-modal .nx-modal-header .nx65-close-control,
+button.nx65-close-control {
+  isolation:isolate;position:relative;overflow:hidden;
+  background:#f8f8fe!important;border:1px solid #e0e3ee!important;
+  border-radius:13px!important;color:#45516b!important;
+  display:grid!important;place-items:center!important;padding:0!important;
+  transition:background-color .25s ease,border-color .25s ease,box-shadow .25s ease,transform .25s ease!important;
+}
+.nx65-close-control::before {
+  content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;
+  background:radial-gradient(circle at center,#ded5ff 0%,#eee9ff 65%,transparent 70%);
+  opacity:0;transform:scale(.1);transition:transform .4s cubic-bezier(.16,1,.3,1),opacity .24s ease;
+}
+.nx-modal .nx-modal-header .nx65-close-control:hover,
+button.nx65-close-control:hover {
+  background:#f5f1ff!important;border-color:#b8a9fc!important;
+  box-shadow:0 4px 13px rgba(96,69,222,.12)!important;transform:translateY(-1px);
+}
+.nx65-close-control:hover::before {opacity:1;transform:scale(1.8)}
+.nx-modal .nx-modal-header .nx65-close-control svg,
+button.nx65-close-control .nx47-icon,
+button.nx65-close-control svg {
+  position:relative;z-index:1;transform:scale(1) rotate(0deg)!important;
+  transition:transform .26s cubic-bezier(.16,1,.3,1),color .23s ease!important;
+  pointer-events:none;transform-origin:center;
+}
+.nx-modal .nx-modal-header .nx65-close-control:hover svg,
+button.nx65-close-control:hover svg {transform:scale(.86) rotate(0deg)!important;color:#583aca!important}
+.nx65-close-control:active {transform:scale(.95)!important}
+.nx65-close-control:focus-visible {outline:2px solid #694ae9!important;outline-offset:3px!important}
+
+/* Skeletons are request-bound, never permanently present. */
+.product-skeleton.nx64-product-skeleton {min-height:370px;padding:13px;border:1px solid #e8e2fa;
+ box-shadow:0 12px 33px -27px #37276b70;background:linear-gradient(160deg,#fff,#fcfbff)!important}
+.nx64-skeleton-shape {background:#eae7f4}
+.nx64-skeleton-shape::after {background:linear-gradient(105deg,transparent 27%,rgba(255,255,255,.96) 50%,transparent 72%);animation-duration:1.8s}
+.nx65-skeleton-action {height:36px;width:100%;margin-top:3px;border-radius:11px}
+.nx65-order-loading {display:grid;gap:10px;padding:18px;border:1px solid #e9e5f6;border-radius:17px;background:#fff}
+.nx65-loading-row {min-height:55px;display:grid;grid-template-columns:.5fr 2fr 1fr .8fr;gap:20px;padding:10px 13px;align-items:center;border-bottom:1px solid #eeeaf5}
+.nx65-loading-row span {height:12px;border-radius:7px;background:#eae6f5;position:relative;overflow:hidden}
+.nx65-loading-row span::after {content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 25%,#fff 50%,transparent 75%);transform:translateX(-110%);animation:nx64-shimmer 1.8s infinite}
+.nx65-loading-row:nth-child(2) span::after {animation-delay:.1s}.nx65-loading-row:nth-child(3) span::after {animation-delay:.2s}
+
+/* Checkout UI is driven by actual requests and Razorpay callbacks, NOT a timed simulation. */
+.nx65-checkout-steps {width:100%;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0;padding:0}
+.nx65-checkout-steps li {display:grid;justify-items:center;align-items:start;gap:6px;min-width:0;
+ font-size:11px;color:#84899d;font-weight:700;text-align:center;line-height:1.4}
+.nx65-checkout-steps li span {display:block;height:7px;width:7px;border-radius:50%;background:#c3bed6}
+.nx65-checkout-steps li.is-active {color:#523bc1}
+.nx65-checkout-steps li.is-active span {background:#6d53e5;box-shadow:0 0 0 4px #eee7ff;animation:nx65-step-pulse 1.6s ease-in-out infinite}
+.nx65-checkout-steps li.is-complete {color:#138459}
+.nx65-checkout-steps li.is-complete span {background:#1aa875}
+@keyframes nx65-step-pulse {50% {box-shadow:0 0 0 7px #eee7ff55}}
+.nx64-checkout-card {gap:14px}
+.nx64-checkout-card .nx64-checkout-track {margin-top:2px}
+@media (max-width:620px) {
+  .nx-modal-order .nx65-order-overview {grid-template-columns:1fr;gap:14px}
+  .nx-modal-order .nx65-order-overview .nx65-total-details {justify-items:start;text-align:left}
+  .nx-modal-order .nx59-order-detail .nx25-order-breakdown {grid-template-columns:1fr 1fr}
+  .nx-modal-order .nx65-order-items .nx34-admin-order-line {gap:10px;padding:12px;grid-template-columns:minmax(0,1fr)}
+  .nx-modal-order .nx65-order-items .nx34-order-line-numbers {width:100%;display:flex;justify-content:space-between;align-items:center}
+  .nx-modal-assignment .nx-modal-body {padding:15px 12px}
+  .nx-modal-assignment .nx53-team-card {flex-wrap:wrap}
+  .nx-modal-assignment .nx53-team-meta {flex-direction:row;display:flex;justify-content:flex-end;align-items:center;gap:8px;flex:1 1 100%}
+}
+@media (max-width:420px) {
+  .nx-modal-order .nx59-order-detail .nx25-order-breakdown {grid-template-columns:1fr}
+  .nx-modal-assignment .nx53-assignment-context {grid-template-columns:1fr}
+  .nx-modal-assignment .nx53-assignment-context>div:nth-child(2) {grid-column:auto;grid-row:auto}
+  .nx-modal-assignment .nx53-picker-footer>div {width:100%}
+  .nx-modal-assignment .nx53-picker-footer button {flex:1}
+}
+@media (prefers-reduced-motion:reduce) {
+  .nx65-close-control,.nx65-close-control::before,.nx65-close-control svg,
+  .nx65-loading-row span::after,.nx65-checkout-steps li.is-active span,
+  .nx64-skeleton-shape::after {transition:none!important;animation:none!important}
+  .nx65-close-control:hover,.nx65-close-control:hover svg {transform:none!important}
+  .nx65-loading-row span::after,.nx64-skeleton-shape::after {opacity:0!important}
+}
+/* Restrained secondary interactions: responsive, no artificial delay for data. */
+@keyframes nx65-modal-arrive {from{opacity:.7;transform:translateY(9px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+.nx-modal-order,.nx-modal-assignment {animation:nx65-modal-arrive .24s cubic-bezier(.2,.7,.2,1) both}
+.nx-modal-assignment .nx53-team-card:not(.is-disabled) {transition:background .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+.nx-modal-assignment .nx53-team-card:not(.is-disabled):hover {background:#f8f5ff;transform:translateY(-1px)}
+.nx-modal-assignment .nx53-confirm:not(:disabled) {transition:background .2s ease,box-shadow .2s ease,transform .2s ease}
+.nx-modal-assignment .nx53-confirm:not(:disabled):hover {background:#4b36be;box-shadow:0 8px 15px -10px #5133c5;transform:translateY(-1px)}
+.nx-modal-order .nx-admin-order-card footer button:not(:disabled) {transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
+.nx-modal-order .nx-admin-order-card footer button:not(:disabled):hover {transform:translateY(-1px)}
+@media (prefers-reduced-motion:reduce) {
+ .nx-modal-order,.nx-modal-assignment {animation:none!important}
+ .nx-modal-assignment .nx53-team-card:hover,.nx-modal-assignment .nx53-confirm:hover,
+ .nx-modal-order .nx-admin-order-card footer button:hover {transform:none!important;transition:none!important}
+}

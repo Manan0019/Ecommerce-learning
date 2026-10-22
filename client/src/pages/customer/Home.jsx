@@ -77,7 +77,7 @@ export default function Home() {
           <div><p className="eyebrow">{copy?.featuredEyebrow||"Live catalogue"}</p><h2 id="featured-heading">{copy?.featuredTitle||"Featured products"}</h2></div>
           <Link className="text-link" to="/products">View all </Link>
         </div>
-        {loading && <div className="product-grid" aria-label="Loading products">
+        {loading && <div className="product-grid" role="status" aria-busy="true" aria-label="Loading products">
           {[1, 2, 3, 4].map((item) => <ProductLoadingSkeleton key={item} />)}
         </div>}
         {error && <p className="store-alert" role="alert">{error}</p>}

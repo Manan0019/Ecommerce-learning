@@ -78,7 +78,7 @@ export default function ProductMediaGallery({ product, variantId = null, variant
       </div><button type="button" className="nx57-thumbnail-scroll" aria-label="Scroll thumbnails right" onClick={()=>thumbsRef.current?.scrollBy({left:240,behavior:'smooth'})}><UiIcon name="chevron-right" size={17}/></button>
     </div>}
     <dialog ref={zoomRef} className="nx29-image-dialog" aria-label={`${product.name} enlarged image`}>
-      <button type="button" className="nx29-image-dialog-close nx64-animated-close" onClick={() => zoomRef.current?.close()} aria-label="Close enlarged image"><UiIcon name="x" size={18}/></button>
+      <button type="button" className="nx29-image-dialog-close nx64-animated-close nx65-close-control" onClick={() => zoomRef.current?.close()} aria-label="Close enlarged image"><UiIcon name="x" size={18}/></button>
       {current?.type === "image" && <img src={apiAssetUrl(current.url)} alt={product.name} />}
     </dialog>
   </div>;
