@@ -4,7 +4,7 @@ export function definitionFields(definition) {
   return definition.groups.flatMap((group) => group.fields);
 }
 
-export function validateSpecifications(category, input) {
+export function validateSpecifications(category, input, legacySpecifications = {}) {
   let value = input;
   if (typeof value === "string") {
     if (value.length > 20_000) throw new Error("INVALID_SPECIFICATIONS");
@@ -16,12 +16,21 @@ export function validateSpecifications(category, input) {
   const definition = getSpecificationDefinition(category);
   const fields = new Map(definitionFields(definition).map((item) => [item.key, item]));
   const entries = Object.entries(value);
-  if (entries.length > fields.size) throw new Error("INVALID_SPECIFICATIONS");
+  if (entries.length > fields.size + Object.keys(legacySpecifications || {}).length) throw new Error("INVALID_SPECIFICATIONS");
 
   const specifications = {};
   for (const [key, rawValue] of entries) {
     const schema = fields.get(key);
-    if (!schema) throw new Error("INVALID_SPECIFICATIONS");
+    // Existing records may contain specifications from the old generic Electronics
+    // schema. Preserve unmodified historical values when editing the same category.
+    if (!schema) {
+      if (Object.prototype.hasOwnProperty.call(legacySpecifications || {}, key) &&
+          JSON.stringify(rawValue) === JSON.stringify(legacySpecifications[key])) {
+        specifications[key] = rawValue;
+        continue;
+      }
+      throw new Error("INVALID_SPECIFICATIONS");
+    }
     if (rawValue === "" || rawValue === null || rawValue === undefined) continue;
 
     if (schema.type === "text") {
@@ -140,5 +149,10 @@ export function publicSpecificationValues(category, specifications) {
       }];
     })
   })).filter((group) => group.items.length);
+  const recognized=new Set(definitionFields(definition).map(x=>x.key));
+  const extra=Object.entries(specifications||{}).filter(([key,value])=>!recognized.has(key) && value!==null && value!=='' && value!==undefined);
+  if(extra.length)groups.push({label:'Additional saved details',items:extra.slice(0,30).map(([key,value])=>({
+    key,label:key.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^(.)/,x=>x.toUpperCase()),value,type:Array.isArray(value)?'multiSelect':typeof value==='boolean'?'boolean':'text',unit:null
+  }))});
   return { type: definition.type, label: definition.label, groups };
 }

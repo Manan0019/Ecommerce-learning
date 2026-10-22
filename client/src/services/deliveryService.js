@@ -18,3 +18,8 @@ export const reportDeliveryIssue=(orderId,body)=>apiRequest(`/api/delivery/assig
  ...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 export const retryDeliveryIssue=orderId=>apiRequest(`/api/admin/delivery/orders/${orderId}/retry-delivery`,{
  ...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'retry'})});
+
+export const resendDeliveryCode=orderId=>apiRequest(`/api/delivery/assignments/${orderId}/otp/resend`,{
+  ...opts,method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+export const confirmDeliveryCode=(orderId,otp)=>apiRequest(`/api/delivery/assignments/${orderId}/confirm-delivery`,{
+  ...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({otp})});

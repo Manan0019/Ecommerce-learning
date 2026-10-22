@@ -1,4 +1,6 @@
 import bcrypt from 'bcrypt';
+import {sendDeliveryConfirmationEmail} from '../config/mailer.js';
+import {otpEnabled,issueDeliveryCode,verifyDeliveryCode,maskedEmail,otpRequestAllowed,DELIVERY_OTP_LIFETIME_MS} from '../services/deliveryOtp.js';
 import pool from '../config/db.js';
 import { eligibleForAssignment,canUpdateDelivery,canReportDeliveryIssue,validateDeliveryIssue,validId,validNewPassword,validateBulkDeliveryAssignment } from '../services/deliveryRules.js';
 import { notifyAdmins, notifyUser } from '../services/notificationService.js';
@@ -52,7 +54,7 @@ export async function listDeliveryAssignments(req,res){
   const worker=req.user.role==='delivery';
   const r=await pool.query(`SELECT a.order_id,a.executive_id,a.status AS delivery_status,a.assigned_at,a.out_for_delivery_at,a.delivered_at,
    o.status AS order_status,o.payment_method,o.payment_status,o.grand_total,o.address_snapshot,o.delivery_partner,o.tracking_reference,
-   u.full_name AS executive_name,c.full_name AS customer_name,c.mobile_number AS customer_phone,
+   u.full_name AS executive_name,c.full_name AS customer_name,c.mobile_number AS customer_phone,c.email AS customer_email,
    issue.id AS issue_id,issue.kind AS issue_kind,issue.reason AS issue_reason,
    issue.requested_date AS issue_date,issue.recorded_at AS issue_recorded_at
    FROM delivery_assignments a JOIN cod_orders o ON o.id=a.order_id
@@ -62,7 +64,7 @@ export async function listDeliveryAssignments(req,res){
    ORDER BY a.assigned_at DESC LIMIT ${worker?500:200}`,worker?[req.user.id]:[]);
   res.json({assignments:r.rows.map(x=>({orderId:String(x.order_id),executiveId:String(x.executive_id),executiveName:x.executive_name,
     deliveryStatus:x.delivery_status,orderStatus:x.order_status,paymentMethod:x.payment_method,paymentStatus:x.payment_status,
-    total:x.grand_total,address:x.address_snapshot,customerName:x.customer_name,customerPhone:x.customer_phone,
+    total:x.grand_total,address:x.address_snapshot,customerName:x.customer_name,customerPhone:x.customer_phone,customerEmailMasked:maskedEmail(x.customer_email),
     deliveryPartner:x.delivery_partner,trackingReference:x.tracking_reference,
     pendingIssue:x.issue_id?{id:String(x.issue_id),kind:x.issue_kind,reason:x.issue_reason,requestedDate:x.issue_date,reportedAt:x.issue_recorded_at}:null,
     assignedAt:x.assigned_at,outForDeliveryAt:x.out_for_delivery_at,deliveredAt:x.delivered_at}))});
@@ -125,7 +127,8 @@ export async function assignDeliveryBatch(req,res){
 
 export async function updateMyDelivery(req,res){
  const {orderId}=req.params,{status}=req.body??{};
- if(!validId(orderId)||!['out_for_delivery','delivered'].includes(status))return res.status(400).json({message:'Invalid delivery update.'});
+ if(!validId(orderId)||status!=='out_for_delivery')return res.status(400).json({message:'Use customer OTP verification to complete delivery.'});
+ if(!otpEnabled())return res.status(503).json({message:'Delivery OTP is not configured. Set DELIVERY_OTP_SECRET and SMTP credentials in server/.env.'});
  const db=await pool.connect();let open=false;
  try{
   await db.query('BEGIN');open=true;
@@ -136,19 +139,86 @@ export async function updateMyDelivery(req,res){
   if(!canUpdateDelivery(order,assignment,status)){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Order must be dispatched; delivery steps must happen in order.'});}
   const issueCheck=await db.query("SELECT 1 FROM delivery_issues WHERE order_id=$1 AND state='pending'",[orderId]);
   if(issueCheck.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'This delivery has an issue awaiting admin review.'});}
-  if(status==='out_for_delivery'){
-   await db.query(`UPDATE delivery_assignments SET status='out_for_delivery',out_for_delivery_at=NOW(),updated_at=NOW() WHERE order_id=$1`,[orderId]);
-  }else{
-   const pending=await db.query(`SELECT 1 FROM order_cancellation_requests WHERE order_id=$1 AND status='pending'`,[orderId]);
-   if(pending.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Cancellation request must be reviewed before delivery.'});}
-   await db.query(`UPDATE delivery_assignments SET status='delivered',delivered_at=NOW(),updated_at=NOW() WHERE order_id=$1`,[orderId]);
-   await db.query(`UPDATE cod_orders SET status='delivered',delivered_at=NOW(),updated_at=NOW() WHERE id=$1`,[orderId]);
-  }
+  const customer=await db.query('SELECT email FROM users WHERE id=$1',[order.customer_id]);
+  const email=customer.rows[0]?.email;
+  if(!email){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Customer email is missing. Contact the administrator.'});}
+  const issued=issueDeliveryCode(process.env.DELIVERY_OTP_SECRET,orderId);
+  await db.query(`INSERT INTO delivery_confirmation_otps(order_id,otp_hash,salt,expires_at)
+    VALUES($1,$2,$3,NOW()+INTERVAL '10 minutes')
+    ON CONFLICT(order_id) DO UPDATE SET otp_hash=EXCLUDED.otp_hash,salt=EXCLUDED.salt,
+    expires_at=EXCLUDED.expires_at,attempts=0,sent_at=NOW(),send_window_at=NOW(),send_count=1,verified_at=NULL`,
+    [orderId,issued.hash,issued.salt]);
+  await db.query(`UPDATE delivery_assignments SET status='out_for_delivery',out_for_delivery_at=NOW(),updated_at=NOW() WHERE order_id=$1`,[orderId]);
   await db.query('INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,$2,$3,$4)',[orderId,status==='delivered'?'delivered':'out_for_delivery',req.user.id,'Updated by assigned delivery executive.']);
   await notifyAdmins(db,{key:`delivery:${orderId}:${status}`,kind:'delivery',title:status==='delivered'?'Order delivered':'Out for delivery',message:`Order #${orderId} status updated by delivery staff.`,path:'/admin/orders'});
   await notifyUser(db,order.customer_id,{key:`order:${orderId}:delivery:${status}`,kind:'delivery',title:status==='delivered'?'Order delivered':'Your order is out for delivery',message:`Delivery update for order #${orderId}.`,path:'/orders'});
-  await db.query('COMMIT');open=false;res.json({ok:true});
+  await db.query('COMMIT');open=false;
+  try{await sendDeliveryConfirmationEmail(email,issued.code,orderId);return res.json({ok:true,otpSent:true,customerEmailMasked:maskedEmail(email)});}
+  catch(mailError){console.error('Delivery OTP email failed for order:',orderId,mailError?.code||'SMTP error');
+    return res.status(202).json({ok:true,otpSent:false,message:'Order marked out for delivery, but email could not be sent. Check SMTP and use Resend delivery code.'});}
  }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});err(res,e);}finally{db.release();}
+}
+
+export async function resendDeliveryOtp(req,res){
+ const {orderId}=req.params;
+ if(!validId(orderId))return res.status(400).json({message:'Invalid order.'});
+ if(!otpEnabled())return res.status(503).json({message:'Delivery code/email service is not configured.'});
+ const db=await pool.connect();let open=false;
+ try{
+  await db.query('BEGIN');open=true;
+  const orderResult=await db.query('SELECT * FROM cod_orders WHERE id=$1 FOR UPDATE',[orderId]);
+  const assignmentResult=await db.query('SELECT * FROM delivery_assignments WHERE order_id=$1 FOR UPDATE',[orderId]);
+  const order=orderResult.rows[0],a=assignmentResult.rows[0];
+  if(!a||String(a.executive_id)!==String(req.user.id)){await db.query('ROLLBACK');open=false;return res.status(404).json({message:'Assigned delivery not found.'});}
+  const issues=await db.query("SELECT 1 FROM delivery_issues WHERE order_id=$1 AND state='pending'",[orderId]);
+  if(!order||order.status!=='shipped'||a.status!=='out_for_delivery'||order.refund_status||issues.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'This order is not eligible for a new delivery code.'});}
+  const current=(await db.query('SELECT * FROM delivery_confirmation_otps WHERE order_id=$1 FOR UPDATE',[orderId])).rows[0];
+  const allowed=otpRequestAllowed(current);
+  if(!allowed.ok){await db.query('ROLLBACK');open=false;return res.status(429).json({message:allowed.reason});}
+  const email=(await db.query('SELECT email FROM users WHERE id=$1',[order.customer_id])).rows[0]?.email;
+  if(!email){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Customer email unavailable.'});}
+  const issued=issueDeliveryCode(process.env.DELIVERY_OTP_SECRET,orderId);
+  await db.query(`INSERT INTO delivery_confirmation_otps(order_id,otp_hash,salt,expires_at,send_count,send_window_at)
+    VALUES($1,$2,$3,NOW()+INTERVAL '10 minutes',$4,$5)
+    ON CONFLICT(order_id) DO UPDATE SET otp_hash=EXCLUDED.otp_hash,salt=EXCLUDED.salt,
+      expires_at=EXCLUDED.expires_at,attempts=0,sent_at=NOW(),send_count=EXCLUDED.send_count,
+      send_window_at=EXCLUDED.send_window_at,verified_at=NULL`,[orderId,issued.hash,issued.salt,allowed.count,allowed.windowAt]);
+  await db.query('COMMIT');open=false;
+  try{await sendDeliveryConfirmationEmail(email,issued.code,orderId);return res.json({ok:true,otpSent:true,customerEmailMasked:maskedEmail(email)});}
+  catch(mailError){console.error('Delivery OTP resend failed:',orderId,mailError?.code||'SMTP error');return res.status(502).json({message:'Unable to send the verification email. Check email settings and retry after cooldown.'});}
+ }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});return err(res,e);}finally{db.release();}
+}
+
+export async function confirmDeliveryWithOtp(req,res){
+ const {orderId}=req.params,code=req.body?.otp;
+ if(!validId(orderId)||typeof code!=='string'||!/^\d{6}$/.test(code))return res.status(400).json({message:'Enter the six-digit code provided by the customer.'});
+ if(!otpEnabled())return res.status(503).json({message:'Delivery OTP configuration missing.'});
+ const db=await pool.connect();let open=false;
+ try{
+  await db.query('BEGIN');open=true;
+  const orderResult=await db.query('SELECT * FROM cod_orders WHERE id=$1 FOR UPDATE',[orderId]);
+  const aResult=await db.query('SELECT * FROM delivery_assignments WHERE order_id=$1 FOR UPDATE',[orderId]);
+  const order=orderResult.rows[0],assignment=aResult.rows[0];
+  if(!assignment||String(assignment.executive_id)!==String(req.user.id)){await db.query('ROLLBACK');open=false;return res.status(404).json({message:'Assigned delivery not found.'});}
+  if(!canUpdateDelivery(order,assignment,'delivered')){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Delivery must be dispatched and out for delivery first.'});}
+  const blockers=await db.query(`SELECT 1 FROM delivery_issues WHERE order_id=$1 AND state='pending'
+    UNION ALL SELECT 1 FROM order_cancellation_requests WHERE order_id=$1 AND status='pending'`,[orderId]);
+  if(blockers.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Resolve pending delivery or cancellation review first.'});}
+  const otp=(await db.query('SELECT * FROM delivery_confirmation_otps WHERE order_id=$1 FOR UPDATE',[orderId])).rows[0];
+  if(!otp||otp.verified_at||new Date(otp.expires_at).getTime()<=Date.now()||otp.attempts>=5){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'The delivery code has expired or is locked. Resend a new code.'});}
+  if(!verifyDeliveryCode(code,otp.salt,orderId,process.env.DELIVERY_OTP_SECRET,otp.otp_hash)){
+    await db.query('UPDATE delivery_confirmation_otps SET attempts=attempts+1 WHERE order_id=$1',[orderId]);
+    await db.query('COMMIT');open=false;return res.status(400).json({message:'Incorrect delivery code. Ask the customer to confirm the latest email. Five attempts maximum.'});
+  }
+  await db.query('UPDATE delivery_confirmation_otps SET verified_at=NOW() WHERE order_id=$1',[orderId]);
+  await db.query(`UPDATE delivery_assignments SET status='delivered',delivered_at=NOW(),updated_at=NOW() WHERE order_id=$1`,[orderId]);
+  await db.query(`UPDATE cod_orders SET status='delivered',delivered_at=NOW(),updated_at=NOW() WHERE id=$1`,[orderId]);
+  await db.query(`INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes)
+     VALUES($1,'delivered',$2,'Customer email delivery code verified at handover.')`,[orderId,req.user.id]);
+  await notifyAdmins(db,{key:`delivery:${orderId}:delivered`,kind:'delivery',title:'Order delivered',message:`Order #${orderId} confirmed by delivery OTP.`,path:'/admin/orders'});
+  await notifyUser(db,order.customer_id,{key:`order:${orderId}:delivery:delivered`,kind:'delivery',title:'Order delivered',message:`Delivery confirmed for order #${orderId}.`,path:'/orders'});
+  await db.query('COMMIT');open=false;return res.json({ok:true,delivered:true});
+ }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});return err(res,e);}finally{db.release();}
 }
 
 export async function reportDeliveryIssue(req,res){

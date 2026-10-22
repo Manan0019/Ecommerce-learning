@@ -159,6 +159,9 @@ export async function changeCodOrderStatus(req,res){
     await db.query('ROLLBACK');open=false;return res.status(409).json({message:'A customer cancellation request is pending. Approve or decline it before fulfilling this order.'});
   }
   if(status==='delivered'){
+    const assignment=await db.query('SELECT order_id FROM delivery_assignments WHERE order_id=$1',[id]);
+    if(assignment.rows.length){await db.query('ROLLBACK');open=false;
+      return res.status(409).json({message:'Assigned orders require customer email OTP verification by their delivery executive. Admin cannot bypass confirmation.'});}
     const openIssue=await db.query("SELECT id FROM delivery_issues WHERE order_id=$1 AND state='pending'",[id]);
     if(openIssue.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Delivery issue awaits admin review. Approve another delivery attempt before marking delivered.'});}
   }

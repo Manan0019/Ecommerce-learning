@@ -31,7 +31,7 @@ test('admin required marker follows label text, and modal has consistent form ca
  const modal=load('components/common/Modal.jsx');
  const style=load('styles/phase34.css');
  assert.match(add,/Product name <b className="nx34-required"/);
- assert.match(add,/Description <b className="nx34-required"/);
+ assert.match(add,/Full description <b className="nx34-required"/);
  assert.match(modal,/onPasteCapture=\{guardNumericPaste\}/);
  assert.match(style,/content:none!important/);
 });

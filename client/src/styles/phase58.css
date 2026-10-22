@@ -1,0 +1,25 @@
+/* Phase58: product narrative, collapsed category-dependent specifications, compact footer spacing */
+.storefront .nx58-product-summary{font-size:.91rem;line-height:1.7;color:#576079;margin:8px 0 19px;max-width:58ch;white-space:pre-line}
+.storefront .nx58-product-description{margin:35px 0 16px;padding:26px clamp(18px,3vw,34px);border-radius:19px;background:white;border:1px solid #e8e6f2}
+.storefront .nx58-product-description .section-heading{margin:0 0 13px}
+.storefront .nx58-product-description h2{font-size:clamp(1.3rem,2.3vw,2rem);margin:5px 0}
+.storefront .nx58-product-description>p{font-size:.93rem;line-height:1.85;white-space:pre-line;color:#434c65;max-width:100ch;margin:0}
+.storefront .technical-specifications.nx58-specifications{border:1px solid #e3e0f3;border-radius:19px;background:#fff;margin:22px 0 18px;padding:0;overflow:hidden}
+.storefront .nx58-specifications>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:15px;padding:23px 28px;cursor:pointer;background:#faf9ff;color:#192443}
+.storefront .nx58-specifications>summary::-webkit-details-marker{display:none}
+.storefront .nx58-specifications>summary span{display:grid;gap:5px}
+.storefront .nx58-specifications>summary small{font-size:.65rem;letter-spacing:.17em;color:#6950d4;font-weight:900}
+.storefront .nx58-specifications>summary strong{font-size:clamp(1rem,2vw,1.35rem)}
+.storefront .nx58-specifications>summary svg{flex:none;transition:transform .2s;color:#6146cf}
+.storefront .nx58-specifications[open]>summary svg{transform:rotate(180deg)}
+.storefront .nx58-specifications .specification-groups{padding:20px;gap:14px}
+.storefront .nx58-specifications .specification-groups article{padding:20px;background:#fff}
+.storefront .nx58-specifications .specification-groups dd{overflow-wrap:anywhere}
+.storefront .product-page{padding-bottom:clamp(16px,3vw,42px)!important;min-height:0}
+.storefront .product-page .nx33-recommendations{margin-block:clamp(24px,3vw,42px) 0}
+@media(max-width:650px){.storefront .nx58-specifications .specification-groups{grid-template-columns:1fr;padding:12px}.storefront .nx58-specifications>summary{padding:19px}.storefront .nx58-product-description{padding:19px}}
+
+.nx58-code-handover{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#f5f2ff;border:1px solid #e4dbff;border-radius:13px;padding:14px;margin:12px 0;font-size:12px;color:#45416b}
+.nx58-code-handover button{border:1px solid #d6ccfa;border-radius:9px;background:white;color:#5842c2;font-weight:800;padding:8px 12px;cursor:pointer}
+.nx58-otp-dialog label{display:grid;gap:8px;font-weight:800;font-size:13px;margin:15px 0}.nx58-otp-dialog input{min-height:47px;border:1px solid #cfc8f2;border-radius:12px;padding:10px 14px;font-size:1.2rem;letter-spacing:.17em;width:100%;max-width:250px}
+.nx58-otp-dialog .nx52-confirm-actions{flex-wrap:wrap}

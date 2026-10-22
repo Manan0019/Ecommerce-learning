@@ -44,7 +44,7 @@ export default function ProductSpecificationFields({ definition, specifications,
 
   return <section className="admin-specifications">
     <div className="admin-panel-heading">
-      <div><h2>{definition.label} specifications</h2><p>Only completed fields are saved.</p></div>
+      <div><h2>{definition.label} specifications</h2><p>Fields are selected from this product’s category and subcategory. Only completed fields are saved.</p></div>
     </div>
     {definition.groups.map((group) => <fieldset key={group.label}>
       <legend>{group.label}</legend>

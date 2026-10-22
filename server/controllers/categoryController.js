@@ -252,7 +252,7 @@ export async function getPublicSpecificationDefinition(req, res) {
   if (!validId(req.params.id)) return res.status(400).json({ message: "Invalid category ID." });
   try {
     const { rows } = await pool.query(
-      "SELECT id, name, slug FROM categories WHERE id = $1 AND is_active = TRUE",
+      "SELECT c.id, c.name, c.slug, concat_ws(' ', c.name, parent.name, root.name) AS path FROM categories c LEFT JOIN categories parent ON parent.id=c.parent_id LEFT JOIN categories root ON root.id=parent.parent_id WHERE c.id = $1 AND c.is_active = TRUE",
       [req.params.id]
     );
     if (!rows.length) return res.status(404).json({ message: "Active category not found." });
@@ -266,7 +266,7 @@ export async function getAdminSpecificationDefinition(req, res) {
   if (!validId(req.params.id)) return res.status(400).json({ message: "Invalid category ID." });
   try {
     const { rows } = await pool.query(
-      "SELECT id, name, slug FROM categories WHERE id = $1",
+      "SELECT c.id, c.name, c.slug, concat_ws(' ', c.name, parent.name, root.name) AS path FROM categories c LEFT JOIN categories parent ON parent.id=c.parent_id LEFT JOIN categories root ON root.id=parent.parent_id WHERE c.id = $1",
       [req.params.id]
     );
     if (!rows.length) return res.status(404).json({ message: "Category not found." });

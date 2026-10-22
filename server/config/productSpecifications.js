@@ -123,6 +123,148 @@ export const specificationDefinitions = {
       ]}
     ]
   },
+
+  camera: { label: "Camera & photography", groups: [
+    { label: "Imaging", fields: [
+      field("cameraType","Camera type","text",{maxLength:100}),
+      field("sensor","Sensor","text",{maxLength:120}),
+      field("megapixels","Resolution","number",{unit:"MP",min:0.1,max:500}),
+      field("lens","Lens / mount","text",{maxLength:150}),
+      field("video","Video recording","text",{maxLength:120})
+    ]},
+    { label: "Connectivity", fields: [field("connectivity","Connectivity","text",{maxLength:180}),field("battery","Battery","text",{maxLength:120})] }
+  ]},
+  display: { label: "Television & display", groups: [
+    { label: "Screen", fields: [
+      field("displayType","Display technology","text",{maxLength:120}),
+      field("displaySizeIn","Screen size","number",{unit:"in",min:1,max:150}),
+      field("resolution","Resolution","text",{maxLength:100}),
+      field("refreshRateHz","Refresh rate","number",{unit:"Hz",min:24,max:500}),
+      field("hdr","HDR formats","text",{maxLength:120})
+    ]},
+    { label: "Connections", fields: [field("ports","Ports","text",{maxLength:150}),field("features","Smart features","text",{maxLength:200})] }
+  ]},
+  computerAccessory: { label: "Computer accessories", groups: [
+    { label: "Compatibility & design", fields: [
+      field("accessoryType","Product type","text",{maxLength:100}),
+      field("connectivity","Connection type","text",{maxLength:120}),
+      field("compatibility","Compatible devices","text",{maxLength:180}),
+      field("dimensions","Dimensions","text",{maxLength:100}),
+      field("features","Main features","text",{maxLength:200})
+    ]}
+  ]},
+  charger: { label: "Chargers & power banks", groups: [
+    { label: "Power & compatibility", fields: [
+      field("capacityMah","Capacity","number",{unit:"mAh",min:100,max:100000}),
+      field("maxPowerW","Maximum output","number",{unit:"W",min:1,max:1000}),
+      field("ports","Ports and interfaces","text",{maxLength:120}),
+      field("chargingStandard","Supported standards","text",{maxLength:150}),
+      field("compatibility","Compatible devices","text",{maxLength:200})
+    ]}
+  ]},
+  networking: { label: "Networking & Wi-Fi", groups: [
+    { label: "Network capabilities", fields: [
+      field("deviceType","Device type","text",{maxLength:100}),
+      field("wifiStandard","Wi-Fi standard","text",{maxLength:100}),
+      field("speed","Maximum speed","text",{maxLength:100}),
+      field("ports","Ports","text",{maxLength:130}),
+      field("frequency","Frequency bands","text",{maxLength:120}),
+      field("security","Security","text",{maxLength:120})
+    ]}
+  ]},
+  storage: { label: "Digital storage", groups: [
+    { label: "Capacity & transfer", fields: [
+      field("deviceType","Storage type","text",{maxLength:100}),
+      field("capacityGb","Capacity","number",{unit:"GB",min:1,max:131072}),
+      field("interface","Interface","text",{maxLength:120}),
+      field("readSpeed","Read speed","text",{maxLength:100}),
+      field("writeSpeed","Write speed","text",{maxLength:100}),
+      field("compatibility","Compatibility","text",{maxLength:180})
+    ]}
+  ]},
+  clothing: {
+    label: "Clothing & apparel", groups: [
+      { label: "Fabric & fit", fields: [
+        field("fabric", "Material / fabric", "text", { maxLength: 120 }),
+        field("fit", "Fit", "select", { filter: true, options: ["Regular", "Slim", "Relaxed", "Oversized", "Tailored", "Other"] }),
+        field("pattern", "Pattern", "select", { filter: true, options: ["Solid", "Printed", "Striped", "Checked", "Embroidered", "Other"] }),
+        field("sleeve", "Sleeve", "select", { options: ["Full sleeve", "Half sleeve", "Sleeveless", "Not applicable"] }),
+        field("neck", "Neck / collar", "text", { maxLength: 90 }),
+        field("gender", "Intended fit", "select", { options: ["Men", "Women", "Kids", "Unisex"] })
+      ] },
+      { label: "Care & origin", fields: [
+        field("care", "Wash / care instructions", "text", { maxLength: 200 }),
+        field("countryOfOrigin", "Country of origin", "text", { maxLength: 80 })
+      ] }
+    ]
+  },
+  footwear: { label: "Footwear", groups: [
+    { label: "Construction & comfort", fields: [
+      field("upper", "Upper material", "text", { maxLength: 100 }),
+      field("sole", "Sole material", "text", { maxLength: 100 }),
+      field("closure", "Closure", "select", { options: ["Lace-up", "Slip-on", "Velcro", "Buckle", "Zip", "Other"] }),
+      field("fit", "Fit", "select", { options: ["Regular", "Wide", "Narrow"] }),
+      field("occasion", "Use / occasion", "text", { maxLength: 120 })
+    ]},
+    { label: "Care", fields: [field("care", "Care instructions", "text", { maxLength: 200 })] }
+  ]},
+  skincare: { label: "Skincare & beauty", groups: [
+    { label: "Formula", fields: [
+      field("productType", "Product type", "text", { maxLength: 100 }),
+      field("skinType", "Suitable skin types", "multiSelect", { filter: true, options: ["Dry", "Oily", "Combination", "Normal", "Sensitive", "All skin types"] }),
+      field("ingredients", "Key ingredients", "text", { maxLength: 200 }),
+      field("texture", "Texture / finish", "text", { maxLength: 100 }),
+      field("spf", "SPF rating", "number", { min: 1, max: 100, filter: true }),
+      field("volumeMl", "Net volume", "number", { unit: "ml", min: 1, max: 5000 })
+    ]},
+    { label: "Usage", fields: [
+      field("usage", "How to use", "text", { maxLength: 200 }),
+      field("warnings", "Precautions", "text", { maxLength: 200 })
+    ]}
+  ]},
+  fragrance: { label: "Fragrance", groups: [
+    { label: "Fragrance profile", fields: [
+      field("fragranceType", "Concentration / type", "select", { options: ["EDP", "EDT", "EDC", "Attar", "Body mist", "Deodorant", "Other"] }),
+      field("notes", "Fragrance notes", "text", { maxLength: 200 }),
+      field("family", "Scent family", "text", { maxLength: 100 }),
+      field("volumeMl", "Net volume", "number", { unit: "ml", min: 1, max: 5000 }),
+      field("application", "How to apply", "text", { maxLength: 160 })
+    ]}
+  ]},
+  personalCare: { label: "Personal care", groups: [
+    { label: "Product details", fields: [
+      field("productType", "Product type", "text", { maxLength: 100 }),
+      field("hairType", "Suitable hair type", "text", { maxLength: 120 }),
+      field("ingredients", "Key ingredients", "text", { maxLength: 200 }),
+      field("volumeMl", "Net volume", "number", { unit: "ml", min: 1, max: 5000 }),
+      field("usage", "Directions for use", "text", { maxLength: 200 }),
+      field("warnings", "Precautions", "text", { maxLength: 200 })
+    ]}
+  ]},
+  home: { label: "Home & kitchen", groups: [
+    { label: "Dimensions & material", fields: [
+      field("productType", "Product type", "text", { maxLength: 100 }),
+      field("material", "Material", "text", { maxLength: 120 }),
+      field("dimensions", "Dimensions", "text", { maxLength: 120 }),
+      field("capacity", "Capacity", "text", { maxLength: 100 }),
+      field("weightKg", "Weight", "number", { unit: "kg", min: 0.001, max: 1000 })
+    ]},
+    { label: "Use & care", fields: [
+      field("power", "Power rating (if applicable)", "text", { maxLength: 100 }),
+      field("care", "Care instructions", "text", { maxLength: 200 }),
+      field("warranty", "Warranty (if applicable)", "text", { maxLength: 100 })
+    ]}
+  ]},
+  general: { label: "Product details", groups: [
+    { label: "General information", fields: [
+      field("productType", "Product type", "text", { maxLength: 100 }),
+      field("material", "Material / composition", "text", { maxLength: 150 }),
+      field("dimensions", "Size / dimensions", "text", { maxLength: 150 }),
+      field("keyFeatures", "Key features", "text", { maxLength: 200 }),
+      field("care", "Care / handling", "text", { maxLength: 200 }),
+      field("countryOfOrigin", "Country of origin", "text", { maxLength: 80 })
+    ]}
+  ]},
   other: {
     label: "Electronics",
     groups: [
@@ -138,14 +280,30 @@ export const specificationDefinitions = {
 };
 
 export function resolveSpecificationType(category) {
-  const value = `${category?.name || ""} ${category?.slug || ""}`.toLowerCase();
+  // Match the selected leaf first, but also use ancestor names supplied by the
+  // category endpoint. A parent such as Fashion must not turn "Jeans" into
+  // generic electronics specifications.
+  const value = `${category?.name || ""} ${category?.slug || ""} ${category?.path || ""}`.toLowerCase();
+  if (/camera|photograph|dslr|mirrorless/.test(value)) return "camera";
+  if (/television|\btv\b|monitor|display/.test(value)) return "display";
+  if (/charging|charger|power bank/.test(value)) return "charger";
+  if (/network|router|wi-fi/.test(value)) return "networking";
+  if (/storage device|ssd|hard drive|pen drive|flash drive/.test(value)) return "storage";
+  if (/peripheral|computer accessor|keyboard|mouse pad/.test(value)) return "computerAccessory";
   if (/smart\s*phone|mobile/.test(value)) return "smartphone";
   if (/laptop|notebook|computer/.test(value)) return "laptop";
   if (/smart\s*watch|wearable/.test(value)) return "smartwatch";
   if (/tablet|ipad/.test(value)) return "tablet";
   if (/audio|headphone|earbud|speaker|soundbar/.test(value)) return "audio";
   if (/gaming|game accessory|controller/.test(value)) return "gamingAccessory";
-  return "other";
+  if (/fragrance|perfume|attar|deodorant|scent/.test(value)) return "fragrance";
+  if (/hair|shampoo|conditioner/.test(`${category?.name || ""} ${category?.slug || ""}`.toLowerCase())) return "personalCare";
+  if (/skincare|skin care|sunscreen|serum|toner|essence|moisturi|face wash|cleanser|makeup|lipstick|cosmetic/.test(value)) return "skincare";
+  if (/hair|shampoo|conditioner|bath|body care|personal care/.test(value)) return "personalCare";
+  if (/shoe|sneaker|footwear|sandal|slipper|clog|boot/.test(value)) return "footwear";
+  if (/shirt|jean|trouser|t-shirt|kurta|dress|jacket|fashion|clothing|apparel|wear/.test(value)) return "clothing";
+  if (/kitchen|home|furniture|decor|appliance|cookware|storage device/.test(value)) return "home";
+  return "general";
 }
 
 export function getSpecificationDefinition(category) {

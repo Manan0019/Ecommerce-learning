@@ -45,7 +45,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
         if (controller.signal.aborted) return;
         const product = data.product;
         setForm({ name: product.name, brand: product.brand || "", model: product.model || "",
-          description: product.description || "", categoryId: String(product.categoryId),
+          description: product.description || "", shortDescription:product.shortDescription || "", categoryId: String(product.categoryId),
           mrp: String(product.mrp ?? product.price), price: String(product.price), stock: String(product.stock), lowStockThreshold:String(product.lowStockThreshold ?? 5), gstPercent:product.gstPercent==null?"":String(product.gstPercent), pricingMode: "price" });
         setSpecifications(product.specifications || {});
         setImageUrl(product.imageUrl || "");
@@ -115,7 +115,8 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
             <label>Brand<input name="brand" value={form.brand} onChange={handleChange} maxLength={80} /></label>
             <label>Model<input name="model" value={form.model} onChange={handleChange} maxLength={120} /></label>
           </div>
-          <label><span className="nx34-field-label">Description <b className="nx34-required" aria-hidden="true">*</b></span><textarea name="description" rows={4} value={form.description} onChange={handleChange} required /></label>
+          <label><span className="nx34-field-label">Short description</span><textarea name="shortDescription" rows={2} maxLength={320} value={form.shortDescription} onChange={handleChange} placeholder="The quick product summary customers see first" /><small>Up to 320 characters.</small></label>
+          <label><span className="nx34-field-label">Full description <b className="nx34-required" aria-hidden="true">*</b></span><textarea name="description" rows={4} value={form.description} onChange={handleChange} required /></label>
           <div className="admin-form-grid two-column">
             <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || !categories.length}
               onChange={categoryId => { setSpecifications({}); setForm(old => ({ ...old, categoryId })); }} />

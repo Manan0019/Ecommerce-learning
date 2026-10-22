@@ -11,7 +11,7 @@ import {
 } from "../services/productSpecificationService.js";
 
 const selectFields = `
-  product.id, product.name, product.description, product.category_id,
+  product.id, product.name, product.description, product.short_description, product.category_id,
   category.name AS category_name, category.slug AS category_slug,
   product.brand, product.model, product.specifications,
   pricing.effective_price AS price, pricing.effective_mrp AS mrp, pricing.effective_stock AS stock,
@@ -46,6 +46,7 @@ function asPublicProduct(product) {
     id: String(product.id),
     name: product.name,
     description: product.description,
+    shortDescription: product.short_description || "",
     categoryId: String(product.category_id),
     category: product.category_name,
     categorySlug: product.category_slug,
@@ -382,11 +383,14 @@ export async function getProduct(req, res) {
     `, [req.params.id]);
     if (!rows.length) return res.status(404).json({ message: "Product not found or inactive." });
     const product = asPublicProduct(rows[0]);
+    const categoryPath = await pool.query(`SELECT concat_ws(' ', c.name, p.name, r.name) AS path
+      FROM categories c LEFT JOIN categories p ON p.id=c.parent_id
+      LEFT JOIN categories r ON r.id=p.parent_id WHERE c.id=$1`,[product.categoryId]);
     return res.json({
       product: {
         ...product,
         specificationDisplay: publicSpecificationValues(
-          { name: product.category, slug: product.categorySlug },
+          { name: product.category, slug: product.categorySlug, path: categoryPath.rows[0]?.path },
           product.specifications
         )
       }

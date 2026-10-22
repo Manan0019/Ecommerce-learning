@@ -19,7 +19,7 @@ export default function AddProduct() {
   const navigate = useNavigate();
   const formRef = useRef(null);
   const { categories, categoriesLoading, categoriesError } = useActiveCategories();
-  const [form, setForm] = useState({ name: "", brand: "", model: "", description: "", categoryId: "", mrp: "", price: "", stock: "", lowStockThreshold:"5",gstPercent:"",pricingMode:"price" });
+  const [form, setForm] = useState({ name: "", brand: "", model: "", description: "", shortDescription:"", categoryId: "", mrp: "", price: "", stock: "", lowStockThreshold:"5",gstPercent:"",pricingMode:"price" });
   const [specifications, setSpecifications] = useState({});
   const specification = useSpecificationDefinition(form.categoryId);
   const [image, setImage] = useState(null);
@@ -95,6 +95,7 @@ export default function AddProduct() {
     const parent = anchorSku ? { ...form, mrp: anchorSku.mrp, price: anchorSku.price, stock: "0" } : form;
     Object.entries(parent).filter(([key])=>!["discount","pricingMode"].includes(key)).forEach(([key, value]) => formData.append(key, value));
     formData.append("specifications", JSON.stringify(specifications));
+    formData.append("shortDescription", form.shortDescription.trim());
     formData.append("image", image);
     setLoading(true);
     setMessage("");
@@ -182,7 +183,8 @@ export default function AddProduct() {
           <label>Brand<input name="brand" placeholder="Brand" value={form.brand} onChange={handleChange} maxLength={80} /></label>
           <label>Model<input name="model" placeholder="Model number or family" value={form.model} onChange={handleChange} maxLength={120} /></label>
         </div>
-        <label><span className="nx34-field-label">Description <b className="nx34-required" aria-hidden="true">*</b></span><textarea name="description" placeholder="Product description" value={form.description} onChange={handleChange} required /></label>
+        <label><span className="nx34-field-label">Short description (shown near product price)</span><textarea name="shortDescription" rows={2} maxLength={320} placeholder="A concise summary of the product, ideally 1–2 sentences" value={form.shortDescription} onChange={handleChange}/><small>Up to 320 characters. Customers see this before choosing variants.</small></label>
+        <label><span className="nx34-field-label">Full description <b className="nx34-required" aria-hidden="true">*</b></span><textarea name="description" placeholder="Product description" value={form.description} onChange={handleChange} required /></label>
         <div className="admin-form-grid">
           <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || categories.length === 0}
             onChange={categoryId => { setSpecifications({}); setForm(previous => ({...previous, categoryId})); }} />

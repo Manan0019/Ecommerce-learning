@@ -117,7 +117,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
             <strong className="detail-price">₹{Number(effectivePrice).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
           </div>
           {!adminPreview && taxMode==='exclusive' && <p className="nx57-gst-note">Base price shown · Applicable GST, shipping and any additional charges are calculated before payment at checkout.</p>}
-          <details className="nx17-description"><summary>Product information</summary><p className="detail-description">{product.description}</p></details>
+          {(product.shortDescription || product.description) && <p className="nx58-product-summary">{product.shortDescription || product.description.slice(0, 210)}</p>}
           <div className={`stock-status ${isAvailable ? "in-stock" : "out-of-stock"}`}>
             <span />{isAvailable ? `${effectiveStock} available` : "Currently unavailable"}
           </div>
@@ -153,9 +153,13 @@ function ProductDetailsContent({ id,adminPreview=false }) {
 </>}
         </div>
       </article>}
+      {product?.description && <section className="nx58-product-description" aria-labelledby="nx58-description-title">
+        <div className="section-heading"><div><p className="eyebrow">The details</p><h2 id="nx58-description-title">About this product</h2></div></div>
+        <p>{product.description}</p>
+      </section>}
       {product && <PromotionCarousel position="product" product={product.id} />}
-      {product?.specificationDisplay?.groups?.length > 0 && <section className="technical-specifications" aria-labelledby="technical-specifications-heading">
-        <div className="section-heading"><div><p className="eyebrow">Product data</p><h2 id="technical-specifications-heading">Product specifications</h2></div></div>
+      {product?.specificationDisplay?.groups?.length > 0 && <details className="technical-specifications nx58-specifications">
+        <summary><span><small>PRODUCT DETAILS</small><strong>Specifications & technical details</strong></span><UiIcon name="chevron-down" size={21}/></summary>
         <div className="specification-groups">
           {product.specificationDisplay.groups.map((group) => <article key={group.label}>
             <h3>{group.label}</h3>
@@ -167,7 +171,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
             </div>)}</dl>
           </article>)}
         </div>
-      </section>}
+      </details>}
       {product && <RelatedProducts productId={product.id} />}
       {adminPreview&&editTab&&<AdminProductEditDialog productId={id} name={product?.name} initialTab={editTab}
         onClose={closeEditor} onSaved={()=>setPreviewVersion(version=>version+1)}/>}

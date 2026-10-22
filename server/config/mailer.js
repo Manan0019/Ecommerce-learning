@@ -26,3 +26,14 @@ If you did not request this code, ignore this email.`
 
   return transporter.sendMail(mailOptions);
 }
+
+
+export async function sendDeliveryConfirmationEmail(email, otp, orderId) {
+  if (process.env.NODE_ENV === 'test') return {messageId:'test-delivery-otp-not-sent'};
+  return transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to: email,
+    subject: `Nexora delivery verification — Order #${orderId}`,
+    text: `Your Nexora delivery confirmation code is ${otp}.\n\nShare this code only with your assigned Nexora delivery executive after receiving your parcel. It expires in 10 minutes.\n\nIf no parcel has arrived, DO NOT share this code. Nexora will never request it by phone before handing over your order.`
+  });
+}

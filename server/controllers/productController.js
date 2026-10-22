@@ -9,6 +9,8 @@ function validId(id) {
 
 function checkProductFields(body) {
   const { name, description, categoryId, price, stock, brand, model } = body;
+  const shortDescription = body.shortDescription == null ? "" : body.shortDescription;
+  if (typeof shortDescription !== "string" || shortDescription.trim().length > 320) return null;
   const threshold = Number(body.lowStockThreshold ?? 5);
   const mrp = body.mrp === undefined ? price : body.mrp;
   const gstPercent = body.gstPercent == null || body.gstPercent === '' ? null : String(body.gstPercent);
@@ -30,6 +32,7 @@ function checkProductFields(body) {
   return {
     name: name.trim(),
     description: description.trim(),
+    shortDescription: shortDescription.trim(),
     categoryId: String(categoryId),
     price,
     mrp,
@@ -46,6 +49,7 @@ function mapProduct(product) {
     id: String(product.id),
     name: product.name,
     description: product.description,
+    shortDescription: product.short_description || "",
     categoryId: String(product.category_id),
     category: product.category_name,
     categorySlug: product.category_slug,
@@ -71,7 +75,7 @@ function mapProduct(product) {
 }
 
 const productSelect = `
-  SELECT p.id, p.name, p.description, p.category_id, c.name AS category_name,
+  SELECT p.id, p.name, p.description, p.short_description, p.category_id, c.name AS category_name,
          c.slug AS category_slug, c.is_active AS category_active, p.brand, p.model,
          p.specifications, p.price, p.mrp, p.stock, p.low_stock_threshold, p.gst_percent,
          p.image_url, p.is_active, p.is_featured, p.featured_position, p.created_at, p.updated_at
@@ -126,7 +130,7 @@ export async function createProduct(req, res) {
   let saved = null;
   try {
     const categoryResult = await pool.query(
-      "SELECT id, name, slug FROM categories WHERE id = $1 AND is_active = TRUE",
+      "SELECT c.id, c.name, c.slug, concat_ws(' ', c.name, parent.name, root.name) AS path FROM categories c LEFT JOIN categories parent ON parent.id=c.parent_id LEFT JOIN categories root ON root.id=parent.parent_id WHERE c.id = $1 AND c.is_active = TRUE",
       [fields.categoryId]
     );
     if (!categoryResult.rows.length) return res.status(400).json({ message: "Select an active category." });
@@ -135,10 +139,10 @@ export async function createProduct(req, res) {
     const result = await pool.query(`
       WITH inserted AS (
         INSERT INTO products (
-          name, description, category, category_id, brand, model, specifications,
+          name, description, short_description, category, category_id, brand, model, specifications,
           price, mrp, stock, low_stock_threshold, image_url, gst_percent
         )
-        SELECT $1, $2, category.name, category.id, $4, $5, $6::jsonb, $7, $10, $8, $11, $9, $12
+        SELECT $1, $2, $13, category.name, category.id, $4, $5, $6::jsonb, $7, $10, $8, $11, $9, $12
         FROM categories AS category
         WHERE category.id = $3 AND category.is_active = TRUE
         RETURNING *
@@ -146,7 +150,7 @@ export async function createProduct(req, res) {
         INSERT INTO product_media (product_id,media_type,media_url,sort_order)
         SELECT id,'image',image_url,0 FROM inserted RETURNING product_id
       )
-      SELECT inserted.id, inserted.name, inserted.description, inserted.category_id,
+      SELECT inserted.id, inserted.name, inserted.description, inserted.short_description, inserted.category_id,
              category.name AS category_name, category.slug AS category_slug,
              category.is_active AS category_active, inserted.brand, inserted.model,
              inserted.specifications, inserted.price, inserted.mrp, inserted.stock, inserted.low_stock_threshold, inserted.gst_percent,
@@ -155,7 +159,7 @@ export async function createProduct(req, res) {
       JOIN categories AS category ON category.id = inserted.category_id
       JOIN cover ON cover.product_id = inserted.id
     `, [fields.name, fields.description, fields.categoryId, fields.brand, fields.model,
-      JSON.stringify(specifications), fields.price, fields.stock, saved.url, fields.mrp, fields.lowStockThreshold, fields.gstPercent]);
+      JSON.stringify(specifications), fields.price, fields.stock, saved.url, fields.mrp, fields.lowStockThreshold, fields.gstPercent, fields.shortDescription]);
     if (!result.rows.length) {
       await removeCatalogImage(saved);
       saved = null;
@@ -174,22 +178,25 @@ export async function updateProduct(req, res) {
   if (!fields) return res.status(400).json({ message: "Invalid product details." });
   try {
     const categoryResult = await pool.query(
-      "SELECT id, name, slug FROM categories WHERE id = $1 AND is_active = TRUE",
+      "SELECT c.id, c.name, c.slug, concat_ws(' ', c.name, parent.name, root.name) AS path FROM categories c LEFT JOIN categories parent ON parent.id=c.parent_id LEFT JOIN categories root ON root.id=parent.parent_id WHERE c.id = $1 AND c.is_active = TRUE",
       [fields.categoryId]
     );
     if (!categoryResult.rows.length) return res.status(400).json({ message: "Select an active category." });
-    const { specifications } = validateSpecifications(categoryResult.rows[0], req.body?.specifications);
+    const previous=await pool.query('SELECT category_id,specifications FROM products WHERE id=$1',[req.params.id]);
+    if(!previous.rows.length)return res.status(404).json({message:'Product not found.'});
+    const old=String(previous.rows[0].category_id)===String(fields.categoryId)?previous.rows[0].specifications||{}:{};
+    const { specifications } = validateSpecifications(categoryResult.rows[0], req.body?.specifications, old);
     const result = await pool.query(`
       WITH updated AS (
         UPDATE products AS product
-        SET name = $1, description = $2, category = category.name, category_id = category.id,
+        SET name = $1, description = $2, short_description=$13, category = category.name, category_id = category.id,
             brand = $4, model = $5, specifications = $6::jsonb,
             price = $7, mrp = $10, stock = $8, low_stock_threshold = $11, gst_percent = $12, updated_at = NOW()
         FROM categories AS category
         WHERE product.id = $9 AND category.id = $3 AND category.is_active = TRUE
         RETURNING product.*
       )
-      SELECT updated.id, updated.name, updated.description, updated.category_id,
+      SELECT updated.id, updated.name, updated.description, updated.short_description, updated.category_id,
              category.name AS category_name, category.slug AS category_slug,
              category.is_active AS category_active, updated.brand, updated.model,
              updated.specifications, updated.price, updated.mrp, updated.stock, updated.low_stock_threshold, updated.gst_percent,
@@ -197,7 +204,7 @@ export async function updateProduct(req, res) {
       FROM updated
       JOIN categories AS category ON category.id = updated.category_id
     `, [fields.name, fields.description, fields.categoryId, fields.brand, fields.model,
-      JSON.stringify(specifications), fields.price, fields.stock, req.params.id, fields.mrp, fields.lowStockThreshold, fields.gstPercent]);
+      JSON.stringify(specifications), fields.price, fields.stock, req.params.id, fields.mrp, fields.lowStockThreshold, fields.gstPercent, fields.shortDescription]);
     if (!result.rows.length) {
       const existing = await pool.query("SELECT id FROM products WHERE id = $1", [req.params.id]);
       if (!existing.rows.length) return res.status(404).json({ message: "Product not found." });

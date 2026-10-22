@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import NotificationBell from '../../components/common/NotificationBell';
 import UiIcon from '../../components/common/UiIcon';
 import { logout } from '../../services/authService';
-import { getDeliverySession, getMyAssignments, updateMyDelivery, reportDeliveryIssue } from '../../services/deliveryService';
+import { getDeliverySession, getMyAssignments, updateMyDelivery, reportDeliveryIssue, resendDeliveryCode, confirmDeliveryCode } from '../../services/deliveryService';
 import { cleanPhone, deliveryNextAction, deliveryTabMatch, mapSearchUrl } from '../../services/deliveryViewRules';
 
 const money = value => `₹${Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits:2,maximumFractionDigits:2 })}`;
@@ -25,6 +25,7 @@ export default function DeliveryDashboard() {
   const [notice, setNotice] = useState('');
   const [sessionProblem, setSessionProblem] = useState(false);
   const [confirmOrder, setConfirmOrder] = useState(null);
+  const [deliveryOtp,setDeliveryOtp] = useState('');
   const [issueOrder,setIssueOrder] = useState(null);
   const [issueForm,setIssueForm] = useState(initialIssue);
   const refresh = useCallback(async (signal) => {
@@ -60,14 +61,29 @@ export default function DeliveryDashboard() {
   async function update(a, next) {
     setBusy(String(a.orderId));setError('');setNotice('');
     try {
-      await updateMyDelivery(a.orderId, next);
+      const response=await updateMyDelivery(a.orderId, next);
       await refresh();
-      setNotice(`Order #${a.orderId} updated to ${statuses[next]}.`);
+      setNotice(response.otpSent===false ? (response.message||'Delivery status updated, but the OTP email could not be delivered. Use Resend code.') :
+        next==='out_for_delivery' ? `Order #${a.orderId} is out for delivery. Verification code emailed to ${response.customerEmailMasked||'the customer'}.` :
+        `Order #${a.orderId} updated to ${statuses[next]}.`);
       setConfirmOrder(null);
       window.dispatchEvent(new Event('nexora:orders-updated'));
     } catch (e) {
       setError(e.message);
     } finally {setBusy('');}
+  }
+  async function verifyHandover(event){
+    event.preventDefault();if(!confirmOrder||!/^\d{6}$/.test(deliveryOtp))return;
+    const target=confirmOrder;setBusy(String(target.orderId));setError('');setNotice('');
+    try{await confirmDeliveryCode(target.orderId,deliveryOtp);await refresh();setConfirmOrder(null);setDeliveryOtp('');
+      setNotice(`Order #${target.orderId} delivered. Customer verification completed.`);
+      window.dispatchEvent(new Event('nexora:orders-updated'));
+    }catch(e){setError(e.message);}finally{setBusy('');}
+  }
+  async function resendHandoverCode(a){
+    setBusy(String(a.orderId));setError('');setNotice('');
+    try{const response=await resendDeliveryCode(a.orderId);setNotice(response.otpSent ? `New code sent to ${response.customerEmailMasked || a.customerEmailMasked}.` : response.message || 'Email sending is pending.');}
+    catch(e){setError(e.message);}finally{setBusy('');}
   }
   async function submitIssue(event){
     event.preventDefault();if(!issueOrder)return;
@@ -101,8 +117,10 @@ export default function DeliveryDashboard() {
         {a.pendingIssue.requestedDate&&<small>Requested date: {String(a.pendingIssue.requestedDate).slice(0,10)}</small>}
       </div>}
       {a.paymentMethod === 'cod' && <p className="nx52-cod-reminder">COD cash collection is recorded separately by the administrator. Marking delivery complete does not record a payment.</p>}
+      {!a.pendingIssue&&a.deliveryStatus==='out_for_delivery'&&a.orderStatus==='shipped'&&<div className="nx58-code-handover"><span>Customer delivery confirmation is required. Code sent to <strong>{a.customerEmailMasked || 'registered email'}</strong>.</span>
+        <button type="button" disabled={!!busy} onClick={()=>resendHandoverCode(a)}>Resend code</button></div>}
       {!a.pendingIssue&&a.deliveryStatus==='out_for_delivery'&&a.orderStatus==='shipped'&&<button type="button" className="nx54-report-action" disabled={!!busy} onClick={()=>{setError('');setIssueOrder(a);setIssueForm({...initialIssue});}}>Report delivery issue</button>}
-      {a.pendingIssue ? <p className="nx52-action-help">Delivery is paused until your administrator reviews this report.</p> : action ? <button className="nx52-action-primary" type="button" disabled={!!busy} onClick={()=>action.status==='delivered'?setConfirmOrder(a):update(a,action.status)}>{busy === String(a.orderId) ? 'Updating…' : action.label}<UiIcon name="right" size={17}/></button>
+      {a.pendingIssue ? <p className="nx52-action-help">Delivery is paused until your administrator reviews this report.</p> : action ? <button className="nx52-action-primary" type="button" disabled={!!busy} onClick={()=>action.status==='delivered'?(setDeliveryOtp(''),setConfirmOrder(a)):update(a,action.status)}>{busy === String(a.orderId) ? 'Updating…' : action.status==='delivered' ? 'Verify OTP & deliver' : action.label}<UiIcon name="right" size={17}/></button>
         : <p className="nx52-action-help">{a.deliveryStatus === 'delivered' ? 'Delivery complete.' : 'Awaiting admin dispatch. Delivery actions unlock after dispatch.'}</p>}
     </>;
   }
@@ -154,12 +172,17 @@ export default function DeliveryDashboard() {
       </form>
     </div>}
     {confirmOrder && <div className="nx52-confirm-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setConfirmOrder(null);}}>
-      <section className="nx52-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="nx52-confirm-title">
-        <span className="nx52-eyebrow">DELIVERY CONFIRMATION</span>
-        <h2 id="nx52-confirm-title">Mark order #{confirmOrder.orderId} delivered?</h2>
-        <p>Only confirm after handing the order to the recipient. This updates both the customer and the admin. COD payment collection remains an admin action.</p>
-        <div className="nx52-confirm-actions"><button type="button" disabled={!!busy} onClick={()=>setConfirmOrder(null)}>Go back</button><button type="button" disabled={!!busy} onClick={()=>update(confirmOrder,'delivered')}>{busy?'Updating…':'Confirm delivery'}</button></div>
-      </section>
+      <form className="nx52-confirm-panel nx58-otp-dialog" role="dialog" aria-modal="true" aria-labelledby="nx52-confirm-title" onSubmit={verifyHandover}>
+        <span className="nx52-eyebrow">SECURE HANDOVER</span>
+        <h2 id="nx52-confirm-title">Verify delivery · Order #{confirmOrder.orderId}</h2>
+        <p>Ask the recipient for the code sent to <strong>{confirmOrder.customerEmailMasked || 'their registered email'}</strong> only after handing over the parcel. Do not ask the customer to share it before delivery.</p>
+        <label>Six-digit customer OTP<input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required
+          value={deliveryOtp} onChange={e=>setDeliveryOtp(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="6-digit code" disabled={!!busy} /></label>
+        {error&&<p className="nx52-delivery-warning" role="alert">{error}</p>}
+        <div className="nx52-confirm-actions"><button type="button" disabled={!!busy} onClick={()=>{setConfirmOrder(null);setDeliveryOtp('');}}>Go back</button>
+          <button type="button" disabled={!!busy} onClick={()=>resendHandoverCode(confirmOrder)}>Resend code</button>
+          <button type="submit" disabled={!!busy||!/^\d{6}$/.test(deliveryOtp)}>{busy?'Verifying…':'Verify & mark delivered'}</button></div>
+      </form>
     </div>}
   </div>;
 }
