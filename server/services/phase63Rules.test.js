@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateCouponDraft,draftDiscountPaise} from './couponDraftRules.js';
+import {validateStorefrontCopy,defaultStorefrontCopy,storefrontCopyFromRow} from './storefrontCopyRules.js';
+const base={code:'SAVE10',kind:'percent',value:'10',minimumSubtotal:'500',scope:'products',productIds:[2,4],categoryIds:[],excludedProductIds:[],minimumQualifyingSubtotal:'300',minimumUnitPrice:'100',maximumUnitPrice:'2000',minimumItems:2};
+test('phase63 product targets and price band normalise',()=>{const draft=validateCouponDraft(base);assert.deepEqual(draft.eligibility.productIds,[2,4]);assert.equal(draft.eligibility.minimumItems,2);assert.equal(draft.eligibility.maximumUnitPrice,'2000');});
+test('phase63 scope requires explicit targets and prevents overlap',()=>{assert.equal(validateCouponDraft({...base,scope:'categories'}),null);assert.equal(validateCouponDraft({...base,productIds:[]}),null);assert.equal(validateCouponDraft({...base,excludedProductIds:[2]}),null);});
+test('phase63 category rule supports descendant selection',()=>{const d=validateCouponDraft({...base,scope:'categories',productIds:[],categoryIds:[7],includeSubcategories:false});assert.equal(d.eligibility.includeSubcategories,false);});
+test('phase63 rejects invalid price bands or excessive limits',()=>{assert.equal(validateCouponDraft({...base,minimumUnitPrice:'3000'}),null);assert.equal(validateCouponDraft({...base,perCustomerLimit:101}),null);assert.equal(validateCouponDraft({...base,minimumItems:0}),null);});
+test('phase63 draft calculation remains bounded preview-only',()=>{assert.equal(draftDiscountPaise({kind:'fixed',value:999},100n),100n);});
+test('phase63 admin copy rejects scripts and oversize content',()=>{const good={...defaultStorefrontCopy,featuredTitle:'Featured finds'};assert.equal(validateStorefrontCopy(good).featuredTitle,'Featured finds');assert.equal(validateStorefrontCopy({...good,ribbonLabel:'<script>'}),null);assert.equal(validateStorefrontCopy({...good,categoryTitle:'X'.repeat(71)}),null);});
+test('phase63 public copy fallback preserves defaults',()=>{assert.equal(storefrontCopyFromRow(null).featuredTitle,'Featured products');});

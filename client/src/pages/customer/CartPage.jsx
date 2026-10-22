@@ -75,7 +75,7 @@ export default function CartPage() {
         {quote.unavailableCount > 0 && <p role="alert" className="cart-warning">{quote.unavailableCount} unavailable line(s) are excluded from the available-items total. Remove or update them.</p>}
         <div><span>Shipping</span><span>Calculated at checkout</span></div>
         <p className="stock-copy">Your final shipping and GST are calculated at checkout. Choose Cash on Delivery or Razorpay after reviewing the total.</p>
-        <Link className={`button button-primary nx-checkout-cta ${!quote.valid ? "nx-link-disabled" : ""}`} aria-disabled={!quote.valid} tabIndex={quote.valid ? 0 : -1} onClick={e => {if(!quote.valid)e.preventDefault()}} to="/checkout">Continue to checkout <UiIcon name="right" size={17}/></Link>
+        <Link className={`button button-primary nx-checkout-cta ${!quote.valid ? "nx-link-disabled" : ""}`} aria-disabled={!quote.valid} tabIndex={quote.valid ? 0 : -1} onClick={e => {if(!quote.valid)e.preventDefault()}} to="/checkout">Continue to checkout</Link>
         <button className="clear-cart-button" type="button" onClick={clearCart}>Clear cart</button>
         <Link className="text-link" to="/products"><UiIcon name="left" size={17}/> Continue shopping</Link>
       </aside>

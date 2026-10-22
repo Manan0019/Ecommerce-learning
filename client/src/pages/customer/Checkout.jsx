@@ -114,14 +114,14 @@ export default function Checkout(){
  return <CustomerLayout mainClassName="nx-cod-page nx25-checkout">
   <div className="nx-page-intro"><Link className="nx-back-link" to="/cart"><UiIcon name="left" size={17}/> Back to cart</Link><p className="eyebrow">Secure checkout</p><h1>Delivery & payment</h1><p>Choose an address, review shipping and GST, then pay online with Razorpay or choose Cash on Delivery.</p></div>
   {checking&&<p className="nx-cod-message" role="status">Checking items, account and saved addresses…</p>}
-  {error&&<p role="alert" className="nx-cod-message nx-cod-error">{error} {needsCartReview&&<Link to="/cart">Review your cart <UiIcon name="right" size={17}/></Link>}</p>}
+  {error&&<p role="alert" className="nx-cod-message nx-cod-error">{error} {needsCartReview&&<Link to="/cart">Review your cart</Link>}</p>}
   {!checking&&role==='customer'&&<div className="nx-cod-grid">
    <form className="nx-cod-panel" onSubmit={submit}>
     <div className="nx-section-heading"><span className="nx-step-number">01</span><div><h2>Delivery address</h2><p>Choose a saved address or add a new one.</p></div></div>
     {addresses.length>0&&<div className="nx25-address-options">{addresses.map(a=><label key={a.id} className={`nx25-address-choice ${selectedId===a.id?'is-selected':''}`}><input type="radio" name="selectedAddress" checked={selectedId===a.id} disabled={posting} onChange={()=>{setSelectedId(a.id);setEstimate(null);setEstimateFor('');setUpdatedQuote(false);setError('')}}/><span><strong>{a.label||'Home'}{a.isDefault?' · Default':''}</strong><small>{a.fullName} · {a.addressLine1}, {a.city}, {a.state} {a.pincode}</small></span></label>)}</div>}
     <label className="nx25-address-choice"><input type="radio" name="selectedAddress" checked={selectedId==='new'} disabled={posting} onChange={()=>{setSelectedId('new');setEstimate(null);setEstimateFor('');setUpdatedQuote(false);setError('')}}/> <strong>+ Use a new address</strong></label>
     {selectedId==='new'&&<><AddressFields address={address} onChange={v=>{setAddress(v);setEstimate(null);setEstimateFor('');setUpdatedQuote(false)}} disabled={posting}/><label className="nx25-check"><input type="checkbox" checked={saveNew} onChange={e=>setSaveNew(e.target.checked)}/> Save this address to my account</label></>}
-    <Link to="/addresses" className="nx25-manage-link">Manage saved addresses <UiIcon name="right" size={17}/></Link>
+    <Link to="/addresses" className="nx25-manage-link">Manage saved addresses</Link>
     <div className="nx-cod-method"><div className="nx-section-heading"><span className="nx-step-number">02</span><div><h2>Payment method</h2><p>Select your preferred payment method.</p></div></div>
       <div className="nx42-payment-choices">
        {razorpayEnabled&&<label className={`nx25-address-choice ${paymentMethod==='razorpay'?'is-selected':''}`}><input type="radio" name="paymentMethod" checked={paymentMethod==='razorpay'} disabled={posting} onChange={()=>{setPaymentMethod('razorpay');setError('')}}/><span><strong>Pay securely online · Razorpay</strong><small>UPI, cards, net banking and enabled methods. Paid only after server verification.</small></span></label>}

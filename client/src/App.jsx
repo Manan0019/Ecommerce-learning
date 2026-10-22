@@ -6,6 +6,7 @@ import BrandingProvider from "./context/BrandingProvider";
 import AdminBranding from "./pages/admin/AdminBranding";
 import AdminFooter from "./pages/admin/AdminFooter";
 import AdminCoupons from "./pages/admin/AdminCoupons";
+import AdminStorefrontCopy from "./pages/admin/AdminStorefrontCopy";
 import AddProduct from "./pages/admin/AddProduct";
 import AdminComingSoon from "./pages/admin/AdminComingSoon";
 import AdminCategories from "./pages/admin/AdminCategories";
@@ -83,6 +84,7 @@ import "./styles/phase56.css";
 import "./styles/phase57.css";
 import "./styles/phase61.css";
 import "./styles/phase62.css";
+import "./styles/phase63.css";
 
 export default function App() {
   return <StoreErrorBoundary><BrandingProvider><CartProvider><BrowserRouter><RouteExperience /><Routes>
@@ -111,6 +113,7 @@ export default function App() {
     <Route path="/admin/branding" element={<AdminBranding />} />
     <Route path="/admin/footer" element={<AdminFooter />} />
     <Route path="/admin/coupons" element={<AdminCoupons />} />
+    <Route path="/admin/storefront-copy" element={<AdminStorefrontCopy />} />
     <Route path="/products" element={<ProductList />} />
     <Route path="/products/:id" element={<ProductDetails />} />
     <Route path="/categories" element={<Categories />} />
@@ -128,3 +131,4 @@ export default function App() {
     <Route path="*" element={<NotFound />} />
   </Routes></BrowserRouter></CartProvider></BrandingProvider></StoreErrorBoundary>;
 }
+

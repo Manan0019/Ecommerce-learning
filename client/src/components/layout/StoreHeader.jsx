@@ -11,6 +11,7 @@ import { apiAssetUrl } from "../../services/apiClient";
 import { getCurrentUser, logout as endSession } from "../../services/authService";
 import { getProductSuggestions } from "../../services/productService";
 import { getCategories } from "../../services/categoryService";
+import {getStorefrontCopy} from "../../services/storefrontCopyService";
 
 function SearchIcon() { return <UiIcon name="search" size={21} />; }
 
@@ -28,6 +29,8 @@ export default function StoreHeader() {
   const profileRef = useRef(null);
   const searchRef = useRef(null);
   const [user, setUser] = useState(null);
+  const [storeCopy,setStoreCopy]=useState(null);
+  useEffect(()=>{const controller=new AbortController();getStorefrontCopy(controller.signal).then(d=>{if(!controller.signal.aborted)setStoreCopy(d.copy);}).catch(()=>{});return ()=>controller.abort();},[]);
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [suggestions, setSuggestions] = useState({ products: [], categories: [] });
@@ -122,7 +125,7 @@ export default function StoreHeader() {
   }
 
   return <header className="store-header nx34-header">
-    <div className="nx34-header-ribbon"><span className="nx34-ribbon-dot" /> <strong>THE NEXORA EDIT</strong><span className="nx34-ribbon-separator" />Discover something worth keeping <span className="nx34-ribbon-arrow">✦</span></div>
+    <div className="nx34-header-ribbon"><span className="nx34-ribbon-dot" /> <strong>{storeCopy?.ribbonLabel||"THE NEXORA EDIT"}</strong><span className="nx34-ribbon-separator" />{storeCopy?.ribbonMessage||"Discover something worth keeping"} <span className="nx34-ribbon-arrow">✦</span></div>
     <div className="navbar">
       <Link className="brand" to="/" aria-label={`${SITE_NAME} home`}>
         <BrandLogo showIcon={false} />

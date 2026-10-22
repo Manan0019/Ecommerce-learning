@@ -149,7 +149,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
                 {!canBuy ? "Out of stock" : "Add to cart"}
               </button>
             </div>
-            {added && <p className="added-message" role="status">Added to your cart. <Link to="/cart">View cart <UiIcon name="right" size={16}/></Link></p>}
+            {added && <p className="added-message" role="status">Added to your cart. <Link to="/cart">View cart</Link></p>}
           </div>
 </>}
         </div>

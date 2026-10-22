@@ -17,7 +17,8 @@ const navigation = [
   { to: "/admin/settings", label: "Shipping & Tax", icon: "⚙" },
   { to: "/admin/branding", label: "Branding & Logo", icon: "✦" },
   { to: "/admin/footer", label: "Footer & Moving Banner", icon: "≈" },
-  { to: "/admin/coupons", label: "Coupons (Drafts)", icon: "%" }
+  { to: "/admin/coupons", label: "Coupons (Drafts)", icon: "%" },
+  { to: "/admin/storefront-copy", label: "Storefront Wording", icon: "✎" }
 ];
 
 export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAlertCount = 0 }) {
