@@ -125,10 +125,10 @@ export async function initiateRazorpayOrder(req,res) {
       receipt:`nx_${requestKey.replaceAll('-','').slice(0,32)}`,partial_payment:false});
     if(!validGatewayIdentifier(gateway.id,'order')||gateway.amount!==Number(amounts._total)||gateway.currency!=='INR')throw new Error('Razorpay order response mismatch');
     const r=await db.query(`INSERT INTO cod_orders(customer_id,request_key,request_digest,status,payment_method,payment_status,
-      subtotal,shipping_fee,grand_total,address_snapshot,tax_total,taxable_value,cgst,sgst,igst,razorpay_order_id)
-      VALUES($1,$2,$3,'payment_pending','razorpay','razorpay_pending',$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      subtotal,shipping_fee,grand_total,address_snapshot,tax_total,taxable_value,cgst,sgst,igst,razorpay_order_id,tax_pricing_mode)
+      VALUES($1,$2,$3,'payment_pending','razorpay','razorpay_pending',$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
       [req.user.id,requestKey,digest,amounts.subtotal,amounts.shippingFee,amounts.total,
-        JSON.stringify(address.address),amounts.includedTax,amounts.taxableValue,amounts.cgst,amounts.sgst,amounts.igst,gateway.id]);
+        JSON.stringify(address.address),amounts.includedTax,amounts.taxableValue,amounts.cgst,amounts.sgst,amounts.igst,gateway.id,amounts.taxPricingMode]);
     const order=r.rows[0];
     for(const [i,line] of found.lines.entries()){
       await db.query(`INSERT INTO cod_order_items(order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total,gst_percent,included_tax)

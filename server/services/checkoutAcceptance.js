@@ -26,12 +26,14 @@ export function quoteSummary(amounts) {
   return Object.fromEntries([
     ...QUOTE_MONEY_FIELDS.map(field => [field, amounts[field]]),
     ['taxType', amounts.taxType],
+    ...(amounts.taxPricingMode === 'exclusive' ? [['taxPricingMode','exclusive']] : []),
   ]);
 }
 
 export function quoteMatchesAccepted(amounts, expected) {
   if (acceptedQuoteError(expected)) return false;
-  return expected.taxType === amounts.taxType && QUOTE_MONEY_FIELDS.every(field => {
+  return expected.taxType === amounts.taxType &&
+    (expected.taxPricingMode || 'inclusive') === (amounts.taxPricingMode || 'inclusive') && QUOTE_MONEY_FIELDS.every(field => {
     try { return toPaise(amounts[field]) === toPaise(expected[field]); }
     catch { return false; }
   });

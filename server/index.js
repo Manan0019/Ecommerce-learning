@@ -61,6 +61,14 @@ app.use("/api/banners",publicBannerRoutes);
 app.use("/api/admin/banners",adminBannerRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/addresses",addressRoutes);
+// Public, read-only disclosure for product-price and checkout transparency.
+// Does not expose merchant tax details, credentials, or editable settings.
+app.get("/api/checkout/pricing-policy",async (_req,res)=>{
+  try { const {rows}=await pool.query("SELECT tax_pricing_mode FROM store_checkout_settings WHERE id=1");
+    if(!rows.length)return res.status(503).json({message:'Checkout policy unavailable.'});
+    res.set('Cache-Control','no-store');return res.json({taxPricingMode:rows[0].tax_pricing_mode||'inclusive'});
+  } catch(e){console.error('Public pricing policy',e);return res.status(503).json({message:'Checkout pricing policy temporarily unavailable.'});}
+});
 app.get("/api/admin/checkout-settings",requireAdmin,getCheckoutSettings);
 app.put("/api/admin/checkout-settings",requireAdmin,(req,res,next)=>{const origin=req.get('origin');if(origin&&origin!==(process.env.CLIENT_ORIGIN||'http://localhost:5173'))return res.status(403).json({message:'Request origin not allowed.'});next();},updateCheckoutSettings);
 app.use("/api/payments/razorpay", razorpayRoutes);

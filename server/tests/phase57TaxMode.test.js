@@ -1,0 +1,12 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { calculateCheckout, validateCheckoutSettings } from '../services/checkoutPricing.js';
+import { quoteMatchesAccepted, quoteSummary } from '../services/checkoutAcceptance.js';
+import { toPaise } from '../services/cartPricing.js';
+const policy={origin_state:'Gujarat',shipping_fee_in_state:'0.00',shipping_fee_other_state:'0.00',free_shipping_above:'0.00',shipping_gst_percent:'0',default_item_gst_percent:'18',cod_enabled:true,tax_pricing_mode:'exclusive'};
+const lines=[{lineTotal:toPaise('1000.00'),gstPercent:'18.00'}];
+test('exclusive GST adds exactly 18% on ₹1000 net',()=>{const q=calculateCheckout(lines,'Gujarat',policy);assert.equal(q.subtotal,'1000.00');assert.equal(q.includedTax,'180.00');assert.equal(q.total,'1180.00');assert.equal(q.taxableValue,'1000.00');assert.equal(q.taxPricingMode,'exclusive');});
+test('exclusive shipping GST uses same fixed-point rules',()=>{const q=calculateCheckout(lines,'Maharashtra',{...policy,shipping_fee_other_state:'100.00',shipping_gst_percent:'18'});assert.equal(q.total,'1298.00');assert.equal(q.igst,'198.00');});
+test('inclusive remains default for legacy checkout settings',()=>{const q=calculateCheckout(lines,'Gujarat',{...policy,tax_pricing_mode:undefined});assert.equal(q.total,'1000.00');});
+test('accepted quotes bind to mode and total',()=>{const q=calculateCheckout(lines,'Gujarat',policy);assert.equal(quoteMatchesAccepted(q,quoteSummary(q)),true);assert.equal(quoteMatchesAccepted(q,{...quoteSummary(q),taxPricingMode:'inclusive'}),false);});
+test('invalid mode cannot be saved',()=>{assert.equal(validateCheckoutSettings({...policy,tax_pricing_mode:'bogus'}),null);assert.equal(validateCheckoutSettings(policy).tax_pricing_mode,'exclusive');});

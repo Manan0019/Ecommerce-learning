@@ -11,6 +11,7 @@ import RelatedProducts from "../../components/customer/RelatedProducts";
 import PromotionCarousel from "../../components/customer/PromotionCarousel";
 import { getProduct, getProductMedia, getAdminProduct } from "../../services/productService";
 import { getVariants } from "../../services/variantService";
+import { apiRequest } from "../../services/apiClient";
 import { useCart } from "../../hooks/useCart";
 
 export default function ProductDetails({adminPreview=false}) {
@@ -24,6 +25,10 @@ function ProductDetailsContent({ id,adminPreview=false }) {
   const returnTo = /^\/admin\/(?:products|inventory|featured|dashboard|orders)(?:\/?|\?.*)$/.test(location.state?.from||"")
     ? location.state.from : "/admin/products";
   const [editTab, setEditTab] = useState(null);
+  const [taxMode,setTaxMode] = useState(null);
+  useEffect(()=>{if(adminPreview)return undefined;const controller=new AbortController();
+    apiRequest('/api/checkout/pricing-policy',{signal:controller.signal}).then(data=>{if(!controller.signal.aborted)setTaxMode(data.taxPricingMode);}).catch(()=>{});
+    return ()=>controller.abort();},[adminPreview]);
   const [previewVersion, setPreviewVersion] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedVariantId = searchParams.get("variant");
@@ -111,6 +116,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
             {discount>0&&<s className="detail-mrp">₹{Number(effectiveMrp).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</s>}
             <strong className="detail-price">₹{Number(effectivePrice).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
           </div>
+          {!adminPreview && taxMode==='exclusive' && <p className="nx57-gst-note">Base price shown · Applicable GST, shipping and any additional charges are calculated before payment at checkout.</p>}
           <details className="nx17-description"><summary>Product information</summary><p className="detail-description">{product.description}</p></details>
           <div className={`stock-status ${isAvailable ? "in-stock" : "out-of-stock"}`}>
             <span />{isAvailable ? `${effectiveStock} available` : "Currently unavailable"}
@@ -144,11 +150,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
             </div>
             {added && <p className="added-message" role="status">Added to your cart. <Link to="/cart">View cart <UiIcon name="right" size={16}/></Link></p>}
           </div>
-          <ul className="product-assurances">
-            <li><span>✓</span> Secure customer session</li>
-            <li><span>✓</span> Live price and stock</li>
-            <li><span>✓</span> Carefully selected quality</li>
-          </ul></>}
+</>}
         </div>
       </article>}
       {product && <PromotionCarousel position="product" product={product.id} />}

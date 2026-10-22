@@ -112,7 +112,7 @@ export default function Checkout(){
   }finally{if(!checkoutOpened)release()}
  }
  return <CustomerLayout mainClassName="nx-cod-page nx25-checkout">
-  <div className="nx-page-intro"><Link className="nx-back-link" to="/cart"><UiIcon name="left" size={17}/> Back to cart</Link><p className="eyebrow">Secure checkout</p><h1>Delivery & payment</h1><p>Choose an address, review shipping and included GST, then pay online with Razorpay or choose Cash on Delivery.</p></div>
+  <div className="nx-page-intro"><Link className="nx-back-link" to="/cart"><UiIcon name="left" size={17}/> Back to cart</Link><p className="eyebrow">Secure checkout</p><h1>Delivery & payment</h1><p>Choose an address, review shipping and GST, then pay online with Razorpay or choose Cash on Delivery.</p></div>
   {checking&&<p className="nx-cod-message" role="status">Checking items, account and saved addresses…</p>}
   {error&&<p role="alert" className="nx-cod-message nx-cod-error">{error} {needsCartReview&&<Link to="/cart">Review your cart <UiIcon name="right" size={17}/></Link>}</p>}
   {!checking&&role==='customer'&&<div className="nx-cod-grid">
@@ -131,7 +131,7 @@ export default function Checkout(){
      </div>
     {paymentMethod==='cod'&&!codEnabled&&validAddress&&quote?.valid&&<p className="nx-cod-message nx-cod-error" role="status">The store has not enabled COD checkout yet. Please contact the store.</p>}
     <button className="button button-primary nx-cod-submit" type="submit" disabled={checking||!validAddress||!canSubmit}>{posting?(paymentMethod==='razorpay'?'Opening secure payment…':'Placing order…'):updatedQuote?`Confirm revised total · ${money(estimate?.total)}`:paymentMethod==='razorpay'?`Pay online · ${money(estimate?.total)}`:`Place COD order · ${money(estimate?.total)}`}</button>
-    {updatedQuote&&<p className="nx-cod-message nx40-review" role="status">Your prices, shipping or included tax changed. Review the amount due and select Confirm revised total to place the order.</p>}
+    {updatedQuote&&<p className="nx-cod-message nx40-review" role="status">Your prices, shipping or tax changed. Review the amount due and select Confirm revised total to place the order.</p>}
     <p className="nx-cod-note">Review your items and delivery details before placing your order.</p>
    </form>
    <aside className="nx-cod-panel nx-cod-summary"><div className="nx-section-heading"><span className="nx-step-number">03</span><div><h2>Order summary</h2><p>Amounts are in INR, including GST where configured.</p></div></div>
@@ -139,9 +139,9 @@ export default function Checkout(){
     {quote?.items?.map(item=><div className="nx-cod-summary-line" key={`${item.productId}-${item.variantId||''}`}><div className="nx-cod-summary-product">{item.imageUrl&&<img src={apiAssetUrl(item.imageUrl)} loading="lazy" alt=""/>}<div><strong>{item.name||'Unavailable product'}</strong><small>{item.sku?`${item.sku} · `:''}Qty {item.quantity}</small></div></div><span>{item.lineTotal?money(item.lineTotal):'—'}</span></div>)}
     <div className="nx-cod-summary-line"><span>Products subtotal</span><strong>{money(estimateFor===intentKey?estimate?.subtotal:quote?.availableSubtotal)}</strong></div>
     <div className="nx-cod-summary-line"><span>Shipping</span><strong>{estimateFor===intentKey&&estimate?Number(estimate.shippingFee)===0?'Free':money(estimate.shippingFee):'Enter address'}</strong></div>
-    {estimateFor===intentKey&&estimate&&<><div className="nx-cod-summary-line"><span>Included GST ({estimate.taxType})</span><strong>{money(estimate.includedTax)}</strong></div><div className="nx25-tax-details"><small>Taxable value: {money(estimate.taxableValue)}</small><small>{estimate.taxType==='IGST'?`IGST: ${money(estimate.igst)}`:`CGST: ${money(estimate.cgst)} · SGST: ${money(estimate.sgst)}`}</small></div></>}
+    {estimateFor===intentKey&&estimate&&<><div className="nx-cod-summary-line"><span>{estimate.taxPricingMode==='exclusive'?'GST added':'GST included'} ({estimate.taxType})</span><strong>{money(estimate.includedTax)}</strong></div><div className="nx25-tax-details"><small>Taxable value: {money(estimate.taxableValue)}</small><small>{estimate.taxType==='IGST'?`IGST: ${money(estimate.igst)}`:`CGST: ${money(estimate.cgst)} · SGST: ${money(estimate.sgst)}`}</small></div></>}
     <div className="nx-cod-total"><span>{paymentMethod==='razorpay'?'Pay securely online':'Pay on delivery'}</span><strong>{estimateFor===intentKey&&estimate?money(estimate.total):'—'}</strong></div>
-    <p className="nx-cod-note">GST is included where applicable. No extra tax is added at checkout.</p>
+    <p className="nx-cod-note">{estimate?.taxPricingMode==='exclusive'?'GST is added to the displayed base price and shipping where applicable. Review your final total before paying.':'GST is included in prices where applicable; no additional tax is added.'}</p>
    </aside>
   </div>}
  </CustomerLayout>

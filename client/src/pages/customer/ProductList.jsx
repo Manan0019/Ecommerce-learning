@@ -55,6 +55,9 @@ export default function ProductList() {
         const params = new URLSearchParams(queryString);
         if (selectedCategory) params.set("category", selectedCategory);
         params.set("includePriceBounds", "true");
+        // A premium catalogue starts with one representative card per parent product.
+        // Shoppers can explicitly switch to color or configuration browsing.
+        if (!params.has("view")) params.set("view", "products");
         const data = await getProducts({ signal: controller.signal, params });
         if (!controller.signal.aborted) {
           setProducts(data.products || []);
@@ -125,7 +128,7 @@ export default function ProductList() {
     const next = new URLSearchParams(searchParams);
     next.set("page", String(page));
     setSearchParams(next);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.querySelector('.catalogue-results-bar')?.scrollIntoView({behavior:'smooth',block:'start'});
   }
 
   return (
@@ -181,12 +184,12 @@ export default function ProductList() {
         <p>
           {loading
             ? "Searching…"
-            : `${pagination.total} ${searchParams.get("view") === "products" ? "product styles" : searchParams.get("view") === "colors" ? "product families (color cards may be more)" : "configurations"}`}
+            : `${pagination.total} ${(searchParams.get("view") || "products") === "products" ? "products" : searchParams.get("view") === "colors" ? "color choices" : "configurations"}`}
         </p>
         <label className="nx17-view-control">
           Show
-          <select value={searchParams.get("view") || "variants"} onChange={e => updateParams(next=>next.set("view",e.target.value))}>
-            <option value="variants">All configurations</option><option value="colors">By color</option><option value="products">One per product</option>
+          <select value={searchParams.get("view") || "products"} onChange={e => updateParams(next=>next.set("view",e.target.value))}>
+            <option value="products">One per product</option><option value="colors">By color</option><option value="variants">All configurations</option>
           </select>
         </label>
         <label>

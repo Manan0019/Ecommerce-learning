@@ -7,6 +7,7 @@ export default function ProductMediaGallery({ product, variantId = null, variant
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
   const zoomRef = useRef(null);
+  const thumbsRef = useRef(null);
   const touchRef = useRef(null);
   const swipedRef = useRef(false);
   const gallery = visibleProductMedia(items, variantId, variantAttributes);
@@ -50,13 +51,14 @@ export default function ProductMediaGallery({ product, variantId = null, variant
           onClick={() => { if (swipedRef.current) { swipedRef.current = false; return; } zoomRef.current?.showModal(); }}
         >{mediaContent(current)}<span className="nx29-zoom-hint" aria-hidden="true"><UiIcon name="maximize" size={16}/> View larger</span></button>
           : mediaContent(current)}
-      {visible.length > 1 && <div className="nx29-detail-controls">
-        <button type="button" onClick={() => moveSelection(-1)} aria-label="Previous product image"><UiIcon name="chevron-left" size={18}/></button>
-        <span aria-live="polite">{index + 1} / {visible.length}</span>
-        <button type="button" onClick={() => moveSelection(1)} aria-label="Next product image"><UiIcon name="chevron-right" size={18}/></button>
+      {visible.length > 1 && <div className="nx57-gallery-arrows">
+        <button type="button" onClick={() => moveSelection(-1)} aria-label="Previous product image"><UiIcon name="chevron-left" size={19}/></button>
+        <button type="button" onClick={() => moveSelection(1)} aria-label="Next product image"><UiIcon name="chevron-right" size={19}/></button>
       </div>}
     </div>
-    {visible.length > 1 && <div className="gallery-thumbnails nx29-gallery-thumbnails" aria-label="Product gallery thumbnails">
+    {visible.length > 1 && <div className="nx57-thumbnail-shell">
+      <button type="button" className="nx57-thumbnail-scroll" aria-label="Scroll thumbnails left" onClick={()=>thumbsRef.current?.scrollBy({left:-240,behavior:'smooth'})}><UiIcon name="chevron-left" size={17}/></button>
+      <div ref={thumbsRef} className="gallery-thumbnails nx29-gallery-thumbnails nx57-thumbnail-track" aria-label="Product gallery thumbnails">
       {visible.map((item, thumbIndex) => <button type="button" key={item.id}
         className={String(selected?.id) === String(item.id) ? "selected" : ""}
         onClick={() => { setSelectedId(item.id); setHoveredId(null); }}
@@ -68,6 +70,7 @@ export default function ProductMediaGallery({ product, variantId = null, variant
         aria-pressed={String(selected?.id) === String(item.id)}>
         {item.type === "image" ? <img src={apiAssetUrl(item.url)} alt="" loading="lazy" /> : <span>▶ {item.type === "video" ? "Video" : "YouTube"}</span>}
       </button>)}
+      </div><button type="button" className="nx57-thumbnail-scroll" aria-label="Scroll thumbnails right" onClick={()=>thumbsRef.current?.scrollBy({left:240,behavior:'smooth'})}><UiIcon name="chevron-right" size={17}/></button>
     </div>}
     <dialog ref={zoomRef} className="nx29-image-dialog" aria-label={`${product.name} enlarged image`}>
       <button type="button" className="nx29-image-dialog-close" onClick={() => zoomRef.current?.close()} aria-label="Close enlarged image">×</button>
