@@ -15,12 +15,12 @@ export default function DeliveryExecutivePicker({order, current, staff, assignme
   const canSubmit = selected?.isActive && !isCurrent && !busy;
   return <Modal title={current ? `Reassign order #${order.id}` : `Assign order #${order.id}`}
     subtitle="Select an active delivery executive, then confirm the assignment."
-    size="wide" closeDisabled={busy} onClose={onClose}>
+    size="assignment" closeDisabled={busy} onClose={onClose}>
     <div className="nx53-assignment-dialog">
       <div className="nx53-assignment-context">
         <div><span>ORDER</span><strong>#{order.id}</strong></div>
         <div><span>DELIVER TO</span><strong>{order.customerName || 'Customer'}</strong><small>{order.address?.city || 'Address on order'}</small></div>
-        <div><span>EXECUTIVES</span><strong>{activeCount} active</strong><small>{team.length} total</small></div>
+        <div><span>TEAM AVAILABLE</span><strong>{activeCount} active</strong><small>{team.length} registered</small></div>
       </div>
       {current && <p className="nx53-current-assignee">Currently assigned to <strong>{current.executiveName}</strong>. You can reassign only before delivery starts.</p>}
       {error && <p className="admin-alert" role="alert">{error}</p>}

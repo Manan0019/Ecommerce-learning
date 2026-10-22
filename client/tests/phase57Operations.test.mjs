@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 const read = f => readFileSync(new URL(`../${f}`,import.meta.url),'utf8');
 test('admin orders table and details keep fulfillment/refund controls',()=>{
  const s=read('src/pages/admin/AdminOrders.jsx');
- assert.match(s,/nx57-orders-table/);assert.match(s,/nx57-order-detail/);
+ assert.match(s,/nx57-orders-table/);assert.match(s,/size="order"/);assert.match(s,/nx59-order-detail/);
  assert.match(s,/requestRazorpayRefund/);assert.match(s,/confirmCodCollection/);
  assert.match(s,/openAssignmentPicker/);assert.match(s,/setOrderPage/);
 });

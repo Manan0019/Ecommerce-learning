@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
+import Modal from "../../components/common/Modal";
 import AdminLayout from "../../components/layout/AdminLayout";
 import {Link} from "react-router-dom";
 import OrderTimeline from "../../components/customer/OrderTimeline";
@@ -121,9 +122,9 @@ export default function AdminOrders(){
      <td><button type="button" className="nx57-open-order" onClick={()=>setSelectedOrderId(o.id)} aria-label={`Manage order ${o.id}`}>View & manage <UiIcon name="chevron-right" size={16}/></button></td>
    </tr>)}</tbody></table></div>
    <div className="nx57-order-pagination"><span>Showing {(currentPage-1)*perPage+1}–{Math.min(visible.length,currentPage*perPage)} of {visible.length} orders</span><div><button type="button" disabled={currentPage<=1} onClick={()=>{setOrderPage(currentPage-1);setSelectedOrderId(null);}}>Previous</button><span>Page {currentPage} / {pages}</span><button type="button" disabled={currentPage>=pages} onClick={()=>{setOrderPage(currentPage+1);setSelectedOrderId(null);}}>Next</button></div></div>
-   <p className="nx57-orders-hint">Select any order to see its items, delivery progress, payment, refund and fulfillment actions. The table keeps the queue easy to scan.</p>
-   {pageOrders.filter(o=>String(o.id)===String(selectedOrderId)).map(o=><section key={o.id} className="nx57-order-detail" aria-label={`Order ${o.id} details`}>
-    <div className="nx57-detail-heading"><div><span className="nx57-kicker">ORDER DETAILS</span><h3>Order #{o.id}</h3><small>{o.customerName} · {new Date(o.placedAt).toLocaleString('en-IN')}</small></div><button type="button" onClick={()=>setSelectedOrderId(null)} aria-label="Close order details"><UiIcon name="x" size={18}/></button></div>
+   <p className="nx57-orders-hint">Open an order to manage fulfillment, payment, delivery and refunds without leaving this list.</p>
+   {orders.filter(o=>String(o.id)===String(selectedOrderId)).map(o=><Modal key={o.id} size="order" title={`Manage order #${o.id}`} subtitle={`${o.customerName||"Customer"} · ${new Date(o.placedAt).toLocaleString("en-IN")}`} closeDisabled={!!busy} onClose={()=>{setSelectedOrderId(null);setDispatchId(null);setError("");}}>
+    <div className="nx59-order-detail" aria-label={`Order ${o.id} details`}>{error&&<div className="admin-alert" role="alert">{error}</div>}
     <div className="nx-admin-orders-grid"><article className="nx-admin-order-card">   <header><div><strong>Order #{o.id}</strong><small>{new Date(o.placedAt).toLocaleString("en-IN")}</small></div><span className={`nx-status nx-status-${o.status}`}>{o.status}</span></header>
    <div className="nx-admin-order-meta"><div><strong>{o.customerName||"Customer"}</strong><span>{o.customerEmail||""}</span></div><div className="nx34-order-total"><small>{o.paymentMethod==="Razorpay"?"Online total":"COD total"}</small><strong>{money(o.total)}</strong></div></div>
    <div className="nx-admin-order-items">{o.items.map((item,i)=><div className="nx34-admin-order-line" key={`${item.productId}-${item.variantId||"base"}-${i}`}><div className="nx34-order-line-info"><Link className="nx46-product-title" to={`/admin/products/${item.productId}/preview`} state={{from:"/admin/orders"}}>{item.name}</Link>{item.sku&&<small>SKU: {item.sku}</small>}</div><div className="nx34-order-line-numbers"><span className="nx34-order-quantity">Qty {item.quantity}</span><strong>{money(item.lineTotal??Number(item.unitPrice||0)*Number(item.quantity||0))}</strong></div></div>)}</div>
@@ -141,7 +142,7 @@ export default function AdminOrders(){
      {['confirmed','processing','shipped'].includes(o.status)&&o.cancellationRequest?.status!=='pending'&&(o.paymentMethod!=='Razorpay'||o.paymentStatus==='razorpay_paid')&&<button type="button" className="nx53-orders-link" disabled={!!busy||assignmentLoading} onClick={()=>openAssignmentPicker(o)}>Choose delivery executive <UiIcon name="users" size={16}/></button>}
      {o.status==="delivered"&&o.paymentMethod!=="Razorpay"&&o.paymentStatus!=="cod_collected"&&<button type="button" className="nx38-collect-action" disabled={busy===o.id} onClick={()=>openDialog("collect",o)}>Record cash received</button>}
    </div></footer>
- </article></div></section>)}
+ </article></div></div></Modal>)}
  </div>}
  </section>
  {assignmentOrder&&<DeliveryExecutivePicker key={assignmentOrder.id} order={assignmentOrder} current={existingAssignment} staff={assignmentData.staff} assignments={assignmentData.assignments} busy={assignmentLoading||!!busy} error={assignmentError} onAssign={submitAssignment} onClose={closeAssignmentPicker}/>}

@@ -2,12 +2,26 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import OrderTimeline from "../../components/customer/OrderTimeline";
+import UiIcon from "../../components/common/UiIcon";
 import OrderCancellationDialog from "../../components/customer/OrderCancellationDialog";
 import { getMyOrders, reconcileRazorpayOrder, retryRazorpayCheckout, verifyRazorpayPayment, requestOrderCancellation } from "../../services/orderService";
 import { isAuthenticationError } from "../../services/apiClient";
 import { loadRazorpayCheckout } from "../../services/razorpayCheckout";
 import {useCart} from "../../hooks/useCart";
 const money=x=>`₹${Number(x||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+function OrderProductPreview({item}){
+ return <div className="nx59-order-preview-item">
+  <Link className="nx59-order-preview-image" to={`/products/${item.productId}`} aria-label={`View ${item.name}`}>
+   {item.imageUrl?<img src={item.imageUrl} alt={item.name} loading="lazy" onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextElementSibling?.removeAttribute('hidden')}}/>:null}
+   <span className="nx59-image-placeholder" hidden={Boolean(item.imageUrl)}><UiIcon name="package" size={26}/></span>
+  </Link>
+  <div className="nx59-order-preview-copy"><Link to={`/products/${item.productId}`}>{item.name}</Link>
+    <span>{item.sku||'Standard'} · Qty {item.quantity}</span>
+  </div>
+  <strong className="nx59-order-preview-price">{money(item.lineTotal)}</strong>
+ </div>;
+}
+
 
 export default function Orders(){
  const navigate=useNavigate(),location=useLocation(),{items:cartItems,clearCart}=useCart();
@@ -61,8 +75,10 @@ export default function Orders(){
  {location.state?.placedId&&<div className="nx-cod-message nx-cod-success" role="status">✓ Order #{location.state.placedId} {location.state.alreadyPlaced?"was already placed":"was placed successfully"}. {location.state.paidOnline?"Razorpay payment captured and verified.":"Pay on delivery."}</div>}
  {error&&<div className="nx-cod-message nx-cod-error" role="alert">{error}</div>}
  {success&&<div className="nx-cod-message nx-cod-success" role="status">{success}</div>}
- {loading?<p role="status">Loading orders…</p>:!orders.length?<div className="store-empty"><h2>No orders yet</h2><p>When you order, you can follow its progress here.</p><Link className="button button-primary" to="/products">Explore products</Link></div>:<div className="nx-orders-list">{orders.map(o=><article className="nx-order-card nx38-customer-order" key={o.id}>
-   <div className="nx-order-heading"><div><small>Order #{o.id} · {new Date(o.placedAt).toLocaleDateString("en-IN")}</small><h2>{money(o.total)} <span className="nx38-item-count">· {o.items.length} item{o.items.length===1?"":"s"}</span></h2></div><div className="nx57-customer-status"><span className={`nx-status nx-status-${o.status}`}>{o.status.replaceAll('_',' ')}</span><button type="button" aria-expanded={String(expandedId)===String(o.id)} onClick={()=>setExpandedId(x=>String(x)===String(o.id)?null:o.id)}>{String(expandedId)===String(o.id)?'Hide details':'View details'}</button></div></div>
+ {loading?<p role="status">Loading orders…</p>:!orders.length?<div className="store-empty"><h2>No orders yet</h2><p>When you order, you can follow its progress here.</p><Link className="button button-primary" to="/products">Explore products</Link></div>:<div className="nx-orders-list nx59-orders-list">{orders.map(o=><article className="nx-order-card nx38-customer-order nx59-customer-order" key={o.id}>
+   <div className="nx-order-heading nx59-order-heading"><div><small>ORDER #{o.id} · {new Date(o.placedAt).toLocaleDateString("en-IN")}</small><h2>{money(o.total)} <span className="nx38-item-count">· {o.items.length} item{o.items.length===1?"":"s"}</span></h2></div><div className="nx57-customer-status"><span className={`nx-status nx-status-${o.status}`}>{o.status.replaceAll('_',' ')}</span><button type="button" aria-expanded={String(expandedId)===String(o.id)} onClick={()=>setExpandedId(x=>String(x)===String(o.id)?null:o.id)}>{String(expandedId)===String(o.id)?'Hide details':'Track & manage'} <UiIcon name={String(expandedId)===String(o.id)?'chevron-down':'chevron-right'} size={15}/></button></div></div>
+   <div className="nx59-customer-order-preview">{o.items.slice(0,3).map((item,i)=><OrderProductPreview key={`${item.productId}-${item.variantId||'base'}-${i}`} item={item}/>)}{o.items.length>3&&<button type="button" className="nx59-more-items" onClick={()=>setExpandedId(o.id)}>+{o.items.length-3} more products <UiIcon name="chevron-right" size={16}/></button>}</div>
+   <div className="nx59-order-quick-info"><span><UiIcon name="truck" size={17}/> {o.paymentMethod==='Razorpay'?'Online payment':'Cash on delivery'}</span><span>{o.paymentMethod==='Razorpay'?(o.refundStatus==='processed'?'Refund completed':o.refundStatus?'Refund under review':o.paymentStatus==='razorpay_paid'?'Payment verified':'Payment awaiting confirmation'):(o.paymentStatus==='cod_collected'?'Cash collected':'Pay on delivery')}</span></div>
    {String(expandedId)===String(o.id)&&<div className="nx57-customer-order-body"><OrderTimeline order={o}/>
    {o.paymentMethod==='Razorpay'&&o.paymentStatus==='razorpay_pending'&&<div className="nx42-order-payment-actions">
     <button type="button" className="nx42-recheck-payment" disabled={Boolean(checkingId)} onClick={()=>checkPayment(o.id)}>{checkingId===o.id?'Checking with Razorpay…':'Check payment status'}</button>
@@ -70,7 +86,6 @@ export default function Orders(){
    </div>}
    {o.cancellationRequest&&<div className={`nx45-cancellation-status is-${o.cancellationRequest.status}`} role="status"><strong>Cancellation request: {o.cancellationRequest.status==='pending'?'Awaiting review':o.cancellationRequest.status==='approved'?'Approved':'Declined'}</strong><p>{o.cancellationRequest.status==='approved'&&o.paymentMethod==='Razorpay'&&o.refundStatus==='failed'?'Razorpay refund failed. Nexora must review it; your order has not been cancelled yet.':o.cancellationRequest.status==='approved'&&o.paymentMethod==='Razorpay'&&o.refundStatus!=='processed'?'Your refund is under verification. Order cancellation is finalized only after Razorpay confirms processing.':o.cancellationRequest.status==='pending'?'Your request is with the Nexora team. Fulfillment is paused while it is reviewed.':o.cancellationRequest.adminResponse||'Your cancellation request has been reviewed.'}</p>{o.cancellationRequest.status==='declined'&&o.cancellationRequest.adminResponse&&<small>Reason: {o.cancellationRequest.adminResponse}</small>}</div>}
    {['placed','confirmed'].includes(o.status)&&!o.refundStatus&&!o.cancellationRequest&&((o.paymentMethod==='Razorpay'&&o.paymentStatus==='razorpay_paid')||(o.paymentMethod!=='Razorpay'&&o.paymentStatus==='cod_pending'))&&<div className="nx45-customer-actions"><button type="button" onClick={()=>{setCancelOrder(o);setCancelError('');}}>Request cancellation</button></div>}
-   <div className="nx-order-items">{o.items.map((item,i)=><div className="nx-order-product" key={`${item.productId}-${item.variantId||"base"}-${i}`}><div><Link className="nx46-product-title" to={`/products/${item.productId}`}>{item.name}</Link><small>{item.sku||"Standard"} · Qty {item.quantity}</small></div><span>{money(item.lineTotal)}</span></div>)}</div>
    <div className="nx25-order-breakdown nx38-order-breakdown"><span><span>Items</span><strong>{money(o.subtotal)}</strong></span><span><span>Shipping</span><strong>{money(o.shippingFee)}</strong></span><span><span>{o.taxPricingMode==='exclusive'?'GST added':'GST included'}</span><strong>{money(o.taxTotal)}</strong></span><span><span>{o.paymentMethod==="Razorpay"?"Order total":"Amount due on delivery"}</span><strong>{money(o.total)}</strong></span></div>
    <div className="nx-order-footer"><span>{o.paymentMethod==='Razorpay'
     ? o.refundStatus==='processed'?'Full refund processed · order cancelled':o.refundStatus==='failed'?'Refund failed · store review required':o.refundStatus?'Full refund in progress · do not pay again':o.paymentStatus==='razorpay_paid'?'✓ Paid online (Razorpay)':o.paymentStatus==='razorpay_review'?'Payment requires manual review':o.paymentStatus==='razorpay_expired'?'Unpaid payment reservation expired':'Awaiting captured online payment · do not repay until checked'
