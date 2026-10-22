@@ -122,8 +122,7 @@ export default function AdminProducts() {
       {error && <p className="admin-alert" role="alert">{error}</p>}
       <div className="nx-delete-warning"><strong>{deleteTarget.name}</strong><p>All related SKU and media database records will be removed if the server determines deletion is safe. Local image/video files stay on disk for separate cleanup.</p></div>
       <label className="nx-confirm-label">Enter the exact product name to confirm<input autoComplete="off" value={deleteConfirmation} onChange={e => setDeleteConfirmation(e.target.value)} placeholder={deleteTarget.name}/></label>
-      <div className="admin-form-actions"><button type="button" disabled={busyId === product.id} title="Manually control the Sale label on customer cards" onClick={() => toggleSaleBadge(product)}>{product.showSaleBadge ? "Hide sale" : "Show sale"}</button>
-              <button className="admin-danger-action" type="button" disabled={busyId !== null || deleteConfirmation !== deleteTarget.name} onClick={remove}>{busyId !== null ? "Deleting…" : "Yes, delete permanently"}</button><button type="button" onClick={() => { setDeleteTarget(null); setDeleteConfirmation(""); }} disabled={busyId !== null}>Cancel</button></div>
+      <div className="admin-form-actions"><button className="admin-danger-action" type="button" disabled={busyId !== null || deleteConfirmation !== deleteTarget.name} onClick={remove}>{busyId !== null ? "Deleting…" : "Yes, delete permanently"}</button><button type="button" onClick={() => { setDeleteTarget(null); setDeleteConfirmation(""); }} disabled={busyId !== null}>Cancel</button></div>
     </Modal>}
   </AdminLayout>;
 }

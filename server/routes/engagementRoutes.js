@@ -43,7 +43,7 @@ router.get('/reviews/:productId',async(req,res)=>{
   try {const {rows}=await pool.query(`SELECT r.id,r.rating,r.title,r.body,r.created_at,split_part(u.full_name,' ',1) AS first_name
     FROM product_reviews r JOIN users u ON u.id=r.customer_id
     WHERE r.product_id=$1 AND r.status='approved' ORDER BY r.created_at DESC,r.id DESC LIMIT 50`,[req.params.productId]);
-    const average=rows.length ? Math.round(rows.reduce((s,r)=>s+r.rating,0)/rows.length*10)/10 : null;
+    const average=rows.length ? Math.round(rows.reduce((s,r)=>s+Number(r.rating),0)/rows.length*10)/10 : null;
     return res.json({count:rows.length,average,reviews:rows.map(r=>({id:String(r.id),name:r.first_name,rating:r.rating,title:r.title,body:r.body,createdAt:r.created_at}))});
   }catch(e){console.error('list reviews',e);return res.status(503).json({message:'Reviews temporarily unavailable.'});}
 });

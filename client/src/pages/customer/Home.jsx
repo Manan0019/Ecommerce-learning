@@ -1,3 +1,4 @@
+import ProductLoadingSkeleton from "../../components/common/ProductLoadingSkeleton";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import RecentlyViewed from "../../components/customer/RecentlyViewed";
@@ -77,7 +78,7 @@ export default function Home() {
           <Link className="text-link" to="/products">View all </Link>
         </div>
         {loading && <div className="product-grid" aria-label="Loading products">
-          {[1, 2, 3, 4].map((item) => <div className="product-skeleton" key={item} />)}
+          {[1, 2, 3, 4].map((item) => <ProductLoadingSkeleton key={item} />)}
         </div>}
         {error && <p className="store-alert" role="alert">{error}</p>}
         {!loading && !error && featured.length === 0 && <div className="store-empty">No featured products yet. An admin can mark products as Featured.</div>}

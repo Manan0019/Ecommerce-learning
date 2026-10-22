@@ -1,12 +1,18 @@
 import {Router} from 'express';
 import pool from '../config/db.js';
 import {requireAdmin} from '../middleware/authMiddleware.js';
-import {validateCouponDraft} from '../services/couponDraftRules.js';
+import {validateCouponDraft,previewDraftCoupon} from '../services/couponDraftRules.js';
 const router=Router();
 router.use(requireAdmin);
 router.use((req,res,next)=>{const origin=req.get('origin');if(origin&&origin!==(process.env.CLIENT_ORIGIN||'http://localhost:5173'))return res.status(403).json({message:'Origin not allowed.'});next();});
 const cols='code,discount_kind,discount_value,minimum_subtotal,max_redemptions,starts_at,expires_at,created_at,eligibility';
 const present=r=>({code:r.code,kind:r.discount_kind,value:r.discount_value,minimumSubtotal:r.minimum_subtotal,maxRedemptions:r.max_redemptions,startsAt:r.starts_at,expiresAt:r.expires_at,createdAt:r.created_at,status:'draft',...(r.eligibility||{})});
+router.post('/simulate', (req,res)=>{
+  const draft = validateCouponDraft(req.body?.draft);
+  if (!draft) return res.status(400).json({message:'Save valid coupon rules before previewing.'});
+  try { return res.json(previewDraftCoupon(draft,req.body?.sample)); }
+  catch(e) { return res.status(400).json({message:e.message}); }
+});
 router.get('/targets',async(req,res)=>{
  const type=req.query.type==='categories'?'categories':'products';
  const q=String(req.query.q||'').trim().slice(0,70);

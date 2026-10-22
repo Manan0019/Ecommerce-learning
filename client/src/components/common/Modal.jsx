@@ -1,3 +1,4 @@
+import UiIcon from "./UiIcon";
 import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { guardNumberKey, guardNumericPaste, guardNumericBeforeInput, showInvalidField, clearValidField } from "../admin/formValidation";
@@ -40,7 +41,7 @@ export default function Modal({ title, subtitle, children, onClose, size = "wide
         onInvalidCapture={showInvalidField} onInputCapture={clearValidField}>
         <header className="nx-modal-header">
           <div><h2 id={headingId}>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>
-          <button ref={closeRef} type="button" className="nx-icon-button" aria-label="Close dialog" disabled={closeDisabled} onClick={onClose}>×</button>
+          <button ref={closeRef} type="button" className="nx-icon-button" aria-label="Close dialog" disabled={closeDisabled} onClick={onClose}><UiIcon name="x" size={18} /></button>
         </header>
         <div className="nx-modal-body">{children}</div>
       </section>

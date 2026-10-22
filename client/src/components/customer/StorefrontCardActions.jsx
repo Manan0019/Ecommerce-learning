@@ -5,6 +5,7 @@ import { addWishlist } from '../../services/wishlistService';
 import { apiAssetUrl } from '../../services/apiClient';
 import UiIcon from '../common/UiIcon';
 import Modal from '../common/Modal';
+import ProductQuickView from './ProductQuickView';
 
 const KEY='nexora_comparisons_v1';
 export function saveCompareProduct(product) {
@@ -38,16 +39,8 @@ export default function StorefrontCardActions({product,detailUrl,imageUrl}) {
       <UiIcon name="bag" size={17}/>Quick Add
     </button>}
     {message&&<span role="status" className="nx61-card-feedback">{message}</span>}
-    {quick&&<Modal size="medium" title="Quick view" onClose={()=>setQuick(false)}>
-      <div className="nx61-quick-view">
-        <div className="nx61-quick-view-media">{imageUrl?<img src={apiAssetUrl(imageUrl)} alt={product.name}/>:<span>Image unavailable</span>}</div>
-        <div><p className="eyebrow">{product.category}</p><h3>{product.name}</h3>
-        <strong>₹{Number(product.price||0).toLocaleString('en-IN',{minimumFractionDigits:2})}</strong>
-        <p>{Number(product.stock)>0?'Available':'Out of stock'}</p>
-        <div className="nx61-quick-view-actions"><Link className="button button-secondary" to={detailUrl} onClick={()=>setQuick(false)}>View full details</Link>
-        <button className="button button-primary" type="button" disabled={Number(product.stock)<=0} onClick={()=>{quickAdd();if(!needsOptions)setQuick(false);}}>{needsOptions?'Select options':'Add to cart'}</button></div>
-        </div>
-      </div>
+    {quick&&<Modal size="large" title="Quick view" onClose={()=>setQuick(false)}>
+      <ProductQuickView productId={parentId} detailUrl={detailUrl} onAdd={(id,qty,variantId)=>{addToCart(id,qty,variantId);setQuick(false);setMessage('Added to cart');}}/>
     </Modal>}
   </>;
 }

@@ -1,3 +1,4 @@
+import UiIcon from "./UiIcon";
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {getNotifications,markNotificationRead} from '../../services/deliveryService';
@@ -27,7 +28,7 @@ export default function NotificationBell(){
    {unread>0&&<span className="nx46-bell-count">{unread>99?'99+':unread}</span>}
   </button>
   {open&&<div className="nx46-notification-panel" role="region" aria-label="Recent notifications">
-   <div className="nx46-notification-title"><strong>Notifications</strong><button type="button" onClick={()=>setOpen(false)} aria-label="Close notifications">×</button></div>
+   <div className="nx46-notification-title"><strong>Notifications</strong><button type="button" onClick={()=>setOpen(false)} aria-label="Close notifications" className="nx64-animated-close"><UiIcon name="x" size={16}/></button></div>
    {error&&<p className="nx46-error" role="alert">{error}</p>}
    {!entries.length?<p className="nx46-notification-empty">No notifications yet. New orders and assignments will appear here.</p>:<div className="nx46-notification-list">{entries.map(n=><button type="button" key={n.id} className={n.read_at?'':'unread'} onClick={()=>visit(n)}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.created_at).toLocaleString('en-IN')}</small></button>)}</div>}
   </div>}

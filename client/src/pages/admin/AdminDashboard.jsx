@@ -51,7 +51,7 @@ export default function AdminDashboard(){
     {label:'Recorded collected / paid',value:loading?'—':money(insights.paidValue),detail:`${insights.paidCount} verified paid orders`,to:'/admin/orders',icon:'₹'},
     {label:'Needs attention',value:loading?'—':insights.awaiting,detail:'New orders / reviews',to:'/admin/orders',icon:'!'},
     {label:'In fulfillment',value:loading?'—':insights.fulfillment,detail:`${insights.delivery} out for delivery`,to:'/admin/delivery',icon:'delivery'}
-   ].map(m=><Link className="nx46-metric-link" key={m.label} to={m.to}><article><span>{m.label}</span><strong>{m.value}</strong><small>{m.detail}</small><b aria-hidden="true">{m.icon==='delivery'?<UiIcon name="chevron-right" size={17}/>:m.icon}</b></article></Link>)}
+   ].map(m=><Link className="nx46-metric-link" key={m.label} to={m.to}><article><span>{m.label}</span><strong>{m.value}</strong><small>{m.detail}</small><b aria-hidden="true">{m.icon==='delivery'?<UiIcon name="truck" size={17}/>:m.icon}</b></article></Link>)}
   </section>
   <div className="nx46-dashboard-two">
    <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Recent orders</h2><p>Quick access to the latest customer activity.</p></div><Link to="/admin/orders">View all <UiIcon name="right" size={17}/></Link></div>

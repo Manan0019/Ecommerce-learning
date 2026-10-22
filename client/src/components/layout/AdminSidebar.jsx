@@ -29,15 +29,15 @@ export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAl
     <Link className="admin-brand" to="/admin/dashboard" onClick={onClose}>
       <BrandLogo markClassName="admin-brand-mark" showAdminLabel />
     </Link>
-    <nav className="admin-nav" aria-label="Admin navigation">
+    <div className="nx64-sidebar-scroll"><nav className="admin-nav" aria-label="Admin navigation">
       <p>Workspace</p>
       {navigation.map((item) => <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}>
         <span aria-hidden="true">{item.icon}</span>{item.label}{item.to === "/admin/inventory" && stockAlertCount > 0 && <span className="nx24-sidebar-count">{stockAlertCount}</span>}
       </NavLink>)}
-    </nav>
+    </nav></div>
     <div className="admin-sidebar-footer">
-      <Link to="/" onClick={onClose}><UiIcon name="chevron-right" size={17}/>View Storefront</Link>
-      <button type="button" onClick={onLogout}><span aria-hidden="true">⇥</span>Logout</button>
+      <Link to="/" onClick={onClose}><UiIcon name="store" size={17}/>View Storefront</Link>
+      <button type="button" onClick={onLogout}><UiIcon name="log-out" size={17}/>Logout</button>
       <div className="admin-identity">
         <span>{initials}</span>
         <div><strong>{admin.fullName}</strong><small>{admin.email}</small></div>

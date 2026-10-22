@@ -1,3 +1,4 @@
+import CheckoutProcessStatus from "../../components/customer/CheckoutProcessStatus";
 import {useEffect,useRef,useState} from 'react';
 import UiIcon from "../../components/common/UiIcon";
 import {Link,useNavigate} from 'react-router-dom';
@@ -20,6 +21,7 @@ export default function Checkout(){
  const [quote,setQuote]=useState(null),[estimate,setEstimate]=useState(null),[codEnabled,setCodEnabled]=useState(false);
  const [paymentMethod,setPaymentMethod]=useState('cod'),[razorpayEnabled,setRazorpayEnabled]=useState(false);
  const [checking,setChecking]=useState(true),[posting,setPosting]=useState(false),[estimating,setEstimating]=useState(false);
+ const [paymentPhase,setPaymentPhase]=useState('idle');
  const [error,setError]=useState(''),[needsCartReview,setNeedsCartReview]=useState(false),[role,setRole]=useState(null),[saveNew,setSaveNew]=useState(true);
  const [estimateFor,setEstimateFor]=useState(''),[quotedCart,setQuotedCart]=useState(''),[updatedQuote,setUpdatedQuote]=useState(false);
  const requestRef=useRef({intent:null,key:crypto.randomUUID()});
@@ -54,13 +56,13 @@ export default function Checkout(){
  async function submit(e){
   e.preventDefault();
   if(submitLock.current||!canSubmit||!items.length)return;
-  submitLock.current=true;setPosting(true);setError('');setNeedsCartReview(false);
+  submitLock.current=true;setPosting(true);setPaymentPhase(paymentMethod==='razorpay'?'opening':'placing');setError('');setNeedsCartReview(false);
   let checkoutOpened=false;
-  const release=()=>{submitLock.current=false;setPosting(false)};
+  const release=()=>{submitLock.current=false;setPosting(false);setPaymentPhase('idle')};
   const selectedAddress=selectedId==='new'?{address}:{addressId:selectedId};
   const finishOrder=async (order,paidOnline=false)=>{
     if(selectedId==='new'&&saveNew)try{await createAddress({...address,label:'Home',isDefault:addresses.length===0})}catch{/* Optional address save must not invalidate paid order. */}
-    clearCart();navigate('/orders',{replace:true,state:{placedId:order.id,paidOnline,alreadyPlaced:false}});
+    setPaymentPhase('confirmed');clearCart();navigate('/orders',{replace:true,state:{placedId:order.id,paidOnline,alreadyPlaced:false}});
   };
   try{
     const signature=`${intentKey}::${paymentMethod}`;
@@ -79,7 +81,7 @@ export default function Checkout(){
         prefill:{name:activeAddress?.fullName||'',contact:activeAddress?.phone||''},
         theme:{color:'#6952c4'},
         handler:async response=>{
-          paymentHandled=true;
+          paymentHandled=true;setPaymentPhase('verifying');
           try{
             const confirmed=await verifyRazorpayPayment({orderId:payment.orderId,...response});
             if(confirmed.paid){await finishOrder(confirmed.order,true);return;}
@@ -96,7 +98,7 @@ export default function Checkout(){
       rzp.on('payment.failed',()=>{
         setError('This payment attempt failed. You can retry through Razorpay; your order is not yet confirmed.');
       });
-      rzp.open();
+      setPaymentPhase('provider');rzp.open();
       checkoutOpened=true;
       return;
     }
@@ -112,6 +114,7 @@ export default function Checkout(){
   }finally{if(!checkoutOpened)release()}
  }
  return <CustomerLayout mainClassName="nx-cod-page nx25-checkout">
+  <CheckoutProcessStatus phase={paymentPhase} amount={money(estimate?.total)} />
   <div className="nx-page-intro"><Link className="nx-back-link" to="/cart"><UiIcon name="left" size={17}/> Back to cart</Link><p className="eyebrow">Secure checkout</p><h1>Delivery & payment</h1><p>Choose an address, review shipping and GST, then pay online with Razorpay or choose Cash on Delivery.</p></div>
   {checking&&<p className="nx-cod-message" role="status">Checking items, account and saved addresses…</p>}
   {error&&<p role="alert" className="nx-cod-message nx-cod-error">{error} {needsCartReview&&<Link to="/cart">Review your cart</Link>}</p>}

@@ -43,3 +43,37 @@ export function draftDiscountPaise(draft,subtotalPaise){
  if(draft.kind==='fixed'){const fixed=BigInt(Math.round(Number(draft.value)*100));return subtotalPaise<fixed?subtotalPaise:fixed;}
  throw new Error('Unknown discount type');
 }
+
+/** Phase 64: administrative, non-transactional estimate only.
+ * This MUST NOT be used to price, reserve or settle an order.
+ * Real checkout redemption needs eligible-line lookup, usage locks and idempotent snapshots.
+ */
+export function previewDraftCoupon(draft, raw) {
+  const numeric = key => {
+    const value = String(raw?.[key] ?? '0');
+    if (!/^(?:0|[1-9]\d{0,6})(?:\.\d{1,2})?$/.test(value)) throw new Error(`Invalid ${key}`);
+    return BigInt(Math.round(Number(value) * 100));
+  };
+  const subtotal = numeric('subtotal');
+  const qualifying = numeric('qualifyingSubtotal');
+  const count = Number(raw?.eligibleQuantity ?? 0);
+  if (!Number.isInteger(count) || count < 0 || count > 1000 || qualifying > subtotal)
+    throw new Error('Invalid simulation values');
+  const rule = draft.eligibility || {};
+  const requiresCartVerification = (rule.scope || 'order') !== 'order' || rule.firstOrderOnly === true || rule.excludeSaleProducts === true;
+  const minCart = BigInt(Math.round(Number(draft.minimumSubtotal || '0') * 100));
+  const minQualify = BigInt(Math.round(Number(rule.minimumQualifyingSubtotal || '0') * 100));
+  const minCount = Number(rule.minimumItems || 1);
+  const passesSample = subtotal >= minCart && qualifying >= minQualify && count >= minCount;
+  let reduction = passesSample ? draftDiscountPaise(draft, qualifying) : 0n;
+  if (draft.kind === 'percent' && Number(rule.maximumDiscount || 0) > 0) {
+    const cap = BigInt(Math.round(Number(rule.maximumDiscount) * 100));
+    if (reduction > cap) reduction = cap;
+  }
+  if (reduction > subtotal) reduction = subtotal;
+  const result = val => (Number(val) / 100).toFixed(2);
+  return { sampleMeetsThresholds: passesSample, requiresCartVerification, sampleSubtotal: result(subtotal),
+    estimatedDiscount: result(reduction), subtotalAfterDiscount: result(subtotal - reduction),
+    checkoutApplied: false,
+    disclaimer: 'Illustrative admin preview only. Product/category targets, final GST, shipping, payment, refunds and usage limits are not verified.' };
+}

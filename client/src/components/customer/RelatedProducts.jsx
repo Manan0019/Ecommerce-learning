@@ -1,3 +1,4 @@
+import ProductLoadingSkeleton from "../common/ProductLoadingSkeleton";
 import "../../styles/related-products.css";
 import UiIcon from "../common/UiIcon";
 import { useEffect, useState } from "react";
@@ -39,7 +40,7 @@ export default function RelatedProducts({ productId }) {
       <Link className="nx33-see-all" to="/products?view=products">Explore all products</Link>
     </div>
     {status === "loading" && <div className="nx33-recommendations-loading" role="status" aria-label="Loading recommendations">
-      {Array.from({ length: 4 }, (_, index) => <div className="product-skeleton" key={index} />)}
+      {Array.from({ length: 4 }, (_, index) => <ProductLoadingSkeleton key={index} />)}
     </div>}
     {status === "error" && <div className="nx33-recommendations-state" role="status">
       <strong>Recommendations are temporarily unavailable.</strong>

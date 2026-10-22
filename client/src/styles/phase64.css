@@ -1,0 +1,142 @@
+/* Phase 64 — stable admin dock; unobtrusive link motion. */
+.admin-shell .admin-sidebar{overflow:hidden!important;display:flex;flex-direction:column;padding-bottom:0!important}
+.admin-shell .admin-sidebar .admin-brand{flex:0 0 auto}
+.admin-shell .admin-sidebar .nx64-sidebar-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#666e90 transparent;overscroll-behavior:contain;padding:0 2px 14px 0}
+.admin-shell .admin-sidebar .admin-nav{margin-top:22px;display:grid}
+.admin-shell .admin-sidebar .admin-sidebar-footer{flex:0 0 auto;margin-top:0;padding:11px 0 max(14px,env(safe-area-inset-bottom));position:relative;border-top:1px solid #ffffff20;background:linear-gradient(170deg,#131c30 0%,#10182b 100%);box-shadow:0 -10px 18px rgba(7,13,28,.2)}
+.admin-shell .admin-sidebar .admin-sidebar-footer>a,.admin-shell .admin-sidebar .admin-sidebar-footer>button{position:relative;transition:background .2s ease,color .2s ease,transform .2s ease}
+.admin-shell .admin-sidebar .admin-sidebar-footer>a:hover,.admin-shell .admin-sidebar .admin-sidebar-footer>button:hover{transform:translateX(3px)}
+.admin-shell .admin-sidebar .admin-identity{margin-top:9px;padding-top:11px}
+.admin-shell .admin-main a:has(> svg.nx47-icon){transition:color .24s ease,transform .24s ease}
+/* Hide only decorative arrows on admin links; retain operational icons in buttons and selects. */
+.admin-shell .admin-main a>svg.nx47-icon{display:none}
+.admin-shell .admin-main a:not(.button):hover{color:#604ad5;text-decoration-color:transparent}
+.admin-shell .admin-main a:not(.button){transition:color .22s ease,text-decoration-color .22s ease}
+.admin-shell .admin-main a:not(.button):focus-visible{outline:2px solid #8676ea;outline-offset:3px}
+/* Full and half star graphics */
+.nx64-rating-stars{display:inline-flex;align-items:center;gap:3px;vertical-align:middle;color:#d5d8e3;white-space:nowrap}
+.nx64-star-unit{position:relative;display:inline-block;flex:none;width:24px;height:28px;font-size:25px;line-height:28px}
+.nx64-star-bg,.nx64-star-fill{position:absolute;top:0;left:0;overflow:hidden;line-height:inherit;white-space:nowrap}
+.nx64-star-fill{color:#f2a91b}
+.nx64-star-targets{position:absolute;inset:0;display:flex;z-index:1}
+.nx64-star-targets button{width:50%;min-width:0;height:100%;border:0;background:transparent;padding:0;cursor:pointer;opacity:1!important;touch-action:manipulation}
+.nx64-star-targets button:focus-visible{outline:2px solid #6c52e1;outline-offset:2px;border-radius:4px}
+.nx64-rating-stars.is-editable .nx64-star-unit{transition:transform .18s ease}
+.nx64-rating-stars.is-editable .nx64-star-unit:hover,.nx64-rating-stars.is-editable .nx64-star-unit:focus-within{transform:scale(1.16)}
+.nx64-rating-stars.is-large .nx64-star-unit{font-size:40px;width:39px;height:44px;line-height:44px}
+.nx64-rating-stars.is-large{gap:5px}
+.nx64-review-form{padding:0!important;overflow:hidden}
+.nx64-review-form>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 24px;min-height:70px}
+.nx64-review-form>summary::-webkit-details-marker{display:none}
+.nx64-review-form>summary>span{color:#6251d6;background:#f1edff;border:1px solid #dfd7ff;border-radius:999px;padding:8px 13px;font-size:12px}
+.nx64-review-form[open]>summary{border-bottom:1px solid #eae7f3}
+.nx64-review-form form{padding:12px 24px 26px;margin:0;max-width:680px!important}
+.nx64-rating-field{border:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 15px;align-items:center}
+.nx64-rating-field legend{font-weight:800;margin-bottom:9px}
+.nx64-rating-field output{font-weight:750;color:#624bd6;font-variant-numeric:tabular-nums}
+.nx64-rating-field small{flex-basis:100%;color:#6b7086}
+.nx64-rating-summary{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.nx64-rating-summary>span{font-size:13px;color:#6b7086}
+/* Quick view with live variant and price selection. */
+.nx64-quick-view{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;max-height:calc(85dvh - 150px);overflow-y:auto;padding:6px 8px 10px}
+.nx64-quick-gallery{min-width:0}.nx64-quick-photo{position:relative;border-radius:18px;background:#f6f6fc;min-height:300px;display:grid;place-items:center;overflow:hidden}
+.nx64-quick-photo>img{width:100%;height:340px;object-fit:contain}
+.nx64-no-photo{font-size:13px;color:#79798b;text-align:center;padding:30px}
+.nx64-quick-image-nav{position:absolute;left:10px;right:10px;top:48%;display:flex;justify-content:space-between;pointer-events:none}
+.nx64-quick-image-nav button{pointer-events:auto;border:1px solid #ded9f9;background:#fff;border-radius:50%;width:37px;height:37px;display:grid;place-items:center;color:#5543cf;cursor:pointer;transition:background .18s ease,transform .18s ease}
+.nx64-quick-image-nav button:hover{background:#f2edff;transform:scale(1.08)}
+.nx64-quick-thumbnails{display:flex;gap:7px;overflow-x:auto;padding:10px 2px;scrollbar-width:thin}
+.nx64-quick-thumbnails button{border:1px solid #e5e3f1;border-radius:10px;background:white;flex:none;width:59px;height:59px;overflow:hidden;padding:3px}
+.nx64-quick-thumbnails button.is-active{border:2px solid #6048e1}
+.nx64-quick-thumbnails img{height:100%;width:100%;object-fit:contain}
+.nx64-quick-info{min-width:0;display:flex;flex-direction:column;gap:13px;padding:5px 2px}
+.nx64-quick-info h3{font-size:clamp(21px,2.2vw,30px);line-height:1.22;margin:0;color:#18233f}
+.nx64-quick-prices{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.nx64-quick-prices strong{font-size:24px;color:#1b1b3c}.nx64-quick-prices del{color:#8890a0}
+.nx64-quick-description{line-height:1.65;font-size:13px;color:#666e83;margin:0}
+.nx64-quick-info .variant-selection{max-height:275px;overflow-y:auto;min-width:0}
+.nx64-quick-stock{font-size:12px;color:#476a50;margin:0}
+.nx64-quick-qty{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:700}.nx64-quick-qty input{width:76px;min-height:40px;padding:7px;border:1px solid #ded8ef;border-radius:10px}
+.nx64-quick-actions{display:flex;gap:8px;flex-wrap:wrap}.nx64-quick-actions .button{flex:1;justify-content:center;min-width:130px}
+.nx64-quick-loading{padding:50px;text-align:center;color:#6c6885}
+/* Minimize extra chrome for products that have exactly one authentic photograph. */
+.nx29-detail-gallery .nx57-thumbnail-shell:has(.nx57-thumbnail-track>button:only-child){display:none}
+@media(max-width:800px){.nx64-quick-view{grid-template-columns:1fr;max-height:70dvh}.nx64-quick-photo{min-height:220px}.nx64-quick-photo>img{height:240px}}
+@media(prefers-reduced-motion:reduce){.nx64-rating-stars.is-editable .nx64-star-unit,.nx64-quick-image-nav button,.admin-shell .admin-sidebar .admin-sidebar-footer>a,.admin-shell .admin-sidebar .admin-sidebar-footer>button{transition:none!important;transform:none!important}}
+
+.nx64-coupon-simulation{padding:18px;border:1px solid #dad3f7;background:#faf8ff;border-radius:16px;display:grid;gap:12px}
+.nx64-coupon-simulation h3,.nx64-coupon-simulation p{margin:0}
+.nx64-coupon-simulation p{font-size:12px;color:#6d7084}
+.nx64-coupon-simulation>label{display:grid;gap:6px}
+.nx64-coupon-preview{display:grid;gap:7px;border-radius:12px;padding:14px;background:white;color:#3925a6}
+.nx64-coupon-preview span{font-weight:700}
+.nx64-coupon-preview small{color:#666b80}
+
+.admin-shell .admin-sidebar .admin-identity{min-width:0}
+.admin-shell .admin-sidebar .admin-identity>div{min-width:0;overflow:hidden}
+.admin-shell .admin-sidebar .admin-identity small{display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+
+/* Phase 64: consistent modal close alignment. Animate only the icon, not its hit target. */
+.nx-modal .nx-modal-header .nx-icon-button {
+ flex:0 0 40px!important;inline-size:40px!important;block-size:40px!important;
+ display:grid!important;place-items:center!important;padding:0!important;
+ line-height:0!important;align-self:center;position:relative;
+ border-radius:12px;transition:background-color .22s ease,border-color .22s ease,box-shadow .22s ease!important;
+}
+.nx-modal .nx-modal-header .nx-icon-button svg{
+ width:18px!important;height:18px!important;display:block;grid-area:1/1;margin:0!important;
+ transform-origin:50% 50%;transition:transform .3s cubic-bezier(.22,1,.36,1),color .24s ease;
+}
+.nx-modal .nx-modal-header .nx-icon-button:hover{background:#eeeaff!important;border-color:#cfc5ff!important;box-shadow:0 4px 14px #5b3df515}
+.nx-modal .nx-modal-header .nx-icon-button:hover svg{transform:rotate(90deg) scale(1.07);color:#5b3df5}
+.nx-modal .nx-modal-header .nx-icon-button:active svg{transform:rotate(90deg) scale(.94)}
+.nx-modal .nx-modal-header .nx-icon-button:focus-visible{outline:2px solid #6645e9;outline-offset:3px}
+/* Loading placeholders mirror the actual image/title/price card structure. */
+.product-skeleton.nx64-product-skeleton{
+ aspect-ratio:auto!important;min-height:340px;animation:none!important;background:#fff!important;
+ display:flex;flex-direction:column;gap:12px;padding:12px;border-radius:18px;border:1px solid #ebe7f5;
+ box-shadow:0 14px 32px -26px rgba(29,29,67,.24);
+}
+.nx64-skeleton-shape{position:relative;overflow:hidden;background:#eeedf7;border-radius:9px;flex:0 0 auto}
+.nx64-skeleton-shape::after{content:"";position:absolute;inset:0;transform:translateX(-105%);background:linear-gradient(100deg,transparent 25%,rgba(255,255,255,.86) 50%,transparent 75%);animation:nx64-shimmer 1.7s ease-in-out infinite}
+.nx64-product-skeleton:nth-child(2) .nx64-skeleton-shape::after{animation-delay:.1s}
+.nx64-product-skeleton:nth-child(3) .nx64-skeleton-shape::after{animation-delay:.2s}
+.nx64-skeleton-photo{aspect-ratio:1/1;width:100%;border-radius:13px;margin-bottom:2px}
+.nx64-skeleton-category{height:10px;width:50%}.nx64-skeleton-title{height:13px;width:92%}.nx64-skeleton-title.short{width:66%}.nx64-skeleton-price{height:15px;width:39%;margin-top:auto}
+@keyframes nx64-shimmer{to{transform:translateX(105%)}}
+/* Checkout progress never uses a countdown: the network is the only state owner. */
+.nx64-checkout-overlay{position:fixed;inset:0;z-index:1400;background:rgba(20,24,48,.52);backdrop-filter:blur(5px);display:grid;place-items:center;padding:16px}
+.nx64-checkout-card{--nx-acc:#6045de;display:grid;justify-items:center;gap:17px;width:min(410px,100%);padding:30px 28px;
+ background:linear-gradient(170deg,#f8f6ff,#fff 50%);color:#1b2342;border:1px solid #ebe6fc;border-radius:27px;text-align:center;
+ box-shadow:0 40px 75px -40px #15152b99}
+.nx64-checkout-card>strong{font-size:19px;font-weight:800}.nx64-checkout-amount{font-size:13px;color:#60667c;font-variant-numeric:tabular-nums}
+.nx64-checkout-card>p{font-size:12px;line-height:1.5;color:#656a7e;margin:0}
+.nx64-checkout-stage{width:115px;height:115px;position:relative;display:grid;place-items:center}
+.nx64-checkout-stage::before{content:"";position:absolute;inset:1px;border-radius:50%;border:3px solid #ede6ff;border-top-color:var(--nx-acc);animation:nx64-spin 1.35s linear infinite}
+@keyframes nx64-spin{to{transform:rotate(360deg)}}
+.nx64-checkout-cart{width:56px;height:56px;color:var(--nx-acc);transition:transform .36s ease,opacity .36s ease}
+.nx64-checkout-item{position:absolute;width:10px;height:10px;border-radius:3px;top:13px;background:var(--nx-acc);opacity:0;animation:nx64-drop 1.9s ease-in-out infinite;pointer-events:none}
+.nx64-checkout-item.a{--offset:-18px}.nx64-checkout-item.b{--offset:0px;animation-delay:.6s;background:#8b78ee}.nx64-checkout-item.c{--offset:18px;animation-delay:1.2s;background:#39a886}
+@keyframes nx64-drop{0%{opacity:0;transform:translate(var(--offset),-12px) rotate(-25deg)}25%{opacity:1}75%,100%{opacity:0;transform:translate(var(--offset),48px) rotate(15deg)}}
+.nx64-checkout-done{position:absolute;color:#198e64;opacity:0;transform:scale(.7);transition:transform .38s ease,opacity .38s ease}
+.nx64-checkout-card.is-ready .nx64-checkout-stage::before{animation:none;border-color:#64c79d}
+.nx64-checkout-card.is-ready .nx64-checkout-cart{opacity:0;transform:scale(.7)}
+.nx64-checkout-card.is-ready .nx64-checkout-item{display:none}
+.nx64-checkout-card.is-ready .nx64-checkout-done{opacity:1;transform:scale(1)}
+.nx64-checkout-track{width:100%;height:7px;background:#eae5f9;border-radius:50px;overflow:hidden}
+.nx64-checkout-track>span{display:block;width:38%;height:100%;background:linear-gradient(90deg,#b6a6ff,#6449df);border-radius:inherit;animation:nx64-indeterminate 1.7s ease-in-out infinite}
+.nx64-checkout-card.is-ready .nx64-checkout-track>span{width:100%;background:#1aa875;animation:none}
+@keyframes nx64-indeterminate{0%{transform:translateX(-120%)}100%{transform:translateX(300%)}}
+@media(prefers-reduced-motion:reduce){
+ .nx64-skeleton-shape::after,.nx64-checkout-stage::before,.nx64-checkout-item,.nx64-checkout-track>span{animation:none!important}
+ .nx-modal .nx-modal-header .nx-icon-button svg{transition:none!important}
+ .nx-modal .nx-modal-header .nx-icon-button:hover svg{transform:none!important}
+ .nx64-checkout-track>span{width:100%;opacity:.55}
+}
+
+/* Consistent SVG centering for other Nexora close/dismiss controls. */
+button.nx64-animated-close{display:grid!important;place-items:center!important;line-height:0!important;padding:0!important;transition:background .23s ease,border-color .23s ease,box-shadow .23s ease!important}
+button.nx64-animated-close .nx47-icon{width:17px;height:17px;display:block;grid-area:1/1;margin:0!important;transform-origin:center;transition:transform .3s cubic-bezier(.16,1,.3,1),color .24s ease}
+button.nx64-animated-close:hover{background:#eeeaff!important;box-shadow:0 3px 10px #5d45ca1a}
+button.nx64-animated-close:hover .nx47-icon{transform:rotate(90deg) scale(1.07);color:#654ed6}
+button.nx64-animated-close:focus-visible{outline:2px solid #6a4ee3;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){button.nx64-animated-close .nx47-icon{transition:none!important}button.nx64-animated-close:hover .nx47-icon{transform:none!important}}

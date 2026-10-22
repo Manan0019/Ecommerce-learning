@@ -1,3 +1,4 @@
+import ProductLoadingSkeleton from "../../components/common/ProductLoadingSkeleton";
 import { useEffect, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -239,7 +240,7 @@ export default function ProductList() {
           {loading && (
             <div className="product-grid">
               {Array.from({ length: 6 }, (_, index) => (
-                <div className="product-skeleton" key={index} />
+                <ProductLoadingSkeleton key={index} />
               ))}
             </div>
           )}

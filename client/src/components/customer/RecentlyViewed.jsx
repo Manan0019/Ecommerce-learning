@@ -26,7 +26,7 @@ export default function RecentlyViewed() {
   },[items]);
   if (!items.length) return null;
   return <section className="store-section nx37-recent-section nx48-recent-section" aria-labelledby="nx-recent-heading">
-    <div className="section-heading"><div><p className="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2 id="nx-recent-heading">Recently viewed</h2></div><button className="nx37-text-button" type="button" onClick={() => clearRecentlyViewed()}>Clear viewed items</button></div>
+    <div className="section-heading"><div><p className="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2 id="nx-recent-heading">Recently viewed</h2></div><button className="nx37-text-button" type="button" onClick={() => { clearRecentlyViewed(); setItems([]); setLiveProducts({}); }}>Clear viewed items</button></div>
     <div className="nx48-recent-grid">{items.map(item => {
       const detailUrl = `/products/${encodeURIComponent(item.id)}`;
       const latest=liveProducts[item.id];
@@ -38,7 +38,7 @@ export default function RecentlyViewed() {
           <Link to={detailUrl} className="nx48-recent-image">{item.imageUrl ? <img alt={item.name} src={apiAssetUrl(item.imageUrl)} loading="lazy"/> : <span aria-hidden="true"><UiIcon name="bag" size={35}/></span>}</Link>
           {latest && <StorefrontCardActions product={product} detailUrl={detailUrl} imageUrl={latest.imageUrl || item.imageUrl}/>}
         </div>
-        <div className="nx48-recent-copy"><small>{item.category || "Discover Nexora"}</small><Link to={detailUrl} className="nx62-recent-name">{item.name}</Link><Link to={detailUrl} className="nx48-recent-cta">View details <UiIcon name="chevron-right" size={16}/></Link></div>
+        <div className="nx48-recent-copy"><small>{item.category || "Discover Nexora"}</small><Link to={detailUrl} className="nx62-recent-name">{item.name}</Link><Link to={detailUrl} className="nx48-recent-cta">View details</Link></div>
       </article>;
     })}</div>
   </section>;

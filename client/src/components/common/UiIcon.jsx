@@ -23,6 +23,8 @@ const shapes = {
   heart: <path d="M20.8 4.8a5 5 0 0 0-7.1 0L12 6.5l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 20.7l8.8-8.8a5 5 0 0 0 0-7.1Z"/>,
   eye: <><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.6"/></>,
   compare: <><path d="M3 8h17l-4-4m4 4-4 4M21 16H4l4-4m-4 4 4 4"/></>,
+  store: <><path d="M3 9.5h18l-1.2-5H4.2L3 9.5Z"/><path d="M5 9.5V20h14V9.5M9 20v-7h6v7"/></>,
+  'log-out': <><path d="M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="M12 8l4 4-4 4m4-4H8"/></>,
   bag: <><path d="M4 8h16l-1.25 13H5.25L4 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></>,
   images: <><rect x="3" y="5" width="15" height="15" rx="2"/><path d="M7 15l3-3 2.5 2.5 2-2 3.5 4"/><path d="M8 3h11a2 2 0 0 1 2 2v11"/></>,
   maximize: <><path d="M8 3H3v5m0-5 7 7m6-7h5v5m0-5-7 7M3 16v5h5m-5 0 7-7m11 2v5h-5m5 0-7-7"/></>,
