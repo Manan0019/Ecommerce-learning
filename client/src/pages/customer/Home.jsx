@@ -39,7 +39,7 @@ export default function Home() {
   const featured = products.filter((product) => product.isFeatured).slice(0, 4);
   const featuredCategories = categories.filter(category => !category.parentId).slice(0, 8);
 
-  return <CustomerLayout>
+  return <CustomerLayout mainClassName="nx60-home">
       <PromotionCarousel position="home" fallback={<>
       <section className="hero-section">
         <div className="hero-copy">
@@ -93,7 +93,7 @@ export default function Home() {
         </div> : !loading && <p className="store-empty">Categories will appear as products are added.</p>}
       </section>
 
-      <section className="nx37-shop-guide" aria-label="Explore Nexora"><div><span aria-hidden="true">01</span><strong>Explore</strong><p>Find products by collection, brand or price.</p></div><div><span aria-hidden="true">02</span><strong>Choose</strong><p>Compare configurations and save favourites.</p></div><div><span aria-hidden="true">03</span><strong>Order</strong><p>Review delivery and payment options at checkout.</p></div></section>
+
 
       <RecentlyViewed />
 

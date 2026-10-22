@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { attachOrderImages } from "../services/orderImages.js";
 import pool from "../config/db.js";
 import { fromPaise, validateCartItems } from "../services/cartPricing.js";
 import { calculateCheckout } from "../services/checkoutPricing.js";
@@ -38,7 +39,7 @@ async function loadOrderLines(db, items, lock = false) {
     if(line.error)return {error:line.error};
     lines.push({...line,gstPercent:product.gst_percent});
   }
-  return {lines};
+  return {lines:await attachOrderImages(db,lines)};
 }
 async function resolveAddress(db,userId,body,lock=false){
   if(body?.addressId != null){
@@ -127,7 +128,13 @@ async function loadItems(db,orderIds){
  if (!orderIds.length) return new Map();
  const result=await db.query(`SELECT order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total
   FROM cod_order_items WHERE order_id=ANY($1::bigint[]) ORDER BY id`,[orderIds]);
- const map=new Map();for(const r of result.rows){ const key=String(r.order_id);if(!map.has(key))map.set(key,[]);map.get(key).push({productId:String(r.product_id),variantId:r.variant_id?String(r.variant_id):null,name:r.name_snapshot,sku:r.sku_snapshot,attributes:r.attributes_snapshot,imageUrl:r.image_snapshot,quantity:r.quantity,unitPrice:r.unit_price,lineTotal:r.line_total});}return map;
+ const map=new Map();for(const r of result.rows){ const key=String(r.order_id);if(!map.has(key))map.set(key,[]);map.get(key).push({productId:String(r.product_id),variantId:r.variant_id?String(r.variant_id):null,name:r.name_snapshot,sku:r.sku_snapshot,attributes:r.attributes_snapshot,imageUrl:r.image_snapshot,quantity:r.quantity,unitPrice:r.unit_price,lineTotal:r.line_total});}
+ const flat=[...map.values()].flat();
+ if (flat.some(line=>!line.imageUrl)) {
+   const filled=await attachOrderImages(db,flat,{preserveSnapshots:true});
+   let cursor=0;for(const [id,rows] of map){map.set(id,filled.slice(cursor,cursor+rows.length));cursor+=rows.length;}
+ }
+ return map;
 }
 export async function myOrders(req,res){
  try {const r=await pool.query("SELECT * FROM cod_orders WHERE customer_id=$1 ORDER BY placed_at DESC,id DESC LIMIT 100",[req.user.id]);const ids=r.rows.map(x=>x.id);const [items,events,cancellations]=await Promise.all([loadItems(pool,ids),loadEvents(pool,ids),loadCancellationRequests(pool,ids)]);res.json({orders:r.rows.map(x=>({...serializeOrder(x),cancellationRequest:cancellations.get(String(x.id))??null,items:items.get(String(x.id))??[],events:events.get(String(x.id))??[]}))});}

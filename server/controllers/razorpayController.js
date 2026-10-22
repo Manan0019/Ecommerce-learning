@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { attachOrderImages } from '../services/orderImages.js';
 import { processRefundWebhook } from './razorpayRefundController.js';
 import { notifyAdmins } from '../services/notificationService.js';
 import pool from '../config/db.js';
@@ -52,7 +53,7 @@ async function quoteLines(db,items,policy) {
     if (line.error)return {error:line.error};
     result.push({...line,gstPercent:p.gst_percent??policy.default_item_gst_percent});
   }
-  return {lines:result};
+  return {lines:await attachOrderImages(db,result)};
 }
 function intentDigest(items, body) {
   return createHash('sha256').update(JSON.stringify({items:[...items].sort((a,b)=>`${a.productId}:${a.variantId??''}`.localeCompare(`${b.productId}:${b.variantId??''}`)),

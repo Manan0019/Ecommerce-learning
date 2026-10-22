@@ -1,0 +1,35 @@
+/* Phase 60: order images and denser storefront rhythm. */
+.storefront main.nx60-home > .nx37-promotion-home {margin-bottom:16px!important}
+.storefront main.nx60-home > .store-section,
+.storefront main.nx60-home > .store-section:not(.nx48-recent-section) {margin-top:0!important;margin-bottom:28px!important;padding-top:0!important;padding-bottom:0!important}
+.storefront main.nx60-home > .nx37-promotion-home + .store-section {padding-top:8px!important}
+.storefront main.nx60-home > .store-section .section-heading{margin-bottom:17px!important}
+.storefront main.nx60-home > .category-section {margin-top:8px!important}
+.storefront main.nx60-home > .nx48-recent-section {margin-top:2px!important;margin-bottom:26px!important}
+.storefront main.nx60-home > .editorial-banner{margin-top:10px!important;margin-bottom:26px!important}
+.storefront main.nx60-home .nx37-promotion-section{margin-bottom:18px!important}
+/* Cards fill the available width; photos remain legible and not letterboxed into a badge. */
+.nx60-orders-page {max-width:1460px!important;padding-top:25px!important;padding-bottom:42px!important}
+.nx60-orders-page .nx-page-intro {max-width:100%;margin-bottom:19px}
+.nx60-orders-page .nx-page-intro h1 {font-size:clamp(1.9rem,3vw,2.7rem)}
+.nx60-orders-page .nx-orders-list{max-width:none!important;margin:0!important;gap:12px}
+.nx60-orders-page .nx59-customer-order{padding:18px 22px}
+.nx60-orders-page .nx59-customer-order-preview{margin:12px 0;gap:9px}
+.nx60-orders-page .nx59-order-preview-item{min-height:104px;padding:11px;background:#fbfaff}
+.nx60-orders-page .nx59-order-preview-image{flex-basis:86px;width:86px;height:86px}
+.nx60-orders-page .nx59-order-preview-image img{display:block;width:100%;height:100%;object-fit:contain;padding:4px}
+.nx60-orders-page .nx59-order-preview-copy a{font-size:13px}
+.nx60-orders-page .nx59-order-preview-price{align-self:center;font-size:13px}
+.nx60-orders-toolbar{display:flex;justify-content:space-between;align-items:center;gap:13px;flex-wrap:wrap;margin:0 0 17px}
+.nx60-order-filters{display:flex;flex-wrap:wrap;gap:7px}
+.nx60-order-filters button{cursor:pointer;color:#54617b;background:#fff;border:1px solid #e3e2ee;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:750}
+.nx60-order-filters button:hover{border-color:#aaa0e8;color:#503fc1;background:#f8f7ff}
+.nx60-order-filters button.is-active{color:#fff;background:#5946cf;border-color:#5946cf}
+.nx60-order-filters button:focus-visible{outline:3px solid #b1a2ff;outline-offset:2px}
+.nx60-order-search{display:flex;align-items:center;gap:8px;min-width:min(100%,250px);flex:0 1 290px;background:#fff;border:1px solid #e1dfec;border-radius:12px;padding:0 12px;color:#6e5ec7}
+.nx60-order-search:focus-within{border-color:#8b79ec;box-shadow:0 0 0 3px #9784ef20}
+.nx60-order-search input{height:40px;min-width:0;width:100%;border:0!important;background:transparent!important;outline:0!important;box-shadow:none!important;font-size:12px;color:#202b48}
+.nx60-no-orders{padding:28px;border:1px solid #e6e4f2;border-radius:15px;background:#fff;text-align:center;color:#68758b}
+.nx60-no-orders button{margin-left:6px;color:#5c49c9;font-weight:800;background:none;border:0;cursor:pointer;text-decoration:underline}
+@media(max-width:700px){.nx60-orders-page .nx59-customer-order{padding:14px}.nx60-order-search{flex:1 1 100%}.nx60-order-filters{flex-wrap:nowrap;overflow:auto;max-width:100%;padding-bottom:5px}.nx60-order-filters button{white-space:nowrap}.nx60-orders-page .nx59-order-preview-image{flex-basis:72px;width:72px;height:76px}.nx60-orders-page .nx59-order-preview-item{flex-wrap:wrap}.nx60-orders-page .nx59-order-preview-price{margin-left:auto}.storefront main.nx60-home > .store-section{margin-bottom:21px!important}}
+@media(prefers-reduced-motion:reduce){.nx60-order-filters button{transition:none}}
