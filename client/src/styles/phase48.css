@@ -44,8 +44,6 @@
 .storefront .nx17-subcategory-shelf .nx34-category-action .nx47-icon {display:inline-block;vertical-align:middle}
 
 /* Clean media counter replaces squashed oval dots, arrows center visually in circles. */
-.storefront .nx29-card-stage .nx48-card-image-index {position:absolute;bottom:13px;left:50%;transform:translateX(-50%);z-index:3;display:flex;align-items:center;justify-content:center;gap:8px;min-height:28px;min-width:78px;padding:5px 11px;background:#fffffff0;border:1px solid #e5e2ef;border-radius:9px;box-shadow:0 4px 16px #17122d19;backdrop-filter:blur(9px);color:#473d79;white-space:nowrap;font-size:.71rem;font-weight:850;line-height:1}
-.storefront .nx48-card-image-index i {font-style:normal;color:#aaa3be;font-weight:500;margin:0 2px}
 .storefront .nx29-card-arrows button,.storefront .nx29-detail-controls button {padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;aspect-ratio:1/1;border-radius:50%!important}
 .storefront .nx29-card-arrows button .nx47-icon,.storefront .nx29-detail-controls button .nx47-icon {display:block!important;flex:0 0 auto!important;vertical-align:middle!important;margin:0!important;transform:none!important}
 .storefront .nx29-card-arrows button {width:36px!important;height:36px!important;box-shadow:0 5px 16px #261e531a}

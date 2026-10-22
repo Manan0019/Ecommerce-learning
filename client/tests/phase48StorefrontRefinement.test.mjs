@@ -21,10 +21,10 @@ test('category explorer respects active root/descendant selection and preserves 
   assert.match(src,/ancestors\.some/);
   assert.match(src,/chooseCategory\(item\.slug\)/);
 });
-test('media carousel has actual prev next controls and non-dot slide index',()=>{
+test('media carousel keeps arrows but uses a quiet nonnumeric preview indicator',()=>{
   const src=file('components/common/ProductCard.jsx');
-  assert.match(src,/nx48-card-image-index/);
-  assert.doesNotMatch(src,/nx29-card-dots/);
+  assert.match(src,/nx56-card-preview-track/);
+  assert.doesNotMatch(src,/nx48-card-image-index|nx29-card-dots/);
   assert.match(src,/choose\(active - 1\)/);
   assert.match(src,/choose\(active \+ 1\)/);
 });
@@ -40,5 +40,5 @@ test('outdated demo-only claims on About and Contact are removed',()=>{
 });
 test('phase48 style has responsive search/department/media/recent sections',()=>{
  const css=file('styles/phase48.css');
- for(const c of ['.nx-nav-search','.nx48-departments','.nx48-card-image-index','.nx48-recent-card','@media(max-width:580px)'])assert.ok(css.includes(c),c);
+ for(const c of ['.nx-nav-search','.nx48-departments','.nx48-recent-card','@media(max-width:580px)'])assert.ok(css.includes(c),c);
 });

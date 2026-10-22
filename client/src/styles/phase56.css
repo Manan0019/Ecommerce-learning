@@ -1,0 +1,36 @@
+/* Phase 56 — minimal product image preview: no numeric badges or dots. */
+/* Images remain the focus. A hairline indicator appears only while previewing. */
+.storefront .nx29-card-stage .nx56-card-preview-track {
+  position: absolute;
+  z-index: 2;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(42px, 24%, 76px);
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(30, 30, 68, .12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+.storefront .nx56-card-preview-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #6551c9;
+  transition: width .22s ease;
+}
+.storefront .nx29-preview-card:hover .nx56-card-preview-track,
+.storefront .nx29-preview-card:focus-within .nx56-card-preview-track {
+  opacity: .8;
+}
+/* Touch devices cannot hover, so show the subtle indicator during swipe navigation. */
+@media (hover: none) {
+  .storefront .nx29-card-stage .nx56-card-preview-track { opacity: .65; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .nx29-card-stage .nx56-card-preview-track,
+  .storefront .nx56-card-preview-fill { transition: none; }
+}

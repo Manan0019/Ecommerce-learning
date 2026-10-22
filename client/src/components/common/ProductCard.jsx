@@ -58,9 +58,8 @@ export default function ProductCard({ product }) {
           <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}><UiIcon name="chevron-left" size={18}/></button>
           <button type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}><UiIcon name="chevron-right" size={18}/></button>
         </div>
-        <div className="nx48-card-image-index" aria-live="off" aria-label={`Image ${Math.min(active+1,availableImages.length)} of ${availableImages.length}`}>
-          <UiIcon name="images" size={15}/>
-          <span>{String(Math.min(active+1,availableImages.length)).padStart(2,"0")}<i> / </i>{String(availableImages.length).padStart(2,"0")}</span>
+        <div className="nx56-card-preview-track" aria-hidden="true">
+          <span className="nx56-card-preview-fill" style={{ width: `${(Math.min(active + 1, availableImages.length) / availableImages.length) * 100}%` }} />
         </div>
       </>}
     </div>
