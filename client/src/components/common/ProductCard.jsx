@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import UiIcon from "./UiIcon";
 import StorefrontCardActions from "../customer/StorefrontCardActions";
 import { Link } from "react-router-dom";
 import { apiAssetUrl } from "../../services/apiClient";
@@ -53,6 +52,7 @@ export default function ProductCard({ product }) {
     }
   }
 
+  const money = value => `₹${Number(value ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   return <article className="product-card nx29-preview-card">
     <div className="nx29-card-stage" onMouseEnter={() => { if (window.matchMedia("(hover: hover)").matches) startPreview(); }} onMouseLeave={() => { stopPreview(true); manuallyNavigated.current = false; }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <Link className="product-image-link" to={detailUrl} aria-label={`View ${product.name}`} onClick={event => { if (swiped.current) { event.preventDefault(); swiped.current = false; } }}>
@@ -64,8 +64,8 @@ export default function ProductCard({ product }) {
       <StorefrontCardActions product={product} detailUrl={detailUrl} imageUrl={current || product.imageUrl} />
       {availableImages.length > 1 && <>
         <div className="nx29-card-arrows" aria-label="Preview product images">
-          <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}><UiIcon name="chevron-left" size={18}/></button>
-          <button type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}><UiIcon name="chevron-right" size={18}/></button>
+          <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}>Prev</button>
+          <button type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}>Next</button>
         </div>
         <div className="nx56-card-preview-track" aria-hidden="true">
           <span className="nx56-card-preview-fill" style={{ width: `${(Math.min(active + 1, availableImages.length) / availableImages.length) * 100}%` }} />
@@ -78,7 +78,7 @@ export default function ProductCard({ product }) {
       {(product.brand || product.model) && <p className="product-brand">{[product.brand, product.model].filter(Boolean).join(" · ")}</p>}
       <h3><Link to={detailUrl}>{product.name}</Link></h3>
       <div className="product-meta">
-        <p className="product-price">{Number(product.mrp) > Number(product.price) && <><span className="detail-discount">−{Math.round((Number(product.mrp) - Number(product.price)) / Number(product.mrp) * 100)}% </span><s className="detail-mrp">₹{Number(product.mrp).toLocaleString("en-IN")}</s> </>}₹{Number(product.price).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <p className="product-price nx66-product-price">{Number(product.mrp) > Number(product.price) && <><span className="detail-discount">−{Math.round((Number(product.mrp) - Number(product.price)) / Number(product.mrp) * 100)}%</span><s className="detail-mrp">{money(product.mrp)}</s></>}<strong className="nx66-selling-price">{money(product.price)}</strong></p>
         <span>{product.stock > 0 ? "Available" : "Out of stock"}</span>
       </div>
     </div>

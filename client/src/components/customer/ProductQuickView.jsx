@@ -4,8 +4,7 @@ import { getProduct, getProductMedia } from '../../services/productService';
 import { getVariants } from '../../services/variantService';
 import { apiAssetUrl } from '../../services/apiClient';
 import ProductVariantSelector from './ProductVariantSelector';
-import { visibleProductMedia } from './galleryMedia';
-import UiIcon from '../common/UiIcon';
+import { quickViewPictures } from './quickViewGallery';
 
 const money = value => `₹${Number(value || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 export default function ProductQuickView({ productId, detailUrl, onAdd }) {
@@ -22,9 +21,8 @@ export default function ProductQuickView({ productId, detailUrl, onAdd }) {
  if(loading)return <div className="nx64-quick-loading" role="status">Loading product choices…</div>;
  if(error||!data)return <div role="alert">{error||'Product unavailable.'} <Link to={detailUrl}>Open product page</Link></div>;
  const selected=variants.find(v=>String(v.id)===String(selectedId));
- const gallery=visibleProductMedia(media,selected?.id||null,selected?.attributes||{}).filter(m=>m.type==='image');
- // Never substitute a photograph belonging to a different colour/variant.
- const pictures=gallery.length?gallery:(!variants.length&&data.imageUrl?[{id:'cover',url:data.imageUrl,type:'image'}]:[]);
+ // Unselected: browse all authentic gallery photos. Selected: show matching SKU/colour only.
+ const pictures=quickViewPictures(media,selected,variants.length>0,data.imageUrl);
  const picture=pictures[imageIndex % (pictures.length||1)];
  const price=selected?.price??data.price;
  const mrp=selected?.mrp??data.mrp;
@@ -34,14 +32,15 @@ export default function ProductQuickView({ productId, detailUrl, onAdd }) {
  const selectedUrl=ready&&selected?`${detailUrl.split('?')[0]}?variant=${selected.id}`:detailUrl;
  return <div className="nx64-quick-view">
   <div className="nx64-quick-gallery">
+   {!selected && variants.length>0 && pictures.length>0 && <p className="nx66-gallery-context">Browse all product photos · Select options for the matching configuration</p>}
    <div className="nx64-quick-photo">
-    {picture?<img src={apiAssetUrl(picture.url)} alt={data.name}/>:<span className="nx64-no-photo">Select a variant to view its actual product images</span>}
+    {picture?<img src={apiAssetUrl(picture.url)} alt={`${data.name} — photo ${imageIndex+1} of ${pictures.length}`}/>:<span className="nx64-no-photo">No photographs are available for this configuration</span>}
     {pictures.length>1&&<div className="nx64-quick-image-nav">
-      <button type="button" aria-label="Previous product image" onClick={()=>setImageIndex(i=>(i+pictures.length-1)%pictures.length)}><UiIcon name="chevron-left"/></button>
-      <button type="button" aria-label="Next product image" onClick={()=>setImageIndex(i=>(i+1)%pictures.length)}><UiIcon name="chevron-right"/></button>
+      <button type="button" aria-label="Previous product image" onClick={()=>setImageIndex(i=>(i+pictures.length-1)%pictures.length)}>Prev</button>
+      <button type="button" aria-label="Next product image" onClick={()=>setImageIndex(i=>(i+1)%pictures.length)}>Next</button>
     </div>}
    </div>
-   {pictures.length>1&&<div className="nx64-quick-thumbnails">{pictures.map((m,i)=><button type="button" key={m.id} className={i===imageIndex?'is-active':''} onClick={()=>setImageIndex(i)} aria-label={`View image ${i+1}`}><img src={apiAssetUrl(m.url)} alt=""/></button>)}</div>}
+   {pictures.length>1&&<div className="nx64-quick-thumbnails">{pictures.map((m,i)=><button type="button" key={`${m.id}-${m.url}`} className={i===imageIndex?'is-active':''} onClick={()=>setImageIndex(i)} aria-label={`View image ${i+1}`}><img src={apiAssetUrl(m.url)} alt=""/></button>)}</div>}
   </div>
   <div className="nx64-quick-info">
    <small className="eyebrow">{data.category}</small><h3>{data.name}</h3>

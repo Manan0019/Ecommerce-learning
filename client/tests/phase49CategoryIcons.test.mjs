@@ -23,7 +23,8 @@ test('department cards display category icons and a small multi-category all-pro
   const src = source('pages/customer/ProductList.jsx');
   assert.match(src, /<CategoryMiniArtwork category=\{item\}/);
   assert.match(src, /nx49-all-departments-mosaic/);
-  assert.match(src, /nx49-department-arrow/);
+  assert.match(src, /nx66-department-accent/);
+  assert.doesNotMatch(src, /nx49-department-arrow/);
 });
 test('nested category chevrons remain interactive but no longer drift on hover', () => {
   const menu = source('components/layout/CategoryMegaMenu.jsx');

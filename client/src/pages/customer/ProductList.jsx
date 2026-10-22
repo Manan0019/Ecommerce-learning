@@ -137,7 +137,7 @@ export default function ProductList() {
       <header className="catalogue-hero">
         <div className="nx25-hero-copy"><p className="eyebrow">Discover products across every category</p>
         <h1>{category?.name || "Explore our collection"}</h1></div>
-        <Link to="/categories" className="nx48-hero-collections">Explore collections <UiIcon name="chevron-right" size={18} /></Link>
+        <Link to="/categories" className="nx48-hero-collections">Explore collections</Link>
       </header>
 
       {activeCategory && <nav className="nx18-category-breadcrumb" aria-label="Category hierarchy">
@@ -150,7 +150,7 @@ export default function ProductList() {
       <section className="nx48-departments" aria-label="Browse departments">
         <div className="nx48-departments-top">
           <div><span className="nx48-section-kicker">CURATED DEPARTMENTS</span><h2>Explore collections</h2></div>
-          <Link to="/categories" className="nx48-departments-all">All categories <UiIcon name="chevron-right" size={17}/></Link>
+          <Link to="/categories" className="nx48-departments-all">All categories</Link>
         </div>
         <div className="nx48-department-track" role="group" aria-label="Choose a department">
           <button type="button" className={`nx48-department ${!selectedCategory ? "is-active" : ""}`}
@@ -161,7 +161,7 @@ export default function ProductList() {
               </span> : <UiIcon name="grid" size={20}/>}
             </span>
             <span className="nx48-department-text"><strong>All products</strong><small>Everything in store</small></span>
-            <span className="nx49-department-arrow"><UiIcon name="chevron-right" size={16}/></span>
+            <span className="nx66-department-accent" aria-hidden="true"/>
           </button>
           {rootCategories(categories).map(item => {
             const isActive = item.slug === selectedCategory || ancestors.some(ancestor => ancestor.slug === item.slug);
@@ -169,7 +169,7 @@ export default function ProductList() {
               aria-pressed={isActive} onClick={() => chooseCategory(item.slug)}>
               <CategoryMiniArtwork category={item} className="nx48-department-icon" />
               <span className="nx48-department-text"><strong>{item.name}</strong><small>{Number(item.productCount)>0?`${item.productCount} products`:"View collection"}</small></span>
-              <span className="nx49-department-arrow"><UiIcon name="chevron-right" size={16}/></span>
+              <span className="nx66-department-accent" aria-hidden="true"/>
             </button>;
           })}
         </div>
@@ -178,7 +178,7 @@ export default function ProductList() {
       {category&&categories.some(c=>String(c.parentId)===String(category.id))&&<section className="nx17-subcategories" aria-label={`Shop ${category.name} subcategories`}>
         <h2>Explore {category.name}</h2>
         <div className="nx17-subcategory-shelf">{categories.filter(c=>String(c.parentId)===String(category.id)).map(child=><Link key={child.id} to={`/categories/${encodeURIComponent(child.slug)}`}>
-          <CategoryArtwork category={child} /><strong>{child.name}</strong><span className="nx34-category-action" aria-hidden="true">Explore <UiIcon name="chevron-right" size={17}/></span></Link>)}</div>
+          <CategoryArtwork category={child} /><strong>{child.name}</strong><span className="nx34-category-action" aria-hidden="true">Explore</span></Link>)}</div>
       </section>}
 
       <div className="catalogue-results-bar">
