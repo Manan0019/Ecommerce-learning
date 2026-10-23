@@ -8,7 +8,7 @@ const file=relative=>readFileSync(resolve(root,relative),'utf8');
 test('app includes delivery dashboard source so App import resolves',()=>{
   assert.ok(existsSync(resolve(root,'pages/delivery/DeliveryDashboard.jsx')));
   assert.match(file('App.jsx'),/import DeliveryDashboard from ['"]\.\/pages\/delivery\/DeliveryDashboard['"]/);
-  assert.match(file('App.jsx'),/styles\/phase48\.css/);
+  assert.match(file('main.jsx'),/styles\/site\.css/);
 });
 test('catalogue keeps one global header search, not duplicated search input',()=>{
   assert.match(file('components/layout/StoreHeader.jsx'),/id="nav-search-input"/);
@@ -39,6 +39,6 @@ test('outdated demo-only claims on About and Contact are removed',()=>{
  assert.doesNotMatch(file('pages/public/Contact.jsx'),/checkout and payments are intentionally unavailable/);
 });
 test('phase48 style has responsive search/department/media/recent sections',()=>{
- const css=file('styles/phase48.css');
+ const css=file('styles/site.css');
  for(const c of ['.nx-nav-search','.nx48-departments','.nx48-recent-card','@media(max-width:580px)'])assert.ok(css.includes(c),c);
 });

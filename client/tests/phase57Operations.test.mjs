@@ -26,5 +26,5 @@ test('delivery workspace has admin-style left navigation',()=>{
 test('tax display and config are connected',()=>{
  assert.match(read('src/pages/admin/AdminCheckoutSettings.jsx'),/tax_pricing_mode/);
  assert.match(read('src/pages/customer/Checkout.jsx'),/taxPricingMode/);
- assert.match(read('src/App.jsx'),/phase57\.css/);
+ assert.match(read('src/main.jsx'),/site\.css/);
 });

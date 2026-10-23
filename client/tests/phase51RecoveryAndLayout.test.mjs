@@ -9,7 +9,7 @@ test('the root departments selector precedes contextual subcategories',()=>{
  assert.match(source,/categories.filter\(c=>String\(c.parentId\)===String\(category.id\)\)/);
 });
 test('product cells clamp long titles and allow stock/price notes to wrap within table',()=>{
- const css=read('../src/styles/phase51.css');
+ const css=read('../src/styles/site.css');
  for(const required of ['table-layout:fixed','-webkit-line-clamp:2','white-space:normal','overflow-x:auto','flex-wrap:wrap']) assert.ok(css.includes(required),required);
  assert.match(read('../src/pages/admin/AdminProducts.jsx'),/title=\{product.name\}/);
 });
@@ -37,7 +37,9 @@ test('backend route and health check are included, and API HTML 404 is explained
  assert.match(index,/app.use\("\/api\/admin\/delivery",adminDeliveryRoutes\)/);
  assert.match(read('../src/services/apiClient.js'),/API endpoint not found on the running Express server/);
 });
-test('new style layer is imported after phase50',()=>{
- const app=read('../src/App.jsx');
- assert.match(app,/phase50\.css";\s*import "\.\/styles\/phase51\.css";/);
+test('unified stylesheet is imported once and retains later cascade rules',()=>{
+ const main=read('../src/main.jsx');
+ assert.match(main,/styles\/site\.css/);
+ const css=read('../src/styles/site.css');
+ assert.ok(css.indexOf('legacy layer 50.css')<css.indexOf('legacy layer 51.css'));
 });

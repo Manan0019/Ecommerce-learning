@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-const css = readFileSync(new URL("../src/styles/phase32.css", import.meta.url), "utf8");
-const legacy = readFileSync(new URL("../src/styles/app.css", import.meta.url), "utf8");
+const css = readFileSync(new URL("../src/styles/site.css", import.meta.url), "utf8");
+const legacy = readFileSync(new URL("../src/styles/site.css", import.meta.url), "utf8");
 const markup = readFileSync(new URL("../src/components/customer/PriceRangeSlider.jsx", import.meta.url), "utf8");
 test("new price filter uses an explicit single-column root in the legacy cascade", () => {
   assert.match(legacy, /\.price-filter\s*>\s*div\s*\{/);

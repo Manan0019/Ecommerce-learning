@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-const css = readFileSync(new URL('../src/styles/phase41.css',import.meta.url),'utf8');
+const css = readFileSync(new URL('../src/styles/site.css',import.meta.url),'utf8');
 const component = readFileSync(new URL('../src/components/customer/PromotionCarousel.jsx',import.meta.url),'utf8');
 const admin = readFileSync(new URL('../src/pages/admin/AdminBanners.jsx',import.meta.url),'utf8');
 

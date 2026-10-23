@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 const root=path.resolve(import.meta.dirname,'../src');
 const read=(p)=>fs.readFileSync(path.join(root,p),'utf8');
-const css=read('styles/phase68.css');
+const css=read('styles/site.css');
 
 test('reflection is opt-in for customer login and registration, not admin/delivery logins',()=>{
  const layout=read('components/auth/AuthLayout.jsx');
@@ -20,9 +20,9 @@ test('real order cards and checkout submit button get reflection accents without
  assert.match(read('pages/customer/Checkout.jsx'),/verifyRazorpayPayment/);
  assert.match(read('pages/customer/Checkout.jsx'),/createCodOrder/);
 });
-test('reflection styles load after established phase animations',()=>{
- const app=read('App.jsx');
- assert.match(app,/phase67\.css";[\s\S]*phase68\.css";/);
+test('reflection styles remain in correct cascade after merge',()=>{
+ const main=read('main.jsx');assert.match(main,/styles\/site\.css/);
+ assert.ok(css.indexOf('legacy layer 67.css') < css.indexOf('legacy layer 68.css'));
  assert.match(css,/\.nx68-order-reflect::after/);
  assert.match(css,/\.nx68-auth-reflect \.auth-card::after/);
  assert.match(css,/\.nx68-auth-reflect \.nx32-showcase-card::after/);

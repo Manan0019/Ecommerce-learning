@@ -45,7 +45,7 @@ test('decorative catalogue arrows are gone while clickable controls and current 
  assert.match(card,/nx66-product-price/);
 });
 test('timeline has aligned rail and consistent numeric typography with reduced-motion safeguards',()=>{
- const css=source('styles/phase66.css');
+ const css=source('styles/site.css');
  assert.match(css,/\.nx38-history ol::before/);
  assert.match(css,/\.nx38-history ol li::before/);
  assert.match(css,/font-variant-numeric:tabular-nums/);

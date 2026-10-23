@@ -17,7 +17,7 @@ test('Batch selector displays team workload and requires confirmation',()=>{
  assert.match(s,/orders\.map/);
 });
 test('Admin product hover styling never draws partial underlines',()=>{
- const s=read('styles/phase55.css');
+ const s=read('styles/site.css');
  assert.match(s,/\.nx46-product-title:hover/);
  assert.match(s,/text-decoration:none!important/);
  assert.match(s,/outline:2px solid/);

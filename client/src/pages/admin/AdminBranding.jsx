@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import BrandLogo from "../../components/common/BrandLogo";
+import FileUploadField from "../../components/admin/FileUploadField";
 import { SITE_NAME } from "../../config/site";
 import { apiAssetUrl } from "../../services/apiClient";
 import { useBranding } from "../../hooks/useBranding";
@@ -92,8 +93,7 @@ export default function AdminBranding() {
         <div className="nx27-branding-controls">
           <form onSubmit={(event) => save("icon", event)} className="nx27-setting-panel">
             <div className="nx27-panel-title"><span className="nx27-step">1</span><div><h3>Store logo icon</h3><p>Header, footer, admin panel and login pages</p></div></div>
-            <label htmlFor="nx27-symbol-input">Upload a symbol-only image <span className="nx27-optional">PNG, JPEG or WebP · 5 MB max</span></label>
-            <input id="nx27-symbol-input" type="file" accept="image/png,image/jpeg,image/webp" disabled={busy}
+            <FileUploadField label="Upload a symbol-only image" help="PNG, JPEG or WebP · 5 MB maximum" disabled={busy} selection={icon.file?.name || ""}
               onChange={(event) => { const message = icon.choose(event); setError(message || ""); setNotice(""); }} />
             <p className="nx27-hint">Recommended: square transparent PNG, at least 256 × 256 pixels. Wide logos containing the brand name are not supported as icons.</p>
             <div className="nx27-control-actions">
@@ -103,8 +103,7 @@ export default function AdminBranding() {
           </form>
           <form onSubmit={(event) => save("favicon", event)} className="nx27-setting-panel">
             <div className="nx27-panel-title"><span className="nx27-step">2</span><div><h3>Browser favicon</h3><p>Browser tabs, bookmarks and compatible home-screen icons</p></div></div>
-            <label htmlFor="nx27-favicon-input">Optional separate favicon <span className="nx27-optional">PNG, JPEG or WebP · 5 MB max</span></label>
-            <input id="nx27-favicon-input" type="file" accept="image/png,image/jpeg,image/webp" disabled={busy}
+            <FileUploadField label="Optional separate favicon" help="PNG, JPEG or WebP · 5 MB maximum" disabled={busy} selection={favicon.file?.name || ""}
               onChange={(event) => { const message = favicon.choose(event); setError(message || ""); setNotice(""); }} />
             <p className="nx27-hint">Leave this empty to use your store icon automatically. A separate square image can improve visibility in tiny browser tabs.</p>
             <div className="nx27-control-actions">

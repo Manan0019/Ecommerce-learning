@@ -28,13 +28,13 @@ test('department cards display category icons and a small multi-category all-pro
 });
 test('nested category chevrons remain interactive but no longer drift on hover', () => {
   const menu = source('components/layout/CategoryMegaMenu.jsx');
-  const styles = source('styles/phase49.css');
+  const styles = source('styles/site.css');
   assert.match(menu, /aria-expanded=\{expanded\}/);
   assert.match(styles, /\.nx35-category-expand \.nx47-icon/);
   assert.match(styles, /transform:none!important/);
   assert.match(styles, /place-items:center/);
 });
 test('phase49 is imported and promotion playback button has a hover label', () => {
-  assert.match(source('App.jsx'), /styles\/phase49\.css/);
+  assert.match(source('main.jsx'), /styles\/site\.css/);
   assert.match(source('components/customer/PromotionCarousel.jsx'), /title=\{userPaused\?"Resume slideshow":"Pause slideshow"\}/);
 });

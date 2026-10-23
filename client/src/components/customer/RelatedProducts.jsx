@@ -1,5 +1,5 @@
 import ProductLoadingSkeleton from "../common/ProductLoadingSkeleton";
-import "../../styles/related-products.css";
+
 import UiIcon from "../common/UiIcon";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";

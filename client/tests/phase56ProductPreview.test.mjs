@@ -20,9 +20,9 @@ test('manual browsing, hover cycling and touch swipe are preserved', () => {
 });
 
 test('preview indicator is a small unobtrusive line accessible on touch and keyboard', () => {
-  const src = read('styles/phase56.css');
+  const src = read('styles/site.css');
   for (const declaration of ['.nx56-card-preview-track', '.nx56-card-preview-fill', ':focus-within', '@media (hover: none)', '@media (prefers-reduced-motion: reduce)']) {
     assert.ok(src.includes(declaration), declaration);
   }
-  assert.match(read('App.jsx'), /import "\.\/styles\/phase56\.css"/);
+  assert.match(read('main.jsx'), /import ['"]\.\/styles\/site\.css['"]/ );
 });

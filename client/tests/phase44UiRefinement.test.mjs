@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const src = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
-const css = src('../src/styles/phase44.css');
+const css = src('../src/styles/site.css');
 const header = src('../src/components/layout/StoreHeader.jsx');
 const orders = src('../src/pages/admin/AdminOrders.jsx');
 const dialog = src('../src/components/admin/OrderActionDialog.jsx');

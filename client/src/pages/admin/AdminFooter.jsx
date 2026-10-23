@@ -1,6 +1,7 @@
 import {useEffect,useState} from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import UiIcon from '../../components/common/UiIcon';
+import FileUploadField from '../../components/admin/FileUploadField';
 import {apiAssetUrl} from '../../services/apiClient';
 import {getAdminFooter,saveFooterContent,uploadFooterArtwork,removeFooterArtwork} from '../../services/footerService';
 const DEFAULT={headlinePrimary:'GOOD THINGS,',headlineAccent:'FOUND HERE.',tickerItems:['NEXORA','DISCOVER','CHOOSE','LOVE YOUR FINDS'],artworkUrl:null};
@@ -34,7 +35,7 @@ export default function AdminFooter(){
    </form>
    <div className="nx62-artwork-form"><h2>Optional footer image</h2><p>Use a small, purposeful brand or collection image. PNG, JPG and WebP up to 5 MB. No image is required.</p>
      {form.artworkUrl&&<img className="nx62-art-preview" src={apiAssetUrl(form.artworkUrl)} alt="Current footer artwork"/>}
-     <input type="file" accept="image/png,image/jpeg,image/webp" disabled={busy} aria-label="Upload footer artwork" onChange={e=>{picture(e.target.files?.[0]);e.target.value='';}}/>
+     <FileUploadField label="Choose footer artwork" help="PNG, JPEG or WebP · 5 MB maximum" disabled={busy} onChange={e=>{picture(e.target.files?.[0]);e.target.value='';}}/>
      {form.artworkUrl&&<button type="button" disabled={busy} className="nx69-icon-action nx69-icon-danger" onClick={remove} title="Remove footer image" aria-label="Remove footer image"><UiIcon name="trash" size={18}/></button>}
    </div>
   </section>

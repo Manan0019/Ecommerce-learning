@@ -55,7 +55,7 @@ test('footer and featured actions are icon-based and discard is red',()=>{
  assert.match(featured,/name="save"/);
 });
 test('close animation respects reduced motion and alert urgency red',()=>{
- const styles=read('styles/phase69.css');
+ const styles=read('styles/site.css');
  assert.match(styles,/prefers-reduced-motion/);
  assert.match(styles,/nx65-close-control/);
  assert.match(styles,/nx24-stock-link/);

@@ -34,7 +34,7 @@ test('stock editor, featured image previews and backward-compatible edit route',
  assert.match(legacy,/preview\?edit=\$\{tab\}/);
 });
 test('Phase 50 styles and common pencil icon loaded',()=>{
- assert.match(src('../src/App.jsx'),/phase50.css/);
+ assert.match(src('../src/main.jsx'),/styles\/site\.css/);
  assert.match(src('../src/components/common/UiIcon.jsx'),/edit: <\>/);
- assert.match(src('../src/styles/phase50.css'),/nx50-preview-toolbar/);
+ assert.match(src('../src/styles/site.css'),/nx50-preview-toolbar/);
 });

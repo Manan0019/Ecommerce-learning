@@ -7,7 +7,7 @@ test('manual image navigation pauses hover timer and reset happens only on leave
  assert.match(card,/if \(manuallyNavigated\.current\) return/);
 });
 test('footer ticker uses two identical traveling groups and supports custom image',()=>{
- const footer=src('components/layout/StoreFooter.jsx');const css=src('styles/phase62.css');
+ const footer=src('components/layout/StoreFooter.jsx');const css=src('styles/site.css');
  assert.match(footer,/nx62-ticker-track/);assert.match(footer,/\{group\}\{group\}/);
  assert.match(css,/@keyframes nx62-ticker/);assert.match(css,/translateX\(-50%\)/);
  assert.match(footer,/content\.artworkUrl/);

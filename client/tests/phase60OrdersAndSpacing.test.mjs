@@ -18,8 +18,8 @@ test('orders have searchable status filters without deleting the pending-payment
 });
 test('homepage spacing changes only apply to its own main wrapper',()=>{
  const jsx=read('src/pages/customer/Home.jsx');
- const css=read('src/styles/phase60.css');
+ const css=read('src/styles/site.css');
  assert.match(jsx,/mainClassName="nx60-home"/);
  assert.match(css,/main\.nx60-home > \.store-section/);
- assert.match(read('src/main.jsx'),/phase60\.css/);
+ assert.match(read('src/main.jsx'),/site\.css/);
 });

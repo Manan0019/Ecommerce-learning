@@ -15,7 +15,7 @@ test('category directory navigates through React Router instead of reloading the
 });
 test('category artwork has a stable contained frame and image loading fallback',()=>{
  const jsx=load('components/customer/CategoryArtwork.jsx');
- const css=load('styles/phase34.css');
+ const css=load('styles/site.css');
  assert.match(jsx,/onError=\{\(\) => setFailedUrl\(url\)\}/);
  assert.match(css,/\.nx17-subcategory-shelf a>\.nx34-category-artwork/);
  assert.match(css,/object-fit:contain/);
@@ -29,7 +29,7 @@ test('wishlist is an icon-only labelled action, not visible Wishlist text',()=>{
 test('admin required marker follows label text, and modal has consistent form capture',()=>{
  const add=load('pages/admin/AddProduct.jsx');
  const modal=load('components/common/Modal.jsx');
- const style=load('styles/phase34.css');
+ const style=load('styles/site.css');
  assert.match(add,/Product name <b className="nx34-required"/);
  assert.match(add,/Full description <b className="nx34-required"/);
  assert.match(modal,/onPasteCapture=\{guardNumericPaste\}/);

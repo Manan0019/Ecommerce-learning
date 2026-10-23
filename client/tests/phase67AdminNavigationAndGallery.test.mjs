@@ -37,7 +37,7 @@ test('dashboard order rows are keyboard-operable and manage orders without a rou
 });
 test('gallery arrows are restored on cards only and manual navigation pauses preview timer',()=>{
   const src=read('components/common/ProductCard.jsx');
-  const css=read('styles/phase67.css');
+  const css=read('styles/site.css');
   assert.match(src,/name="chevron-left"/);
   assert.match(src,/name="chevron-right"/);
   assert.match(src,/function choose\(index\) \{\s*stopPreview\(\)/);
@@ -46,7 +46,7 @@ test('gallery arrows are restored on cards only and manual navigation pauses pre
 });
 test('clear viewed items offers accessible hover animation and still clears list immediately',()=>{
   const src=read('components/customer/RecentlyViewed.jsx');
-  const css=read('styles/phase67.css');
+  const css=read('styles/site.css');
   assert.match(src,/nx67-clear-history/);
   assert.match(src,/clearRecentlyViewed\(\); setItems\(\[\]\);/);
   assert.match(css,/nx67-clear-history::after/);

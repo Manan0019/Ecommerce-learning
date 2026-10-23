@@ -23,10 +23,10 @@ test('admin order action opens one accessible modal without navigating to anothe
 });
 test('executive assignment dialog remains on Orders and fits a compact viewport', () => {
  const s=read('src/components/admin/DeliveryExecutivePicker.jsx');
- const css=read('src/styles/phase59.css');
+ const css=read('src/styles/site.css');
  assert.match(s,/size="assignment"/);
  assert.match(s,/Confirm assignment/);
  assert.match(css,/\.nx-modal-assignment/);
  assert.match(css,/\.nx59-order-preview-item/);
- assert.match(read('src/main.jsx'),/phase59\.css/);
+ assert.match(read('src/main.jsx'),/site\.css/);
 });

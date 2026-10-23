@@ -8,11 +8,11 @@ const server=path.resolve(root,'../../server');
 const readServer=p=>fs.readFileSync(path.join(server,p),'utf8');
 
 test('original Phase 70 fixes remain enabled, and its stylesheet loads',()=>{
- assert.match(read('main.jsx'),/phase70\.css/);
+ assert.match(read('main.jsx'),/site\.css/);
  assert.match(read('components/customer/RelatedProducts.jsx'),/showQuickAdd=\{false\}/);
  assert.match(read('components/customer/ProductReviews.jsx'),/nx70-rating-line/);
  assert.match(read('pages/admin/AdminProducts.jsx'),/nx70-preview-action/);
- assert.match(read('styles/phase70.css'),/nx68-auth-reflect \.auth-submit::after/);
+ assert.match(read('styles/site.css'),/nx68-auth-reflect \.auth-submit::after/);
 });
 test('editor permits independent persisted sale toggling with state and error handling',()=>{
  const s=read('components/admin/ProductEditorWorkspace.jsx');
@@ -52,7 +52,7 @@ test('dashboard uses provider-neutral prepaid label without changing payment met
  assert.match(read('pages/admin/AdminOrders.jsx'),/\?'Prepaid':'COD'/);
 });
 test('reflection respects reduced motion and existing admin dangerous red actions',()=>{
- const s=read('styles/phase70.css');
+ const s=read('styles/site.css');
  assert.match(s,/prefers-reduced-motion:reduce/);
  assert.match(s,/pointer-events:none/);
  assert.match(s,/:not\(\.nx69-icon-danger\)/);

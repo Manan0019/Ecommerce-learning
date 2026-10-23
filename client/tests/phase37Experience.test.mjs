@@ -50,9 +50,8 @@ test('account hub is connected to existing orders, addresses and wishlist', () =
   assert.match(profile,/updateCustomerName/);
 });
 test('phase37 styling follows phase36 with mobile layouts', () => {
-  const app = src('App.jsx');
-  assert.ok(app.indexOf('phase36.css') < app.indexOf('phase37.css'));
-  const css=src('styles/phase37.css');
+  const css=src('styles/site.css');
+  assert.ok(css.indexOf('legacy layer 36.css') < css.indexOf('legacy layer 37.css'));
   assert.match(css, /nx37-promotion-grid/);
   assert.match(css, /max-width:720px/);
   assert.match(css, /nx37-category-card/);

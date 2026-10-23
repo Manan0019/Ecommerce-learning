@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 
 // Prevent the Phase 30 price slider from inheriting the old 2-column
 // `.price-filter > div` rule from app.css. That rule was the real layout bug.
-const legacy = readFileSync(new URL("../src/styles/app.css", import.meta.url), "utf8");
-const modern = readFileSync(new URL("../src/styles/phase30.css", import.meta.url), "utf8");
+const legacy = readFileSync(new URL("../src/styles/site.css", import.meta.url), "utf8");
+const modern = readFileSync(new URL("../src/styles/site.css", import.meta.url), "utf8");
 
 test("legacy 2-column price form rule remains known and guarded", () => {
   assert.match(legacy, /\.price-filter\s*>\s*div\s*\{[^}]*grid-template-columns:\s*1fr\s+1fr/s);

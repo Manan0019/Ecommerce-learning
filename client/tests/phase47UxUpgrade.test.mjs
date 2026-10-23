@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const read = name => readFileSync(new URL(`../src/${name}`, import.meta.url), 'utf8');
-const css = read('styles/phase47.css');
+const css = read('styles/site.css');
 test('auth Explore the store opens homepage',()=>assert.match(read('components/auth/AuthLayout.jsx'),/to="\/" className="nx36-auth-explore"/));
 test('notification badges are contained and independent of navigation glyph width',()=>{assert.match(css,/\.nx46-bell-count/);assert.match(css,/\.admin-nav a \.nx24-sidebar-count/);assert.match(css,/min-width:25px/);});
 test('search icon visible, all-results remains full width and category suggestions remain linked',()=>{

@@ -12,16 +12,16 @@ test('order management organizes customer, price and line items into separate ce
  assert.match(s,/nx65-order-product/);
  assert.match(s,/Qty \{item\.quantity\}/);
  assert.match(s,/item\.imageUrl/);
- assert.match(source('styles/phase65.css'),/grid-template-columns:minmax\(0,1fr\) minmax\(160px,max-content\)/);
+ assert.match(source('styles/site.css'),/grid-template-columns:minmax\(0,1fr\) minmax\(160px,max-content\)/);
 });
 test('picker keeps focus rings visible and cards inside scrollable list',()=>{
- const s=source('styles/phase65.css');
+ const s=source('styles/site.css');
  assert.match(s,/\.nx-modal-assignment \.nx53-team-list \{padding:/);
  assert.match(s,/\.nx-modal-assignment \.nx53-team-card:has\(input:focus-visible\)/);
  assert.match(s,/\.nx-modal-assignment \{width:min\(760px,calc\(100vw - 32px\)\)\}/);
 });
 test('close buttons use centrally aligned cross with new nonrotating hover effect',()=>{
- const modal=source('components/common/Modal.jsx'),css=source('styles/phase65.css');
+ const modal=source('components/common/Modal.jsx'),css=source('styles/site.css');
  assert.match(modal,/nx-icon-button nx65-close-control/);
  assert.match(css,/\.nx65-close-control::before/);
  assert.match(css,/rotate\(0deg\)!important/);
@@ -33,7 +33,7 @@ test('catalogue loading shimmer is real-request bound and accessible',()=>{
  assert.match(product,/nx65-skeleton-action/);
  assert.match(list,/\{loading && \(/);
  assert.match(list,/aria-busy="true"/);
- assert.match(source('styles/phase65.css'),/nx65-loading-row/);
+ assert.match(source('styles/site.css'),/nx65-loading-row/);
 });
 test('checkout stages follow real payment callback state and never fake a percent',()=>{
  const s=source('components/customer/CheckoutProcessStatus.jsx');

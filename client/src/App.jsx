@@ -42,52 +42,51 @@ import About from "./pages/public/About";
 import Contact from "./pages/public/Contact";
 import NotFound from "./pages/public/NotFound";
 import Categories from "./pages/customer/Categories";
-import "./styles/app.css";
-import "./styles/wishlist.css";
-import "./styles/phase14.css";
-import "./styles/phase15.css";
-import "./styles/phase16.css";
-import "./styles/phase17.css";
-import "./styles/phase18.css";
-import "./styles/phase19.css";
-import "./styles/phase21.css";
-import "./styles/phase23.css";
-import "./styles/phase24.css";
-import "./styles/phase25.css";
-import "./styles/phase26.css";
-import "./styles/phase27.css";
-import "./styles/phase28.css";
-import "./styles/phase29.css";
-import "./styles/phase30.css";
-import "./styles/phase32.css";
-import "./styles/phase33.css";
-import "./styles/phase34.css";
-import "./styles/phase35.css";
-import "./styles/phase36.css";
-import "./styles/phase37.css";
-import "./styles/phase38.css";
-import "./styles/phase39.css";
-import "./styles/phase41.css";
-import "./styles/phase44.css";
-import "./styles/phase45.css";
-import "./styles/phase46.css";
-import "./styles/phase47.css";
-import "./styles/phase48.css";
-import "./styles/phase49.css";
-import "./styles/phase50.css";
-import "./styles/phase51.css";
-import "./styles/phase52.css";
-import "./styles/phase53.css";
-import "./styles/phase54.css";
-import "./styles/phase55.css";
-import "./styles/phase56.css";
-import "./styles/phase57.css";
-import "./styles/phase61.css";
-import "./styles/phase62.css";
-import "./styles/phase63.css";
-import "./styles/phase66.css";
-import "./styles/phase67.css";
-import "./styles/phase68.css";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export default function App() {
   return <StoreErrorBoundary><BrandingProvider><CartProvider><BrowserRouter><RouteExperience /><Routes>

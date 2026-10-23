@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const read = rel => fs.readFileSync(new URL(`../src/${rel}`,import.meta.url),'utf8');
 test('modal close buttons use centered SVGs and consistent hover motion',()=>{
- const modal=read('components/common/Modal.jsx'),css=read('styles/phase64.css');
+ const modal=read('components/common/Modal.jsx'),css=read('styles/site.css');
  assert.match(modal,/aria-label="Close dialog"[^>]*>[\s\S]*?<UiIcon name="x" size=\{18\}/);
  assert.match(css,/\.nx-modal \.nx-modal-header \.nx-icon-button svg/);
  assert.match(css,/rotate\(90deg\)/);

@@ -18,7 +18,7 @@ test('header keeps logo home link, removes Home navigation and offers expanded s
   const head=source('../src/components/layout/StoreHeader.jsx');
   assert.match(head,/className="brand" to="\/"/);
   assert.doesNotMatch(head,/<NavLink to="\/"/);
-  const css=source('../src/styles/phase36.css');
+  const css=source('../src/styles/site.css');
   assert.match(css,/\.nx-nav-search\{flex:1 1 auto;width:auto;max-width:none/);
 });
 test('category menu uses database icon, one button trigger and no chevron toggle',()=>{
@@ -33,7 +33,7 @@ test('banner image-only mode retains full artwork with short height and no dark 
   assert.match(code,/nx37-promotion-image-frame/);
   assert.match(code,/is-image-only/);
   assert.match(code,/imageOnly &&/);
-  const css=source('../src/styles/phase36.css');
+  const css=source('../src/styles/site.css');
   assert.match(css,/object-fit:contain!important/);
   assert.match(css,/height:clamp\(145px,19vw,270px\)/);
 });
