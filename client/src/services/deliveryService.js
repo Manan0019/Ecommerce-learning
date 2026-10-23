@@ -11,6 +11,7 @@ export const getMyAssignments=signal=>apiRequest('/api/delivery/assignments',{..
 export const updateMyDelivery=(orderId,status)=>apiRequest(`/api/delivery/assignments/${orderId}`,{...opts,method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
 export const getNotifications=signal=>apiRequest('/api/notifications',{...opts,signal});
 export const markNotificationRead=id=>apiRequest(`/api/notifications/${id}/read`,{...opts,method:'PATCH'});
+export const markAllNotificationsRead=()=>apiRequest('/api/notifications/read-all',{...opts,method:'PATCH'});
 
 export const getDeliverySession=signal=>apiRequest('/api/delivery/session',{credentials:'include',signal});
 

@@ -118,7 +118,7 @@ export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, o
    <div className="nx57-orders-table-wrap"><table className="nx57-orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Placed</th><th>Payment</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>{pageOrders.map(o=><tr key={o.id} className={String(selectedOrderId)===String(o.id)?'is-selected':''}>
      <td><button type="button" className="nx57-order-link" onClick={()=>setSelectedOrderId(o.id)}>#{o.id}</button></td>
      <td><strong className="nx57-table-truncate" title={o.customerName||'Customer'}>{o.customerName||'Customer'}</strong><small className="nx57-table-truncate">{o.customerEmail}</small></td>
-     <td>{new Date(o.placedAt).toLocaleDateString('en-IN')}</td><td><span className="nx57-payment-type">{o.paymentMethod==='Razorpay'?'Razorpay':'COD'}</span><small>{o.paymentStatus==='razorpay_paid'?'Paid':o.paymentStatus==='cod_collected'?'Collected':o.status==='payment_pending'?'Awaiting payment':''}</small></td>
+     <td>{new Date(o.placedAt).toLocaleDateString('en-IN')}</td><td><span className="nx57-payment-type">{o.paymentMethod==='Razorpay'?'Prepaid':'COD'}</span><small>{o.paymentStatus==='razorpay_paid'?'Paid':o.paymentStatus==='cod_collected'?'Collected':o.status==='payment_pending'?'Awaiting payment':''}</small></td>
      <td className="nx57-order-amount">{money(o.total)}</td><td><span className={`nx-status nx-status-${o.status}`}>{o.status.replaceAll('_',' ')}</span></td>
      <td><button type="button" className="nx57-open-order" onClick={()=>setSelectedOrderId(o.id)} aria-label={`Manage order ${o.id}`}>View & manage</button></td>
    </tr>)}</tbody></table></div>

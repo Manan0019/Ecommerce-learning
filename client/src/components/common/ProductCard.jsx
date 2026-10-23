@@ -6,7 +6,7 @@ import { apiAssetUrl } from "../../services/apiClient";
 
 // A bounded gallery is included in the catalogue response, so browsing doesn't
 // require one extra HTTP request for every product tile.
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, showQuickAdd = true }) {
   const detailUrl = `/products/${product.parentProductId || product.id}${product.selectedVariantId ? `?variant=${encodeURIComponent(product.selectedVariantId)}` : ""}`;
   const images = Array.isArray(product.previewImages) && product.previewImages.length
     ? product.previewImages.filter(Boolean).slice(0, 6)
@@ -60,9 +60,9 @@ export default function ProductCard({ product }) {
         {current ? <img key={current} className="nx29-card-image" src={apiAssetUrl(current)} alt={product.name} loading="lazy" onError={() => { setFailedImages(prev => prev.includes(current) ? prev : [...prev, current]); setActive(0); }} />
           : <div className="missing-image">Image coming soon</div>}
         {product.stock === 0 && <span className="product-badge">Sold out</span>}
-        {product.showSaleBadge && Number(product.stock)>0 && Number(product.mrp)>Number(product.price) && <span className="nx61-sale-label">Sale</span>}
+        {product.showSaleBadge && Number(product.displayStock ?? product.stock)>0 && Number(product.mrp)>Number(product.price) && <span className="nx61-sale-label">Sale</span>}
       </Link>
-      <StorefrontCardActions product={product} detailUrl={detailUrl} imageUrl={current || product.imageUrl} />
+      <StorefrontCardActions product={product} detailUrl={detailUrl} imageUrl={current || product.imageUrl} showQuickAdd={showQuickAdd} />
       {availableImages.length > 1 && <>
         <div className="nx29-card-arrows" aria-label="Preview product images">
           <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}><UiIcon name="chevron-left" size={17}/></button>

@@ -60,7 +60,7 @@ export default function AdminDashboard(){
    </section>
    <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Order mix</h2><p>At a glance across the recent order queue.</p></div></div>
     <div className="nx46-dashboard-bar"><span>COD orders</span><strong>{insights.cod}</strong><div className="nx46-bar-track"><i style={{width:`${Math.min(100,insights.cod/Math.max(1,insights.cod+insights.online)*100)}%`}}/></div></div>
-    <div className="nx46-dashboard-bar"><span>Razorpay orders</span><strong>{insights.online}</strong><div className="nx46-bar-track"><i style={{width:`${Math.min(100,insights.online/Math.max(1,insights.cod+insights.online)*100)}%`}}/></div></div>
+    <div className="nx46-dashboard-bar"><span>Prepaid orders</span><strong>{insights.online}</strong><div className="nx46-bar-track"><i style={{width:`${Math.min(100,insights.online/Math.max(1,insights.cod+insights.online)*100)}%`}}/></div></div>
     <div className="nx46-dashboard-priorities"><div><span>Open refund reviews</span><strong>{insights.refunds}</strong></div><div><span>Low-stock alerts</span><strong>{alerts?.summary?.total??'—'}</strong></div><div><span>Active products</span><strong>{summary?.activeProductCount??'—'}</strong></div><div><span>Customers</span><strong>{summary?.customerCount??'—'}</strong></div></div>
     <Link className="nx46-panel-link" to="/admin/inventory">Inventory alerts <UiIcon name="right" size={17}/></Link>
    </section>

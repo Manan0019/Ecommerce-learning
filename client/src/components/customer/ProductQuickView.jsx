@@ -44,6 +44,7 @@ export default function ProductQuickView({ productId, detailUrl, onAdd }) {
   </div>
   <div className="nx64-quick-info">
    <small className="eyebrow">{data.category}</small><h3>{data.name}</h3>
+   {data.showSaleBadge && Number(mrp)>Number(price) && <span className="nx70-detail-sale-label">SALE</span>}
    <div className="nx64-quick-prices">{Number(mrp)>Number(price)&&<del>{money(mrp)}</del>}<strong>{money(price)}</strong></div>
    <p className="nx64-quick-description">{data.shortDescription || (data.description||'').slice(0,220) || 'Explore this product and its available options.'}</p>
    <ProductVariantSelector variants={variants} selectedVariant={selected} media={media} coverUrl={!variants.length?data.imageUrl:null}

@@ -17,3 +17,15 @@ export async function markNotificationRead(req,res){
    return r.rows.length?res.json({ok:true}):res.status(404).json({message:'Notification not found.'});
  }catch(e){console.error('Notification update:',e);res.status(500).json({message:'Notification could not be updated.'});}
 }
+
+// Read receipts belong strictly to the signed-in user, for every role.
+export async function markAllNotificationsRead(req, res) {
+ try {
+   await pool.query(`UPDATE admin_notifications SET read_at=COALESCE(read_at,NOW())
+     WHERE recipient_user_id=$1 AND read_at IS NULL`,[req.user.id]);
+   return res.json({ok:true,unread:0});
+ } catch(e) {
+   console.error('Notifications mark-all:',e);
+   return res.status(500).json({message:'Notifications could not be marked as read.'});
+ }
+}

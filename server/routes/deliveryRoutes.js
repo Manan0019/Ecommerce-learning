@@ -2,7 +2,7 @@ import {Router} from 'express';
 import pool from '../config/db.js';
 import {requireAdmin,requireDelivery,requireAuthenticated} from '../middleware/authMiddleware.js';
 import {listDeliveryStaff,createDeliveryStaff,setDeliveryStaffActive,listDeliveryAssignments,assignDelivery,assignDeliveryBatch,updateMyDelivery,resendDeliveryOtp,confirmDeliveryWithOtp,reportDeliveryIssue,reviewDeliveryIssue} from '../controllers/deliveryController.js';
-import {listNotifications,markNotificationRead} from '../controllers/notificationsController.js';
+import {listNotifications,markNotificationRead,markAllNotificationsRead} from '../controllers/notificationsController.js';
 function originGuard(req,res,next){const origin=req.get('origin');if(origin&&origin!==(process.env.CLIENT_ORIGIN||'http://localhost:5173'))return res.status(403).json({message:'Request origin not allowed.'});next();}
 const admin=Router();admin.use(requireAdmin);
 // Version marker and safe, read-only schema diagnostic for local/backend-version mismatches.
@@ -30,4 +30,5 @@ delivery.post('/assignments/:orderId/issues',originGuard,reportDeliveryIssue);
 export {admin,delivery};
 export const notificationRoutes=Router();
 notificationRoutes.get('/',requireAuthenticated,listNotifications);
+notificationRoutes.patch('/read-all',originGuard,requireAuthenticated,markAllNotificationsRead);
 notificationRoutes.patch('/:id/read',originGuard,requireAuthenticated,markNotificationRead);

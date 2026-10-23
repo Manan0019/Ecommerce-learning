@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import { useNavigate } from "react-router-dom";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
-import { getAdminProduct, updateProduct, updateProductImage } from "../../services/productService";
+import { getAdminProduct, updateProduct, updateProductImage, setSaleBadge } from "../../services/productService";
 import { useActiveCategories } from "../../hooks/useActiveCategories";
 import { useSpecificationDefinition } from "../../hooks/useSpecificationDefinition";
 import ProductSpecificationFields from "./ProductSpecificationFields";
@@ -30,6 +30,9 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
   const [imageUrl, setImageUrl] = useState("");
   const [featured, setFeatured] = useState(false);
   const [hasSkus, setHasSkus] = useState(false);
+  const [saleEnabled, setSaleEnabled] = useState(false);
+  const [saleSaving, setSaleSaving] = useState(false);
+  const [saleMessage, setSaleMessage] = useState("");
   const [newImage, setNewImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,6 +53,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
         setSpecifications(product.specifications || {});
         setImageUrl(product.imageUrl || "");
         setFeatured(Boolean(product.isFeatured));
+        setSaleEnabled(Boolean(product.showSaleBadge));
         const result = await getVariants(productId, true);
         if (!controller.signal.aborted) setHasSkus((result.variants || []).length > 0);
       } catch (failure) {
@@ -79,6 +83,18 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
       if (isAuthenticationError(failure)) { navigate("/login", { replace: true }); return; }
       setError(failure.message);
     } finally { setSaving(false); }
+  }
+
+  async function updateSale(enabled) {
+    setSaleSaving(true); setSaleMessage(""); setError("");
+    try {
+      const result = await setSaleBadge(productId, enabled);
+      setSaleEnabled(Boolean(result.showSaleBadge));
+      setSaleMessage(result.showSaleBadge ? "Sale badge enabled for discounted configurations." : "Sale badge disabled on the storefront.");
+      onSaved?.();
+    } catch (failure) {
+      setError(failure.message || "Could not change Sale visibility.");
+    } finally { setSaleSaving(false); }
   }
 
   async function uploadCover(event) {
@@ -127,6 +143,11 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
           </div>
           {hasSkus ? <p className="nx22-sku-notice"><strong>SKU-controlled product:</strong> Selling price, MRP and stock are managed per SKU in the SKUs tab. Parent values are retained only for legacy compatibility.</p>
             : <VariantPriceFields row={form} disabled={saving} onFieldChange={(key, value) => setForm(old => updatePricingDraft(old, key, value))}/>}
+          <section className={`nx70-sale-editor ${saleEnabled ? "is-enabled" : "is-disabled"}`} aria-label="Sale badge setting">
+            <div className="nx70-sale-editor-heading"><span className="nx70-sale-tag">SALE</span><div><strong>Storefront Sale label</strong><small>Shown only when Sale is enabled and the selected product or SKU has a real discount (selling price below MRP).</small></div><span className="nx70-sale-state" role="status">{saleEnabled ? "Enabled" : "Disabled"}</span></div>
+            <label className="nx70-sale-toggle"><input type="checkbox" checked={saleEnabled} disabled={saleSaving || saving} onChange={e => updateSale(e.target.checked)}/><span>{saleEnabled ? "Sale visibility is on" : "Show a Sale badge on discounted products"}</span></label>
+            {saleMessage && <small className="nx70-sale-message" role="status">{saleMessage}</small>}
+          </section>
           <label className="nx25-gst-field">GST rate for this product (%)<input name="gstPercent" type="number" min="0" max="40" step="0.01" value={form.gstPercent ?? ""} onChange={handleChange} placeholder="Use store default"/><small>Leave empty for the store default rate.</small></label>
           <ProductSpecificationFields definition={definition.definition} specifications={specifications}
             onChange={(key,value) => setSpecifications(old => ({ ...old, [key]: value }))} loading={definition.loading}/>

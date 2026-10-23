@@ -112,6 +112,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
           <Link className="eyebrow detail-category-link" to={`/categories/${product.categorySlug}`}>{product.category}</Link>
           {(product.brand || product.model) && <p className="detail-model">{[product.brand, product.model].filter(Boolean).join(" · ")}</p>}
           <h1 aria-live="polite">{displayTitle}</h1>
+          {product.showSaleBadge && discount > 0 && <span className="nx70-detail-sale-label" aria-label="On sale">SALE</span>}
           <div className="detail-price-block" aria-live="polite">
             {discount>0&&<strong className="detail-discount">−{discount}%</strong>}
             {discount>0&&<s className="detail-mrp">₹{Number(effectiveMrp).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</s>}

@@ -19,7 +19,7 @@ export function saveCompareProduct(product) {
   return 'Added to compare';
 }
 export function readCompareIds(){try{return JSON.parse(localStorage.getItem(KEY)||'[]').filter(x=>/^\d+$/.test(String(x))).slice(0,4);}catch{return [];}}
-export default function StorefrontCardActions({product,detailUrl,imageUrl}) {
+export default function StorefrontCardActions({product,detailUrl,imageUrl,showQuickAdd=true}) {
   const navigate=useNavigate();const {addToCart}=useCart();
   const [quick,setQuick]=useState(false);const [message,setMessage]=useState('');const [saved,setSaved]=useState(false);
   const parentId=String(product.parentProductId||product.id);
@@ -35,7 +35,7 @@ export default function StorefrontCardActions({product,detailUrl,imageUrl}) {
       <button type="button" title="Add to compare" aria-label={`Compare ${product.name}`} onClick={()=>setMessage(saveCompareProduct(product))}><UiIcon name="compare" size={18}/></button>
     </div>
 
-    {!needsOptions && Number(product.stock)>0 && <button className="nx61-quick-add" type="button" onClick={quickAdd}>
+    {showQuickAdd && !needsOptions && Number(product.stock)>0 && <button className="nx61-quick-add" type="button" onClick={quickAdd}>
       <UiIcon name="bag" size={17}/>Quick Add
     </button>}
     {message&&<span role="status" className="nx61-card-feedback">{message} {message.includes('compare') && <Link to="/compare" className="nx69-feedback-link">View comparison</Link>}</span>}

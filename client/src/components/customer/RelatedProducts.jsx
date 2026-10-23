@@ -49,7 +49,7 @@ export default function RelatedProducts({ productId }) {
     </div>}
     {status === "ready" && (items.length
       ? <div className="product-grid related-products-grid">
-          {items.map((product) => <ProductCard key={product.cardKey || product.id} product={product} />)}
+          {items.map((product) => <ProductCard key={product.cardKey || product.id} product={product} showQuickAdd={false} />)}
         </div>
       : <div className="nx33-recommendations-state"><strong>Explore more from Nexora</strong>
           <p>There aren't any closely related products published yet.</p>
