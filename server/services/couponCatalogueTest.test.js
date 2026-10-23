@@ -1,0 +1,9 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {testCouponAgainstCatalogue} from './couponCatalogueTest.js';
+const c={code:'HELLO10',kind:'percent',value:'10',minimumSubtotal:'100',maxRedemptions:100,eligibility:{scope:'categories',categoryIds:[2],excludedProductIds:[],includeSubcategories:true,minimumQualifyingSubtotal:'200',minimumItems:1,minimumUnitPrice:0,maximumUnitPrice:0,maximumDiscount:0,firstOrderOnly:false,excludeSaleProducts:false}};
+const products=[{id:7,price:'300.00',category_id:3,is_active:true,category_active:true,show_sale_badge:false},{id:8,price:'60.00',category_id:4,is_active:true,category_active:true,show_sale_badge:false}];
+const tree=[{id:2,parent_id:1},{id:3,parent_id:2},{id:4,parent_id:1}];
+test('catalogue dry-run uses actual matching category ancestors and exact paise',()=>{const r=testCouponAgainstCatalogue(c,[{productId:7,quantity:2},{productId:8,quantity:1}],products,tree);assert.equal(r.eligible,true);assert.equal(r.subtotal,'660.00');assert.equal(r.qualifyingSubtotal,'600.00');assert.equal(r.discount,'60.00');});
+test('coupon refuses non-matching nested category or excludes flagged sales',()=>{const a=testCouponAgainstCatalogue({...c,eligibility:{...c.eligibility,includeSubcategories:false}},[{productId:7,quantity:1}],products,tree);assert.equal(a.eligible,false);assert.equal(a.discount,'0.00');const b=testCouponAgainstCatalogue({...c,eligibility:{...c.eligibility,excludeSaleProducts:true}},[{productId:7,quantity:1}],[{...products[0],show_sale_badge:true}],tree);assert.equal(b.eligible,false);});
+test('first order cannot be falsely approved without verified customer',()=>{const r=testCouponAgainstCatalogue({...c,eligibility:{...c.eligibility,firstOrderOnly:true}},[{productId:7,quantity:1}],products,tree);assert.equal(r.eligible,false);assert.match(r.reasons.join(' '),/customer account/);});

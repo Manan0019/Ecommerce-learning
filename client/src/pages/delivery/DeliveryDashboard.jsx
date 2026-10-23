@@ -18,6 +18,8 @@ export default function DeliveryDashboard() {
   const [assignments, setAssignments] = useState([]);
   const [tab, setTab] = useState('all');
   const [search, setSearch] = useState('');
+  const [page,setPage]=useState(1);
+  const [view,setView]=useState('table');
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
@@ -51,6 +53,9 @@ export default function DeliveryDashboard() {
     const q = search.trim().toLocaleLowerCase();
     return deliveryTabMatch(a, tab) && (!q || String(a.orderId).includes(q) || a.customerName?.toLocaleLowerCase().includes(q) || a.address?.city?.toLocaleLowerCase().includes(q));
   }).sort((a, b) => deliveryAttentionPriority(a) - deliveryAttentionPriority(b) || Number(b.orderId) - Number(a.orderId)), [assignments,tab,search]);
+  const perPage=12;
+  const pages=Math.max(1,Math.ceil(filtered.length/perPage));
+  const visible=filtered.slice((Math.min(page,pages)-1)*perPage,Math.min(page,pages)*perPage);
   const current = assignments.find(a => String(a.orderId) === String(selected));
   const counts = useMemo(() => ({
     all:assignments.length,
@@ -134,7 +139,7 @@ export default function DeliveryDashboard() {
     <aside className="nx57-delivery-sidebar" aria-label="Delivery workspace navigation">
       <Link to="/delivery/dashboard" className="nx57-delivery-logo"><span>N</span><strong>Nexora<small>DELIVERY OPERATIONS</small></strong></Link>
       <p className="nx57-sidebar-label">WORKSPACE</p>
-      {[["all","Dashboard","layout-dashboard"],["active","In progress","truck"],["ready","Assigned orders","package"],["route","Out for delivery","truck"],["delivered","Delivered history","check-circle"]].map(([key,label,icon])=><button type="button" key={key} className={tab===key?'is-active':''} onClick={()=>{setTab(key);setSelected(null);}} aria-current={tab===key?'page':undefined}><UiIcon name={icon} size={17}/><span>{label}</span><b>{counts[key]}</b></button>)}
+      {[["all","Dashboard","layout-dashboard"],["active","In progress","truck"],["ready","Assigned orders","package"],["route","Out for delivery","truck"],["delivered","Delivered history","check-circle"]].map(([key,label,icon])=><button type="button" key={key} className={tab===key?'is-active':''} onClick={()=>{setTab(key);setSelected(null);setPage(1)}} aria-current={tab===key?'page':undefined}><UiIcon name={icon} size={17}/><span>{label}</span><b>{counts[key]}</b></button>)}
       <div className="nx57-delivery-sidebar-foot"><span>{me?.fullName||'Delivery executive'}</span><small>{me?.email||'Assigned deliveries only'}</small><button type="button" onClick={signOut}>Sign out <UiIcon name="right" size={16}/></button></div>
     </aside>
     <header className="nx52-delivery-header"><Link to="/delivery/dashboard" className="nx52-delivery-brand"><span className="nx52-brand-mark">N</span><span><strong>Nexora</strong><small>DELIVERY OPERATIONS</small></span></Link>
@@ -154,12 +159,13 @@ export default function DeliveryDashboard() {
             <div><span className="nx52-eyebrow">DELIVERY PRIORITIES</span><strong>{actionable.length ? `${actionable.length} order${actionable.length === 1 ? '' : 's'} ready for your action` : 'All actionable deliveries handled'}</strong><small>{actionable.length ? 'Open the next eligible assignment to begin or verify its delivery.' : 'New assignments will appear when your administrator dispatches them.'}</small></div>
             {actionable.length > 0 && <button type="button" onClick={focusNextDelivery}><UiIcon name="package" size={17}/>Open next delivery</button>}
           </section>
-          <section className="nx52-delivery-work"><div className="nx52-delivery-work-top"><div><p className="nx52-eyebrow">MY ROUTE</p><h2>Assignments</h2></div><label className="nx52-delivery-search"><UiIcon name="search" size={18}/><input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search order, name or city"/></label></div>
-            <div className="nx52-delivery-tabs" role="group" aria-label="Filter deliveries">{tabs.map(([key,label])=><button type="button" key={key} className={tab===key?'is-active':''} aria-pressed={tab===key} onClick={()=>setTab(key)}>{label}<span>{counts[key]}</span></button>)}</div>
-            <p className="nx74-delivery-results" role="status">Showing {filtered.length} of {assignments.length} assignments · Unfinished deliveries appear first</p><div className="nx52-delivery-content"><div className="nx52-delivery-list">{filtered.map(a=><button type="button" key={a.orderId} className={`nx52-delivery-list-card${String(selected || filtered[0]?.orderId)===String(a.orderId)?' is-active':''}`} onClick={()=>setSelected(a.orderId)}>
+          <section className="nx52-delivery-work"><div className="nx52-delivery-work-top"><div><p className="nx52-eyebrow">MY ROUTE</p><h2>Assignments</h2></div><label className="nx52-delivery-search"><UiIcon name="search" size={18}/><input type="search" value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search order, name or city"/></label></div>
+            <div className="nx77-delivery-view-controls"><button type="button" aria-pressed={view==='table'} onClick={()=>setView('table')}><UiIcon name="list" size={16}/> Table view</button><button type="button" aria-pressed={view==='cards'} onClick={()=>setView('cards')}><UiIcon name="layout-grid" size={16}/> Cards</button></div>
+            <div className="nx52-delivery-tabs" role="group" aria-label="Filter deliveries">{tabs.map(([key,label])=><button type="button" key={key} className={tab===key?'is-active':''} aria-pressed={tab===key} onClick={()=>{setTab(key);setPage(1);}}>{label}<span>{counts[key]}</span></button>)}</div>
+            <p className="nx74-delivery-results" role="status">Showing {filtered.length} of {assignments.length} assignments · Unfinished deliveries appear first</p><div className="nx52-delivery-content"><div className="nx52-delivery-list">{view==='table'&&<div className="nx77-delivery-mini-table" role="table" aria-label="Delivery assignments"><div role="row" className="nx77-delivery-mini-head"><span>Order</span><span>Customer</span><span>Status</span></div>{visible.map(a=><button type="button" role="row" key={a.orderId} className={String(selected || filtered[0]?.orderId)===String(a.orderId)?'is-active':''} onClick={()=>setSelected(a.orderId)}><span>#{a.orderId}<small>{money(a.total)}</small></span><span>{a.customerName}<small>{a.address?.city||'—'}</small></span><span>{statuses[a.deliveryStatus]||a.deliveryStatus}</span></button>)}</div>}{view==='cards'&&visible.map(a=><button type="button" key={a.orderId} className={`nx52-delivery-list-card${String(selected || filtered[0]?.orderId)===String(a.orderId)?' is-active':''}`} onClick={()=>setSelected(a.orderId)}>
               <span><strong>Order #{a.orderId}</strong><small>{a.address?.city || 'Delivery'}</small></span><span className={`nx52-delivery-status is-${a.deliveryStatus}`}>{statuses[a.deliveryStatus] || a.deliveryStatus}</span><b>{a.customerName}</b><small>{money(a.total)} · {a.paymentMethod === 'cod' ? 'COD' : 'Prepaid'}</small>
-            </button>)}{!filtered.length && <div className="nx52-delivery-empty">{assignments.length?'No deliveries match this filter.':'No deliveries assigned yet. Your administrator can assign eligible orders in Delivery Executives.'}</div>}</div>
-            <aside className="nx52-delivery-detail" aria-label="Selected delivery details">{(current && filtered.some(a=>String(a.orderId)===String(current.orderId)) ? current : filtered[0]) ? details(current && filtered.some(a=>String(a.orderId)===String(current.orderId)) ? current : filtered[0]) : <div className="nx52-detail-empty">Select an assignment to view delivery details.</div>}</aside></div>
+            </button>)}<div className="nx77-pagination"><span>{visible.length} shown · page {Math.min(page,pages)}/{pages}</span><button type="button" disabled={page<=1} onClick={()=>setPage(p=>p-1)}>Previous</button><button type="button" disabled={page>=pages} onClick={()=>setPage(p=>p+1)}>Next</button></div>{!filtered.length && <div className="nx52-delivery-empty">{assignments.length?'No deliveries match this filter.':'No deliveries assigned yet. Your administrator can assign eligible orders in Delivery Executives.'}</div>}</div>
+            <aside className="nx52-delivery-detail" aria-label="Selected delivery details">{(current && visible.some(a=>String(a.orderId)===String(current.orderId)) ? current : visible[0]) ? details(current && visible.some(a=>String(a.orderId)===String(current.orderId)) ? current : visible[0]) : <div className="nx52-detail-empty">Select an assignment to view delivery details.</div>}</aside></div>
           </section>
         </>}
     </main>

@@ -56,7 +56,7 @@ export default function ProductCard({ product, showQuickAdd = true }) {
   const money = value => `₹${Number(value ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   return <article className="product-card nx29-preview-card nx74-link-card">
     <Link className="nx74-card-hit-area" to={detailUrl} aria-label={`Open ${product.name} details`} />
-    <div className="nx29-card-stage" onMouseEnter={() => { if (window.matchMedia("(hover: hover)").matches) startPreview(); }} onMouseLeave={() => { stopPreview(true); manuallyNavigated.current = false; }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className={`nx29-card-stage ${availableImages.length < 2 ? "nx77-single-image" : "nx77-multiple-images"}`} onMouseEnter={() => { if (window.matchMedia("(hover: hover)").matches) startPreview(); }} onMouseLeave={() => { stopPreview(true); manuallyNavigated.current = false; }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <Link className="product-image-link" to={detailUrl} aria-label={`View ${product.name}`} onClick={event => { if (swiped.current) { event.preventDefault(); swiped.current = false; } }}>
         {current ? <img key={current} className="nx29-card-image" src={apiAssetUrl(current)} alt={product.name} loading="lazy" onError={() => { setFailedImages(prev => prev.includes(current) ? prev : [...prev, current]); setActive(0); }} />
           : <div className="missing-image">Image coming soon</div>}

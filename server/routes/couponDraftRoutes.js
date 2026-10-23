@@ -2,6 +2,7 @@ import {Router} from 'express';
 import pool from '../config/db.js';
 import {requireAdmin} from '../middleware/authMiddleware.js';
 import {validateCouponDraft,previewDraftCoupon} from '../services/couponDraftRules.js';
+import {testCouponAgainstCatalogue} from '../services/couponCatalogueTest.js';
 const router=Router();
 router.use(requireAdmin);
 router.use((req,res,next)=>{const origin=req.get('origin');if(origin&&origin!==(process.env.CLIENT_ORIGIN||'http://localhost:5173'))return res.status(403).json({message:'Origin not allowed.'});next();});
@@ -12,6 +13,28 @@ router.post('/simulate', (req,res)=>{
   if (!draft) return res.status(400).json({message:'Save valid coupon rules before previewing.'});
   try { return res.json(previewDraftCoupon(draft,req.body?.sample)); }
   catch(e) { return res.status(400).json({message:e.message}); }
+});
+// Use actual catalogue records for a safe dry-run; this NEVER discounts a customer payment.
+router.post('/test-cart',async(req,res)=>{
+ const code=String(req.body?.code||'').toUpperCase();
+ const items=req.body?.items;
+ if(!/^[A-Z0-9][A-Z0-9_-]{2,23}$/.test(code)||!Array.isArray(items)||!items.length||items.length>12||
+    items.some(i=>!Number.isSafeInteger(Number(i.productId))||Number(i.productId)<1||!Number.isSafeInteger(i.quantity)||i.quantity<1||i.quantity>10)||
+    new Set(items.map(i=>String(i.productId))).size!==items.length){return res.status(400).json({message:'Enter a saved code and 1–12 unique products with quantities from 1 to 10.'});}
+ try{
+  const [coupon,products,categories]=await Promise.all([
+   pool.query('SELECT * FROM coupon_drafts WHERE code=$1',[code]),
+   pool.query(`SELECT p.id,p.category_id,p.price,p.is_active,p.show_sale_badge,c.is_active AS category_active FROM products p JOIN categories c ON c.id=p.category_id WHERE p.id=ANY($1::integer[])`,[items.map(i=>Number(i.productId))]),
+   pool.query('SELECT id,parent_id FROM categories')
+  ]);
+  if(!coupon.rows.length)return res.status(404).json({message:'Coupon draft not found.'});
+  const row=coupon.rows[0];
+  const validated=validateCouponDraft({code:row.code,kind:row.discount_kind,value:row.discount_value,minimumSubtotal:row.minimum_subtotal,
+   maxRedemptions:row.max_redemptions,startsAt:row.starts_at,expiresAt:row.expires_at,...row.eligibility});
+  if(!validated)return res.status(409).json({message:'Stored coupon has invalid rules. Edit and save it before testing.'});
+  const result=testCouponAgainstCatalogue(validated,items,products.rows,categories.rows);
+  return res.json(result);
+ }catch(e){console.error('Test coupon against catalogue',e);return res.status(503).json({message:'Could not test against the current catalogue.'});}
 });
 router.get('/targets',async(req,res)=>{
  const type=req.query.type==='categories'?'categories':'products';

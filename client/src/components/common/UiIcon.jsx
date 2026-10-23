@@ -24,6 +24,8 @@ const shapes = {
   play: <path d="m8 5 11 7-11 7z" />,
   check: <path d="m5 12 4 4L19 6" />,
   edit: <><path d="M12 20h9"/><path d="M16 4a2.2 2.2 0 0 1 3.1 3.1L8.9 17.3l-4.2 1.1 1.1-4.2L16 4Z"/></>,
+  list: <><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></>,
+  'layout-grid': <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
   grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
   heart: <path d="M20.8 4.8a5 5 0 0 0-7.1 0L12 6.5l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 20.7l8.8-8.8a5 5 0 0 0 0-7.1Z"/>,
   eye: <><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.6"/></>,

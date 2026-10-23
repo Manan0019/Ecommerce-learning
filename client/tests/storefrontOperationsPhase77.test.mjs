@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=f=>readFileSync(new URL('../'+f,import.meta.url),'utf8');
+test('categories primary link opens directory while menu keeps separate accessible toggle',()=>{const s=read('src/components/layout/CategoryMegaMenu.jsx');assert.match(s,/to="\/categories" onClick=\{close\} aria-label="Browse all categories"/);assert.match(s,/aria-label="Open category quick menu"/)});
+test('one image product has intentional hover and multi-image slideshow remains guarded',()=>{const card=read('src/components/common/ProductCard.jsx');const css=read('src/styles/modules/foundation/interactive-controls.css');assert.match(card,/nx77-single-image/);assert.match(card,/availableImages\.length > 1/);assert.match(css,/nx77-single-image:hover/)});
+test('both delivery workspaces offer search and paginated tables',()=>{const admin=read('src/pages/admin/AdminDelivery.jsx'),executive=read('src/pages/delivery/DeliveryDashboard.jsx');for(const text of ['ordersSlice','activitySlice','shownStaff','nx77-pagination'])assert.ok(admin.includes(text));for(const text of ['nx77-delivery-mini-table','setView(\'table\')','visible.map'])assert.ok(executive.includes(text))});
+test('shipping settings make free delivery threshold explicit and preserve regional price preview',()=>{const s=read('src/pages/admin/AdminCheckoutSettings.jsx');for(const t of ['previewFee','free_shipping_above','nx77-shipping-help','within-state'])assert.ok(s.includes(t))});
+test('coupon test says no customer checkout redemption while exercising live catalogue endpoint',()=>{const s=read('src/pages/admin/AdminCoupons.jsx');assert.match(s,/coupon-drafts\/test-cart/);assert.match(s,/Customer redemption remains disabled/)});
+test('Nexora styles stay purpose-named and have reduced motion',()=>{const build=read('scripts/build-styles.mjs'),css=read('src/styles/modules/foundation/interactive-controls.css');assert.match(build,/foundation\/interactive-controls.css/);assert.match(css,/prefers-reduced-motion/)});
