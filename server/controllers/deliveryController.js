@@ -2,19 +2,22 @@ import bcrypt from 'bcrypt';
 import {sendDeliveryConfirmationEmail} from '../config/mailer.js';
 import {otpEnabled,issueDeliveryCode,verifyDeliveryCode,maskedEmail,otpRequestAllowed,DELIVERY_OTP_LIFETIME_MS} from '../services/deliveryOtp.js';
 import pool from '../config/db.js';
-import { eligibleForAssignment,canUpdateDelivery,canReportDeliveryIssue,validateDeliveryIssue,validId,validNewPassword,validateBulkDeliveryAssignment } from '../services/deliveryRules.js';
+import { eligibleForAssignment,canUpdateDelivery,canReportDeliveryIssue,validateDeliveryIssue,validId,validateBulkDeliveryAssignment } from '../services/deliveryRules.js';
 import { notifyAdmins, notifyUser } from '../services/notificationService.js';
+import {validateNewDeliveryAccount,validateDeliveryProfile} from '../services/deliveryStaffValidation.js';
+import {parseDeliveryRate,rupees} from '../services/deliveryFinanceRules.js';
 
-const scrub = r => ({id:String(r.id),fullName:r.full_name,email:r.email,mobile:r.mobile_number,isActive:r.is_active});
+const scrub = r => ({id:String(r.id),fullName:r.full_name,email:r.email,mobile:r.mobile_number,isActive:r.is_active,payRate:rupees(r.pay_rate_paise)});
 const err = (res,e) => {console.error('Delivery operation:',e);return res.status(500).json({message:'Delivery operation could not be completed.'});};
 export async function listDeliveryStaff(_req,res){
- try{const r=await pool.query(`SELECT u.id,u.full_name,u.email,u.mobile_number,p.is_active,
+ try{const r=await pool.query(`SELECT u.id,u.full_name,u.email,u.mobile_number,p.is_active,p.pay_rate_paise,
+     COUNT(a.order_id)::int AS total_assignments,
      COUNT(a.order_id) FILTER (WHERE a.status <> 'delivered' AND o.status NOT IN ('cancelled','delivered'))::int AS open_deliveries
    FROM delivery_staff_profiles p JOIN users u ON u.id=p.user_id
    LEFT JOIN delivery_assignments a ON a.executive_id=p.user_id
    LEFT JOIN cod_orders o ON o.id=a.order_id
-   GROUP BY u.id,u.full_name,u.email,u.mobile_number,p.is_active ORDER BY u.full_name`);
-  res.json({staff:r.rows.map(row=>({...scrub(row),openDeliveries:row.open_deliveries}))});
+   GROUP BY u.id,u.full_name,u.email,u.mobile_number,p.is_active,p.pay_rate_paise ORDER BY u.full_name`);
+  res.json({staff:r.rows.map(row=>({...scrub(row),openDeliveries:row.open_deliveries,totalAssignments:row.total_assignments}))});
  }catch(e){err(res,e);}
 }
 export async function createDeliveryStaff(req,res){
@@ -22,20 +25,77 @@ export async function createDeliveryStaff(req,res){
  const name=typeof fullName==='string'?fullName.trim():'';
  const mail=typeof email==='string'?email.trim().toLowerCase():'';
  const phone=typeof mobileNumber==='string'?mobileNumber.trim():'';
- if(name.length<2||name.length>100||mail.length>255||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)||
-  !/^\+?[0-9\s-]{10,18}$/.test(phone)||!validNewPassword(password))return res.status(400).json({message:'Enter name, valid email/mobile, and a password with 12–72 UTF-8 bytes.'});
+ const errors=validateNewDeliveryAccount(req.body);
+ if(parseDeliveryRate(req.body?.payRate)===null)errors.payRate='Enter a valid per-delivery rate from ₹0 to ₹50,000 (up to 2 decimals).';
+ if(Object.keys(errors).length)return res.status(400).json({message:'Correct the highlighted delivery account fields.',errors});
  const db=await pool.connect();let open=false;
  try{
   const hash=await bcrypt.hash(password,12);
   await db.query('BEGIN');open=true;
   const user=await db.query(`INSERT INTO users(full_name,email,mobile_number,password_hash,role)
    VALUES($1,$2,$3,$4,'delivery') RETURNING id,full_name,email,mobile_number`,[name,mail,phone,hash]);
-  await db.query('INSERT INTO delivery_staff_profiles(user_id) VALUES($1)',[user.rows[0].id]);
+  await db.query('INSERT INTO delivery_staff_profiles(user_id,pay_rate_paise) VALUES($1,$2)',[user.rows[0].id,parseDeliveryRate(req.body.payRate)]);
   await db.query('COMMIT');open=false;
-  res.status(201).json({staff:{...scrub({...user.rows[0],is_active:true})}});
+  res.status(201).json({staff:{...scrub({...user.rows[0],is_active:true,pay_rate_paise:parseDeliveryRate(req.body.payRate)})}});
  }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});
-  if(e.code==='23505')return res.status(409).json({message:'An account already uses that email.'});return err(res,e);
+  if(e.code==='23505')return res.status(409).json({message:'An account already uses that email.',errors:{email:'This email is already registered.'}});return err(res,e);
  }finally{db.release();}
+}
+/** Admin edits profile and the FUTURE delivery rate; old assignments keep snapshots. */
+export async function updateDeliveryStaffDetails(req,res){
+ const id=req.params.id;
+ if(!validId(id))return res.status(400).json({message:'Invalid delivery account.'});
+ const errors=validateDeliveryProfile(req.body);
+ const email=typeof req.body?.email==='string'?req.body.email.trim().toLowerCase():'';
+ if(!email||email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))errors.email='Enter a valid email address.';
+ const rate=parseDeliveryRate(req.body?.payRate);
+ if(rate===null)errors.payRate='Enter an amount between ₹0 and ₹50,000 (up to 2 decimals).';
+ if(Object.keys(errors).length)return res.status(400).json({message:'Correct the highlighted fields.',errors});
+ const db=await pool.connect();let open=false;
+ try{
+  await db.query('BEGIN');open=true;
+  const found=await db.query(`SELECT user_id FROM delivery_staff_profiles WHERE user_id=$1 FOR UPDATE`,[id]);
+  if(!found.rows.length){await db.query('ROLLBACK');open=false;return res.status(404).json({message:'Delivery executive not found.'});}
+  const updated=await db.query(`UPDATE users SET full_name=$2,email=$3,mobile_number=$4 WHERE id=$1 AND role='delivery' RETURNING id,full_name,email,mobile_number`,[id,req.body.fullName.trim(),email,req.body.mobileNumber]);
+  await db.query('UPDATE delivery_staff_profiles SET pay_rate_paise=$2 WHERE user_id=$1',[id,rate]);
+  await db.query('COMMIT');open=false;
+  return res.json({staff:{...scrub({...updated.rows[0],is_active:true,pay_rate_paise:rate})},note:'New rate applies only to future assignments. Existing assignments retain their agreed amounts.'});
+ }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});
+  if(e.code==='23505')return res.status(409).json({message:'Email address already registered.',errors:{email:'Another account uses this email.'}});
+  return err(res,e);
+ }finally{db.release();}
+}
+/** Permanent deletion is only permitted for unused accounts: all delivery audit history is retained. */
+export async function deleteUnusedDeliveryStaff(req,res){
+ const id=req.params.id;if(!validId(id))return res.status(400).json({message:'Invalid delivery account.'});
+ const db=await pool.connect();let open=false;
+ try{
+  await db.query('BEGIN');open=true;
+  const staff=await db.query(`SELECT p.user_id FROM delivery_staff_profiles p JOIN users u ON u.id=p.user_id
+     WHERE p.user_id=$1 AND u.role='delivery' FOR UPDATE OF p,u`,[id]);
+  if(!staff.rows.length){await db.query('ROLLBACK');open=false;return res.status(404).json({message:'Delivery account not found.'});}
+  const history=await db.query(`SELECT EXISTS(SELECT 1 FROM delivery_assignments WHERE executive_id=$1)
+     OR EXISTS(SELECT 1 FROM delivery_issues WHERE executive_id=$1) AS has_history`,[id]);
+  if(history.rows[0]?.has_history){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'This executive has delivery history. Disable the account instead to preserve audit records.'});}
+  await db.query('DELETE FROM delivery_staff_profiles WHERE user_id=$1',[id]);
+  await db.query("DELETE FROM users WHERE id=$1 AND role='delivery'",[id]);
+  await db.query('COMMIT');open=false;return res.json({ok:true,message:'Unused delivery account deleted.'});
+ }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});
+  if(e.code==='23503')return res.status(409).json({message:'This account is referenced by historical records and cannot be deleted. Disable it instead.'});
+  return err(res,e);
+ }finally{db.release();}
+}
+/** A signed-in executive may edit their contact profile, never role or delivery ownership. */
+export async function updateMyDeliveryProfile(req,res){
+ const errors=validateDeliveryProfile(req.body);
+ if(Object.keys(errors).length)return res.status(400).json({message:'Correct the highlighted profile fields.',errors});
+ try{
+  const r=await pool.query(`UPDATE users SET full_name=$1,mobile_number=$2 WHERE id=$3 AND role='delivery'
+   RETURNING id,full_name,email,mobile_number`,[req.body.fullName.trim(),req.body.mobileNumber.trim(),req.user.id]);
+  if(!r.rows.length)return res.status(404).json({message:'Delivery account unavailable.'});
+  return res.json({user:{id:String(r.rows[0].id),fullName:r.rows[0].full_name,email:r.rows[0].email,
+   mobileNumber:r.rows[0].mobile_number,role:'delivery'}});
+ }catch(e){return err(res,e);}
 }
 export async function setDeliveryStaffActive(req,res){
  const {id}=req.params;if(!validId(id)||typeof req.body?.isActive!=='boolean')return res.status(400).json({message:'Invalid delivery account.'});
@@ -52,13 +112,14 @@ export async function setDeliveryStaffActive(req,res){
 export async function listDeliveryAssignments(req,res){
  try{
   const worker=req.user.role==='delivery';
-  const r=await pool.query(`SELECT a.order_id,a.executive_id,a.status AS delivery_status,a.assigned_at,a.out_for_delivery_at,a.delivered_at,
+  const r=await pool.query(`SELECT a.order_id,a.executive_id,a.status AS delivery_status,a.assigned_at,a.out_for_delivery_at,a.delivered_at,a.pay_rate_paise,payout.paid_at AS earnings_paid_at,
    o.status AS order_status,o.payment_method,o.payment_status,o.grand_total,o.address_snapshot,o.delivery_partner,o.tracking_reference,
    u.full_name AS executive_name,c.full_name AS customer_name,c.mobile_number AS customer_phone,c.email AS customer_email,
    issue.id AS issue_id,issue.kind AS issue_kind,issue.reason AS issue_reason,
    issue.requested_date AS issue_date,issue.recorded_at AS issue_recorded_at
    FROM delivery_assignments a JOIN cod_orders o ON o.id=a.order_id
    JOIN users u ON u.id=a.executive_id JOIN users c ON c.id=o.customer_id
+   LEFT JOIN delivery_earnings_payouts payout ON payout.order_id=a.order_id
    LEFT JOIN LATERAL (SELECT i.* FROM delivery_issues i WHERE i.order_id=a.order_id AND i.state='pending' ORDER BY i.id DESC LIMIT 1) issue ON TRUE
    ${worker?'WHERE a.executive_id=$1':''}
    ORDER BY a.assigned_at DESC LIMIT ${worker?500:200}`,worker?[req.user.id]:[]);
@@ -67,7 +128,7 @@ export async function listDeliveryAssignments(req,res){
     total:x.grand_total,address:x.address_snapshot,customerName:x.customer_name,customerPhone:x.customer_phone,customerEmailMasked:maskedEmail(x.customer_email),
     deliveryPartner:x.delivery_partner,trackingReference:x.tracking_reference,
     pendingIssue:x.issue_id?{id:String(x.issue_id),kind:x.issue_kind,reason:x.issue_reason,requestedDate:x.issue_date,reportedAt:x.issue_recorded_at}:null,
-    assignedAt:x.assigned_at,outForDeliveryAt:x.out_for_delivery_at,deliveredAt:x.delivered_at}))});
+    assignedAt:x.assigned_at,outForDeliveryAt:x.out_for_delivery_at,deliveredAt:x.delivered_at,payRate:rupees(x.pay_rate_paise),payRatePaise:Number(x.pay_rate_paise),earningsPaidAt:x.earnings_paid_at}))});
  }catch(e){err(res,e);}
 }
 export async function assignDelivery(req,res){
@@ -81,14 +142,14 @@ export async function assignDelivery(req,res){
   if(!eligibleForAssignment(r.rows[0])){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Only confirmed, preparing or dispatched orders with valid payment state can be assigned.'});}
   const pending=await db.query(`SELECT 1 FROM order_cancellation_requests WHERE order_id=$1 AND status='pending'`,[orderId]);
   if(pending.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Resolve customer cancellation request before assigning delivery.'});}
-  const staff=await db.query('SELECT user_id FROM delivery_staff_profiles WHERE user_id=$1 AND is_active=TRUE FOR SHARE',[executiveId]);
+  const staff=await db.query('SELECT user_id,pay_rate_paise FROM delivery_staff_profiles WHERE user_id=$1 AND is_active=TRUE FOR SHARE',[executiveId]);
   if(!staff.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Delivery executive is not active.'});}
   const prior=await db.query('SELECT * FROM delivery_assignments WHERE order_id=$1 FOR UPDATE',[orderId]);
   if(prior.rows[0]?.status!=='assigned' && prior.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'Cannot reassign a delivery already in progress.'});}
   if(String(prior.rows[0]?.executive_id)===String(executiveId)){await db.query('COMMIT');open=false;return res.json({ok:true,unchanged:true});}
-  await db.query(`INSERT INTO delivery_assignments(order_id,executive_id,assigned_by) VALUES($1,$2,$3)
+  await db.query(`INSERT INTO delivery_assignments(order_id,executive_id,assigned_by,pay_rate_paise) VALUES($1,$2,$3,$4)
    ON CONFLICT(order_id) DO UPDATE SET executive_id=EXCLUDED.executive_id,assigned_by=EXCLUDED.assigned_by,
-   assigned_at=NOW(),updated_at=NOW()`,[orderId,executiveId,req.user.id]);
+   pay_rate_paise=EXCLUDED.pay_rate_paise,assigned_at=NOW(),updated_at=NOW()`,[orderId,executiveId,req.user.id,staff.rows[0].pay_rate_paise]);
   await db.query(`INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes)
    VALUES($1,'delivery_assigned',$2,$3)`,[orderId,req.user.id,`Assigned to delivery executive ${executiveId}`]);
   await notifyUser(db,executiveId,{key:`delivery:${orderId}:assigned:${executiveId}`,kind:'delivery',title:'New delivery assigned',message:`Order #${orderId} is ready for your delivery queue.`,path:'/delivery/dashboard'});
@@ -106,7 +167,7 @@ export async function assignDeliveryBatch(req,res){
  const db=await pool.connect();let open=false;
  try{
   await db.query('BEGIN');open=true;
-  const staff=await db.query('SELECT user_id FROM delivery_staff_profiles WHERE user_id=$1 AND is_active=TRUE FOR SHARE',[executiveId]);
+  const staff=await db.query('SELECT user_id,pay_rate_paise FROM delivery_staff_profiles WHERE user_id=$1 AND is_active=TRUE FOR SHARE',[executiveId]);
   if(!staff.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:'The selected delivery executive is disabled or missing.'});}
   for(const id of ids){
    const r=await db.query('SELECT * FROM cod_orders WHERE id=$1 FOR UPDATE',[id]);
@@ -117,7 +178,7 @@ export async function assignDeliveryBatch(req,res){
    if(pending.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:`Order #${id} has a pending cancellation. No orders were assigned.`});}
    const prior=await db.query('SELECT order_id FROM delivery_assignments WHERE order_id=$1 FOR UPDATE',[id]);
    if(prior.rows.length){await db.query('ROLLBACK');open=false;return res.status(409).json({message:`Order #${id} is already assigned. Use its individual reassignment control. No orders were assigned.`});}
-   await db.query('INSERT INTO delivery_assignments(order_id,executive_id,assigned_by) VALUES($1,$2,$3)',[id,executiveId,req.user.id]);
+   await db.query('INSERT INTO delivery_assignments(order_id,executive_id,assigned_by,pay_rate_paise) VALUES($1,$2,$3,$4)',[id,executiveId,req.user.id,staff.rows[0].pay_rate_paise]);
    await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'delivery_assigned',$2,$3)",[id,req.user.id,`Assigned to delivery executive ${executiveId} from the batch assignment workspace`]);
    await notifyUser(db,executiveId,{key:`delivery:${id}:assigned:${executiveId}`,kind:'delivery',title:'New delivery assigned',message:`Order #${id} is ready for your delivery queue.`,path:'/delivery/dashboard'});
   }

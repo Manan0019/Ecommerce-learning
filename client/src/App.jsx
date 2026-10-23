@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet } from "react-router-dom";
+import UnsavedNavigationGuard from "./components/common/UnsavedNavigationGuard";
 import StoreErrorBoundary from "./components/common/StoreErrorBoundary";
 import RouteExperience from "./components/common/RouteExperience";
 import CartProvider from "./context/CartProvider";
@@ -28,6 +29,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminFeatured from "./pages/admin/AdminFeatured";
 import AdminInventory from "./pages/admin/AdminInventory";
 import AdminDelivery from './pages/admin/AdminDelivery';
+import AdminFinance from './pages/admin/AdminFinance';
 import DeliveryDashboard from './pages/delivery/DeliveryDashboard';
 import DeliveryLogin from './pages/delivery/DeliveryLogin';
 import Wishlist from "./pages/customer/Wishlist";
@@ -88,8 +90,7 @@ import Categories from "./pages/customer/Categories";
 
 
 
-export default function App() {
-  return <StoreErrorBoundary><BrandingProvider><CartProvider><BrowserRouter><RouteExperience /><Routes>
+const appRouter=createBrowserRouter(createRoutesFromElements(<Route element={<><RouteExperience/><UnsavedNavigationGuard/><Outlet/></>}>
     <Route path="/" element={<Home />} />
     <Route path="/signup" element={<CustomerSignup />} />
     <Route path="/verify-otp" element={<VerifyOTP />} />
@@ -105,6 +106,7 @@ export default function App() {
     <Route path="/admin/banners" element={<AdminBanners />} />
     <Route path="/admin/orders" element={<AdminOrders />} />
     <Route path="/admin/delivery" element={<AdminDelivery />} />
+    <Route path="/admin/finance" element={<AdminFinance />} />
     <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
     <Route path="/delivery/login" element={<DeliveryLogin />} />
     <Route path="/admin/products/:id/preview" element={<ProductDetails adminPreview />} />
@@ -131,6 +133,8 @@ export default function App() {
     <Route path="/about" element={<About />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="*" element={<NotFound />} />
-  </Routes></BrowserRouter></CartProvider></BrandingProvider></StoreErrorBoundary>;
+  </Route>));
+export default function App() {
+ return <StoreErrorBoundary><BrandingProvider><CartProvider><RouterProvider router={appRouter}/></CartProvider></BrandingProvider></StoreErrorBoundary>;
 }
 

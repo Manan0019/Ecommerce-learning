@@ -4,6 +4,8 @@ export const getDeliveryHealth=signal=>apiRequest('/api/admin/delivery/health',{
 export const getDeliveryStaff=signal=>apiRequest('/api/admin/delivery/staff',{...opts,signal});
 export const createDeliveryStaff=body=>apiRequest('/api/admin/delivery/staff',{...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 export const setDeliveryStaffActive=(id,isActive)=>apiRequest(`/api/admin/delivery/staff/${id}`,{...opts,method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({isActive})});
+export const deleteUnusedDeliveryStaff=id=>apiRequest(`/api/admin/delivery/staff/${id}`,{...opts,method:'DELETE'});
+export const updateMyDeliveryProfile=body=>apiRequest('/api/delivery/profile',{...opts,method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 export const getAdminAssignments=signal=>apiRequest('/api/admin/delivery/assignments',{...opts,signal});
 export const assignDelivery=(orderId,executiveId)=>apiRequest(`/api/admin/delivery/orders/${orderId}/assign`,{...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({executiveId})});
 export const assignDeliveryBatch=(orderIds,executiveId)=>apiRequest('/api/admin/delivery/assignments/batch',{...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({orderIds,executiveId})});
@@ -24,3 +26,10 @@ export const resendDeliveryCode=orderId=>apiRequest(`/api/delivery/assignments/$
   ...opts,method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
 export const confirmDeliveryCode=(orderId,otp)=>apiRequest(`/api/delivery/assignments/${orderId}/confirm-delivery`,{
   ...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({otp})});
+
+const financeQuery=({from='',to='',executiveId=''}={})=>{const q=new URLSearchParams();if(from)q.set('from',from);if(to)q.set('to',to);if(executiveId)q.set('executiveId',executiveId);return q.toString()?`?${q}`:'';};
+export const editDeliveryStaff=(id,body)=>apiRequest(`/api/admin/delivery/staff/${id}`,{...opts,method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+export const getMyEarnings=(range,signal)=>apiRequest(`/api/delivery/earnings${financeQuery(range)}`,{...opts,signal});
+export const getAdminEarnings=(range,signal)=>apiRequest(`/api/admin/delivery/earnings${financeQuery(range)}`,{...opts,signal});
+export const getAdminCollections=(range,signal)=>apiRequest(`/api/admin/delivery/collections${financeQuery(range)}`,{...opts,signal});
+export const recordDeliveryPayout=(orderId,reference)=>apiRequest(`/api/admin/delivery/earnings/${orderId}/pay`,{...opts,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reference})});

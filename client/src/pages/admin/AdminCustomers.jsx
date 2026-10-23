@@ -51,7 +51,6 @@ export default function AdminCustomers() {
     <section className="admin-panel">
       <div className="admin-panel-heading">
         <div><h2>Customer directory</h2><p>Search registered accounts by name, email or ID. Up to 100 matching records per search.</p></div>
-        <span className="admin-readonly-badge">Read only</span>
       </div>
       <div className="nx74-customer-tools">
         <label className="nx74-customer-search"><UiIcon name="search" size={19}/><span className="nx74-sr-only">Search customers by name, email or ID</span>

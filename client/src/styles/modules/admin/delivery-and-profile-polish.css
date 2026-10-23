@@ -1,0 +1,40 @@
+/* Phase 80: reuse Nexora interaction language across admin and courier workspaces. */
+.admin-shell .nx74-customer-search input[type="search"]{background-image:none!important;padding-left:2px!important;background-color:transparent!important}
+.admin-shell .nx73-assignment-table thead th:last-child{text-align:center!important;padding-inline:12px}
+.admin-shell .nx73-assignment-table .nx78-assignment-cell .nx53-order-action{grid-template-columns:minmax(0,110px) 174px;justify-content:center;gap:10px}
+.admin-shell .nx73-assignment-table .nx78-assignment-cell .nx53-order-assignee{text-align:right}
+.admin-shell .nx73-assignment-table .nx78-assignment-cell .nx53-open-picker{justify-self:center}
+.nx80-executive-actions{display:inline-flex;gap:9px;align-items:center}
+.nx80-icon-btn{display:inline-grid;place-items:center;width:43px;height:40px;border:1px solid #dcd4fc;border-radius:12px;background:#f4f1ff;color:#6245ca;cursor:pointer;transition:transform .22s,background .22s,box-shadow .22s,color .22s}
+.nx80-icon-btn:hover:not(:disabled){transform:translateY(-2px);background:#5b42d6;color:white;box-shadow:0 9px 19px #5840b82a}
+.nx80-icon-btn.nx80-icon-danger{background:#fff1f2;border-color:#ffc9d2;color:#c72147}
+.nx80-icon-btn.nx80-icon-danger:hover:not(:disabled){background:#bb2344;color:#fff;box-shadow:0 9px 19px #cf25482a}
+.nx80-icon-btn:disabled{opacity:.43;cursor:not-allowed}
+.nx80-icon-btn:focus-visible{outline:3px solid #7c6bed;outline-offset:3px}
+.nx80-delivery-form{display:grid;gap:14px}
+.nx80-delivery-form>label{display:grid;gap:6px;font-weight:750;color:#34304e}
+.nx80-delivery-form input{width:100%;box-sizing:border-box}
+.nx80-required{font-weight:900;color:#d12c51}
+.nx80-delivery-form input[aria-invalid="true"]{border-color:#da365b!important;background:#fff8f9!important;box-shadow:0 0 0 2px #da365b14!important}
+.nx80-field-error{display:block;color:#b91c40!important;font-size:12px!important;font-weight:650!important;line-height:1.4}
+.nx80-delete-action{background:#c02045!important;border-color:#c02045!important;color:white!important}
+.nx80-delete-confirm p{line-height:1.55;color:#574e67}
+/* Color-coded metrics shared with the admin analytics design. */
+.nx57-delivery-shell .nx52-delivery-stats article{transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease}
+.nx57-delivery-shell .nx52-delivery-stats article:nth-child(4n+1){background:linear-gradient(135deg,#f2edff,#fff);border-color:#ddd2ff}
+.nx57-delivery-shell .nx52-delivery-stats article:nth-child(4n+2){background:linear-gradient(135deg,#ecf5ff,#fff);border-color:#d4e7ff}
+.nx57-delivery-shell .nx52-delivery-stats article:nth-child(4n+3){background:linear-gradient(135deg,#fff5e7,#fff);border-color:#ffe0b6}
+.nx57-delivery-shell .nx52-delivery-stats article:nth-child(4n+4){background:linear-gradient(135deg,#e9fbf2,#fff);border-color:#c9eedb}
+.nx57-delivery-shell .nx52-delivery-stats article:hover{transform:translateY(-3px);box-shadow:0 15px 28px #2c21601a}
+.nx57-delivery-shell :is(.nx52-delivery-account>button,.nx52-delivery-welcome>button,.nx52-delivery-tabs button,.nx77-delivery-view-controls button,.nx52-contact-actions a,.nx52-confirm-actions button,.nx74-delivery-queue-summary button,.nx57-delivery-sidebar-foot button){transition:transform .23s ease,background .23s ease,color .23s ease,box-shadow .23s ease,border-color .23s ease}
+.nx57-delivery-shell :is(.nx52-delivery-account>button,.nx52-delivery-welcome>button,.nx52-delivery-tabs button,.nx77-delivery-view-controls button,.nx52-contact-actions a,.nx52-confirm-actions button,.nx74-delivery-queue-summary button,.nx57-delivery-sidebar-foot button):hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px #4e3e9b25;border-color:#b8a8f4}
+.nx57-delivery-shell :is(.nx57-delivery-sidebar>button,.nx52-delivery-list-card,.nx77-delivery-mini-table button){transition:background .23s,transform .23s,border-color .23s,box-shadow .23s}
+.nx57-delivery-shell :is(button,a):focus-visible{outline:3px solid #7760e5;outline-offset:2px}
+.nx57-delivery-shell .nx80-header-profile,.nx57-delivery-shell .nx80-edit-profile{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.nx57-delivery-shell .nx80-edit-profile{width:100%;background:#272b55;color:#edeaff;padding:10px;border:1px solid #594c8e;border-radius:11px;font-size:12px;font-weight:800;cursor:pointer}
+.nx57-delivery-shell .nx80-edit-profile:hover{background:#5944d2;color:#fff}
+.nx57-delivery-shell .nx80-header-profile{white-space:nowrap}
+.nx57-delivery-shell .nx52-delivery-search input[type="search"]{background-image:none!important;padding-left:2px!important}
+@media(max-width:1000px){.nx57-delivery-shell .nx80-header-profile{font-size:0;padding:11px}.nx57-delivery-shell .nx80-header-profile svg{width:18px;height:18px}}
+@media(max-width:650px){.admin-shell .nx73-assignment-table{min-width:940px}.nx57-delivery-shell .nx80-header-profile{display:none}}
+@media(prefers-reduced-motion:reduce){.nx80-icon-btn,.nx57-delivery-shell .nx52-delivery-stats article,.nx57-delivery-shell :is(button,a){transition:none!important;transform:none!important}}

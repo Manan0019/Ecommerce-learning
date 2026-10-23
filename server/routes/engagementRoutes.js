@@ -2,7 +2,8 @@ import { Router } from 'express';
 import {randomBytes} from 'node:crypto';
 import pool from '../config/db.js';
 import {requireAdmin,requireCustomer} from '../middleware/authMiddleware.js';
-import {normalizeNewsletterEmail,validateReview,reviewEligible} from '../services/storefrontEngagementRules.js';
+import {normalizeNewsletterEmail,validateReview} from '../services/storefrontEngagementRules.js';
+import {findReviewableOrder} from '../services/reviewQualification.js';
 
 const router=Router();
 const validId=value=>/^[1-9]\d*$/.test(String(value));
@@ -47,18 +48,24 @@ router.get('/reviews/:productId',async(req,res)=>{
     return res.json({count:rows.length,average,reviews:rows.map(r=>({id:String(r.id),name:r.first_name,rating:r.rating,title:r.title,body:r.body,createdAt:r.created_at}))});
   }catch(e){console.error('list reviews',e);return res.status(503).json({message:'Reviews temporarily unavailable.'});}
 });
+router.get('/reviews/:productId/eligibility',requireCustomer,async(req,res)=>{
+ if(!validId(req.params.productId))return res.status(400).json({message:'Invalid product.'});
+ try{
+  const order=await findReviewableOrder(pool,req.user.id,req.params.productId);
+  const previous=await pool.query('SELECT id FROM product_reviews WHERE product_id=$1 AND customer_id=$2 LIMIT 1',[req.params.productId,req.user.id]);
+  return res.json({eligible:Boolean(order)&&previous.rows.length===0,alreadyReviewed:previous.rows.length>0});
+ }catch(e){console.error('review eligibility',e);return res.status(503).json({message:'Review eligibility temporarily unavailable.'});}
+});
 router.post('/reviews/:productId',requireCustomer,throttle,async(req,res)=>{
   if(!validId(req.params.productId))return res.status(400).json({message:'Invalid product.'});
   const error=validateReview(req.body);if(error)return res.status(400).json({message:error});
   try{
-    const found=await pool.query(`SELECT o.id,o.status,o.payment_status FROM cod_orders o JOIN cod_order_items i ON i.order_id=o.id
-       WHERE o.customer_id=$1 AND i.product_id=$2 AND o.status='delivered' AND o.payment_status IN ('razorpay_paid','cod_collected')
-       ORDER BY o.delivered_at DESC NULLS LAST, o.id DESC LIMIT 1`,[req.user.id,req.params.productId]);
-    if(!found.rows.length || !reviewEligible(found.rows[0]))return res.status(403).json({message:'Reviews are available after a delivered, paid purchase.'});
+    const qualifiedOrder=await findReviewableOrder(pool,req.user.id,req.params.productId);
+    if(!qualifiedOrder)return res.status(403).json({message:'Reviews unlock after OTP-verified delivery and recorded full payment.'});
     const duplicate=await pool.query('SELECT id FROM product_reviews WHERE product_id=$1 AND customer_id=$2',[req.params.productId,req.user.id]);
     if(duplicate.rows.length)return res.status(409).json({message:'You have already reviewed this product.'});
     await pool.query(`INSERT INTO product_reviews(product_id,customer_id,order_id,rating,title,body)
-      VALUES($1,$2,$3,$4,$5,$6)`,[req.params.productId,req.user.id,found.rows[0].id,req.body.rating,req.body.title.trim(),req.body.body.trim()]);
+      VALUES($1,$2,$3,$4,$5,$6)`,[req.params.productId,req.user.id,qualifiedOrder.id,req.body.rating,req.body.title.trim(),req.body.body.trim()]);
     return res.status(201).json({message:'Review submitted for approval.'});
   }catch(e){if(e.code==='23505')return res.status(409).json({message:'You have already reviewed this product.'});console.error('submit review',e);return res.status(503).json({message:'Could not save review.'});}
 });

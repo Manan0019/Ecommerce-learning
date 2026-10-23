@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import NotificationBell from '../../components/common/NotificationBell';
+import EarningsLedger from '../../components/delivery/EarningsLedger';
 import UiIcon from '../../components/common/UiIcon';
+import Modal from '../../components/common/Modal';
+import {validateDeliveryForm,deliveryFieldError} from '../../services/deliveryAccountValidation';
 import { logout } from '../../services/authService';
-import { getDeliverySession, getMyAssignments, updateMyDelivery, reportDeliveryIssue, resendDeliveryCode, confirmDeliveryCode } from '../../services/deliveryService';
+import { getDeliverySession, updateMyDeliveryProfile, getMyAssignments, updateMyDelivery, reportDeliveryIssue, resendDeliveryCode, confirmDeliveryCode } from '../../services/deliveryService';
 import { cleanPhone, deliveryNextAction, deliveryTabMatch, deliveryAttentionPriority, mapSearchUrl } from '../../services/deliveryViewRules';
 
 const money = value => `₹${Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits:2,maximumFractionDigits:2 })}`;
@@ -15,6 +18,9 @@ const tabs = [ ['all','All deliveries'], ['active','In progress'], ['ready','Ass
 export default function DeliveryDashboard() {
   const navigate = useNavigate();
   const [me, setMe] = useState(null);
+  const [profile,setProfile]=useState(null);
+  const [profileErrors,setProfileErrors]=useState({});
+  const [profileBusy,setProfileBusy]=useState(false);
   const [assignments, setAssignments] = useState([]);
   const [tab, setTab] = useState('all');
   const [search, setSearch] = useState('');
@@ -106,6 +112,14 @@ export default function DeliveryDashboard() {
       setNotice(`Issue reported for order #${issueOrder.orderId}. Await admin review before another delivery attempt.`);
     }catch(e){setError(e.message);}finally{setBusy('');}
   }
+  function openProfile(){if(me){setProfile({fullName:me.fullName||'',mobileNumber:me.mobileNumber||''});setProfileErrors({});setError('');}}
+  async function saveProfile(e){
+    e.preventDefault();const errors=validateDeliveryForm(profile,{profile:true});setProfileErrors(errors);
+    if(Object.keys(errors).length)return;
+    setProfileBusy(true);setError('');
+    try{const response=await updateMyDeliveryProfile(profile);setMe(previous=>({...previous,...response.user}));setProfile(null);window.dispatchEvent(new Event('nexora:changes-saved'));setNotice('Your contact profile has been updated.');}
+    catch(ex){if(ex.data?.errors)setProfileErrors(ex.data.errors);else setError(ex.message);}finally{setProfileBusy(false);}
+  }
   async function signOut() {
     try {await logout();navigate('/delivery/login', {replace:true});}
     catch(e) {setError(e.message);}
@@ -140,10 +154,10 @@ export default function DeliveryDashboard() {
       <Link to="/delivery/dashboard" className="nx57-delivery-logo"><span>N</span><strong>Nexora<small>DELIVERY OPERATIONS</small></strong></Link>
       <p className="nx57-sidebar-label">WORKSPACE</p>
       {[["all","Dashboard","layout-dashboard"],["active","In progress","truck"],["ready","Assigned orders","package"],["route","Out for delivery","truck"],["delivered","Delivered history","check-circle"]].map(([key,label,icon])=><button type="button" key={key} className={tab===key?'is-active':''} onClick={()=>{setTab(key);setSelected(null);setPage(1)}} aria-current={tab===key?'page':undefined}><UiIcon name={icon} size={17}/><span>{label}</span><b>{counts[key]}</b></button>)}
-      <div className="nx57-delivery-sidebar-foot"><span>{me?.fullName||'Delivery executive'}</span><small>{me?.email||'Assigned deliveries only'}</small><button type="button" onClick={signOut}>Sign out <UiIcon name="right" size={16}/></button></div>
+      <div className="nx57-delivery-sidebar-foot"><button className="nx80-edit-profile" type="button" onClick={openProfile}><UiIcon name="edit" size={16}/> Edit profile</button><span>{me?.fullName||'Delivery executive'}</span><small>{me?.email||'Assigned deliveries only'}</small><button type="button" onClick={signOut}>Sign out <UiIcon name="right" size={16}/></button></div>
     </aside>
     <header className="nx52-delivery-header"><Link to="/delivery/dashboard" className="nx52-delivery-brand"><span className="nx52-brand-mark">N</span><span><strong>Nexora</strong><small>DELIVERY OPERATIONS</small></span></Link>
-      <div className="nx52-delivery-account"><NotificationBell/><div className="nx52-delivery-user"><strong>{me?.fullName || 'Delivery executive'}</strong><small>{me?.email || 'Delivery workspace'}</small></div><button type="button" onClick={signOut}>Sign out</button></div></header>
+      <div className="nx52-delivery-account"><NotificationBell/><button type="button" className="nx80-header-profile" onClick={openProfile}><UiIcon name="edit" size={16}/> Edit profile</button><div className="nx52-delivery-user"><strong>{me?.fullName || 'Delivery executive'}</strong><small>{me?.email || 'Delivery workspace'}</small></div><button type="button" onClick={signOut}>Sign out</button></div></header>
     <main className="nx52-delivery-main"><div className="nx52-delivery-welcome"><div><p className="nx52-eyebrow">NEXORA · DELIVERY DESK</p><h1>Your delivery workspace</h1><span>Prioritize pending handovers, contact recipients and update delivery progress securely.</span></div><button type="button" disabled={loading || !me} onClick={()=>{setError('');refresh().catch(e=>setError(e.message));}}><UiIcon name="right" size={16}/> Refresh</button></div>
       {error && <div className="nx52-delivery-warning" role="alert">{error}{sessionProblem && <Link to="/delivery/login">Go to delivery sign in <UiIcon name="right" size={15}/></Link>}</div>}
       {notice && <div className="nx52-delivery-success" role="status">{notice}</div>}
@@ -154,7 +168,9 @@ export default function DeliveryDashboard() {
             <article><span>Ready to deliver</span><strong>{counts.ready}</strong><small>Awaiting dispatch or pickup</small></article>
             <article><span>On the way</span><strong>{counts.route}</strong><small>Active deliveries</small></article>
             <article><span>Completed</span><strong>{counts.delivered}</strong><small>Delivered orders</small></article>
+            <article><span>Rate for new deliveries</span><strong>{money(me?.payRate)}</strong><small>Locked when assigned</small></article>
           </section>
+          <EarningsLedger />
           <section className="nx74-delivery-queue-summary" aria-label="Delivery priorities">
             <div><span className="nx52-eyebrow">DELIVERY PRIORITIES</span><strong>{actionable.length ? `${actionable.length} order${actionable.length === 1 ? '' : 's'} ready for your action` : 'All actionable deliveries handled'}</strong><small>{actionable.length ? 'Open the next eligible assignment to begin or verify its delivery.' : 'New assignments will appear when your administrator dispatches them.'}</small></div>
             {actionable.length > 0 && <button type="button" onClick={focusNextDelivery}><UiIcon name="package" size={17}/>Open next delivery</button>}
@@ -169,6 +185,7 @@ export default function DeliveryDashboard() {
           </section>
         </>}
     </main>
+    {profile&&<Modal title="Edit your profile" subtitle="Keep your delivery contact information accurate." size="small" closeDisabled={profileBusy} onClose={()=>{if(!profileBusy)setProfile(null);}}><form className="nx46-create-form nx80-delivery-form" onSubmit={saveProfile} noValidate>{[['fullName','Full name'],['mobileNumber','Mobile number']].map(([field,label])=><label key={field} htmlFor={`nx80-profile-${field}`}><span>{label} <b className="nx80-required" aria-hidden="true">*</b></span><input id={`nx80-profile-${field}`} type={field==='mobileNumber'?'tel':'text'} inputMode={field==='mobileNumber'?'numeric':undefined} maxLength={field==='mobileNumber'?10:100} pattern={field==='mobileNumber'?'[0-9]{10}':undefined} required value={profile[field]} aria-invalid={Boolean(profileErrors[field])} aria-describedby={profileErrors[field]?`nx80-profile-${field}-error`:undefined} onBlur={()=>setProfileErrors(e=>({...e,[field]:deliveryFieldError(field,profile[field])}))} onChange={e=>{const value=field==='mobileNumber'?e.target.value.replace(/\D/g,'').slice(0,10):e.target.value;setProfile(v=>({...v,[field]:value}));if(profileErrors[field])setProfileErrors(prev=>({...prev,[field]:deliveryFieldError(field,value)}));}}/>{profileErrors[field]&&<small id={`nx80-profile-${field}-error`} className="nx80-field-error" role="alert">{profileErrors[field]}</small>}</label>)}<p>Sign-in email: <strong>{me?.email}</strong> (contact your administrator to change this)</p><div className="nx46-modal-actions"><button type="button" disabled={profileBusy} onClick={()=>setProfile(null)}>Cancel</button><button type="submit" disabled={profileBusy}>{profileBusy?'Saving…':'Save changes'}</button></div></form></Modal>}
     {issueOrder && <div className="nx52-confirm-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setIssueOrder(null);}}>
       <form className="nx52-confirm-panel nx54-report-panel" role="dialog" aria-modal="true" aria-labelledby="nx54-report-title" onSubmit={submitIssue}>
         <span className="nx52-eyebrow">DELIVERY EXCEPTION</span><h2 id="nx54-report-title">Report issue · Order #{issueOrder.orderId}</h2>

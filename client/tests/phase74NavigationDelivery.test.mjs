@@ -23,7 +23,8 @@ test('admin customer search is backed by API query and stays read only', () => {
   assert.match(p,/getCustomers\(controller\.signal, serverQuery\)/);
   assert.match(p,/setTimeout\(\(\) => setServerQuery/);
   assert.match(p,/Search name, email or ID/);
-  assert.match(p,/Read only/);
+  assert.match(p,/read-only records/);
+  assert.doesNotMatch(p,/admin-readonly-badge/); // Keep access read-only, remove distracting badge.
   assert.match(read('services/adminService.js'),/params\.set\("q", query\.trim\(\)\)/);
 });
 test('delivered orders are ranked after active assignments without loosening permissions', () => {
