@@ -1,4 +1,5 @@
 import UiIcon from "./UiIcon";
+import {notificationDestination,notificationKind} from '../../services/notificationTarget';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {getNotifications,markNotificationRead,markAllNotificationsRead} from '../../services/deliveryService';
@@ -16,12 +17,14 @@ export default function NotificationBell(){
   refresh();const tick=window.setInterval(()=>{if(document.visibilityState!=='hidden')refresh();},30000);
   const focus=()=>refresh();window.addEventListener('focus',focus);
   const updated=()=>refresh();window.addEventListener('nexora:orders-updated',updated);
-  return()=>{clearInterval(tick);controller.current?.abort();window.removeEventListener('focus',focus);window.removeEventListener('nexora:orders-updated',updated);};
+  const sessionChanged=()=>{setOpen(false);setEntries([]);setUnread(0);controller.current?.abort();refresh();};
+  window.addEventListener('nexora:auth-changed',sessionChanged);
+  return()=>{clearInterval(tick);controller.current?.abort();window.removeEventListener('focus',focus);window.removeEventListener('nexora:orders-updated',updated);window.removeEventListener('nexora:auth-changed',sessionChanged);};
  },[refresh]);
  async function visit(item){
   try{if(!item.read_at){await markNotificationRead(item.id);setEntries(old=>old.map(n=>n.id===item.id?{...n,read_at:new Date().toISOString()}:n));setUnread(n=>Math.max(0,n-1));}}
   catch{setError('Could not mark notification as read.');}
-  setOpen(false);navigate(item.path?.startsWith('/')&&!item.path.startsWith('//')?item.path:'/');
+  setOpen(false);navigate(notificationDestination(item));
  }
  async function markAll() {
    if(markingAll || unread===0) return;
@@ -42,7 +45,7 @@ export default function NotificationBell(){
   {open&&<div className="nx46-notification-panel" role="region" aria-label="Recent notifications">
    <div className="nx46-notification-title"><strong>Notifications</strong><div className="nx70-bell-header-actions">{unread>0&&<button type="button" className="nx70-mark-all" disabled={markingAll} onClick={markAll}>{markingAll ? 'Saving…' : 'Mark all read'}</button>}<button type="button" onClick={()=>setOpen(false)} aria-label="Close notifications" className="nx64-animated-close nx65-close-control"><UiIcon name="x" size={16}/></button></div></div>
    {error&&<p className="nx46-error" role="alert">{error}</p>}
-   {!entries.length?<p className="nx46-notification-empty">No notifications yet. New orders and assignments will appear here.</p>:<div className="nx46-notification-list">{entries.map(n=><button type="button" key={n.id} className={n.read_at?'is-read':'unread'} onClick={()=>visit(n)}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.created_at).toLocaleString('en-IN')}</small></button>)}</div>}
+   {!entries.length?<p className="nx46-notification-empty">No notifications yet. New orders and assignments will appear here.</p>:<div className="nx46-notification-list">{entries.map(n=><button type="button" key={n.id} className={`${n.read_at?'is-read':'unread'} nx73-notification-${notificationKind(n.kind)}`} onClick={()=>visit(n)}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.created_at).toLocaleString('en-IN')}</small></button>)}</div>}
   </div>}
  </div>;
 }

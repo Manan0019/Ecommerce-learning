@@ -22,6 +22,7 @@ const modules = [
   "modules/admin/workspace-controls.css",
   "modules/admin/catalogue-management.css",
   "modules/admin/shipping-settings.css",
+  "modules/admin/metric-cards-and-layout.css",
   "modules/foundation/interactive-controls.css",
   "modules/customer/product-reviews.css"
 ];

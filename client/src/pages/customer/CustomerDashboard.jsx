@@ -146,7 +146,7 @@ export default function CustomerDashboard() {
           <label htmlFor="nx37-confirm-password">Confirm password <span className="nx37-required">*</span></label><input id="nx37-confirm-password" type="password" value={passwords.confirmPassword} onChange={event => setPasswords(v => ({ ...v, confirmPassword: event.target.value }))} minLength={12} autoComplete="new-password" required />
           <button type="submit" disabled={savingPassword}>{savingPassword ? "Updating…" : "Update password"}</button>{passwordMessage && <p role="status" className="nx37-account-feedback">{passwordMessage}</p>}</form>
       </section></div>
-      <div className="nx37-account-bottom"><span>Need to switch accounts?</span><button type="button" onClick={handleLogout}>Sign out <UiIcon name="chevron-right" size={17}/></button></div>
+      <div className="nx37-account-bottom"><div><strong>Need to switch accounts?</strong><span>Sign out first, then sign in to another account.</span></div><button type="button" onClick={handleLogout}>Sign out <UiIcon name="chevron-right" size={17}/></button></div>
     </div>
   </CustomerLayout>;
 }

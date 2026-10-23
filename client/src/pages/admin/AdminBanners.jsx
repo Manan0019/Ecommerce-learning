@@ -114,18 +114,22 @@ export default function AdminBanners(){
       <div><strong>{live.filter(item=>["home","both","home_product"].includes(item.position)).length}</strong><span>Live on homepage</span></div>
       <div><strong>{upcoming.length}</strong><span>Scheduled next</span></div>
     </section>
-    <div className="nx39-layout-panel"><div><span className="nx39-eyebrow">HOMEPAGE LAYOUT</span><h2>How many banners appear together?</h2>
-      <p>Choose a curated layout: 3 = one large + two supporting banners, 4 = a 2×2 grid, 5 = one featured + four tiles, 6 = two wide features + four tiles. More promotions rotate into these positions automatically. Phones show one at a time.</p></div>
-      <label><span>Visible banners</span><select value={homeCount} onChange={e=>setHomeCount(Number(e.target.value))}>
-        {[1,2,3,4,5,6].map(n=><option key={n} value={n}>{({1:"1 · Full-width",2:"2 · Side by side",3:"3 · Featured + 2 (original)",4:"4 · 2 × 2 balanced",5:"5 · Featured + 4 mosaic",6:"6 · Twin features + 4 tiles"})[n]}</option>)}
-      </select></label>
-      <label className="nx41-autoplay-toggle"><input type="checkbox" checked={homeAutoplay} onChange={e=>setHomeAutoplay(e.target.checked)} aria-label="Automatically rotate promotion banners"/><span>Automatic slideshow</span></label>
-      <label><span>Change banner every</span><select value={homeRotateSeconds} disabled={!homeAutoplay} onChange={e=>setHomeRotateSeconds(Number(e.target.value))}>
-        {[3,4,5,6,7,8,9,10,12,15].map(n=><option key={n} value={n}>{n} seconds</option>)}
-      </select></label>
-      <button type="button" className="admin-primary-action" disabled={savingDisplay} onClick={saveDisplay}><><UiIcon name="save" size={17}/>{savingDisplay?"Saving…":"Save layout"}</></button>
+    <section className="nx39-layout-panel nx79-banner-layout" aria-label="Homepage promotion layout">
+      <div className="nx79-layout-intro"><span className="nx39-eyebrow">HOMEPAGE LAYOUT</span><h2>How many banners appear together?</h2>
+        <p>Choose how promotions fill the homepage. Three banners use a featured image and two supporting banners; four use a 2 × 2 grid; five and six use curated mosaic arrangements. More promotions rotate into the chosen layout. Mobile shows one banner at a time.</p>
+      </div>
+      <div className="nx79-layout-controls">
+        <label className="nx79-layout-field"><span>Visible banners</span><select value={homeCount} onChange={e=>setHomeCount(Number(e.target.value))}>
+          {[1,2,3,4,5,6].map(n=><option key={n} value={n}>{({1:"1 · Full-width",2:"2 · Side by side",3:"3 · Featured + 2 (original)",4:"4 · 2 × 2 balanced",5:"5 · Featured + 4 mosaic",6:"6 · Twin features + 4 tiles"})[n]}</option>)}
+        </select></label>
+        <label className="nx41-autoplay-toggle"><input type="checkbox" checked={homeAutoplay} onChange={e=>setHomeAutoplay(e.target.checked)} aria-label="Automatically rotate promotion banners"/><span>Automatic slideshow</span></label>
+        <label className="nx79-layout-field"><span>Change banner every</span><select value={homeRotateSeconds} disabled={!homeAutoplay} onChange={e=>setHomeRotateSeconds(Number(e.target.value))}>
+          {[3,4,5,6,7,8,9,10,12,15].map(n=><option key={n} value={n}>{n} seconds</option>)}
+        </select></label>
+        <button type="button" className="admin-primary-action nx79-save-layout" disabled={savingDisplay} onClick={saveDisplay}><UiIcon name="save" size={17}/>{savingDisplay?"Saving…":"Save layout"}</button>
+      </div>
       <PromotionLayoutPreview count={homeCount}/>
-    </div>
+    </section>
     <PromotionOrderManager items={items} onSaved={reload}/>
     <div className="nx39-section-heading"><span className="nx39-eyebrow">BANNER LIBRARY</span><h2>All promotions</h2><p>Modify content, placement, destination, visibility and schedule here.</p></div>
     <div className="nx69-promotion-toolbar"><label className="admin-search nx69-search"><span className="sr-only">Search promotions</span><UiIcon name="search" size={19}/><input type="search" placeholder="Search promotions" value={promotionSearch} onChange={e=>setPromotionSearch(e.target.value)}/></label><select aria-label="Filter promotions by status" value={promotionFilter} onChange={e=>setPromotionFilter(e.target.value)}><option value="all">All promotions</option><option value="live">Live</option><option value="scheduled">Scheduled</option><option value="disabled">Not live</option></select></div>

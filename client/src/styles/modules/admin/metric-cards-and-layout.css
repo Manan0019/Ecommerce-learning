@@ -1,0 +1,109 @@
+/* Nexora admin visual system: shared metric-card tones and promotion controls.
+ * This single layer is used across dashboard, products, orders, promotions,
+ * delivery and inventory. Do not duplicate these effects in individual pages. */
+:root {
+  --nx79-card-purple:#f3efff;
+  --nx79-card-purple-line:#ded4fc;
+  --nx79-card-blue:#edf5ff;
+  --nx79-card-blue-line:#d5e7fa;
+  --nx79-card-amber:#fff6e7;
+  --nx79-card-amber-line:#f0ddb3;
+  --nx79-card-mint:#edfaf5;
+  --nx79-card-mint-line:#c9e9da;
+}
+
+/* Tone selections belong to the position of a metric, not hard-coded copy.
+   Semantic exceptions for alert inventory cards are defined below. */
+.admin-shell :is(.nx-admin-summary,.nx39-metrics,.nx46-metrics,.nx24-alert-summary,.nx46-dashboard-priorities)>:nth-child(4n+1){
+  --nx79-card-bg:var(--nx79-card-purple);--nx79-card-line:var(--nx79-card-purple-line);--nx79-card-accent:#7053d3;
+}
+.admin-shell :is(.nx-admin-summary,.nx39-metrics,.nx46-metrics,.nx24-alert-summary,.nx46-dashboard-priorities)>:nth-child(4n+2){
+  --nx79-card-bg:var(--nx79-card-blue);--nx79-card-line:var(--nx79-card-blue-line);--nx79-card-accent:#3977b8;
+}
+.admin-shell :is(.nx-admin-summary,.nx39-metrics,.nx46-metrics,.nx24-alert-summary,.nx46-dashboard-priorities)>:nth-child(4n+3){
+  --nx79-card-bg:var(--nx79-card-amber);--nx79-card-line:var(--nx79-card-amber-line);--nx79-card-accent:#9a6724;
+}
+.admin-shell :is(.nx-admin-summary,.nx39-metrics,.nx46-metrics,.nx24-alert-summary,.nx46-dashboard-priorities)>:nth-child(4n){
+  --nx79-card-bg:var(--nx79-card-mint);--nx79-card-line:var(--nx79-card-mint-line);--nx79-card-accent:#278065;
+}
+.admin-shell .nx24-alert-summary>div:nth-child(1),.admin-shell .nx24-alert-summary>div:nth-child(2){
+  --nx79-card-bg:#fff0f3;--nx79-card-line:#f6cbd6;--nx79-card-accent:#b72e54;
+}
+.admin-shell :is(.nx-admin-summary>div,.nx39-metrics>div,.nx46-metrics>article,.nx24-alert-summary>div,.nx46-dashboard-priorities>div),
+.admin-shell .nx46-dashboard-metrics>.nx46-metric-link>article{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(137deg,var(--nx79-card-bg,#f3efff) 0%,color-mix(in srgb,var(--nx79-card-bg,#f3efff) 56%,white) 74%,#fff 100%)!important;
+  border:1px solid var(--nx79-card-line,#ded4fc)!important;
+  box-shadow:0 9px 22px rgba(42,34,101,.045),inset 0 3px 0 color-mix(in srgb,var(--nx79-card-accent,#7053d3) 45%,transparent)!important;
+  transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+.admin-shell :is(.nx-admin-summary>div,.nx39-metrics>div,.nx46-metrics>article,.nx24-alert-summary>div,.nx46-dashboard-priorities>div) strong,
+.admin-shell .nx46-dashboard-metrics>.nx46-metric-link>article strong{color:#192444}
+.admin-shell :is(.nx-admin-summary>div,.nx39-metrics>div,.nx46-metrics>article,.nx24-alert-summary>div,.nx46-dashboard-priorities>div) :is(small,span){color:#536480}
+.admin-shell .nx39-metrics>div strong{color:var(--nx79-card-accent,#7053d3)}
+.admin-shell .nx46-dashboard-metrics>.nx46-metric-link>article b{background:color-mix(in srgb,var(--nx79-card-accent,#7053d3) 10%,white);color:var(--nx79-card-accent,#7053d3)}
+.admin-shell .nx46-dashboard-metrics>.nx46-metric-link:is(:hover,:focus-visible)>article{
+  transform:translateY(-3px);
+  box-shadow:0 14px 29px rgba(42,34,101,.115),inset 0 3px 0 var(--nx79-card-accent,#7053d3)!important;
+}
+.admin-shell .nx46-dashboard-metrics>.nx46-metric-link:focus-visible{outline:3px solid #8371ee;outline-offset:3px;border-radius:17px}
+/* Nested dashboard insight tiles use the same palette but softer treatment. */
+.admin-shell .nx46-dashboard-priorities>div{padding:13px}
+/* Light tinted cards for featured-product management and category depth choices. */
+.admin-shell .nx71-featured-card:nth-child(4n+1){background:#f7f3ff;border-color:#e0d9fa}
+.admin-shell .nx71-featured-card:nth-child(4n+2){background:#f1f7ff;border-color:#dce7f9}
+.admin-shell .nx71-featured-card:nth-child(4n+3){background:#fff9ee;border-color:#f4e6c8}
+.admin-shell .nx71-featured-card:nth-child(4n){background:#f1fbf7;border-color:#d0ecde}
+
+/* The search icon is already a real icon in these fields. The older global
+   search-input decoration must not render a second background magnifier. */
+.admin-shell .nx71-search-field input[type="search"],
+.admin-shell .nx77-search-field input[type="search"]{
+  background-image:none!important;
+  padding-left:0!important;
+  padding-right:0;
+  background-color:transparent!important;
+}
+.admin-shell .nx71-search-field:focus-within{border-color:#8c73e4;box-shadow:0 0 0 3px #8063e521}
+.admin-shell .nx71-search-field>svg{flex:0 0 18px}
+
+/* Promotion Studio: description first, then one balanced settings toolbar. */
+.admin-shell .nx39-layout-panel.nx79-banner-layout{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  gap:23px!important;align-items:start!important;padding:clamp(20px,2.5vw,34px);
+}
+.admin-shell .nx39-layout-panel.nx79-banner-layout>.nx79-layout-intro:first-child{width:100%;max-width:none;min-width:0;align-self:stretch}
+.admin-shell .nx79-layout-intro h2{max-width:none;margin:7px 0 8px;font-size:clamp(1.35rem,2.2vw,1.75rem);letter-spacing:-.035em}
+.admin-shell .nx79-layout-intro p{max-width:840px;line-height:1.65}
+.admin-shell .nx79-layout-controls{
+  display:grid;grid-template-columns:minmax(225px,1.45fr) minmax(195px,.95fr) minmax(190px,1fr) max-content;
+  align-items:end;gap:14px;min-width:0;padding:17px 18px;
+  background:#f8f6ff;border:1px solid #e4def9;border-radius:15px;
+}
+.admin-shell .nx79-layout-controls>.nx79-layout-field{display:flex;flex-direction:column;gap:9px;align-self:stretch;justify-content:flex-end;min-width:0;margin:0;color:#293457;font-size:.83rem;font-weight:800}
+.admin-shell .nx79-layout-field select{width:100%;height:48px;min-width:0;padding:9px 12px;background:#fff;border:1px solid #dcd6ee;border-radius:11px;color:#24214c;font-weight:750}
+.admin-shell .nx79-layout-controls>.nx41-autoplay-toggle{
+  margin:0!important;align-self:end!important;min-width:0;min-height:48px;
+  padding:8px 12px;border:1px solid #ded9f4;border-radius:11px;
+  background:#fff;gap:10px!important;color:#283357;font-size:.82rem;font-weight:800;
+  white-space:normal;
+}
+.admin-shell .nx79-layout-controls>.nx41-autoplay-toggle input{order:0!important;width:18px;height:18px;flex:none;accent-color:#6548db}
+.admin-shell .nx79-layout-controls>.nx41-autoplay-toggle span{line-height:1.25}
+.admin-shell .nx79-layout-controls>.nx79-save-layout{height:48px;min-height:48px;padding:0 18px;white-space:nowrap;align-self:end;display:inline-flex;justify-content:center;align-items:center;gap:8px}
+.admin-shell .nx79-banner-layout>.nx41-admin-layout-preview{grid-column:1/-1;min-width:0;padding-top:19px}
+.admin-shell .nx79-banner-layout .nx41-admin-preview-grid{width:min(100%,720px)}
+@media(max-width:1180px){
+  .admin-shell .nx79-layout-controls{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:15px}
+  .admin-shell .nx79-layout-controls>.nx41-autoplay-toggle{align-self:end!important}
+  .admin-shell .nx79-layout-controls>.nx79-save-layout{width:100%}
+}
+@media(max-width:680px){
+  .admin-shell .nx79-layout-controls{grid-template-columns:minmax(0,1fr);padding:14px}
+  .admin-shell .nx79-layout-controls>.nx79-save-layout{width:100%}
+  .admin-shell .nx39-layout-panel.nx79-banner-layout{gap:17px!important;padding:18px}
+}
+@media(prefers-reduced-motion:reduce){
+  .admin-shell .nx46-dashboard-metrics>.nx46-metric-link>article{transition:none!important;transform:none!important}
+}
