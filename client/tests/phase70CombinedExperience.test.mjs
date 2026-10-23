@@ -39,13 +39,11 @@ test('notifications use authenticated per-user read-all, not global unread reset
  assert.match(ui,/setUnread\(0\)/);
  assert.match(ui,/unread>0&&<span className="nx46-bell-count"/);
 });
-test('category dropdown floats in portal without being clipped by admin form',()=>{
+test('product category picker uses progressive hierarchy selectors instead of one long dropdown',()=>{
  const s=read('components/admin/CategoryPicker.jsx');
- assert.match(s,/createPortal\(/);
- assert.match(s,/document\.body/);
- assert.match(s,/getBoundingClientRect\(\)/);
- assert.match(s,/nx70-category-options/);
- assert.match(read('styles/phase70.css'),/nx70-category-options li>button span/);
+ assert.match(s,/CategoryPathSelector/);
+ const cascade=read('components/admin/CategoryPathSelector.jsx');
+ for(const term of ['categoryTrail','parentId','nx71-cascade-steps','Choose ${stepName(i).toLowerCase()}'])assert.ok(cascade.includes(term),term);
 });
 test('dashboard uses provider-neutral prepaid label without changing payment method identifiers',()=>{
  const s=read('pages/admin/AdminDashboard.jsx');

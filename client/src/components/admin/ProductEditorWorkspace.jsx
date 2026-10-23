@@ -1,3 +1,4 @@
+import FileUploadField from "./FileUploadField";
 import { useEffect, useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import { useNavigate } from "react-router-dom";
@@ -159,7 +160,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
         <h2>Catalogue cover</h2><p>This is the image customers see on product cards. The Gallery tab controls all media.</p>
         <div className="nx-cover-preview">{imageUrl ? <img src={apiAssetUrl(imageUrl)} alt="Current product cover" /> : <span>No image</span>}</div>
         <form className="admin-form" onSubmit={uploadCover} ref={imageFormRef}>
-          <label>Replace cover image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setNewImage(e.target.files?.[0] || null)} /></label>
+          <FileUploadField label="Replace cover image" selection={newImage?.name||''} onChange={e => setNewImage(e.target.files?.[0] || null)}/>
           <button type="submit" className="admin-secondary-action" disabled={uploading || !newImage}>{uploading ? "Uploading…" : "Replace cover"}</button>
         </form>
         <button className="nx-text-action" type="button" onClick={() => setTab("gallery")}>Manage all gallery images <UiIcon name="right" size={17}/></button>

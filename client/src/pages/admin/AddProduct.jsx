@@ -1,3 +1,4 @@
+import FileUploadField from "../../components/admin/FileUploadField";
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
@@ -200,14 +201,11 @@ export default function AddProduct() {
         <ProductSpecificationFields definition={specification.definition} specifications={specifications}
           onChange={updateSpecification} loading={specification.loading} />
         {specification.error && <p className="admin-alert" role="alert">{specification.error}</p>}
-        <label>Product image<input type="file" accept="image/jpeg,image/png,image/webp"
-          onChange={(event) => setImage(event.target.files?.[0] || null)} required /></label>
+        <FileUploadField label="Product cover image" required selection={image?.name||''} onChange={(event) => setImage(event.target.files?.[0] || null)}/>
         <section className="admin-media-draft" aria-label="New product gallery">
           <h2>Gallery and videos</h2>
           <p>Start with your cover image and up to 59 more gallery items or YouTube videos. They upload as <strong>Shared</strong> by default. After creating the product, use <strong>Manage gallery & visibility</strong> to assign a specific color or SKU. Local MP4/WebM uploads are available there too.</p>
-          <label>Additional gallery images (JPG, PNG, WebP; 12 MB each)
-            <input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={queueImages}/>
-          </label>
+          <FileUploadField label="Additional gallery images" multiple help="JPG, PNG or WebP · maximum 12 MB each" selection={queuedMedia.filter(item=>item.type==='image').length?`${queuedMedia.filter(item=>item.type==='image').length} images queued`:''} onChange={queueImages}/>
           <label>YouTube video URL
             <input type="url" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
           </label>

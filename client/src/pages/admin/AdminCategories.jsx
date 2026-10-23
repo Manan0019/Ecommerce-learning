@@ -1,8 +1,10 @@
+import FileUploadField from "../../components/admin/FileUploadField";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Modal from "../../components/common/Modal";
 import UiIcon from "../../components/common/UiIcon";
+import CategoryPathSelector, {categoryDepth} from "../../components/admin/CategoryPathSelector";
 import { apiAssetUrl, isAuthenticationError } from "../../services/apiClient";
 import {
   createCategory,
@@ -36,6 +38,7 @@ export default function AdminCategories() {
   const [menuIcon, setMenuIcon] = useState(null);
   const [removeMenuIcon, setRemoveMenuIcon] = useState(false);
   const [parentId, setParentId] = useState("");
+  const [creatingLevel,setCreatingLevel]=useState(1);
   const [editing, setEditing] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(null);
@@ -96,6 +99,7 @@ export default function AdminCategories() {
     setMenuIcon(null);
     setRemoveMenuIcon(false);
     setParentId("");
+    setCreatingLevel(1);
     setEditing(null);
     setModalOpen(false);
   }
@@ -104,6 +108,7 @@ export default function AdminCategories() {
     setEditing(category);
     setName(category.name);
     setParentId(category.parentId || "");
+    setCreatingLevel(Math.max(1,Math.min(8,categoryDepth(categories,category.id))));
     setImage(null);
     setMenuIcon(null);
     setRemoveMenuIcon(false);
@@ -115,6 +120,8 @@ export default function AdminCategories() {
   async function saveCategory(event) {
     event.preventDefault();
     if (name.trim().length < 2) { setError("Enter a category name with at least two characters."); return; }
+    if(creatingLevel>1 && (!parentId||categoryDepth(categories,parentId)!==creatingLevel-1)){setError("Select every parent level before creating this category.");return;}
+    if(creatingLevel===1&&parentId){setError("Top-level categories must not have a parent.");return;}
     const formData = new FormData();
     formData.append("name", name.trim());
     formData.append("parentId", parentId);
@@ -192,7 +199,7 @@ export default function AdminCategories() {
 
   return <AdminLayout title="Manage Categories"
     subtitle="Organize the catalogue with reusable, customer-facing categories."
-    actions={<button type="button" className="admin-primary-action" onClick={() => { setEditing(null); setName(""); setImage(null); setParentId(""); setError(""); setMessage(""); setModalOpen(true); }}>+ Add category</button>}>
+    actions={<button type="button" className="admin-primary-action" onClick={() => { setEditing(null); setName(""); setImage(null); setParentId("");setCreatingLevel(1); setError(""); setMessage(""); setModalOpen(true); }}>+ Add category</button>}>
     <div className="admin-category-layout nx-category-layout">
       {modalOpen && <Modal title={editing ? "Edit category" : "Add category"} subtitle="Choose a cover image and an optional square icon for the dropdown." size="medium" closeDisabled={saving} onClose={resetForm}>
       <section className="admin-panel admin-form-panel admin-category-form nx69-category-form">
@@ -204,29 +211,40 @@ export default function AdminCategories() {
           {editing && <button className="admin-text-button" type="button" onClick={resetForm}>Cancel</button>}
         </div>
         <form className="admin-form" onSubmit={saveCategory}>
-          <div className="nx69-category-guide"><h3>Where will this category appear?</h3><p>Choose <strong>Main category</strong> for a new department. To add a subcategory, choose the department it belongs to. For a deeper level, choose the existing subcategory as its parent.</p><div className="nx69-category-steps"><span>1 · Main category</span><span>2 · Subcategory</span><span>3 · Nested category</span></div></div>
-          <label>Place inside <select value={parentId} onChange={event=>setParentId(event.target.value)}><option value="">Main category — top level</option>{parentChoices.map(c=><option key={c.id} value={c.id}>{categoryPath(c,categories)}</option>)}</select></label>
-          <p className="nx69-category-preview" aria-live="polite"><UiIcon name="grid" size={17}/> Category path: <strong>{newPath}</strong></p>
+          <div className="nx71-category-creation">
+            <h3>1 · What would you like to add?</h3>
+            <p>Choose the category level first. Nexora will show only the parent categories needed for that level.</p>
+            <div className="nx71-level-cards" role="radiogroup" aria-label="Category depth">
+              {Array.from({length:Math.min(8,Math.max(4,...categories.map(c=>categoryDepth(categories,c.id)+1)))},(_,i)=>['Main category','Subcategory','Sub-subcategory','Fourth-level category'][i]||`Level ${i+1} category`).map((title,i)=><label className={creatingLevel===i+1?'is-selected':''} key={title}>
+                <input type="radio" name="category-creation-depth" value={i+1} checked={creatingLevel===i+1} onChange={()=>{setCreatingLevel(i+1);setParentId('');}}/>
+                <strong>{title}</strong><small>{i===0?'New top-level department':`Inside ${i} existing ${i===1?'level':'levels'}`}</small>
+              </label>)}
+            </div>
+            {creatingLevel>1&&<div className="nx71-parent-path"><h3>2 · Select the parent path</h3>
+              <CategoryPathSelector idPrefix="nx71-category-parent" categories={parentChoices} value={parentId} onChange={setParentId} depth={creatingLevel-1} required label="Where does it belong?"/>
+            </div>}
+          </div>
+          <p className="nx69-category-preview" aria-live="polite"><UiIcon name="grid" size={17}/> Preview: <strong>{newPath}</strong></p>
           <label><span className="nx34-field-label">Category name <b className="nx34-required" aria-hidden="true">*</b></span>
             <input value={name} onChange={(event) => setName(event.target.value)}
               minLength={2} maxLength={80} required />
           </label>
           <div className="nx36-category-images" aria-label="Category artwork slots">
-            <label className="nx36-image-slot">
+            <div className="nx36-image-slot">
               <span className="nx36-slot-title">Collection image</span>
               <small>Shown on category cards and collection pages. Choose a colourful photo.</small>
               {editing?.imageUrl && !image && <img className="nx36-slot-preview" alt="Current collection artwork" src={apiAssetUrl(editing.imageUrl)} />}
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setImage(event.target.files?.[0] || null)} />
+              <FileUploadField label="Choose collection image" selection={image?.name||''} onChange={(event) => setImage(event.target.files?.[0] || null)}/>
               {image && <small className="nx36-selected-file">Selected: {image.name}</small>}
-            </label>
-            <label className="nx36-image-slot">
+            </div>
+            <div className="nx36-image-slot">
               <span className="nx36-slot-title">Dropdown menu icon</span>
               <small>Small square symbol, ideally a transparent PNG (160×160 px or larger).</small>
               {editing?.menuIconUrl && !menuIcon && !removeMenuIcon && <img className="nx36-icon-preview" alt="Current navigation icon" src={apiAssetUrl(editing.menuIconUrl)} />}
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {setMenuIcon(event.target.files?.[0] || null);setRemoveMenuIcon(false);}} />
+              <FileUploadField label="Choose menu icon" selection={menuIcon?.name||''} onChange={(event) => {setMenuIcon(event.target.files?.[0] || null);setRemoveMenuIcon(false);}}/>
               {menuIcon && <small className="nx36-selected-file">Selected: {menuIcon.name}</small>}
               {editing?.menuIconUrl && <span className="nx36-clear-icon"><input type="checkbox" checked={removeMenuIcon} onChange={(event)=>{setRemoveMenuIcon(event.target.checked);if(event.target.checked)setMenuIcon(null);}} />Remove custom menu icon</span>}
-            </label>
+            </div>
           </div>
           <button className="admin-primary-action" type="submit" disabled={saving}>
             {saving ? "Saving…" : editing ? "Save Category" : "Create Category"}

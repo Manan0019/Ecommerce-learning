@@ -18,8 +18,9 @@ export function getProduct(id, signal) {
   return apiRequest(`/api/products/${id}`, { signal });
 }
 
-export function getAdminProducts(signal) {
-  return apiRequest("/api/admin/products", { credentials: "include", signal });
+export function getAdminProducts(signal,filters=null) {
+  const url=filters ? `/api/admin/products?${new URLSearchParams({paged:'1',...filters})}` : '/api/admin/products';
+  return apiRequest(url, { credentials: "include", signal });
 }
 
 export function getAdminProduct(id, signal) {

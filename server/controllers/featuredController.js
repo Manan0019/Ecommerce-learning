@@ -36,14 +36,22 @@ export async function listFeaturedAdmin(_req, res) {
 }
 export async function searchFeaturedCandidates(req,res) {
   const q = String(req.query.q || '').trim();
-  if(q.length > 100) return res.status(400).json({message:'Search is too long.'});
+  const category = req.query.category === 'all' || req.query.category === undefined ? null : String(req.query.category);
+  const page = Math.max(1,Math.min(10000,Number.parseInt(req.query.page,10)||1));
+  const limit=20;
+  if(q.length>100 || (category!==null&&!/^[1-9]\d*$/.test(category))) return res.status(400).json({message:'Invalid catalogue filter.'});
   try {
-    const {rows}=await pool.query(`SELECT p.id::text AS id,p.name,p.image_url AS "imageUrl",c.name AS category
-      FROM products p JOIN categories c ON c.id=p.category_id
-      WHERE p.is_active=TRUE AND p.is_featured=FALSE AND ($1='' OR p.name ILIKE '%' || $1 || '%' OR COALESCE(p.brand,'') ILIKE '%' || $1 || '%')
-      ORDER BY p.name,p.id LIMIT 35`,[q]);
-    return res.json({products:rows});
-  } catch(e){console.error('Featured candidates:',e);return res.status(500).json({message:'Unable to search products.'});}
+    const where=`FROM products p JOIN categories c ON c.id=p.category_id
+      WHERE p.is_active=TRUE AND p.is_featured=FALSE
+      AND ($1='' OR p.name ILIKE '%' || $1 || '%' OR COALESCE(p.brand,'') ILIKE '%' || $1 || '%')
+      AND ($2::bigint IS NULL OR p.category_id=$2::bigint)`;
+    const params=[q,category];
+    const [data,count]=await Promise.all([
+      pool.query(`SELECT p.id::text AS id,p.name,p.image_url AS "imageUrl",c.name AS category ${where} ORDER BY p.name,p.id LIMIT $3 OFFSET $4`,[...params,limit,(page-1)*limit]),
+      pool.query(`SELECT COUNT(*)::integer AS total ${where}`,params)
+    ]);
+    return res.json({products:data.rows,total:count.rows[0].total,page,pageSize:limit});
+  }catch(e){console.error('Featured candidates:',e);return res.status(500).json({message:'Unable to search products.'});}
 }
 export async function setFeaturedMembership(req,res) {
   const {id}=req.params; const {isFeatured,position}=req.body || {};

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Modal from "../../components/common/Modal";
@@ -12,6 +12,8 @@ const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN", { maxi
 export default function AdminProducts() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
+  const [page,setPage]=useState(1),[total,setTotal]=useState(0),[sort,setSort]=useState('newest'),[revision,setRevision]=useState(0);
+  const [facets,setFacets]=useState({categories:[],brands:[]}),[summary,setSummary]=useState({total:0,active:0,inactive:0});
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState("");
@@ -24,33 +26,27 @@ export default function AdminProducts() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
-  async function refresh() {
-    const data = await getAdminProducts();
-    setProducts(data.products || []);
-  }
+  function refresh(){setRevision(x=>x+1);}
   useEffect(() => {
     const controller = new AbortController();
-    getAdminProducts(controller.signal).then(data => {
-      if (!controller.signal.aborted) setProducts(data.products || []);
-    }).catch(err => {
-      if (controller.signal.aborted) return;
-      if (isAuthenticationError(err)) navigate("/login", { replace: true });
-      else setError(err.message);
-    }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
-    return () => controller.abort();
-  }, [navigate]);
+    const timer=setTimeout(()=>{
+      setLoading(true);
+      getAdminProducts(controller.signal,{page,q:query,status:filter,category:categoryFilter,brand:brandFilter,stock:stockFilter,sort}).then(data => {
+        if (controller.signal.aborted) return;
+        setProducts(data.products || []);setTotal(Number(data.total||0));
+        setFacets(data.facets||{categories:[],brands:[]});setSummary(data.summary||{total:0,active:0,inactive:0});setError('');
+      }).catch(err => {
+        if (controller.signal.aborted) return;
+        if (isAuthenticationError(err)) navigate("/login", { replace: true });else setError(err.message);
+      }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    },query?200:0);
+    return () => {clearTimeout(timer);controller.abort();};
+  }, [navigate,page,query,filter,categoryFilter,brandFilter,stockFilter,sort,revision]);
 
-  const visible = useMemo(() => products.filter(product => {
-    const match = `${product.name} ${product.brand || ""} ${product.category || ""}`.toLowerCase().includes(query.toLowerCase().trim());
-    const available = Number(product.displayStock ?? product.stock ?? 0);
-    return match && (filter === "all" || (filter === "active" ? product.isActive : !product.isActive))
-      && (categoryFilter==='all'||product.category===categoryFilter)
-      && (brandFilter==='all'||product.brand===brandFilter)
-      && (stockFilter==='all'||(stockFilter==='out'?available<=0:stockFilter==='low'?available>0&&available<=5:available>5));
-  }), [products, query, filter,categoryFilter,brandFilter,stockFilter]);
-  const categories=useMemo(()=>[...new Set(products.map(p=>p.category).filter(Boolean))].sort(),[products]);
-  const brands=useMemo(()=>[...new Set(products.map(p=>p.brand).filter(Boolean))].sort(),[products]);
-
+  const visible=products;
+  const categories=facets.categories||[];
+  const brands=facets.brands||[];
+  const pages=Math.max(1,Math.ceil(total/20));
   function openProductPreview(event, product) {
     // Links and controls in the row already have independent actions.
     if (event.type === "click" && event.target.closest("a, button, input, select, textarea")) return;
@@ -64,7 +60,7 @@ export default function AdminProducts() {
     setBusyId(product.id); setError("");
     try {
       const data = await updateProductStatus(product.id, !product.isActive);
-      setProducts(old => old.map(p => p.id === product.id ? { ...p, isActive: data.product.isActive } : p));
+      setProducts(old => old.map(p => p.id === product.id ? { ...p, isActive: data.product.isActive } : p)); refresh();
     } catch (err) { setError(err.message); }
     finally { setBusyId(null); }
   }
@@ -81,7 +77,7 @@ export default function AdminProducts() {
     setBusyId(deleteTarget.id); setError("");
     try {
       await deleteProductPermanently(deleteTarget.id, deleteConfirmation);
-      setProducts(old => old.filter(p => p.id !== deleteTarget.id));
+      refresh();
       setDeleteTarget(null); setDeleteConfirmation("");
     } catch (err) { setError(err.message); }
     finally { setBusyId(null); }
@@ -90,26 +86,26 @@ export default function AdminProducts() {
   return <AdminLayout title="Product catalogue" subtitle="Manage your products without leaving this workspace."
     actions={<Link className="admin-primary-action" to="/admin/products/new">+ Add new product</Link>}>
     <section className="nx-admin-summary" aria-label="Catalogue summary">
-      <div><small>Products loaded</small><strong>{products.length}</strong></div>
-      <div><small>Published</small><strong>{products.filter(p => p.isActive).length}</strong></div>
-      <div><small>Inactive</small><strong>{products.filter(p => !p.isActive).length}</strong></div>
-      <div><small>Low or no stock</small><strong>{products.filter(p=>Number(p.displayStock??p.stock??0)<=5).length}</strong></div>
+      <div><small>All products</small><strong>{summary.total}</strong></div>
+      <div><small>Published</small><strong>{summary.active}</strong></div>
+      <div><small>Inactive</small><strong>{summary.inactive}</strong></div>
+      <div><small>Matching filters</small><strong>{total}</strong></div>
     </section>
     {error && <p className="admin-alert" role="alert">{error}</p>}
     <section className="admin-panel nx-products-panel">
       <div className="admin-panel-heading"><div><h2>All products</h2><p>Click any product to preview it. The Edit button opens its editor here.</p></div></div>
       <div className="nx-table-toolbar">
-        <label className="admin-search nx69-search"><span className="sr-only">Search catalogue</span><UiIcon name="search" size={19}/><input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search products…" /></label>
+        <label className="admin-search nx69-search"><span className="sr-only">Search catalogue</span><UiIcon name="search" size={19}/><input type="search" value={query} onChange={e => {setQuery(e.target.value);setPage(1);}} placeholder="Search products…" /></label>
         <div className="nx-filter-pills" aria-label="Product status filter">
-          {[ ["all", "All"], ["active", "Active"], ["inactive", "Inactive"] ].map(([value,label]) => <button type="button" key={value} aria-pressed={filter === value} className={filter === value ? "is-active" : ""} onClick={() => setFilter(value)}>{label}</button>)}
+          {[ ["all", "All"], ["active", "Active"], ["inactive", "Inactive"] ].map(([value,label]) => <button type="button" key={value} aria-pressed={filter === value} className={filter === value ? "is-active" : ""} onClick={() => {setFilter(value);setPage(1);}}>{label}</button>)}
         </div>
       </div>
       <div className="nx69-product-filters" aria-label="Catalogue filters">
-        <label><UiIcon name="filter" size={17}/><span className="sr-only">Category</span><select aria-label="Filter by category" value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="all">All categories</option>{categories.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
-        <label><span className="sr-only">Brand</span><select aria-label="Filter by brand" value={brandFilter} onChange={e=>setBrandFilter(e.target.value)}><option value="all">All brands</option>{brands.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
-        <label><span className="sr-only">Stock</span><select aria-label="Filter by stock" value={stockFilter} onChange={e=>setStockFilter(e.target.value)}><option value="all">All stock levels</option><option value="out">Out of stock</option><option value="low">Low stock (1–5)</option><option value="healthy">Above 5 in stock</option></select></label>
-        <button type="button" className="nx69-filter-reset" onClick={()=>{setQuery('');setFilter('all');setCategoryFilter('all');setBrandFilter('all');setStockFilter('all');}}>Reset filters</button>
-        <span className="nx69-filter-total" role="status">{visible.length} matching products</span>
+        <label><UiIcon name="filter" size={17}/><span className="sr-only">Category</span><select aria-label="Filter by category" value={categoryFilter} onChange={e=>{setCategoryFilter(e.target.value);setPage(1);}}><option value="all">All categories</option>{categories.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
+        <label><span className="sr-only">Brand</span><select aria-label="Filter by brand" value={brandFilter} onChange={e=>{setBrandFilter(e.target.value);setPage(1);}}><option value="all">All brands</option>{brands.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
+        <label><span className="sr-only">Stock</span><select aria-label="Filter by stock" value={stockFilter} onChange={e=>{setStockFilter(e.target.value);setPage(1);}}><option value="all">All stock levels</option><option value="out">Out of stock</option><option value="low">Low stock (1–5)</option><option value="healthy">Above 5 in stock</option></select></label>
+        <button type="button" className="nx69-filter-reset" onClick={()=>{setQuery('');setFilter('all');setCategoryFilter('all');setBrandFilter('all');setStockFilter('all');setPage(1);setSort('newest');}}>Reset filters</button>
+        <label className="nx71-products-sort">Sort <select value={sort} aria-label="Sort products" onChange={e=>{setSort(e.target.value);setPage(1);}}><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="name">Name A–Z</option><option value="stock">Lowest stock</option></select></label><span className="nx69-filter-total" role="status">{total} matching products</span>
       </div>
       {loading ? <div className="admin-empty">Loading your catalogue…</div> : <div className="admin-table-wrap">
         <table className="admin-table admin-product-table">
@@ -131,11 +127,11 @@ export default function AdminProducts() {
           </tr>)}</tbody>
         </table>
       </div>}
-      <p className="nx-helper-copy">Showing {visible.length} of {products.length} loaded products. The current admin API returns up to 100 records.</p>
+      <div className="nx71-product-pagination" aria-label="Catalogue pagination"><span>Showing {total===0?0:(page-1)*20+1}–{Math.min(total,page*20)} of {total} products · Page {page} of {pages}</span><div><button type="button" disabled={page<=1||loading} onClick={()=>setPage(p=>p-1)}>Previous</button><button type="button" disabled={page>=pages||loading} onClick={()=>setPage(p=>p+1)}>Next</button></div></div>
     </section>
     {editor && <AdminProductEditDialog productId={editor.id} name={editor.name}
-      onClose={() => { setEditor(null); refresh().catch(err => setError(err.message)); }}
-      onSaved={() => refresh().catch(err => setError(err.message))}/>}
+      onClose={() => { setEditor(null); refresh(); }}
+      onSaved={refresh}/>}
     {deleteTarget && <Modal title="Delete product permanently?" subtitle="This action is irreversible and may be refused when there are historical dependencies." size="small" onClose={() => { if (busyId === null) { setDeleteTarget(null); setDeleteConfirmation(""); } }} closeDisabled={busyId !== null}>
       {error && <p className="admin-alert" role="alert">{error}</p>}
       <div className="nx-delete-warning"><strong>{deleteTarget.name}</strong><p>All related SKU and media database records will be removed if the server determines deletion is safe. Local image/video files stay on disk for separate cleanup.</p></div>

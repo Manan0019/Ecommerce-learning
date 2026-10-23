@@ -92,7 +92,45 @@ function routeError(res, error, context) {
   return res.status(500).json({ message: `${context} failed.` });
 }
 
-export async function listAdminProducts(_req, res) {
+export async function listAdminProducts(req, res) {
+  if(req.query.paged==='1') {
+    const q=String(req.query.q||'').trim();
+    const category=String(req.query.category||'all');
+    const brand=String(req.query.brand||'all');
+    const status=String(req.query.status||'all');
+    const stock=String(req.query.stock||'all');
+    const sort=String(req.query.sort||'newest');
+    const page=Math.max(1,Math.min(100000,Number.parseInt(req.query.page,10)||1));
+    const allowedSort={newest:'created_at DESC,id DESC',oldest:'created_at ASC,id ASC',name:'name ASC,id ASC',stock:'display_stock ASC,name ASC'};
+    if(q.length>100||category.length>200||brand.length>150||!['all','active','inactive'].includes(status)||!['all','out','low','healthy'].includes(stock)||!allowedSort[sort])
+      return res.status(400).json({message:'Invalid product catalogue filters.'});
+    try {
+      const dataset=`WITH base AS (${productSelect}), dataset AS (
+        SELECT base.*,EXISTS(SELECT 1 FROM product_variants v WHERE v.product_id=base.id) AS has_variants,
+        COALESCE((SELECT v.price FROM product_variants v WHERE v.product_id=base.id AND v.is_active
+          ORDER BY CASE WHEN v.stock>0 THEN 0 ELSE 1 END,v.price,v.id LIMIT 1),base.price) AS display_price,
+        CASE WHEN EXISTS(SELECT 1 FROM product_variants v WHERE v.product_id=base.id) THEN
+          COALESCE((SELECT SUM(v.stock)::integer FROM product_variants v WHERE v.product_id=base.id AND v.is_active),0)
+          ELSE base.stock END AS display_stock FROM base)
+        SELECT * FROM dataset WHERE ($1='' OR name ILIKE '%'||$1||'%' OR COALESCE(brand,'') ILIKE '%'||$1||'%' OR category_name ILIKE '%'||$1||'%')
+          AND ($2='all' OR category_name=$2) AND ($3='all' OR brand=$3)
+          AND ($4='all' OR ($4='active' AND is_active) OR ($4='inactive' AND NOT is_active))
+          AND ($5='all' OR ($5='out' AND display_stock<=0) OR ($5='low' AND display_stock BETWEEN 1 AND 5) OR ($5='healthy' AND display_stock>5))`;
+      const params=[q,category,brand,status,stock];const limit=20;
+      const [rows,count,facets,summary]=await Promise.all([
+        pool.query(`${dataset} ORDER BY ${allowedSort[sort]} LIMIT $6 OFFSET $7`,[...params,limit,(page-1)*limit]),
+        pool.query(`SELECT COUNT(*)::integer AS count FROM (${dataset}) matched`,params),
+        pool.query(`SELECT array_agg(DISTINCT c.name ORDER BY c.name) AS categories,
+                   array_agg(DISTINCT p.brand ORDER BY p.brand) FILTER(WHERE p.brand IS NOT NULL AND p.brand<>'') AS brands
+                   FROM products p JOIN categories c ON c.id=p.category_id`),
+        pool.query(`SELECT COUNT(*)::integer AS total,COUNT(*) FILTER(WHERE is_active)::integer AS active,
+                   COUNT(*) FILTER(WHERE NOT is_active)::integer AS inactive FROM products`)
+      ]);
+      return res.json({products:rows.rows.map(mapProduct),total:count.rows[0].count,page,pageSize:limit,
+        facets:{categories:facets.rows[0].categories||[],brands:facets.rows[0].brands||[]},summary:summary.rows[0]});
+    } catch(error){return routeError(res,error,'Loading paged products');}
+  }
+
   try {
     const result = await pool.query(`
       SELECT base.*,

@@ -30,5 +30,6 @@ test('shimmer loading only appears while product data is being fetched',()=>{
 test('half-star reviews require database migration and half increment validation',()=>{
  const form=read('components/customer/ProductReviews.jsx');
  assert.match(form,/RatingStars value=\{rating\}/);
- assert.match(read('components/customer/RatingStars.jsx'),/index - \.5/);
+ assert.match(read('components/customer/RatingStars.jsx'),/index-\.5/);
+ assert.match(read('components/customer/RatingStars.jsx'),/nx71-star-fill/);
 });

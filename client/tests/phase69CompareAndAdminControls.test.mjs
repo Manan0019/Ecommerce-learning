@@ -38,7 +38,7 @@ test('admin product workspace has real stock, category and brand filters',()=>{
 });
 test('category directory includes table layout, hierarchy preview and explicit parent selector',()=>{
  const src=read('pages/admin/AdminCategories.jsx');
- for(const key of ['categoryPath','nx69-category-preview','Main category — top level','nx69-category-table','levelFilter','statusFilter'])assert.ok(src.includes(key),key);
+ for(const key of ['categoryPath','nx69-category-preview','What would you like to add?' ,'nx69-category-table','levelFilter','statusFilter'])assert.ok(src.includes(key),key);
 });
 test('promotions have searchable library and checkboxes precede their label',()=>{
  const src=read('pages/admin/AdminBanners.jsx');
