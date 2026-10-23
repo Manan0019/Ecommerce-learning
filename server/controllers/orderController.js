@@ -3,6 +3,7 @@ import { attachOrderImages } from "../services/orderImages.js";
 import pool from "../config/db.js";
 import { fromPaise, validateCartItems } from "../services/cartPricing.js";
 import { calculateCheckout } from "../services/checkoutPricing.js";
+import {canonicalIndianState} from '../services/indianStates.js';
 import { acceptedQuoteError, quoteMatchesAccepted, quoteSummary } from "../services/checkoutAcceptance.js";
 import { deductStock } from "../services/stockDeduction.js";
 import { canChangeOrderStatus, canConfirmCodCollection, validateDispatch, makeOrderLine, normalizeAddress, validOrderId, validRequestKey, validateAddress } from "../services/codOrderRules.js";
@@ -46,13 +47,13 @@ async function resolveAddress(db,userId,body,lock=false){
     if(!/^[1-9]\d*$/.test(String(body.addressId)))return {error:'Invalid saved address.'};
     const r=await db.query(`SELECT * FROM customer_addresses WHERE customer_id=$1 AND id=$2 ${lock?'FOR SHARE':''}`,[userId,body.addressId]);
     if(!r.rows.length)return {error:'Saved address was not found.'};
-    const a=r.rows[0];return {address:{fullName:a.full_name,phone:a.phone,addressLine1:a.address_line1,addressLine2:a.address_line2,city:a.city,state:a.state,pincode:a.pincode}};
+    const a=r.rows[0];if(!canonicalIndianState(a.state))return {error:'Your saved address has an unrecognized state. Please edit your address.'};return {address:{fullName:a.full_name,phone:a.phone,addressLine1:a.address_line1,addressLine2:a.address_line2,city:a.city,state:a.state,pincode:a.pincode}};
   }
   const error=validateAddress(body?.address);
   return error?{error}:{address:normalizeAddress(body.address)};
 }
 async function fetchPolicy(db,lock=false){const r=await db.query(`SELECT * FROM store_checkout_settings WHERE id=1 ${lock?'FOR SHARE':''}`);if(!r.rows.length)throw new Error('Store shipping settings missing');return r.rows[0];}
-const externalBreakdown=b=>({subtotal:b.subtotal,shippingFee:b.shippingFee,total:b.total,taxableValue:b.taxableValue,includedTax:b.includedTax,cgst:b.cgst,sgst:b.sgst,igst:b.igst,taxType:b.taxType,taxPricingMode:b.taxPricingMode});
+const externalBreakdown=b=>({subtotal:b.subtotal,shippingFee:b.shippingFee,total:b.total,taxableValue:b.taxableValue,includedTax:b.includedTax,cgst:b.cgst,sgst:b.sgst,igst:b.igst,taxType:b.taxType,taxPricingMode:b.taxPricingMode,shippingReason:b.shippingReason,shippingRegion:b.shippingRegion});
 export async function estimateCodOrder(req,res){
  const {items}=req.body||{};const invalid=validateCartItems(items);if(invalid||!items?.length)return res.status(400).json({message:invalid||'Cart is empty.'});
  try{const address=await resolveAddress(pool,req.user.id,req.body);if(address.error)return res.status(400).json({message:address.error});

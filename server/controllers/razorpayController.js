@@ -1,3 +1,4 @@
+import {canonicalIndianState} from '../services/indianStates.js';
 import { createHash } from 'node:crypto';
 import { attachOrderImages } from '../services/orderImages.js';
 import { processRefundWebhook } from './razorpayRefundController.js';
@@ -30,6 +31,7 @@ async function addressFor(db, user, body) {
     if (!validOrderId(body.addressId)) return {error:'Invalid saved address.'};
     const result=await db.query('SELECT * FROM customer_addresses WHERE customer_id=$1 AND id=$2 FOR SHARE',[user,body.addressId]);
     const a=result.rows[0]; if (!a)return {error:'Saved address not found.'};
+    if (!canonicalIndianState(a.state)) return {error:'Your saved address has an unrecognized state. Please edit your address.'};
     return {address:{fullName:a.full_name,phone:a.phone,addressLine1:a.address_line1,addressLine2:a.address_line2,city:a.city,state:a.state,pincode:a.pincode}};
   }
   const error=validateAddress(body?.address);

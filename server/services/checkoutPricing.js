@@ -1,4 +1,5 @@
 import { fromPaise, toPaise } from './cartPricing.js';
+import { canonicalIndianState } from './indianStates.js';
 
 // Checkout uses a store-configured tax mode. Historic orders remain unchanged.
 // Always calculate on server integer paise, and obtain rates from verified product/policy data.
@@ -18,7 +19,11 @@ export function exclusiveTax(netPaise, rate) {
 export function calculateCheckout(lines, state, policy) {
   if (!Array.isArray(lines) || !lines.length || !state || typeof state !== 'string') throw new Error('Invalid checkout details');
   const subtotal = lines.reduce((total, line) => total + line.lineTotal, 0n);
-  const inState = state.trim().toLocaleLowerCase('en-IN') === String(policy.origin_state).trim().toLocaleLowerCase('en-IN');
+  const destination = canonicalIndianState(state);
+  const origin = canonicalIndianState(policy.origin_state);
+  // Fail closed rather than misclassify unknown destinations as taxable intra-state.
+  if (!destination || !origin) throw new Error('Choose a valid Indian delivery and dispatch state.');
+  const inState = destination === origin;
   const threshold = toPaise(policy.free_shipping_above);
   const shipping = threshold > 0n && subtotal >= threshold ? 0n : toPaise(inState ? policy.shipping_fee_in_state : policy.shipping_fee_other_state);
   const mode = policy.tax_pricing_mode || 'inclusive';
@@ -39,6 +44,8 @@ export function calculateCheckout(lines, state, policy) {
     includedTax: fromPaise(includedTax), taxPricingMode: mode,
     cgst: fromPaise(cgst), sgst: fromPaise(sgst), igst: fromPaise(igst),
     taxType: inState ? 'CGST + SGST' : 'IGST',
+    shippingReason: threshold > 0n && subtotal >= threshold ? 'threshold' : 'regional',
+    shippingRegion: inState ? 'within-state' : 'other-state',
     itemTaxes: itemTaxes.map(fromPaise),
     // Internal BigInt totals for guaranteed integer precision when writing order.
     _subtotal: subtotal, _shipping: shipping, _total: total,
@@ -47,10 +54,11 @@ export function calculateCheckout(lines, state, policy) {
 export function validateCheckoutSettings(data) {
   if (!data || typeof data !== 'object') return null;
   const origin = String(data.origin_state || '').trim();
-  if (origin.length < 2 || origin.length > 100) return null;
+  const canonicalOrigin = canonicalIndianState(origin);
+  if (!canonicalOrigin) return null;
   for (const key of ['shipping_fee_in_state','shipping_fee_other_state','free_shipping_above']) {
     try { if (toPaise(data[key]) < 0n || toPaise(data[key]) > 1000000000n) return null; } catch { return null; }
   }
   if (!validPercent(data.shipping_gst_percent) || !validPercent(data.default_item_gst_percent) || typeof data.cod_enabled !== 'boolean' || !['inclusive','exclusive'].includes(data.tax_pricing_mode || 'inclusive')) return null;
-  return {origin_state:origin,shipping_fee_in_state:String(data.shipping_fee_in_state),shipping_fee_other_state:String(data.shipping_fee_other_state),free_shipping_above:String(data.free_shipping_above),shipping_gst_percent:String(data.shipping_gst_percent),default_item_gst_percent:String(data.default_item_gst_percent),cod_enabled:data.cod_enabled,tax_pricing_mode:data.tax_pricing_mode||'inclusive'};
+  return {origin_state:canonicalOrigin,shipping_fee_in_state:String(data.shipping_fee_in_state),shipping_fee_other_state:String(data.shipping_fee_other_state),free_shipping_above:String(data.free_shipping_above),shipping_gst_percent:String(data.shipping_gst_percent),default_item_gst_percent:String(data.default_item_gst_percent),cod_enabled:data.cod_enabled,tax_pricing_mode:data.tax_pricing_mode||'inclusive'};
 }

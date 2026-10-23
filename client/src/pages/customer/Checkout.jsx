@@ -22,6 +22,7 @@ export default function Checkout(){
  const [paymentMethod,setPaymentMethod]=useState('cod'),[razorpayEnabled,setRazorpayEnabled]=useState(false);
  const [checking,setChecking]=useState(true),[posting,setPosting]=useState(false),[estimating,setEstimating]=useState(false);
  const [paymentPhase,setPaymentPhase]=useState('idle');
+ const [couponCode,setCouponCode]=useState(''),[couponStatus,setCouponStatus]=useState('');
  const [error,setError]=useState(''),[needsCartReview,setNeedsCartReview]=useState(false),[role,setRole]=useState(null),[saveNew,setSaveNew]=useState(true);
  const [estimateFor,setEstimateFor]=useState(''),[quotedCart,setQuotedCart]=useState(''),[updatedQuote,setUpdatedQuote]=useState(false);
  const requestRef=useRef({intent:null,key:crypto.randomUUID()});
@@ -132,6 +133,11 @@ export default function Checkout(){
       </div>
       {!razorpayEnabled&&<p className="nx-cod-note">Online payment is temporarily unavailable. Please choose Cash on Delivery.</p>}
      </div>
+    <section className="nx73-coupon-field" aria-label="Coupon code">
+      <label htmlFor="nx73-coupon-code"><strong>Have a coupon code?</strong><small>Check whether coupon redemption is available.</small></label>
+      <div className="nx73-coupon-row"><input id="nx73-coupon-code" type="text" autoComplete="off" maxLength={24} placeholder="Enter coupon code" value={couponCode} disabled={posting} onChange={event=>{setCouponCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g,''));setCouponStatus('');}}/><button type="button" disabled={!couponCode.trim()||posting} onClick={()=>setCouponStatus('Coupon redemption is not yet active. Your order total is unchanged; no discount has been applied.')}>Apply code</button></div>
+      {couponStatus&&<p role="status" className="nx73-coupon-feedback">{couponStatus}</p>}
+    </section>
     {paymentMethod==='cod'&&!codEnabled&&validAddress&&quote?.valid&&<p className="nx-cod-message nx-cod-error" role="status">The store has not enabled COD checkout yet. Please contact the store.</p>}
     <button className="button button-primary nx-cod-submit nx68-order-action" type="submit" disabled={checking||!validAddress||!canSubmit}>{posting?(paymentMethod==='razorpay'?'Opening secure payment…':'Placing order…'):updatedQuote?`Confirm revised total · ${money(estimate?.total)}`:paymentMethod==='razorpay'?`Pay online · ${money(estimate?.total)}`:`Place COD order · ${money(estimate?.total)}`}</button>
     {updatedQuote&&<p className="nx-cod-message nx40-review" role="status">Your prices, shipping or tax changed. Review the amount due and select Confirm revised total to place the order.</p>}
@@ -141,7 +147,8 @@ export default function Checkout(){
     {!quote?.valid&&<p className="nx-cod-message nx-cod-error">Some items are unavailable. <Link to="/cart">Review your cart</Link>.</p>}
     {quote?.items?.map(item=><div className="nx-cod-summary-line" key={`${item.productId}-${item.variantId||''}`}><div className="nx-cod-summary-product">{item.imageUrl&&<img src={apiAssetUrl(item.imageUrl)} loading="lazy" alt=""/>}<div><strong>{item.name||'Unavailable product'}</strong><small>{item.sku?`${item.sku} · `:''}Qty {item.quantity}</small></div></div><span>{item.lineTotal?money(item.lineTotal):'—'}</span></div>)}
     <div className="nx-cod-summary-line"><span>Products subtotal</span><strong>{money(estimateFor===intentKey?estimate?.subtotal:quote?.availableSubtotal)}</strong></div>
-    <div className="nx-cod-summary-line"><span>Shipping</span><strong>{estimateFor===intentKey&&estimate?Number(estimate.shippingFee)===0?'Free':money(estimate.shippingFee):'Enter address'}</strong></div>
+    <div className="nx-cod-summary-line"><span>Shipping {estimateFor===intentKey&&estimate?.shippingRegion?`· ${estimate.shippingRegion==='within-state'?'Within dispatch state':'Other state'}`:''}</span><strong>{estimateFor===intentKey&&estimate?Number(estimate.shippingFee)===0?'Free':money(estimate.shippingFee):'Enter address'}</strong></div>
+    {estimateFor===intentKey&&estimate?.shippingReason==='threshold'&&<p className="nx75-shipping-explainer">Free shipping applies because the products subtotal meets your store's configured threshold.</p>}
     {estimateFor===intentKey&&estimate&&<><div className="nx-cod-summary-line"><span>{estimate.taxPricingMode==='exclusive'?'GST added':'GST included'} ({estimate.taxType})</span><strong>{money(estimate.includedTax)}</strong></div><div className="nx25-tax-details"><small>Taxable value: {money(estimate.taxableValue)}</small><small>{estimate.taxType==='IGST'?`IGST: ${money(estimate.igst)}`:`CGST: ${money(estimate.cgst)} · SGST: ${money(estimate.sgst)}`}</small></div></>}
     <div className="nx-cod-total"><span>{paymentMethod==='razorpay'?'Pay securely online':'Pay on delivery'}</span><strong>{estimateFor===intentKey&&estimate?money(estimate.total):'—'}</strong></div>
     <p className="nx-cod-note">{estimate?.taxPricingMode==='exclusive'?'GST is added to the displayed base price and shipping where applicable. Review your final total before paying.':'GST is included in prices where applicable; no additional tax is added.'}</p>

@@ -1,3 +1,4 @@
+import IndianStatePicker from '../common/IndianStatePicker';
 const fields=[
   {key:'fullName',label:'Full name',autoComplete:'name',max:100},
   {key:'phone',label:'Mobile number',type:'tel',autoComplete:'tel',max:18,pattern:'[+]?[0-9\\s-]{10,18}'},
@@ -10,8 +11,8 @@ const fields=[
 export default function AddressFields({address,onChange,disabled=false}){
   return <div className="nx-cod-fields">{fields.map(field=><label key={field.key} className={`nx-cod-field ${field.wide?'nx-cod-wide':''}`}>
     <span>{field.label}{!field.optional&&<b aria-label="required"> *</b>}</span>
-    <input name={field.key} value={address[field.key]??''} onChange={e=>onChange({...address,[field.key]:e.target.value})}
+    {field.key==='state'?<IndianStatePicker name="state" value={address.state||''} disabled={disabled} required onChange={value=>onChange({...address,state:value})}/>:<input name={field.key} value={address[field.key]??''} onChange={e=>onChange({...address,[field.key]:e.target.value})}
       type={field.type||'text'} required={!field.optional} disabled={disabled} maxLength={field.max} minLength={field.min}
-      inputMode={field.inputMode} pattern={field.pattern} autoComplete={field.autoComplete}/>
+      inputMode={field.inputMode} pattern={field.pattern} autoComplete={field.autoComplete}/>}
   </label>)}</div>
 }

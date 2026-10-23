@@ -1,3 +1,4 @@
+import {canonicalIndianState} from './indianStates.js';
 import { isPositiveId, toPaise } from "./cartPricing.js";
 
 export const ORDER_STATES = Object.freeze(["placed", "confirmed", "processing", "shipped", "delivered", "cancelled"]);
@@ -12,13 +13,14 @@ export function validateAddress(value) {
   for (const [field, [min, max]] of Object.entries(fields)) {
     if (typeof value[field] !== "string" || value[field].trim().length < min || value[field].trim().length > max) return `Invalid delivery address: ${field}.`;
   }
+  if (!canonicalIndianState(value.state)) return "Choose a valid Indian state or union territory.";
   if (!/^[0-9]{6}$/.test(value.pincode.trim())) return "Enter a valid 6-digit Indian PIN code.";
   if (!/^\+?[0-9\s-]{10,18}$/.test(value.phone.trim()) || value.phone.replace(/\D/g, "").length < 10) return "Enter a valid mobile number.";
   if (value.addressLine2 != null && (typeof value.addressLine2 !== "string" || value.addressLine2.length > 200)) return "Invalid address line 2.";
   return null;
 }
 export function normalizeAddress(value) {
-  return Object.fromEntries(["fullName", "phone", "addressLine1", "addressLine2", "city", "state", "pincode"].map(k => [k, String(value[k] ?? "").trim()]));
+  return Object.fromEntries(["fullName", "phone", "addressLine1", "addressLine2", "city", "state", "pincode"].map(k => [k, k === 'state' ? (canonicalIndianState(value[k]) || String(value[k] ?? '').trim()) : String(value[k] ?? '').trim()]));
 }
 export function makeOrderLine(item, product, variant, configured) {
   if (!product || !product.is_active || !product.category_active) return { error: "Product is unavailable." };
