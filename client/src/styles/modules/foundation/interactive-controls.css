@@ -132,3 +132,84 @@
 .storefront .catalogue-hero h1{overflow-wrap:anywhere;max-width:100%;font-size:clamp(2rem,5vw,4.4rem)}
 .storefront .nx48-departments-top{min-width:0}
 @media(max-width:640px){.storefront .nx77-category-menu-toggle{min-width:34px}.storefront .catalogue-hero h1{font-size:clamp(1.9rem,9vw,3rem)}}
+
+
+/* One unified category navigation control. No detached arrow and no viewport escape. */
+.storefront .nx35-category-nav{max-width:100%;min-width:0}
+.storefront .nx35-nav-trigger-row{display:block;max-width:100%}
+.storefront .nx35-category-trigger.nx78-category-unified{display:inline-flex;align-items:center;justify-content:center;gap:10px;max-width:100%;min-height:54px;padding:10px 17px;border:1px solid #ded8ff;border-radius:15px;background:#f1eeff;color:#4935bc;cursor:pointer;box-shadow:0 2px 4px rgba(60,40,140,.04);text-decoration:none;transform:none;transition:background .25s,border-color .25s,box-shadow .25s,color .25s}
+.storefront .nx78-category-unified>.nx47-icon{width:17px;height:17px;margin-left:4px;transition:transform .25s}
+.storefront .nx35-category-nav.is-open .nx78-category-unified>.nx47-icon{transform:rotate(180deg)}
+.storefront .nx78-category-unified:hover,.storefront .nx78-category-unified:focus-visible{background:#eae4ff;border-color:#a993fd;color:#4d35c4;box-shadow:0 8px 20px rgba(76,55,155,.14);outline:none}
+.storefront .nx78-category-unified:focus-visible{outline:3px solid #b9aaff;outline-offset:2px}
+.storefront .nx35-category-dropdown{left:0;max-width:min(320px,calc(100vw - 32px));max-height:min(75dvh,560px);box-sizing:border-box}
+.storefront .nx35-category-nav.is-open>.nx35-category-dropdown{display:block}
+@media(max-width:860px){.storefront .nx35-category-trigger.nx78-category-unified{width:100%;justify-content:flex-start}.storefront .nx35-category-dropdown{width:100%;max-width:100%}}
+
+/* Explicit button surface: prevents the Explore link from appearing as floating text. */
+.storefront .nx33-see-all.nx78-explore-all{box-sizing:border-box;display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 auto;min-height:46px;padding:12px 20px!important;white-space:normal;text-align:center;line-height:1.35;border:1px solid #c6b9fc;border-radius:12px;background:linear-gradient(145deg,#f1ecff,#e9e2ff);color:#4e36bb!important;font-weight:850;box-shadow:0 5px 14px #3f27951a;text-decoration:none!important;overflow:hidden!important;background-clip:padding-box;transform:none}
+.storefront .nx33-see-all.nx78-explore-all:is(:hover,:focus-visible){background:#624ad8;color:#fff!important;border-color:#624ad8;transform:translateY(-2px);box-shadow:0 13px 25px #4d339a38;text-decoration:none!important}
+.storefront .nx33-see-all.nx78-explore-all::before{content:""!important;display:block!important;position:absolute;top:-65%;bottom:-65%;left:-60%;width:40%;background:linear-gradient(100deg,transparent,#ffffff88,transparent);pointer-events:none;transform:skewX(-20deg);transition:left .62s cubic-bezier(.2,.85,.3,1);z-index:0}
+.storefront .nx33-see-all.nx78-explore-all:is(:hover,:focus-visible)::before{left:140%}
+.storefront .nx33-see-all.nx78-explore-all::after{display:none!important;content:none!important}
+@media(max-width:590px){.storefront .nx33-see-all.nx78-explore-all{width:100%}}
+
+/* Keep horizontal department cards clipped within their OWN scroll container, with
+   enough room for hover lift and shadows. Never expand page width on hover. */
+.storefront .nx48-departments{max-width:100%;min-width:0;box-sizing:border-box}
+.storefront .nx48-department-track{box-sizing:border-box;display:flex;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-padding-inline:12px;padding:9px 12px 25px;gap:12px;scrollbar-gutter:stable}
+.storefront .nx48-department{box-sizing:border-box;flex-shrink:0;max-width:calc(100vw - 70px);transform-origin:center!important}
+.storefront .nx48-department:first-child{margin-left:0}
+.storefront .nx48-department:last-child{margin-right:0}
+
+/* Cohesive interactive links for admin operations, including keyboard focus. */
+.admin-shell .admin-panel-heading .nx78-panel-link{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 13px;border:1px solid #e1dafa;border-radius:11px;background:#f6f3ff;color:#553cbb!important;font-weight:850;text-decoration:none!important;transition:transform .24s,background .24s,box-shadow .24s,border-color .24s,color .24s}
+.admin-shell .nx78-panel-link::before{content:"";position:absolute;top:-70%;bottom:-70%;left:-60%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);transform:skewX(-20deg);transition:left .6s;pointer-events:none}
+.admin-shell .nx78-panel-link:is(:hover,:focus-visible){background:#6249d5;border-color:#6249d5;color:white!important;box-shadow:0 11px 24px #4e3ab02b;transform:translateY(-2px)}
+.admin-shell .nx78-panel-link:is(:hover,:focus-visible)::before{left:140%}
+.admin-shell .nx78-panel-link:focus-visible{outline:3px solid #b7a9ff;outline-offset:2px}
+.admin-shell .nx78-panel-link>span,.admin-shell .nx78-panel-link>.nx47-icon{position:relative;z-index:1}
+
+/* Order cancellation approvals/declines use the same clear lift and glint. */
+.admin-shell .nx45-request-buttons .nx78-cancellation-action{position:relative;isolation:isolate;overflow:hidden;transition:transform .24s,background .24s,color .24s,border-color .24s,box-shadow .24s;box-shadow:0 3px 10px #32226a12}
+.admin-shell .nx45-request-buttons .nx78-cancellation-action::before{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 25%,rgba(255,255,255,.40) 50%,transparent 75%);transform:translateX(-130%);transition:transform .55s;pointer-events:none;z-index:0}
+.admin-shell .nx45-request-buttons .nx78-cancellation-action>span{position:relative;z-index:1}
+.admin-shell .nx45-request-buttons .nx78-cancellation-action:is(:hover,:focus-visible):not(:disabled){transform:translateY(-3px);box-shadow:0 12px 24px rgba(73,52,163,.26)}
+.admin-shell .nx45-request-buttons .nx78-cancellation-action:is(:hover,:focus-visible):not(:disabled)::before{transform:translateX(130%)}
+.admin-shell .nx45-request-buttons .nx78-cancellation-action:first-child:is(:hover,:focus-visible):not(:disabled){background:#4c35b7;color:white;border-color:#4c35b7}
+.admin-shell .nx45-request-buttons .nx78-cancellation-action:last-child:is(:hover,:focus-visible):not(:disabled){background:#eee7ff;color:#4c31b0;border-color:#8f7ade}
+.admin-shell .nx45-request-buttons .nx78-cancellation-action:focus-visible{outline:3px solid #aa98fa;outline-offset:2px}
+.admin-shell .nx45-request-buttons .nx78-cancellation-action:disabled{transform:none;box-shadow:none}
+
+/* Align both assigned and unassigned executive selection to a fixed button column. */
+.admin-shell .nx73-assignment-table{width:100%;min-width:940px;table-layout:fixed}
+.admin-shell .nx73-assignment-table th:nth-child(1){width:52px}
+.admin-shell .nx73-assignment-table th:nth-child(2){width:12%}
+.admin-shell .nx73-assignment-table th:nth-child(3){width:22%}
+.admin-shell .nx73-assignment-table th:nth-child(4){width:19%}
+.admin-shell .nx73-assignment-table th:nth-child(5){width:36%}
+.admin-shell .nx73-assignment-table .nx78-assignment-cell{vertical-align:middle;padding-block:12px}
+.admin-shell .nx73-assignment-table .nx78-assignment-cell .nx53-order-action{display:grid;grid-template-columns:minmax(0,1fr) 174px;gap:9px;width:100%;min-width:0;align-items:center;justify-content:end}
+.admin-shell .nx73-assignment-table .nx78-assignment-cell .nx53-order-assignee{display:block;max-width:none;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-shell .nx73-assignment-table .nx78-assignment-cell .nx53-order-assignee.is-empty{visibility:hidden}
+.admin-shell .nx73-assignment-table .nx78-assignment-cell .nx53-open-picker{box-sizing:border-box;width:174px;min-width:0;height:42px;display:inline-flex;align-items:center;justify-content:center;padding:9px 11px;white-space:nowrap}
+@media(max-width:850px){.admin-shell .nx73-assignment-wrap{overflow-x:auto}}
+@media(prefers-reduced-motion:reduce){.storefront .nx78-category-unified,.storefront .nx78-category-unified>.nx47-icon,.storefront .nx33-see-all.nx78-explore-all,.storefront .nx33-see-all.nx78-explore-all::before,.admin-shell .nx78-panel-link,.admin-shell .nx78-panel-link::before,.admin-shell .nx78-cancellation-action,.admin-shell .nx78-cancellation-action::before{transition:none!important;transform:none!important}}
+
+/* Coupon readiness, publication, and savings controls. */
+.nx78-coupon-publish{border:1px solid #cbbefb;background:#f2eeff;color:#5237b6;border-radius:9px;padding:8px 11px;min-height:36px;font-weight:850;cursor:pointer;transition:transform .22s,background .22s,color .22s,box-shadow .22s}
+.nx78-coupon-publish:not(:disabled):hover{background:#5c43cc;color:white;box-shadow:0 8px 18px #5842bc2b;transform:translateY(-2px)}
+.nx78-coupon-publish:disabled{opacity:.45;cursor:not-allowed}
+.nx78-coupon-confirm{position:fixed;inset:0;display:grid;place-items:center;background:#13142899;z-index:2000;padding:16px}
+.nx78-coupon-confirm>div{max-width:450px;border-radius:20px;background:white;box-shadow:0 20px 60px #18113e33;padding:26px;display:grid;gap:14px;color:#1c2341}
+.nx78-coupon-confirm h3{font-size:22px;margin:0}
+.nx78-coupon-confirm p{line-height:1.55;margin:0}
+.nx78-coupon-confirm>div>div{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.nx78-coupon-confirm button{border:1px solid #b7aafa;border-radius:10px;padding:10px 14px;background:#f5f1ff;color:#5338bd;font-weight:800;cursor:pointer}
+.nx78-coupon-confirm button:last-child{background:#624bd3;color:white}
+.storefront .nx78-discount-summary{color:#376f4d;font-weight:750}
+.storefront .nx78-remove-coupon{background:#f7f2ff;border-color:#cfc2f5;color:#6144b8}
+@media(max-width:600px){.storefront .nx73-coupon-row{flex-wrap:wrap}}
+
+.nx78-order-discount{color:#4d38c5}
+.nx78-order-discount strong{color:#4d38c5}

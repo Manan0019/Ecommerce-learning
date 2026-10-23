@@ -18,7 +18,7 @@ const navigation = [
   { to: "/admin/settings", label: "Shipping & Tax", icon: "⚙" },
   { to: "/admin/branding", label: "Branding & Logo", icon: "✦" },
   { to: "/admin/footer", label: "Footer & Moving Banner", icon: "≈" },
-  { to: "/admin/coupons", label: "Coupons (Drafts)", icon: "%" },
+  { to: "/admin/coupons", label: "Coupons", icon: "%" },
   { to: "/admin/storefront-copy", label: "Storefront Wording", icon: "✎" }
 ];
 

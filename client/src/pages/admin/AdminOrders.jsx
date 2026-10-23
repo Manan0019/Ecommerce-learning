@@ -3,7 +3,7 @@ import UiIcon from "../../components/common/UiIcon";
 import Modal from "../../components/common/Modal";
 import { apiAssetUrl } from "../../services/apiClient";
 import AdminLayout from "../../components/layout/AdminLayout";
-import {Link} from "react-router-dom";
+import {Link,useLocation,useNavigate} from "react-router-dom";
 import OrderTimeline from "../../components/customer/OrderTimeline";
 import OrderActionDialog from "../../components/admin/OrderActionDialog";
 import DeliveryExecutivePicker from "../../components/admin/DeliveryExecutivePicker";
@@ -14,12 +14,16 @@ const nextStatuses={placed:["confirmed","cancelled"],confirmed:["processing","ca
 const labels={confirmed:"Confirm order",processing:"Mark preparing",delivered:"Mark delivered"};
 
 export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, onOrdersChanged }){
+ const routeLocation=useLocation(),routeNavigate=useNavigate();
+ const linkedOrderId=!embeddedOrderId ? new URLSearchParams(routeLocation.search).get('order') : null;
  const [orders,setOrders]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(""),[busy,setBusy]=useState(""),[filter,setFilter]=useState("all"),[search,setSearch]=useState("");
  const [dispatchId,setDispatchId]=useState(null),[partner,setPartner]=useState(""),[tracking,setTracking]=useState("");
  const [dialog,setDialog]=useState(null),[dialogError,setDialogError]=useState(""),[notice,setNotice]=useState("");
  const [refundConfig,setRefundConfig]=useState(null);
  const [assignmentOrderId,setAssignmentOrderId]=useState(null);
- const [selectedOrderId,setSelectedOrderId]=useState(embeddedOrderId);
+ const [selectedOrderId,setSelectedOrderId]=useState(embeddedOrderId || (/^[1-9]\d*$/.test(linkedOrderId||'')?linkedOrderId:null));
+ useEffect(()=>{if(linkedOrderId && /^[1-9]\d*$/.test(linkedOrderId))setSelectedOrderId(linkedOrderId);},[linkedOrderId]);
+ function closeOrder(){setSelectedOrderId(null);setDispatchId(null);setError('');if(linkedOrderId)routeNavigate('/admin/orders',{replace:true});onEmbeddedClose?.();}
  const [orderPage,setOrderPage]=useState(1),[orderSort,setOrderSort]=useState("newest");
  const [assignmentData,setAssignmentData]=useState({staff:[],assignments:[]});
  const [assignmentLoading,setAssignmentLoading]=useState(false);
@@ -129,14 +133,14 @@ export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, o
  </AdminLayout>}
  {embeddedOrderId && loading && <Modal title={`Manage order #${embeddedOrderId}`} size="order" onClose={onEmbeddedClose}><div className="nx65-order-loading" role="status">Loading order details…</div></Modal>}
    {embeddedOrderId && !loading && !orders.some(o=>String(o.id)===String(selectedOrderId)) && <Modal title={`Manage order #${embeddedOrderId}`} size="order" onClose={onEmbeddedClose}><p role="alert">{error || "This order is not available. Refresh the dashboard and try again."}</p></Modal>}
-   {orders.filter(o=>String(o.id)===String(selectedOrderId)).map(o=><Modal key={o.id} size="order" title={`Manage order #${o.id}`} subtitle={`${o.customerName||"Customer"} · ${new Date(o.placedAt).toLocaleString("en-IN")}`} closeDisabled={!!busy} onClose={()=>{setSelectedOrderId(null);setDispatchId(null);setError("");onEmbeddedClose?.();}}>
+   {orders.filter(o=>String(o.id)===String(selectedOrderId)).map(o=><Modal key={o.id} size="order" title={`Manage order #${o.id}`} subtitle={`${o.customerName||"Customer"} · ${new Date(o.placedAt).toLocaleString("en-IN")}`} closeDisabled={!!busy} onClose={closeOrder}>
     <div className="nx59-order-detail" aria-label={`Order ${o.id} details`}>{error&&<div className="admin-alert" role="alert">{error}</div>}{notice&&<div className="nx44-admin-notice" role="status">{notice}</div>}
     <div className="nx-admin-orders-grid"><article className="nx-admin-order-card">   <header><div><strong>Order #{o.id}</strong><small>{new Date(o.placedAt).toLocaleString("en-IN")}</small></div><span className={`nx-status nx-status-${o.status}`}>{o.status}</span></header>
    <div className="nx-admin-order-meta nx65-order-overview"><div className="nx65-customer-details"><span className="nx65-label">CUSTOMER</span><strong>{o.customerName||"Customer"}</strong><span title={o.customerEmail||""}>{o.customerEmail||"No email on order"}</span></div><div className="nx34-order-total nx65-total-details"><small>{o.paymentMethod==="Razorpay"?"ONLINE PAYMENT":"CASH ON DELIVERY"}</small><strong>{money(o.total)}</strong></div></div>
    <div className="nx-admin-order-items nx65-order-items">{o.items.map((item,i)=><div className="nx34-admin-order-line" key={`${item.productId}-${item.variantId||"base"}-${i}`}><div className="nx65-order-product">{item.imageUrl&&<img className="nx65-order-thumb" src={apiAssetUrl(item.imageUrl)} alt="" loading="lazy" onError={event=>{event.currentTarget.hidden=true;}}/>}<div className="nx34-order-line-info"><Link className="nx46-product-title" to={`/admin/products/${item.productId}/preview`} state={{from:"/admin/orders"}}>{item.name}</Link>{item.sku&&<small>SKU: {item.sku}</small>}</div></div><div className="nx34-order-line-numbers"><span className="nx34-order-quantity">Qty {item.quantity}</span><strong>{money(item.lineTotal??Number(item.unitPrice||0)*Number(item.quantity||0))}</strong></div></div>)}</div>
-   <div className="nx25-order-breakdown"><span><span>Items subtotal</span><strong>{money(o.subtotal)}</strong></span><span><span>Shipping</span><strong>{money(o.shippingFee)}</strong></span><span><span>{o.taxPricingMode==='exclusive'?'GST added':'GST included'}</span><strong>{money(o.taxTotal)}</strong></span></div>
+   <div className="nx25-order-breakdown"><span><span>Items subtotal</span><strong>{money(o.subtotal)}</strong></span><span><span>Shipping</span><strong>{money(o.shippingFee)}</strong></span>{Number(o.discountAmount)>0&&<span className="nx78-order-discount"><span>Coupon {o.couponCode||""}</span><strong>−{money(o.discountAmount)}</strong></span>}<span><span>{o.taxPricingMode==='exclusive'?'GST added':'GST included'}</span><strong>{money(o.taxTotal)}</strong></span></div>
    <OrderTimeline order={o}/>
-   {o.cancellationRequest&&<section className={`nx45-admin-request is-${o.cancellationRequest.status}`} aria-label="Customer cancellation request"><div><strong>Customer cancellation · {o.cancellationRequest.status}</strong><p>{o.cancellationRequest.reason}</p>{o.cancellationRequest.adminResponse&&<small>Admin response: {o.cancellationRequest.adminResponse}</small>}</div>{o.cancellationRequest.status==='pending'&&<div className="nx45-request-buttons"><button type="button" disabled={busy===o.id} onClick={()=>openDialog(o.paymentMethod==='Razorpay'?'refund':'cancel-cod',o,'cancelled')}>{o.paymentMethod==='Razorpay'?'Approve & refund':'Approve & cancel COD'}</button><button type="button" disabled={busy===o.id} onClick={()=>openDialog('decline-cancel',o)}>Decline request</button></div>}</section>}
+   {o.cancellationRequest&&<section className={`nx45-admin-request is-${o.cancellationRequest.status}`} aria-label="Customer cancellation request"><div><strong>Customer cancellation · {o.cancellationRequest.status}</strong><p>{o.cancellationRequest.reason}</p>{o.cancellationRequest.adminResponse&&<small>Admin response: {o.cancellationRequest.adminResponse}</small>}</div>{o.cancellationRequest.status==='pending'&&<div className="nx45-request-buttons"><button className="nx78-cancellation-action" type="button" disabled={busy===o.id} onClick={()=>openDialog(o.paymentMethod==='Razorpay'?'refund':'cancel-cod',o,'cancelled')}><span>{o.paymentMethod==='Razorpay'?'Approve & refund':'Approve & cancel COD'}</span></button><button className="nx78-cancellation-action" type="button" disabled={busy===o.id} onClick={()=>openDialog('decline-cancel',o)}><span>Decline request</span></button></div>}</section>}
 
    <details><summary>Delivery address</summary><p>{o.address.fullName}, {o.address.phone}</p><p>{o.address.addressLine1}, {o.address.addressLine2}</p><p>{o.address.city}, {o.address.state} — {o.address.pincode}</p></details>
    {dispatchId===o.id&&<form className="nx38-dispatch-form" onSubmit={e=>{e.preventDefault();setStatus(o,"shipped")}}><h3>Dispatch details</h3><label>Courier or delivery service <span aria-hidden="true">*</span><input required maxLength={80} value={partner} onChange={e=>setPartner(e.target.value)} placeholder="e.g. Nexora in-house, Delhivery, Shiprocket"/></label><label>Courier tracking ID (optional)<input maxLength={100} value={tracking} onChange={e=>setTracking(e.target.value)} placeholder="Provided by the courier; not live-tracked automatically"/></label><div><button className="nx-cod-action" type="submit" disabled={busy===o.id}>Confirm dispatch</button><button type="button" className="nx38-neutral-action" onClick={()=>setDispatchId(null)}>Back</button></div></form>}

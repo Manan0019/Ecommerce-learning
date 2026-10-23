@@ -37,6 +37,7 @@ export async function applyGatewayRefund(db,order,refund,actorId=null){
     }
     const changed=await db.query(`UPDATE cod_orders SET status='cancelled',payment_status='razorpay_refunded',refund_status='processed',
       razorpay_refund_id=$2,refund_processed_at=NOW(),refund_checked_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[order.id,refund.id]);
+    await db.query("UPDATE coupon_redemptions SET status='released',updated_at=NOW() WHERE order_id=$1 AND status='consumed'",[order.id]);
     await addEvent(db,order.id,actorId,'refund_processed','Razorpay full refund processed; order cancelled and stock restored once.');
     await notifyAdmins(db,{key:`refund:${order.id}:processed`,kind:'refund',title:'Refund processed',message:`Refund for order #${order.id} is processed; inventory restored.`,path:'/admin/orders'});
     await notifyUser(db,order.customer_id,{key:`refund:${order.id}:processed`,kind:'refund',title:'Your refund was processed',message:`Razorpay confirms your full refund for order #${order.id}.`,path:'/orders'});

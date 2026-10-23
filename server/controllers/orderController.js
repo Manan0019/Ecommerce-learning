@@ -5,6 +5,7 @@ import { fromPaise, validateCartItems } from "../services/cartPricing.js";
 import { calculateCheckout } from "../services/checkoutPricing.js";
 import {canonicalIndianState} from '../services/indianStates.js';
 import { acceptedQuoteError, quoteMatchesAccepted, quoteSummary } from "../services/checkoutAcceptance.js";
+import {quoteLiveCoupon,normalizedCouponCode,saveCouponRedemption} from '../services/liveCoupons.js';
 import { deductStock } from "../services/stockDeduction.js";
 import { canChangeOrderStatus, canConfirmCodCollection, validateDispatch, makeOrderLine, normalizeAddress, validOrderId, validRequestKey, validateAddress } from "../services/codOrderRules.js";
 
@@ -18,13 +19,13 @@ const statementError = (res, error, label) => {
   if (error.code === "40P01" || error.code === "40001") return res.status(409).json({ message: "Stock changed while ordering. Check your cart and retry." });
   return res.status(500).json({ message: "Could not complete the requested order operation." });
 };
-const serializeOrder = r => ({ taxTotal:r.tax_total, taxPricingMode:r.tax_pricing_mode||'inclusive', taxableValue:r.taxable_value, cgst:r.cgst, sgst:r.sgst, igst:r.igst, id: String(r.id), status: r.status, paymentMethod: r.payment_method === "razorpay" ? "Razorpay" : "Cash on Delivery", paymentStatus: r.payment_status, razorpayPaymentId: r.razorpay_payment_id ?? null, paidAt: r.paid_at ?? null, paymentReviewNote: r.payment_review_note ?? null, refundStatus: r.refund_status ?? null, razorpayRefundId: r.razorpay_refund_id ?? null, refundReason: r.refund_reason ?? null, refundRequestedAt: r.refund_requested_at ?? null, refundProcessedAt: r.refund_processed_at ?? null, deliveryPartner: r.delivery_partner ?? null, trackingReference: r.tracking_reference ?? null, shippedAt: r.shipped_at ?? null, deliveredAt: r.delivered_at ?? null, codCollectedAt: r.cod_collected_at ?? null, subtotal: r.subtotal, shippingFee: r.shipping_fee, total: r.grand_total, address: r.address_snapshot, placedAt: r.placed_at, updatedAt: r.updated_at, customerName: r.customer_name ?? null, customerEmail: r.customer_email ?? null });
+const serializeOrder = r => ({ couponCode:r.coupon_code??null,discountAmount:r.discount_amount??'0.00', taxTotal:r.tax_total, taxPricingMode:r.tax_pricing_mode||'inclusive', taxableValue:r.taxable_value, cgst:r.cgst, sgst:r.sgst, igst:r.igst, id: String(r.id), status: r.status, paymentMethod: r.payment_method === "razorpay" ? "Razorpay" : "Cash on Delivery", paymentStatus: r.payment_status, razorpayPaymentId: r.razorpay_payment_id ?? null, paidAt: r.paid_at ?? null, paymentReviewNote: r.payment_review_note ?? null, refundStatus: r.refund_status ?? null, razorpayRefundId: r.razorpay_refund_id ?? null, refundReason: r.refund_reason ?? null, refundRequestedAt: r.refund_requested_at ?? null, refundProcessedAt: r.refund_processed_at ?? null, deliveryPartner: r.delivery_partner ?? null, trackingReference: r.tracking_reference ?? null, shippedAt: r.shipped_at ?? null, deliveredAt: r.delivered_at ?? null, codCollectedAt: r.cod_collected_at ?? null, subtotal: r.subtotal, shippingFee: r.shipping_fee, total: r.grand_total, address: r.address_snapshot, placedAt: r.placed_at, updatedAt: r.updated_at, customerName: r.customer_name ?? null, customerEmail: r.customer_email ?? null });
 
 // Item identity/price/stock checks are identical for estimate and final COD placement.
 async function loadOrderLines(db, items, lock = false) {
   const ids=[...new Set(items.map(i=>i.productId))];
   const variantIds=[...new Set(items.map(i=>i.variantId).filter(Boolean))];
-  const p=await db.query(`SELECT p.id,p.name,p.price,p.stock,p.image_url,p.is_active,p.gst_percent,c.is_active AS category_active
+  const p=await db.query(`SELECT p.id,p.name,p.price,p.stock,p.image_url,p.is_active,p.gst_percent,p.category_id,p.show_sale_badge,c.is_active AS category_active
     FROM products p JOIN categories c ON c.id=p.category_id
     WHERE p.id=ANY($1::bigint[]) ORDER BY p.id ${lock?'FOR UPDATE OF p':''}`,[ids]);
   const v=variantIds.length?await db.query(`SELECT id,product_id,sku,attributes,price,stock,is_active FROM product_variants
@@ -38,7 +39,7 @@ async function loadOrderLines(db, items, lock = false) {
     const product=products.get(item.productId);
     const line=makeOrderLine(item,product,item.variantId?variants.get(item.variantId):null,variantRequired.has(item.productId));
     if(line.error)return {error:line.error};
-    lines.push({...line,gstPercent:product.gst_percent});
+    lines.push({...line,gstPercent:product.gst_percent,categoryId:product.category_id,showSaleBadge:product.show_sale_badge});
   }
   return {lines:await attachOrderImages(db,lines)};
 }
@@ -53,26 +54,30 @@ async function resolveAddress(db,userId,body,lock=false){
   return error?{error}:{address:normalizeAddress(body.address)};
 }
 async function fetchPolicy(db,lock=false){const r=await db.query(`SELECT * FROM store_checkout_settings WHERE id=1 ${lock?'FOR SHARE':''}`);if(!r.rows.length)throw new Error('Store shipping settings missing');return r.rows[0];}
-const externalBreakdown=b=>({subtotal:b.subtotal,shippingFee:b.shippingFee,total:b.total,taxableValue:b.taxableValue,includedTax:b.includedTax,cgst:b.cgst,sgst:b.sgst,igst:b.igst,taxType:b.taxType,taxPricingMode:b.taxPricingMode,shippingReason:b.shippingReason,shippingRegion:b.shippingRegion});
+const externalBreakdown=b=>({couponCode:b.couponCode,discountAmount:b.discountAmount,subtotal:b.subtotal,shippingFee:b.shippingFee,total:b.total,taxableValue:b.taxableValue,includedTax:b.includedTax,cgst:b.cgst,sgst:b.sgst,igst:b.igst,taxType:b.taxType,taxPricingMode:b.taxPricingMode,shippingReason:b.shippingReason,shippingRegion:b.shippingRegion});
 export async function estimateCodOrder(req,res){
  const {items}=req.body||{};const invalid=validateCartItems(items);if(invalid||!items?.length)return res.status(400).json({message:invalid||'Cart is empty.'});
  try{const address=await resolveAddress(pool,req.user.id,req.body);if(address.error)return res.status(400).json({message:address.error});
   const policy=await fetchPolicy(pool);const result=await loadOrderLines(pool,items);
   if(result.error)return res.status(409).json({message:result.error,requiresCartReview:true});
   const lines=result.lines.map(x=>({...x,gstPercent:x.gstPercent??policy.default_item_gst_percent}));
-  const amounts=calculateCheckout(lines,address.address.state,policy);
+  const coupon=await quoteLiveCoupon(pool,req.body?.couponCode,req.user.id,lines);
+  if(coupon.error)return res.status(422).json({message:coupon.error});
+  const amounts=calculateCheckout(lines,address.address.state,policy,coupon);
   return res.json({estimate:externalBreakdown(amounts),codEnabled:policy.cod_enabled,taxDisclaimer:'GST is calculated using the store pricing mode. Tax settings must be verified before accepting live orders.'});
  }catch(e){return statementError(res,e,'Estimate COD order:');}
 }
 // Save COD orders and their stock deductions in one transaction, never trust client totals.
 export async function placeCodOrder(req,res){
  const {items,requestKey,paymentMethod}=req.body||{};
+ const couponCode=normalizedCouponCode(req.body?.couponCode);
+ if(couponCode===null)return res.status(400).json({message:'Invalid coupon code.'});
  const invalid=validateCartItems(items);if(invalid||!items?.length)return res.status(400).json({message:invalid||'Your cart is empty.'});
  if(paymentMethod!=='cod')return res.status(400).json({message:'Only Cash on Delivery is supported.'});
  if(!validRequestKey(requestKey))return res.status(400).json({message:'Invalid order request key.'});
  const quoteError=acceptedQuoteError(req.body?.acceptedQuote);
  if(quoteError)return res.status(400).json({message:quoteError});
- const digest=createHash('sha256').update(JSON.stringify({items:[...items].sort((a,b)=>`${a.productId}:${a.variantId??''}`.localeCompare(`${b.productId}:${b.variantId??''}`)),addressId:req.body?.addressId??null,address:req.body?.addressId?null:req.body?.address,paymentMethod})).digest('hex');
+ const digest=createHash('sha256').update(JSON.stringify({items:[...items].sort((a,b)=>`${a.productId}:${a.variantId??''}`.localeCompare(`${b.productId}:${b.variantId??''}`)),addressId:req.body?.addressId??null,address:req.body?.addressId?null:req.body?.address,paymentMethod,...(couponCode?{couponCode}:{})})).digest('hex');
  const db=await pool.connect();let open=false;
  try{
   await db.query('BEGIN');open=true;
@@ -87,7 +92,9 @@ export async function placeCodOrder(req,res){
   const result=await loadOrderLines(db,items,true);
   if(result.error){await db.query('ROLLBACK');open=false;return res.status(409).json({message:result.error,requiresCartReview:true});}
   const lines=result.lines.map(x=>({...x,gstPercent:x.gstPercent??policy.default_item_gst_percent}));
-  const amounts=calculateCheckout(lines,address.address.state,policy);
+  const coupon=await quoteLiveCoupon(db,couponCode,req.user.id,lines,{lock:true});
+  if(coupon.error){await db.query('ROLLBACK');open=false;return res.status(422).json({message:coupon.error});}
+  const amounts=calculateCheckout(lines,address.address.state,policy,coupon);
   if(amounts._total<=0n||amounts._total>999999999999n){await db.query('ROLLBACK');open=false;return res.status(400).json({message:'Invalid order total.'});}
   // The customer's explicit acceptance is checked AFTER row locks and repricing.
   // A changing SKU price, shipping fee or applicable GST amount needs a new confirmation.
@@ -95,13 +102,14 @@ export async function placeCodOrder(req,res){
     await db.query('ROLLBACK');open=false;
     return res.status(409).json({message:'Your checkout amounts changed. Review the updated total before placing your order.',requiresEstimateReview:true,latestEstimate:quoteSummary(amounts)});
   }
-  const saved=await db.query(`INSERT INTO cod_orders(customer_id,request_key,request_digest,subtotal,shipping_fee,grand_total,address_snapshot,tax_total,taxable_value,cgst,sgst,igst,tax_pricing_mode)
-    VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13) RETURNING *`,[req.user.id,requestKey,digest,amounts.subtotal,amounts.shippingFee,amounts.total,JSON.stringify(address.address),amounts.includedTax,amounts.taxableValue,amounts.cgst,amounts.sgst,amounts.igst,amounts.taxPricingMode]);
+  const saved=await db.query(`INSERT INTO cod_orders(customer_id,request_key,request_digest,subtotal,shipping_fee,grand_total,address_snapshot,tax_total,taxable_value,cgst,sgst,igst,tax_pricing_mode,coupon_code,discount_amount)
+    VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,[req.user.id,requestKey,digest,amounts.subtotal,amounts.shippingFee,amounts.total,JSON.stringify(address.address),amounts.includedTax,amounts.taxableValue,amounts.cgst,amounts.sgst,amounts.igst,amounts.taxPricingMode,coupon.code,amounts.discountAmount]);
   const order=saved.rows[0];
+  await saveCouponRedemption(db,coupon,req.user.id,order.id,'consumed');
   await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id) VALUES($1,'placed',$2)",[order.id,req.user.id]);
   for(const [i,line] of lines.entries()){
-    await db.query(`INSERT INTO cod_order_items(order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total,gst_percent,included_tax)
-      VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12)`,[order.id,line.productId,line.variantId,line.name,line.sku,JSON.stringify(line.attributes),line.imageUrl,line.quantity,fromPaise(line.unitPrice),fromPaise(line.lineTotal),line.gstPercent,amounts.itemTaxes[i]]);
+    await db.query(`INSERT INTO cod_order_items(order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total,gst_percent,included_tax,discount_amount)
+      VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13)`,[order.id,line.productId,line.variantId,line.name,line.sku,JSON.stringify(line.attributes),line.imageUrl,line.quantity,fromPaise(line.unitPrice),fromPaise(line.lineTotal),line.gstPercent,amounts.itemTaxes[i],fromPaise(coupon.allocations[i])]);
     await deductStock(db,line);
   }
   await notifyAdmins(db,{key:`order:${order.id}:placed`,kind:'order',title:'New COD order',message:`New Cash on Delivery order #${order.id} was placed.`,path:'/admin/orders'});
@@ -193,6 +201,7 @@ export async function changeCodOrderStatus(req,res){
   }else{
     changed=await db.query("UPDATE cod_orders SET status=$2,updated_at=NOW() WHERE id=$1 RETURNING *",[id,status]);
   }
+  if(status==='cancelled')await db.query("UPDATE coupon_redemptions SET status='released',updated_at=now() WHERE order_id=$1 AND status='consumed'",[id]);
   if(status==='cancelled' && requestCheck.rows[0]?.status==='pending') {
     await db.query(`UPDATE order_cancellation_requests SET status='approved',reviewed_at=NOW(),reviewed_by=$2,
       admin_response='Approved: COD order cancelled and stock restored.' WHERE order_id=$1`,[id,req.user.id]);

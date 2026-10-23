@@ -57,6 +57,7 @@ app.use("/api/branding", publicBrandingRoutes);
 app.use("/api/admin/branding", adminBrandingRoutes);
 app.use("/api/footer",publicFooterRoutes);
 app.use("/api/admin/footer",adminFooterRoutes);
+app.use("/api/admin/coupons",couponDraftRoutes);
 app.use("/api/admin/coupon-drafts",couponDraftRoutes);
 app.use("/api/storefront-copy",publicStorefrontCopyRoutes);
 app.use("/api/admin/storefront-copy",adminStorefrontCopyRoutes);

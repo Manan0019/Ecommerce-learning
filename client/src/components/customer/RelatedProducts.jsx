@@ -37,7 +37,7 @@ export default function RelatedProducts({ productId }) {
         <h2 id="related-products-title">You may also like</h2>
         <p className="nx33-recommendations-subtitle">Discover related products and more from your favourite categories.</p>
       </div>
-      <Link className="nx33-see-all" to="/products?view=products">Explore all products</Link>
+      <Link className="nx33-see-all nx78-explore-all" to="/products?view=products">Explore all products</Link>
     </div>
     {status === "loading" && <div className="nx33-recommendations-loading" role="status" aria-label="Loading recommendations">
       {Array.from({ length: 4 }, (_, index) => <ProductLoadingSkeleton key={index} />)}

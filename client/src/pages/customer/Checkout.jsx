@@ -22,7 +22,7 @@ export default function Checkout(){
  const [paymentMethod,setPaymentMethod]=useState('cod'),[razorpayEnabled,setRazorpayEnabled]=useState(false);
  const [checking,setChecking]=useState(true),[posting,setPosting]=useState(false),[estimating,setEstimating]=useState(false);
  const [paymentPhase,setPaymentPhase]=useState('idle');
- const [couponCode,setCouponCode]=useState(''),[couponStatus,setCouponStatus]=useState('');
+ const [couponCode,setCouponCode]=useState(''),[appliedCoupon,setAppliedCoupon]=useState(''),[couponStatus,setCouponStatus]=useState('');
  const [error,setError]=useState(''),[needsCartReview,setNeedsCartReview]=useState(false),[role,setRole]=useState(null),[saveNew,setSaveNew]=useState(true);
  const [estimateFor,setEstimateFor]=useState(''),[quotedCart,setQuotedCart]=useState(''),[updatedQuote,setUpdatedQuote]=useState(false);
  const requestRef=useRef({intent:null,key:crypto.randomUUID()});
@@ -37,23 +37,23 @@ export default function Checkout(){
  }catch(e){if(isAuthenticationError(e))navigate('/login',{replace:true,state:{from:'/checkout',message:'Sign in to complete checkout.'}});else if(!controller.signal.aborted)setError(e.message)}finally{if(!controller.signal.aborted)setChecking(false)}}load();return()=>controller.abort()},[items,navigate,cartKey]);
  const activeAddress=selectedId==='new'?address:addresses.find(a=>a.id===selectedId);
  const validAddress=activeAddress&&activeAddress.pincode?.length===6&&activeAddress.state?.trim()&&activeAddress.city?.trim()&&activeAddress.addressLine1?.length>=5&&activeAddress.fullName?.length>=2&&activeAddress.phone?.length>=10;
- const intentKey=checkoutIntentKey(items,selectedId,address);
+ const intentKey=checkoutIntentKey(items,selectedId,address)+'::coupon:'+appliedCoupon;
  const cartValid=quotedCart===cartKey && quote?.valid;
  const canSubmit=checkoutAcceptable({estimate,estimateFor,intentKey,cartValid,codEnabled:paymentMethod==='cod'?codEnabled:razorpayEnabled,posting,estimating});
  useEffect(()=>{
   if(!cartValid||!items.length||!validAddress)return;
   const ctrl=new AbortController();
   const tick=setTimeout(()=>{
-   const payload={items,...(selectedId==='new'?{address}:{addressId:selectedId})};
+   const payload={items,couponCode:appliedCoupon,...(selectedId==='new'?{address}:{addressId:selectedId})};
    setEstimating(true);
    estimateCodOrder(payload,ctrl.signal).then(result=>{
-    if(!ctrl.signal.aborted){setEstimate(result.estimate);setEstimateFor(intentKey);setCodEnabled(result.codEnabled);setUpdatedQuote(false);setError('');}
+    if(!ctrl.signal.aborted){setEstimate(result.estimate);setEstimateFor(intentKey);setCodEnabled(result.codEnabled);setUpdatedQuote(false);setCouponStatus(appliedCoupon?`Coupon ${appliedCoupon} applied · You save ${money(result.estimate?.discountAmount)}.`:'');setError('');}
    }).catch(e=>{
-    if(!ctrl.signal.aborted){setEstimate(null);setEstimateFor('');setError(e.message);}
+    if(!ctrl.signal.aborted){setEstimate(null);setEstimateFor('');if(appliedCoupon)setCouponStatus(e.message);else setError(e.message);}
    }).finally(()=>{if(!ctrl.signal.aborted)setEstimating(false)});
   },350);
   return()=>{clearTimeout(tick);ctrl.abort()};
- },[intentKey,items,selectedId,address,cartValid,validAddress]);
+ },[intentKey,items,selectedId,address,cartValid,validAddress,appliedCoupon]);
  async function submit(e){
   e.preventDefault();
   if(submitLock.current||!canSubmit||!items.length)return;
@@ -68,7 +68,7 @@ export default function Checkout(){
   try{
     const signature=`${intentKey}::${paymentMethod}`;
     if(requestRef.current.intent!==signature)requestRef.current={intent:signature,key:crypto.randomUUID()};
-    const payload={items,...selectedAddress,paymentMethod,requestKey:requestRef.current.key,acceptedQuote:estimate};
+    const payload={items,couponCode:appliedCoupon,...selectedAddress,paymentMethod,requestKey:requestRef.current.key,acceptedQuote:estimate};
     if(paymentMethod==='razorpay'){
       // Load the provider UI first so script-blocking does not reserve any inventory.
       await loadRazorpayCheckout();
@@ -134,8 +134,8 @@ export default function Checkout(){
       {!razorpayEnabled&&<p className="nx-cod-note">Online payment is temporarily unavailable. Please choose Cash on Delivery.</p>}
      </div>
     <section className="nx73-coupon-field" aria-label="Coupon code">
-      <label htmlFor="nx73-coupon-code"><strong>Have a coupon code?</strong><small>Check whether coupon redemption is available.</small></label>
-      <div className="nx73-coupon-row"><input id="nx73-coupon-code" type="text" autoComplete="off" maxLength={24} placeholder="Enter coupon code" value={couponCode} disabled={posting} onChange={event=>{setCouponCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g,''));setCouponStatus('');}}/><button type="button" disabled={!couponCode.trim()||posting} onClick={()=>setCouponStatus('Coupon redemption is not yet active. Your order total is unchanged; no discount has been applied.')}>Apply code</button></div>
+      <label htmlFor="nx73-coupon-code"><strong>Have a coupon code?</strong><small>Apply a published offer. The final discount is verified by Nexora before payment.</small></label>
+      <div className="nx73-coupon-row"><input id="nx73-coupon-code" type="text" autoComplete="off" maxLength={24} placeholder="Enter coupon code" value={couponCode} disabled={posting} onChange={event=>{setCouponCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g,''));if(appliedCoupon){setAppliedCoupon('');setEstimateFor('');}setCouponStatus('');}}/><button type="button" disabled={!couponCode.trim()||posting||!validAddress||!cartValid} onClick={()=>{setAppliedCoupon(couponCode.trim());setCouponStatus('Checking your coupon…');setEstimateFor('');}}>Apply code</button>{appliedCoupon&&<button type="button" className="nx78-remove-coupon" disabled={posting} onClick={()=>{setAppliedCoupon('');setCouponCode('');setCouponStatus('Coupon removed.');setEstimateFor('');}}>Remove</button>}</div>
       {couponStatus&&<p role="status" className="nx73-coupon-feedback">{couponStatus}</p>}
     </section>
     {paymentMethod==='cod'&&!codEnabled&&validAddress&&quote?.valid&&<p className="nx-cod-message nx-cod-error" role="status">The store has not enabled COD checkout yet. Please contact the store.</p>}
@@ -147,6 +147,7 @@ export default function Checkout(){
     {!quote?.valid&&<p className="nx-cod-message nx-cod-error">Some items are unavailable. <Link to="/cart">Review your cart</Link>.</p>}
     {quote?.items?.map(item=><div className="nx-cod-summary-line" key={`${item.productId}-${item.variantId||''}`}><div className="nx-cod-summary-product">{item.imageUrl&&<img src={apiAssetUrl(item.imageUrl)} loading="lazy" alt=""/>}<div><strong>{item.name||'Unavailable product'}</strong><small>{item.sku?`${item.sku} · `:''}Qty {item.quantity}</small></div></div><span>{item.lineTotal?money(item.lineTotal):'—'}</span></div>)}
     <div className="nx-cod-summary-line"><span>Products subtotal</span><strong>{money(estimateFor===intentKey?estimate?.subtotal:quote?.availableSubtotal)}</strong></div>
+    {estimateFor===intentKey&&estimate&&Number(estimate.discountAmount)>0&&<div className="nx-cod-summary-line nx78-discount-summary"><span>Coupon savings ({estimate.couponCode})</span><strong>−{money(estimate.discountAmount)}</strong></div>}
     <div className="nx-cod-summary-line"><span>Shipping {estimateFor===intentKey&&estimate?.shippingRegion?`· ${estimate.shippingRegion==='within-state'?'Within dispatch state':'Other state'}`:''}</span><strong>{estimateFor===intentKey&&estimate?Number(estimate.shippingFee)===0?'Free':money(estimate.shippingFee):'Enter address'}</strong></div>
     {estimateFor===intentKey&&estimate?.shippingReason==='threshold'&&<p className="nx75-shipping-explainer">Free shipping applies because the products subtotal meets your store's configured threshold.</p>}
     {estimateFor===intentKey&&estimate&&<><div className="nx-cod-summary-line"><span>{estimate.taxPricingMode==='exclusive'?'GST added':'GST included'} ({estimate.taxType})</span><strong>{money(estimate.includedTax)}</strong></div><div className="nx25-tax-details"><small>Taxable value: {money(estimate.taxableValue)}</small><small>{estimate.taxType==='IGST'?`IGST: ${money(estimate.igst)}`:`CGST: ${money(estimate.cgst)} · SGST: ${money(estimate.sgst)}`}</small></div></>}

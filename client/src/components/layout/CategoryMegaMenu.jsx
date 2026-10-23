@@ -65,13 +65,14 @@ export default function CategoryMegaMenu({ mobileOpen, onNavigate }) {
     onBlur={event => {if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);}}
     onKeyDown={event => { if (event.key === "Escape") {event.preventDefault();event.currentTarget.querySelector(".nx35-category-trigger")?.focus();setOpen(false);} }}>
     <div className="nx35-nav-trigger-row">
-      <Link className="nx35-category-trigger nx77-category-main-link" to="/categories" onClick={close} aria-label="Browse all categories">
+      <button className="nx35-category-trigger nx78-category-unified" type="button"
+        aria-label="Explore categories and subcategories" aria-controls="nx78-category-dropdown"
+        aria-haspopup="true" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/></svg>
-        <span>Categories</span>
-      </Link>
-      <button className="nx77-category-menu-toggle" type="button" aria-label="Open category quick menu" aria-haspopup="true" aria-expanded={open} onClick={()=>setOpen(v=>!v)}><UiIcon name="chevron-down" size={15}/></button>
+        <span>Categories</span><UiIcon name="chevron-down" size={16}/>
+      </button>
     </div>
-    <nav className="nx35-category-dropdown" aria-label="Category and subcategory navigation">
+    <nav id="nx78-category-dropdown" className="nx35-category-dropdown" aria-label="Category and subcategory navigation">
       <div className="nx35-category-heading"><span>EXPLORE BY CATEGORY</span><Link to="/categories" onClick={close}>View all <UiIcon name="chevron-right" size={15}/></Link></div>
       {data.error ? <p className="nx35-category-empty" role="alert">Categories are temporarily unavailable. <Link to="/categories" onClick={close}>Browse collections</Link></p>
         : categories.length ? <ul className="nx35-category-roots">{categories.map(category => <MenuBranch key={category.id} category={category} close={close}/>)}</ul>

@@ -7,6 +7,7 @@ import pool from '../config/db.js';
 import { fromPaise, validateCartItems } from '../services/cartPricing.js';
 import { calculateCheckout } from '../services/checkoutPricing.js';
 import { acceptedQuoteError, quoteMatchesAccepted, quoteSummary } from '../services/checkoutAcceptance.js';
+import {quoteLiveCoupon,normalizedCouponCode,saveCouponRedemption} from '../services/liveCoupons.js';
 import { deductStock } from '../services/stockDeduction.js';
 import { makeOrderLine, normalizeAddress, validOrderId, validRequestKey, validateAddress } from '../services/codOrderRules.js';
 import { razorpaySettings, createGatewayOrder, fetchGatewayPayment,
@@ -15,7 +16,7 @@ import { razorpaySettings, createGatewayOrder, fetchGatewayPayment,
 
 const paymentJson = order => ({
   id:String(order.id), status:order.status, paymentStatus:order.payment_status,
-  paymentMethod:order.payment_method, paymentId:order.razorpay_payment_id ?? null,
+  paymentMethod:order.payment_method, couponCode:order.coupon_code||null, discountAmount:order.discount_amount||'0.00', paymentId:order.razorpay_payment_id ?? null,
   paymentReviewNote:order.payment_review_note ?? null,
 });
 const rollback = async db => { await db.query('ROLLBACK').catch(()=>{}); };
@@ -41,7 +42,7 @@ async function quoteLines(db,items,policy) {
   const productIds=[...new Set(items.map(x=>x.productId))];
   const variants=[...new Set(items.map(x=>x.variantId).filter(Boolean))];
   const [p,v,required]=await Promise.all([
-    db.query(`SELECT p.id,p.name,p.price,p.stock,p.image_url,p.is_active,p.gst_percent,c.is_active AS category_active
+    db.query(`SELECT p.id,p.name,p.price,p.stock,p.image_url,p.is_active,p.gst_percent,p.category_id,p.show_sale_badge,c.is_active AS category_active
        FROM products p JOIN categories c ON c.id=p.category_id WHERE p.id=ANY($1::bigint[]) ORDER BY p.id FOR UPDATE OF p`,[productIds]),
     variants.length?db.query('SELECT id,product_id,sku,attributes,price,stock,is_active FROM product_variants WHERE id=ANY($1::bigint[]) ORDER BY id FOR UPDATE',[variants]):Promise.resolve({rows:[]}),
     db.query('SELECT DISTINCT product_id FROM product_variants WHERE product_id=ANY($1::bigint[])',[productIds]),
@@ -53,13 +54,13 @@ async function quoteLines(db,items,policy) {
     const p=pm.get(item.productId);
     const line=makeOrderLine(item,p,item.variantId?vm.get(item.variantId):null,has.has(item.productId));
     if (line.error)return {error:line.error};
-    result.push({...line,gstPercent:p.gst_percent??policy.default_item_gst_percent});
+    result.push({...line,gstPercent:p.gst_percent??policy.default_item_gst_percent,categoryId:p.category_id,showSaleBadge:p.show_sale_badge});
   }
   return {lines:await attachOrderImages(db,result)};
 }
 function intentDigest(items, body) {
   return createHash('sha256').update(JSON.stringify({items:[...items].sort((a,b)=>`${a.productId}:${a.variantId??''}`.localeCompare(`${b.productId}:${b.variantId??''}`)),
-    addressId:body.addressId??null,address:body.addressId?null:body.address,paymentMethod:'razorpay'})).digest('hex');
+    addressId:body.addressId??null,address:body.addressId?null:body.address,paymentMethod:'razorpay',...(normalizedCouponCode(body.couponCode)?{couponCode:normalizedCouponCode(body.couponCode)}:{})})).digest('hex');
 }
 function paymentCheckout(order) {
   return {gatewayOrderId:order.razorpay_order_id,orderId:String(order.id),
@@ -73,6 +74,8 @@ export async function initiateRazorpayOrder(req,res) {
   const key=razorpaySettings();
   if (!key.enabled)return res.status(503).json({message:'Online payments are not configured for this store.'});
   const {items,requestKey,paymentMethod} =req.body||{};
+  const couponCode=normalizedCouponCode(req.body?.couponCode);
+  if(couponCode===null)return res.status(400).json({message:'Invalid coupon code.'});
   const itemError=validateCartItems(items);
   if (itemError || !items?.length)return res.status(400).json({message:itemError||'Cart is empty.'});
   if (paymentMethod!=='razorpay' || !validRequestKey(requestKey))return res.status(400).json({message:'Invalid payment request.'});
@@ -116,7 +119,9 @@ export async function initiateRazorpayOrder(req,res) {
     const policy=policyResult.rows[0];
     const found=await quoteLines(db,items,policy);
     if(found.error){await rollback(db);begun=false;return res.status(409).json({message:found.error,requiresCartReview:true});}
-    const amounts=calculateCheckout(found.lines,address.address.state,policy);
+    const coupon=await quoteLiveCoupon(db,couponCode,req.user.id,found.lines,{lock:true});
+    if(coupon.error){await rollback(db);begun=false;return res.status(422).json({message:coupon.error});}
+    const amounts=calculateCheckout(found.lines,address.address.state,policy,coupon);
     if(amounts._total<=0n || amounts._total>999999999999n){await rollback(db);begun=false;return res.status(400).json({message:'Invalid payment amount.'});}
     if(!quoteMatchesAccepted(amounts,req.body.acceptedQuote)){
       await rollback(db);begun=false;
@@ -128,15 +133,16 @@ export async function initiateRazorpayOrder(req,res) {
       receipt:`nx_${requestKey.replaceAll('-','').slice(0,32)}`,partial_payment:false});
     if(!validGatewayIdentifier(gateway.id,'order')||gateway.amount!==Number(amounts._total)||gateway.currency!=='INR')throw new Error('Razorpay order response mismatch');
     const r=await db.query(`INSERT INTO cod_orders(customer_id,request_key,request_digest,status,payment_method,payment_status,
-      subtotal,shipping_fee,grand_total,address_snapshot,tax_total,taxable_value,cgst,sgst,igst,razorpay_order_id,tax_pricing_mode)
-      VALUES($1,$2,$3,'payment_pending','razorpay','razorpay_pending',$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+      subtotal,shipping_fee,grand_total,address_snapshot,tax_total,taxable_value,cgst,sgst,igst,razorpay_order_id,tax_pricing_mode,coupon_code,discount_amount)
+      VALUES($1,$2,$3,'payment_pending','razorpay','razorpay_pending',$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
       [req.user.id,requestKey,digest,amounts.subtotal,amounts.shippingFee,amounts.total,
-        JSON.stringify(address.address),amounts.includedTax,amounts.taxableValue,amounts.cgst,amounts.sgst,amounts.igst,gateway.id,amounts.taxPricingMode]);
+        JSON.stringify(address.address),amounts.includedTax,amounts.taxableValue,amounts.cgst,amounts.sgst,amounts.igst,gateway.id,amounts.taxPricingMode,coupon.code,amounts.discountAmount]);
     const order=r.rows[0];
+    await saveCouponRedemption(db,coupon,req.user.id,order.id,'reserved');
     for(const [i,line] of found.lines.entries()){
-      await db.query(`INSERT INTO cod_order_items(order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total,gst_percent,included_tax)
-        VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12)`,[order.id,line.productId,line.variantId,line.name,line.sku,JSON.stringify(line.attributes),line.imageUrl,line.quantity,
-        fromPaise(line.unitPrice),fromPaise(line.lineTotal),line.gstPercent,amounts.itemTaxes[i]]);
+      await db.query(`INSERT INTO cod_order_items(order_id,product_id,variant_id,name_snapshot,sku_snapshot,attributes_snapshot,image_snapshot,quantity,unit_price,line_total,gst_percent,included_tax,discount_amount)
+        VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13)`,[order.id,line.productId,line.variantId,line.name,line.sku,JSON.stringify(line.attributes),line.imageUrl,line.quantity,
+        fromPaise(line.unitPrice),fromPaise(line.lineTotal),line.gstPercent,amounts.itemTaxes[i],fromPaise(coupon.allocations[i])]);
       await deductStock(db,line);
     }
     await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id) VALUES($1,'payment_pending',$2)",[order.id,req.user.id]);
@@ -161,6 +167,7 @@ async function applyCapturedPayment(db,order,payment,actorId=null){
   if(order.status!=='payment_pending'||order.payment_status!=='razorpay_pending')return {error:'Order not eligible for online payment confirmation.'};
   const changed=await db.query(`UPDATE cod_orders SET status='placed',payment_status='razorpay_paid',
     razorpay_payment_id=$2,paid_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[order.id,payment.id]);
+  await db.query("UPDATE coupon_redemptions SET status='consumed',updated_at=NOW() WHERE order_id=$1 AND status='reserved'",[order.id]);
   await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'payment_verified',$2,$3)",
     [order.id,actorId,'Razorpay captured payment verified.']);
   await notifyAdmins(db,{key:`order:${order.id}:paid`,kind:'order',title:'New paid order',message:`Razorpay payment for order #${order.id} verified. Ready for fulfillment.`,path:'/admin/orders'});
@@ -300,6 +307,7 @@ export async function expirePendingOnlineOrder(req,res){
         if(line.variant_id)await db.query('UPDATE product_variants SET stock=stock+$1,updated_at=NOW() WHERE id=$2',[line.quantity,line.variant_id]);
         else await db.query('UPDATE products SET stock=stock+$1 WHERE id=$2',[line.quantity,line.product_id]);
       }
+      await db.query("UPDATE coupon_redemptions SET status='released',updated_at=now() WHERE order_id=$1 AND status='reserved'",[id]);
       const r=await db.query("UPDATE cod_orders SET status='payment_expired',payment_status='razorpay_expired',updated_at=NOW() WHERE id=$1 RETURNING *",[id]);
       await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'payment_expired',$2,$3)",
         [id,req.user.id,'Administrator expired unpaid reservation after checking Razorpay. Late capture requires manual refund review.']);

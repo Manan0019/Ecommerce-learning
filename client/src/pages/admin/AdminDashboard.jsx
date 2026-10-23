@@ -66,7 +66,7 @@ export default function AdminDashboard(){
    </section>
   </div>
   <div className="nx46-dashboard-two">
-   <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Recently added products</h2><p>Click a product to open its preview.</p></div><Link to="/admin/products">Manage products <UiIcon name="right" size={17}/></Link></div>
+   <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Recently added products</h2><p>Click a product to open its preview.</p></div><Link className="nx78-panel-link" to="/admin/products"><span>Manage products</span><UiIcon name="right" size={17}/></Link></div>
     {!products.length?<div className="admin-empty">No products added yet.</div>:<div className="nx46-recent-products">{products.slice(0,5).map(p=><Link to={`/admin/products/${p.id}/preview`} state={{from:"/admin/dashboard"}} key={p.id}><div className="nx46-recent-thumb">{p.imageUrl&&<img src={apiAssetUrl(p.imageUrl)} alt=""/>}</div><div><strong>{p.name}</strong><small>{p.category} · {money(p.displayPrice??p.price)}</small></div><UiIcon name="chevron-right" size={17}/></Link>)}</div>}
    </section>
    <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Inventory health</h2><p>Products requiring restocking attention.</p></div><Link to="/admin/inventory">View alerts <UiIcon name="right" size={17}/></Link></div>

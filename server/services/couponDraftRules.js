@@ -34,8 +34,8 @@ export function validateCouponDraft(raw){
    maximumDiscount,minimumUnitPrice:minUnit,maximumUnitPrice:maxUnit,minimumItems,perCustomerLimit:customerLimit,firstOrderOnly:raw.firstOrderOnly===true,
    excludeSaleProducts:raw.excludeSaleProducts===true,includeSubcategories:raw.includeSubcategories!==false}};
 }
-// Preview only: an actual checkout needs server-verified qualifying items, locked usage counters,
-// tax recalculation and snapshots across Razorpay capture/refund/retry. Do not call this from checkout.
+// Pure eligibility arithmetic is reused by server checkout via liveCoupons.js,
+// which validates catalogue targets, reserves usage under locks and snapshots taxes.
 export function draftDiscountPaise(draft,subtotalPaise){
  if(typeof subtotalPaise!=='bigint'||subtotalPaise<0n)throw new Error('Invalid subtotal');
  const rate=BigInt(Math.round(Number(draft.value)*100));

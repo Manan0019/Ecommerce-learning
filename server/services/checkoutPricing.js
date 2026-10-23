@@ -16,9 +16,14 @@ export function exclusiveTax(netPaise, rate) {
   const bps = BigInt(Math.round(Number(rate) * 100));
   return (netPaise * bps + 5000n) / 10000n;
 }
-export function calculateCheckout(lines, state, policy) {
+export function calculateCheckout(lines, state, policy, coupon = null) {
   if (!Array.isArray(lines) || !lines.length || !state || typeof state !== 'string') throw new Error('Invalid checkout details');
   const subtotal = lines.reduce((total, line) => total + line.lineTotal, 0n);
+  const discounts=coupon?.allocations||lines.map(()=>0n);
+  if(discounts.length!==lines.length||discounts.some((d,i)=>typeof d!=='bigint'||d<0n||d>lines[i].lineTotal))throw new Error('Invalid coupon allocations');
+  const discountAmount=discounts.reduce((s,d)=>s+d,0n);
+  if(discountAmount!== (coupon?.discountPaise||0n))throw new Error('Coupon allocation mismatch');
+  const taxableProductSubtotal=subtotal-discountAmount;
   const destination = canonicalIndianState(state);
   const origin = canonicalIndianState(policy.origin_state);
   // Fail closed rather than misclassify unknown destinations as taxable intra-state.
@@ -29,18 +34,18 @@ export function calculateCheckout(lines, state, policy) {
   const mode = policy.tax_pricing_mode || 'inclusive';
   if (!['inclusive', 'exclusive'].includes(mode)) throw new Error('Invalid GST pricing mode');
   const taxFn = mode === 'exclusive' ? exclusiveTax : inclusiveTax;
-  const itemTaxes = lines.map(line => taxFn(line.lineTotal, line.gstPercent));
+  const itemTaxes = lines.map((line,i) => taxFn(line.lineTotal-discounts[i], line.gstPercent));
   const shippingTax = taxFn(shipping, policy.shipping_gst_percent);
   const includedTax = itemTaxes.reduce((a, b) => a + b, 0n) + shippingTax;
-  const total = subtotal + shipping + (mode === 'exclusive' ? includedTax : 0n);
+  const total = taxableProductSubtotal + shipping + (mode === 'exclusive' ? includedTax : 0n);
   if (total > 999999999999n) throw new Error('Checkout total exceeds allowed value');
   // Rounding: divide whole calculated GST into CGST and SGST, exact sum preserved.
   const cgst = inState ? includedTax / 2n : 0n;
   const sgst = inState ? includedTax - cgst : 0n;
   const igst = inState ? 0n : includedTax;
   return {
-    subtotal: fromPaise(subtotal), shippingFee: fromPaise(shipping), total: fromPaise(total),
-    taxableValue: fromPaise(mode === 'exclusive' ? subtotal + shipping : total - includedTax),
+    subtotal: fromPaise(subtotal), discountAmount: fromPaise(discountAmount), couponCode:coupon?.code||null, shippingFee: fromPaise(shipping), total: fromPaise(total),
+    taxableValue: fromPaise(mode === 'exclusive' ? taxableProductSubtotal + shipping : total - includedTax),
     includedTax: fromPaise(includedTax), taxPricingMode: mode,
     cgst: fromPaise(cgst), sgst: fromPaise(sgst), igst: fromPaise(igst),
     taxType: inState ? 'CGST + SGST' : 'IGST',
@@ -48,7 +53,7 @@ export function calculateCheckout(lines, state, policy) {
     shippingRegion: inState ? 'within-state' : 'other-state',
     itemTaxes: itemTaxes.map(fromPaise),
     // Internal BigInt totals for guaranteed integer precision when writing order.
-    _subtotal: subtotal, _shipping: shipping, _total: total,
+    _subtotal: subtotal, _discount: discountAmount, _shipping: shipping, _total: total,
   };
 }
 export function validateCheckoutSettings(data) {
