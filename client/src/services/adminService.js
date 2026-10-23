@@ -8,6 +8,8 @@ export function getAdminSummary(signal) {
   return apiRequest("/api/admin/summary", { credentials: "include", signal });
 }
 
-export function getCustomers(signal) {
-  return apiRequest("/api/admin/customers", { credentials: "include", signal });
+export function getCustomers(signal, query = "") {
+  const params = new URLSearchParams();
+  if (query.trim()) params.set("q", query.trim());
+  return apiRequest(`/api/admin/customers${params.size ? `?${params}` : ""}`, { credentials: "include", signal });
 }

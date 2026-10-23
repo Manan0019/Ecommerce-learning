@@ -33,7 +33,8 @@ export default function RecentlyViewed() {
       const product = { ...item, ...(latest||{}), parentProductId: item.id,
         stock: latest?Number(latest.stock||0):0,
         hasVariants: latest?Boolean(latest.hasVariants):true };
-      return <article key={item.id} className="nx48-recent-card nx62-recent-card">
+      return <article key={item.id} className="nx48-recent-card nx62-recent-card nx74-link-card">
+        <Link className="nx74-card-hit-area" to={detailUrl} aria-label={`Open ${item.name} details`} />
         <div className="nx62-recent-stage">
           <Link to={detailUrl} className="nx48-recent-image">{item.imageUrl ? <img alt={item.name} src={apiAssetUrl(item.imageUrl)} loading="lazy"/> : <span aria-hidden="true"><UiIcon name="bag" size={35}/></span>}</Link>
           {latest && <StorefrontCardActions product={product} detailUrl={detailUrl} imageUrl={latest.imageUrl || item.imageUrl}/>}

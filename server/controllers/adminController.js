@@ -21,16 +21,23 @@ export async function getSummary(_req, res) {
   }
 }
 
-export async function getCustomers(_req, res) {
+export async function getCustomers(req, res) {
   try {
-    const result = await pool.query(
-      `SELECT id, full_name, email, created_at
-       FROM users
-       WHERE role = 'customer'
-       ORDER BY created_at DESC, id DESC
-       LIMIT 100`
-    );
+    // The directory is admin-only. Parameterized substring search prevents SQL wildcard
+    // surprises and covers customers older than the first 100 recent accounts.
+    const search = String(req.query.q || '').trim().slice(0, 100);
+    const where = `role = 'customer' AND (
+      $1 = '' OR POSITION(LOWER($1) IN LOWER(full_name)) > 0
+      OR POSITION(LOWER($1) IN LOWER(email)) > 0
+      OR POSITION($1 IN id::text) > 0
+    )`;
+    const [result, count] = await Promise.all([
+      pool.query(`SELECT id, full_name, email, created_at FROM users
+        WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT 100`, [search]),
+      pool.query(`SELECT COUNT(*)::int AS total FROM users WHERE ${where}`, [search])
+    ]);
     return res.json({
+      total: count.rows[0]?.total || 0,
       customers: result.rows.map((customer) => ({
         id: String(customer.id),
         fullName: customer.full_name,

@@ -7837,3 +7837,145 @@ button.nx53-orders-link:hover{background:#e8e0fb}button.nx53-orders-link:disable
  :is(.storefront,.admin-shell,.nx-modal) :is(.nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,.nx64-quick-image-nav button,.nx62-ticker-row button) svg{
  transition:none!important;transform:none!important;filter:none!important}
 }
+
+/* Nexora phase 73: checkout, delivery, review links and notification polish.
+   One consolidated stylesheet; no phase-specific CSS file. */
+.nx73-cart-bootstrap{min-height:48vh;display:grid;place-items:center;color:#5944c5;font:600 14px system-ui,sans-serif}
+.nx73-assignment-wrap{max-width:100%;overscroll-behavior-x:contain}
+.nx73-assignment-table{table-layout:fixed;min-width:820px;font-variant-numeric:tabular-nums}
+.nx73-assignment-table th:nth-child(1){width:52px}
+.nx73-assignment-table th:nth-child(2){width:13%}
+.nx73-assignment-table th:nth-child(3){width:22%}
+.nx73-assignment-table th:nth-child(4){width:22%}
+.nx73-assignment-table th:nth-child(5){width:auto}
+.nx73-assignment-table td{vertical-align:middle;padding:15px 10px;overflow-wrap:anywhere}
+.nx73-assignment-table .nx55-select-th,.nx73-assignment-table .nx55-select-cell{width:52px!important;max-width:52px;text-align:center;padding:12px 6px!important}
+.nx73-assignment-table td:nth-child(3){min-width:0}
+.nx73-assignment-table td:nth-child(3) small{display:block;margin-top:5px}
+.nx73-assignment-table .nx53-order-action{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.nx73-assignment-table .nx53-order-assignee{max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nx73-assignment-table .nx53-open-picker{white-space:nowrap;min-height:40px;transition:background .24s,color .24s,border-color .24s,box-shadow .24s,transform .24s}
+.nx73-assignment-table .nx53-open-picker:hover:not(:disabled){background:#5d44d6;color:white;border-color:#5d44d6;transform:translateY(-2px);box-shadow:0 6px 18px rgba(79,54,191,.23)}
+@media(max-width:850px){.nx73-assignment-wrap{margin-right:0}.nx73-assignment-table{min-width:820px}}
+/* Clear, restrained notification hierarchy. Different shades denote the event. */
+.nx46-notification-panel{width:min(435px,calc(100vw - 22px));border-radius:19px;box-shadow:0 28px 65px rgba(27,21,70,.19)}
+.nx46-notification-title .nx70-mark-all{font-size:12px;line-height:1.2;font-weight:800;color:#5b43bc;background:#f1edff;border:1px solid #ded7fe;border-radius:10px;padding:9px 12px;white-space:nowrap;transition:background .22s,color .22s}
+.nx46-notification-title .nx70-mark-all:hover:not(:disabled){background:#5944cd;color:white}
+.nx46-notification-list>button{padding:15px 18px;border-left:4px solid transparent;transition:background .2s,transform .2s;border-radius:0}
+.nx46-notification-list>button.unread{border-left:4px solid #6e58d9;background:#f3f0ff}
+.nx46-notification-list>button.unread.nx73-notification-delivery{border-left-color:#278f9d;background:#effaff}
+.nx46-notification-list>button.unread.nx73-notification-order{border-left-color:#6855d8;background:#f3f0ff}
+.nx46-notification-list>button.unread.nx73-notification-refund{border-left-color:#16754b;background:#edf9f2}
+.nx46-notification-list>button.unread.nx73-notification-cancellation{border-left-color:#d44c5b;background:#fff0f3}
+.nx46-notification-list>button.unread.nx73-notification-inventory{border-left-color:#c26419;background:#fff3e8}
+.nx46-notification-list>button.unread.nx73-notification-payment{border-left-color:#376bc0;background:#eef5ff}
+.nx46-notification-list>button.is-read{opacity:1!important;background:white!important;border-left:4px solid #e8e9ef}
+.nx46-notification-list>button:is(:hover,:focus-visible){background:#e9e6ff!important;outline:0;box-shadow:inset 0 0 0 1px #cabfff}
+.nx46-notification-list>button:focus-visible{outline:2px solid #6145d9;outline-offset:-2px}
+.nx46-notification-list>button strong{font-size:13px;line-height:1.4}.nx46-notification-list>button span{line-height:1.45}.nx46-notification-list>button small{font-size:11px}
+/* Text CTAs share a gentle, full-width underline animation instead of the old immediate underline. */
+.storefront .nx33-see-all,
+.storefront .nx61-review-form summary span{position:relative;text-decoration:none!important;transition:color .2s ease,transform .2s ease}
+.storefront .nx33-see-all::after,
+.storefront .nx61-review-form summary span::after{content:'';position:absolute;left:0;right:0;bottom:-4px;height:2px;border-radius:2px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .28s cubic-bezier(.2,.9,.3,1)}
+.storefront .nx33-see-all:is(:hover,:focus-visible)::after,
+.storefront .nx61-review-form summary:is(:hover,:focus-visible) span::after{transform:scaleX(1)}
+.storefront .nx61-review-form summary span{display:inline-flex;align-items:center;justify-content:center;overflow:visible}
+.storefront .nx61-review-form summary:is(:hover,:focus-visible) span{color:#5943db;transform:translateY(-1px)}
+.storefront .nx37-account-bottom{display:flex;justify-content:flex-end;align-items:flex-end;gap:18px;padding:22px 0}
+.storefront .nx37-account-bottom>div{display:flex;flex-direction:column;text-align:right;gap:5px}
+.storefront .nx37-account-bottom>div strong{color:#1d2342;font-size:14px}
+.storefront .nx37-account-bottom>div span{color:#78819a;font-size:12px}
+.storefront .nx37-account-bottom button{min-height:43px;white-space:nowrap;transition:background .25s,transform .25s,box-shadow .25s}
+.storefront .nx37-account-bottom button:hover{background:#5b42cf;color:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(73,50,166,.23)}
+@media(max-width:530px){.storefront .nx37-account-bottom{align-items:stretch;flex-direction:column}.storefront .nx37-account-bottom>div{text-align:left}}
+.nx73-coupon-field{margin:20px 0;padding:19px;border:1px solid #e0dcf8;border-radius:17px;background:linear-gradient(120deg,#fbfaff,#f6f4ff);display:grid;gap:12px}
+.nx73-coupon-field>label{display:grid;gap:3px}.nx73-coupon-field>label strong{color:#1e2444;font-size:15px}.nx73-coupon-field>label small{color:#66738f;font-size:12px}
+.nx73-coupon-row{display:flex;gap:9px;align-items:stretch}
+.nx73-coupon-row input{min-width:0;flex:1;border:1px solid #d5d7ea;border-radius:11px;padding:12px 14px;font:inherit;font-weight:600;background:white;color:#1c2345}
+.nx73-coupon-row input:focus{outline:2px solid #9c88f2;outline-offset:1px}
+.nx73-coupon-row button{border:1px solid #5c44d0;background:#5c44d0;color:#fff;font:inherit;font-weight:750;border-radius:11px;padding:10px 20px;cursor:pointer;transition:transform .25s,box-shadow .25s,background .25s}
+.nx73-coupon-row button:hover:not(:disabled){transform:translateY(-2px);background:#4b33be;box-shadow:0 8px 18px #5940bf3d}
+.nx73-coupon-row button:disabled{opacity:.55;cursor:not-allowed}
+.nx73-coupon-feedback{margin:0;color:#89520f;font-size:12px;line-height:1.5}
+@media(max-width:510px){.nx73-coupon-row{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.storefront .nx33-see-all::after,.storefront .nx61-review-form summary span::after,.nx73-assignment-table .nx53-open-picker,.nx73-coupon-row button{transition:none!important}.storefront .nx33-see-all::after,.storefront .nx61-review-form summary span::after{transform:none;opacity:0}}
+
+/* Keep the account-switch prompt directly above its action, not across the page. */
+.storefront .nx37-account-bottom{flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:11px}
+.storefront .nx37-account-bottom>div{text-align:right}
+@media(max-width:530px){.storefront .nx37-account-bottom{align-items:stretch}.storefront .nx37-account-bottom>div{text-align:left}}
+
+
+/* Nexora Phase 74: unified interaction motion, customer lookup and courier priority view.
+   All overrides live in site.css, not phase-specific stylesheets. */
+.storefront .nx74-link-card{position:relative;isolation:isolate;cursor:pointer}
+.storefront .nx74-card-hit-area{position:absolute;inset:0;z-index:2;border-radius:inherit;outline:none}
+.storefront .nx74-card-hit-area:focus-visible{outline:3px solid #6e53de;outline-offset:-3px}
+.storefront .nx74-link-card .nx29-card-stage,.storefront .nx74-link-card .nx62-recent-stage{position:relative;z-index:3}
+.storefront .nx74-link-card .product-info,.storefront .nx74-link-card .nx48-recent-copy{position:relative;z-index:auto}
+.storefront .nx74-link-card .product-info h3 a,.storefront .nx74-link-card .nx62-recent-name,.storefront .nx74-link-card .nx48-recent-cta{position:relative;z-index:3}
+.storefront .nx74-link-card .nx61-card-actions,.storefront .nx74-link-card .nx61-quick-add,.storefront .nx74-link-card .nx61-card-feedback,.storefront .nx74-link-card .nx29-card-arrows{z-index:5}
+.storefront .nx74-link-card:hover{border-color:#a996f4!important;box-shadow:0 16px 34px #3021661c}
+/* Consistent word-length animated underline: never a clipped, always-on decoration. */
+.storefront .nx74-link-card .product-info h3 a,
+.storefront .nx74-link-card .nx62-recent-name,
+.storefront .nx74-link-card .nx48-recent-cta{
+ text-decoration:none!important;background-image:linear-gradient(#644bd7,#644bd7);
+ background-size:0 2px;background-repeat:no-repeat;background-position:0 100%;
+ transition:background-size .32s cubic-bezier(.16,1,.3,1),color .22s ease;
+ -webkit-box-decoration-break:clone;box-decoration-break:clone;
+}
+.storefront .nx74-link-card:is(:hover,:focus-within) .product-info h3 a,
+.storefront .nx74-link-card:is(:hover,:focus-within) .nx62-recent-name,
+.storefront .nx74-link-card:is(:hover,:focus-within) .nx48-recent-cta{background-size:100% 2px;color:#5233b8}
+.storefront .nx48-recent-cta{align-self:flex-start;width:max-content}
+/* Department navigation: replace the right-side slash with a single intentional bottom sweep. */
+.storefront .nx48-department .nx66-department-accent{inset:auto 12px 0 12px!important;width:auto!important;height:3px!important;opacity:0!important;transform:scaleX(0)!important;transform-origin:left center!important;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .2s ease!important}
+.storefront .nx48-department:is(:hover,:focus-visible) .nx66-department-accent,
+.storefront .nx48-department.is-active .nx66-department-accent{opacity:1!important;transform:scaleX(1)!important}
+.storefront .nx17-subcategory-shelf .nx34-category-action{position:relative;text-decoration:none!important}
+.storefront .nx17-subcategory-shelf .nx34-category-action::after{left:18%!important;right:18%!important;bottom:3px!important;transform-origin:center!important}
+/* Remove legacy underlining that produced partial widths below button edges. */
+.storefront .nx48-recent-card a:is(:hover,:focus-visible),
+.storefront .nx74-link-card .product-info h3 a:is(:hover,:focus-visible){text-decoration:none!important}
+/* Customer directory: familiar search field shared with other admin tools. */
+.admin-shell .nx74-customer-tools{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:19px 0 16px}
+.admin-shell .nx74-customer-search{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 13px;border:1px solid #d8d9ed;background:#fff;border-radius:12px;color:#6248d0;flex:1 1 260px;max-width:445px;transition:border-color .2s ease,box-shadow .2s ease}
+.admin-shell .nx74-customer-search:focus-within{border-color:#8b71e4;box-shadow:0 0 0 3px #745bdf1a}
+.admin-shell .nx74-customer-search input{font:inherit;font-weight:600;font-size:13px;min-width:0;flex:1;border:0;outline:0;color:#1d2544;background:transparent}
+.admin-shell .nx74-customer-search input::placeholder{color:#818ba2;font-weight:500;opacity:1}
+.admin-shell .nx74-search-count{font-size:12px;color:#68758d;margin-left:auto}
+.admin-shell .nx74-clear-search{border:1px solid #e3dcf7;border-radius:10px;background:#f7f3ff;color:#563cbd;min-height:40px;padding:7px 13px;cursor:pointer;font-weight:750;transition:background .2s,transform .2s}
+.admin-shell .nx74-clear-search:hover{background:#eae2ff;transform:translateY(-2px)}
+.nx74-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* Admin order action: stronger, repeatable hover affordance. */
+.admin-shell .nx57-open-order{position:relative;overflow:hidden;isolation:isolate;transition:background .25s ease,color .25s ease,border-color .25s ease,box-shadow .25s ease,transform .25s ease!important}
+.admin-shell .nx57-open-order:hover:not(:disabled),.admin-shell .nx57-open-order:focus-visible{background:#5840cf!important;border-color:#5840cf!important;color:#fff!important;transform:translateY(-2px);box-shadow:0 7px 19px #4f37a632}
+.admin-shell .nx57-open-order::after{content:"";position:absolute;top:-50%;left:-75%;width:36%;height:200%;transform:skewX(-20deg);background:linear-gradient(100deg,transparent,#ffffff3d,transparent);pointer-events:none;transition:left .5s ease}
+.admin-shell .nx57-open-order:hover::after{left:145%}
+/* Delivery desk: pending handovers dominate the queue instead of old history. */
+.nx57-delivery-shell .nx74-delivery-queue-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;background:linear-gradient(110deg,#f4f0ff,#fff);border:1px solid #dfd6fc;border-radius:19px;padding:19px 23px;margin:0 0 22px}
+.nx74-delivery-queue-summary>div{display:grid;gap:7px;min-width:0}
+.nx74-delivery-queue-summary strong{font-size:19px;letter-spacing:-.02em;color:#1c2444}
+.nx74-delivery-queue-summary small{color:#6e7690;line-height:1.45}
+.nx74-delivery-queue-summary button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:43px;padding:10px 16px;color:white;background:#5e47d0;border:1px solid #5e47d0;border-radius:12px;font-weight:800;cursor:pointer;white-space:nowrap;transition:transform .22s ease,box-shadow .22s ease,background .22s ease}
+.nx74-delivery-queue-summary button:hover{transform:translateY(-2px);background:#4933b6;box-shadow:0 8px 22px #5c45c533}
+.nx74-delivery-results{font-size:12px;color:#727b93;padding:0 0 13px;margin:0}
+.nx57-delivery-shell .nx52-delivery-list-card{transition:background .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease;min-height:116px}
+.nx57-delivery-shell .nx52-delivery-list-card:hover,.nx57-delivery-shell .nx52-delivery-list-card:focus-visible{transform:translateX(3px);box-shadow:0 7px 21px #36227812;outline:none}
+.nx57-delivery-shell .nx52-delivery-list-card:focus-visible{outline:2px solid #6550dc;outline-offset:2px}
+.nx57-delivery-shell .nx52-delivery-detail{box-shadow:0 7px 28px #3020600a}
+.nx57-delivery-shell .nx57-delivery-sidebar>button{transition:background .2s ease,transform .2s ease,color .2s ease}
+.nx57-delivery-shell .nx57-delivery-sidebar>button:hover:not(.is-active){transform:translateX(2px);background:#283552}
+.nx57-delivery-shell .nx52-contact-actions a{transition:transform .2s ease,color .2s ease,background .2s ease}
+.nx57-delivery-shell .nx52-contact-actions a:hover{transform:translateY(-2px);background:#f1ebff;color:#4731ae}
+@media(max-width:740px){.nx57-delivery-shell .nx74-delivery-queue-summary{align-items:stretch;flex-direction:column}.nx74-delivery-queue-summary button{width:100%}.admin-shell .nx74-search-count{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.storefront .nx74-link-card .product-info h3 a,.storefront .nx74-link-card .nx62-recent-name,.storefront .nx74-link-card .nx48-recent-cta,.storefront .nx48-department .nx66-department-accent,.admin-shell .nx57-open-order,.admin-shell .nx57-open-order::after,.nx74-delivery-queue-summary button,.nx57-delivery-shell .nx52-delivery-list-card,.nx57-delivery-shell .nx57-delivery-sidebar>button{transition:none!important;transform:none!important}.admin-shell .nx57-open-order::after{display:none}}
+
+/* Phase 74 finishing touches: always-visible courier quick filters and unified directory search feedback. */
+.nx57-delivery-shell .nx52-delivery-tabs{display:flex;flex-wrap:wrap;margin:0 0 16px;overflow:visible}
+.nx57-delivery-shell .nx52-delivery-tabs button{border:1px solid #e9e4f4;background:#faf9ff;transition:background .2s ease,color .2s ease,transform .2s ease}
+.nx57-delivery-shell .nx52-delivery-tabs button:is(:hover,:focus-visible){transform:translateY(-2px);color:#5139b6;background:#eee9ff}
+.nx57-delivery-shell .nx52-delivery-tabs button.is-active{color:#4f36bb;background:#eae3ff;border-color:#c5b7f7}
+@media(prefers-reduced-motion:reduce){.nx57-delivery-shell .nx52-delivery-tabs button{transition:none!important;transform:none!important}}
