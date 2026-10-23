@@ -1,0 +1,482 @@
+/* ---- legacy layer 57.css : retained cascading behavior ---- */
+/* Phase 57 — readable operations tables, delivery sidebar and minimal media gallery. */
+.nx46-recent-products a,.nx46-recent-products a>div {min-width:0;max-width:100%}
+.nx46-recent-products a>div:nth-child(2) {flex:1 1 0;overflow:hidden}
+.nx46-recent-products strong {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal!important;text-overflow:ellipsis;overflow-wrap:anywhere;line-height:1.45;max-width:100%}
+.nx46-recent-products small {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nx46-recent-products .nx47-icon {flex:0 0 auto;margin-left:auto}
+.nx46-recent-products .nx46-pill{flex:0 0 auto}
+.nx57-orders-table-wrap{overflow-x:auto;border:1px solid #e7e7f1;border-radius:16px;background:#fff;scrollbar-width:thin}
+.nx57-orders-table{border-collapse:collapse;width:100%;min-width:840px;table-layout:fixed;font-size:12px}
+.nx57-orders-table th:nth-child(1){width:8%}.nx57-orders-table th:nth-child(2){width:22%}.nx57-orders-table th:nth-child(3){width:13%}.nx57-orders-table th:nth-child(4){width:14%}.nx57-orders-table th:nth-child(5){width:13%}.nx57-orders-table th:nth-child(6){width:16%}.nx57-orders-table th:nth-child(7){width:14%}
+.nx57-orders-table th {text-align:left;color:#777c95;background:#f8f8fc;padding:15px 12px;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:850}
+.nx57-orders-table td{padding:15px 12px;border-top:1px solid #eeeefa;color:#283452;vertical-align:middle;overflow:hidden}
+.nx57-orders-table tr.is-selected td{background:#f4f1ff}
+.nx57-orders-table tr:hover td{background:#faf9ff}
+.nx57-orders-table td strong{font-size:12px}.nx57-orders-table td small{display:block;font-size:11px;color:#858da6;margin-top:5px;line-height:1.4}
+.nx57-table-truncate{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nx57-order-link{border:0;background:none;padding:4px;color:#5847c7;font-weight:850;cursor:pointer}
+.nx57-order-amount{font-weight:850;white-space:nowrap}
+.nx57-open-order{display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:800;white-space:nowrap;border:1px solid #e0dcfa;border-radius:10px;background:#f7f5ff;padding:9px 10px;color:#5847c7;cursor:pointer}
+.nx57-order-link:hover,.nx57-open-order:hover{color:#3826a4}
+.nx57-orders-table .nx-status{display:inline-block;max-width:100%;overflow-wrap:anywhere;text-transform:capitalize;font-size:10px}
+.nx57-orders-hint{font-size:12px;color:#8189a1;margin:15px 2px}
+.nx57-order-detail{border:1px solid #e8e6fa;border-radius:20px;background:#fbfbff;margin-top:16px;padding:16px;box-shadow:0 15px 35px rgba(36,30,83,.04)}
+.nx57-detail-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:5px 4px 16px}
+.nx57-detail-heading h3{margin:4px 0;font-size:23px;color:#192440;letter-spacing:-.04em}
+.nx57-detail-heading small{font-size:12px;color:#8087a1}
+.nx57-detail-heading>button{display:grid;place-items:center;min-width:37px;min-height:37px;border-radius:12px;border:1px solid #dfdcf2;background:white;color:#4833ae;cursor:pointer}
+.nx57-kicker{letter-spacing:.1em;font-size:10px;color:#5f4ccb;font-weight:900}
+.nx57-order-detail .nx-admin-orders-grid{display:block!important}
+.nx57-order-detail .nx-admin-order-card{width:100%;max-width:none;box-shadow:none;border-radius:14px;margin:0}
+.nx57-order-detail .nx-admin-order-items .nx34-order-line-info,.nx57-order-detail .nx-admin-order-items .nx34-order-line-info a{min-width:0;overflow-wrap:anywhere}
+.nx57-order-detail .nx38-history summary {font-size:12px;font-weight:800}
+.nx38-history ol{counter-reset:updates;list-style:none!important;padding:5px 0 0 20px!important;margin:10px 0 0 8px!important;border-left:2px solid #ddd8f8}
+.nx38-history ol li{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;row-gap:4px;border-bottom:1px solid #ece8fb;padding:10px 8px!important;min-width:0}
+.nx38-history ol li:before{content:'';position:absolute;left:-26px;top:15px;width:10px;height:10px;background:#6b56da;border:3px solid #eeeaff;border-radius:50%;box-sizing:content-box}
+.nx38-history ol li span{font-weight:800;color:#252c50}
+.nx38-history ol li time{margin-left:auto;color:#868da4;white-space:nowrap}
+.nx38-history ol li small{flex-basis:100%;color:#707a96;overflow-wrap:anywhere}
+.nx38-delivery-info{display:flex;align-items:center;gap:7px;flex-wrap:wrap;overflow-wrap:anywhere}
+.nx38-delivery-info code{overflow-wrap:anywhere;white-space:normal;font-size:11px}
+.nx57-gallery-arrows{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(8px,2%,22px);pointer-events:none;z-index:5}
+.nx57-gallery-arrows button{display:grid;place-items:center;flex:none;width:42px;height:42px;border:1px solid #e1dafa;background:rgba(255,255,255,.96);color:#5a45bf;border-radius:50%;box-shadow:0 6px 20px #20244b1a;pointer-events:auto;cursor:pointer;opacity:0;transform:none!important;transition:opacity .16s,box-shadow .16s}
+.nx29-detail-gallery .gallery-main:hover .nx57-gallery-arrows button,.nx29-detail-gallery .gallery-main:focus-within .nx57-gallery-arrows button{opacity:1}
+.nx57-gallery-arrows button:focus-visible{opacity:1;outline:3px solid #9482fc;outline-offset:3px}
+.nx57-thumbnail-shell{display:flex;gap:8px;align-items:center;margin-top:14px;min-width:0}
+.nx57-thumbnail-shell .nx57-thumbnail-track{flex:1 1 auto;display:flex;min-width:0;max-width:100%;overflow-x:auto;scroll-behavior:smooth;scroll-snap-type:x proximity;scrollbar-width:thin;padding:3px 0 7px;gap:9px}
+.nx57-thumbnail-track>button{scroll-snap-align:center;flex-shrink:0}
+.nx57-thumbnail-scroll{flex:0 0 34px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#f4f0ff;border:1px solid #ded7fc;color:#5642c1;cursor:pointer}
+.nx57-thumbnail-scroll:hover{background:#e9e3ff}
+.nx57-tax-mode{display:grid;gap:8px;padding:18px;background:#f7f5ff;border:1px solid #e2ddf9;border-radius:15px;margin:16px 0}
+.nx57-tax-mode strong{font-size:14px}.nx57-tax-mode span,.nx57-tax-mode small{color:#6f7591;font-size:12px;line-height:1.5}
+.nx57-tax-mode select{border:1px solid #d8d4ef;background:white;border-radius:10px;padding:12px;color:#1b2341;max-width:100%;width:100%}
+.nx57-delivery-shell{display:grid;grid-template-columns:252px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100vh}
+.nx57-delivery-sidebar{grid-column:1;grid-row:1 / span 2;min-height:100vh;background:#141d33;color:#d5def2;padding:24px 16px;display:flex;flex-direction:column;gap:8px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.nx57-delivery-logo{display:flex;align-items:center;gap:10px;color:white;text-decoration:none;margin:5px 7px 28px}
+.nx57-delivery-logo>span{background:#604ce4;border-radius:13px;font-size:22px;font-weight:900;padding:10px 14px;color:white}
+.nx57-delivery-logo strong{font-size:17px;line-height:1.3}
+.nx57-delivery-logo small{display:block;color:#aebadb;font-size:9px;letter-spacing:.13em;font-weight:600}
+.nx57-sidebar-label{font-size:10px;letter-spacing:.18em;font-weight:900;color:#94a5c8;margin:8px 14px 12px}
+.nx57-delivery-sidebar>button{display:flex;align-items:center;gap:10px;min-height:47px;width:100%;padding:10px 12px;border:0;background:transparent;color:#c9d4ef;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;text-align:left}
+.nx57-delivery-sidebar>button>span{flex:1}.nx57-delivery-sidebar>button>b{font-size:10px;color:#adbbe0;background:#29334d;border-radius:9px;padding:4px 7px}
+.nx57-delivery-sidebar>button:hover{background:#202b45}.nx57-delivery-sidebar>button.is-active{background:#eeeaff;color:#5143ba}
+.nx57-delivery-sidebar>button.is-active>b{color:#fff;background:#6853cf}
+.nx57-delivery-sidebar-foot{margin-top:auto;border-top:1px solid #2b354e;padding:18px 10px 2px;display:grid;gap:6px}
+.nx57-delivery-sidebar-foot span{font-size:12px;font-weight:900;color:#fff}.nx57-delivery-sidebar-foot small{font-size:11px;color:#a3afcb;overflow-wrap:anywhere}
+.nx57-delivery-sidebar-foot button{border:0;color:#d3d9f5;background:transparent;padding:12px 0;text-align:left;display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:800}
+.nx57-delivery-shell .nx52-delivery-header{grid-column:2;grid-row:1;min-width:0;border-bottom:1px solid #e8e6f2}
+.nx57-delivery-shell .nx52-delivery-main{grid-column:2;grid-row:2;min-width:0;width:100%;max-width:none}
+.nx57-delivery-shell .nx52-delivery-brand{display:none}
+.nx57-delivery-shell .nx52-delivery-header{justify-content:flex-end}
+.nx57-delivery-shell .nx52-delivery-tabs{display:none}
+@media(max-width:850px){.nx57-delivery-shell{grid-template-columns:1fr;display:block}.nx57-delivery-sidebar{position:static;height:auto;min-height:0;display:flex;flex-direction:row;align-items:center;overflow-x:auto;padding:10px;gap:5px}.nx57-delivery-logo{margin:0 6px 0 0;white-space:nowrap}.nx57-delivery-logo small,.nx57-sidebar-label,.nx57-delivery-sidebar-foot{display:none}.nx57-delivery-sidebar>button{flex:0 0 auto;width:auto;min-height:40px;white-space:nowrap}.nx57-delivery-sidebar>button>b{display:none}.nx57-delivery-shell .nx52-delivery-tabs{display:flex}}
+@media(hover:none){.nx57-gallery-arrows button{opacity:1}}
+@media(prefers-reduced-motion:reduce){.nx57-gallery-arrows button,.nx57-thumbnail-track{transition:none;scroll-behavior:auto}}
+
+.nx57-order-pagination{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:#757c93}.nx57-order-pagination>div{display:flex;align-items:center;gap:10px}.nx57-order-pagination button{border:1px solid #e0dcf6;border-radius:9px;background:#fff;color:#5743b8;padding:8px 12px;font-weight:800;cursor:pointer}.nx57-order-pagination button:disabled{opacity:.4;cursor:default}.nx-admin-orders-panel .nx-cod-toolbar{display:flex;gap:12px;flex-wrap:wrap}.nx-admin-orders-panel .nx-cod-toolbar label{flex:1 1 180px;max-width:420px}.nx-admin-orders-panel .nx-cod-toolbar label:last-child{flex:0 1 200px}
+
+.nx57-customer-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}.nx57-customer-status>button{background:#f1eeff;border:1px solid #d9d3fd;border-radius:9px;padding:9px 13px;font-weight:850;color:#5340b5;cursor:pointer;font-size:12px;white-space:nowrap}.nx57-customer-status>button:hover{background:#e6e1ff}.nx57-customer-order-body{margin-top:16px;border-top:1px solid #e6e8f4;padding-top:17px}.nx-orders-list .nx-order-card{scroll-margin-top:110px}@media(max-width:600px){.nx57-customer-status{justify-content:flex-start}.nx-orders-list .nx-order-heading{align-items:flex-start;flex-direction:column}}
+
+.nx57-gst-note{font-size:12px;line-height:1.55;color:#655b87;margin:6px 0 15px}.nx57-gst-note:before{content:'ⓘ';color:#604dcb;font-weight:900;margin-right:6px}
+
+/* ---- legacy layer 61.css : retained cascading behavior ---- */
+/* Phase 61 — refined commerce interactions, no arbitrary marketing claims */
+.nx61-card-actions{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:9px;z-index:4;opacity:0;transform:translateX(8px);transition:opacity .25s ease,transform .25s ease;pointer-events:none}
+.nx61-card-actions button{width:38px;height:38px;display:grid;place-items:center;background:rgba(255,255,255,.96);border:1px solid #e3dff8;border-radius:50%;color:#3e316f;box-shadow:0 5px 14px rgba(30,20,67,.09);cursor:pointer}
+.nx61-card-actions button:hover{background:#5c47d4;color:white;transform:translateY(-2px)}
+.nx61-quick-add{position:absolute;bottom:15px;left:50%;transform:translate(-50%,8px);opacity:0;pointer-events:none;z-index:4;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;min-width:148px;border:0;border-radius:999px;color:#fff;background:#5542cc;box-shadow:0 12px 26px #301b8f38;font-weight:700;cursor:pointer;transition:opacity .22s,transform .22s}
+.nx61-quick-add:disabled{background:#9d9dad;cursor:not-allowed}
+.nx29-card-stage:hover .nx61-card-actions,.nx29-card-stage:focus-within .nx61-card-actions,.nx29-card-stage:hover .nx61-quick-add,.nx29-card-stage:focus-within .nx61-quick-add{opacity:1;pointer-events:auto;transform:translate(0,0)}
+.nx29-card-stage:hover .nx61-quick-add,.nx29-card-stage:focus-within .nx61-quick-add{transform:translate(-50%,0)}
+.nx61-sale-label{position:absolute;top:15px;left:14px;z-index:3;display:inline-flex;padding:7px 13px;border-radius:6px;background:#161525;color:white;font:700 11px/1 sans-serif;text-transform:uppercase;letter-spacing:.08em}
+.nx61-card-feedback{position:absolute;z-index:4;bottom:64px;left:10px;right:10px;text-align:center;color:#503cc0;background:#fff;padding:7px;border-radius:8px;font-size:12px;box-shadow:0 5px 20px #0002}
+.nx61-quick-view{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center;padding:8px 0}.nx61-quick-view-media{border-radius:16px;background:#f7f7fb;min-height:240px;display:grid;place-items:center;overflow:hidden}.nx61-quick-view-media img{max-width:100%;max-height:350px;object-fit:contain}.nx61-quick-view h3{font-size:clamp(20px,2.5vw,30px)}.nx61-quick-view-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.nx61-newsletter{display:grid;grid-template-columns:43% 1fr;gap:28px;align-items:stretch}.nx61-newsletter-art{min-height:300px;padding:32px 22px;border-radius:16px;background:radial-gradient(circle at 75% 20%,#9585ff,#4d3bba 62%,#242049);color:white;display:flex;flex-direction:column;justify-content:flex-end;gap:18px;overflow:hidden}.nx61-newsletter-art>span{font-size:64px}.nx61-newsletter-art strong{letter-spacing:.18em;font-size:12px}.nx61-newsletter-art p{font-size:23px;font-weight:800;line-height:1.25;margin:0}.nx61-newsletter form{display:flex;flex-direction:column;justify-content:center;gap:12px}.nx61-newsletter form h3{font-size:28px;margin:0}.nx61-newsletter form p{margin:0;line-height:1.55}.nx61-newsletter form label{display:grid;gap:7px;font-weight:600;font-size:13px}.nx61-newsletter input[type=email]{border:1px solid #cfcde8;border-radius:10px;min-height:44px;padding:10px 12px;width:100%}.nx61-newsletter .nx61-consent{display:flex;align-items:start;gap:10px;font-weight:400}.nx61-newsletter .nx61-consent input{accent-color:#5742d9;width:17px;height:17px}.nx61-not-now{border:0;background:transparent;cursor:pointer;color:#6650c7;text-decoration:underline}
+.nx61-testimonial-grid,.nx61-reviews-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.nx61-testimonial,.nx61-review-card{display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid #e4e2f2;border-radius:20px;padding:26px;color:#152142;text-decoration:none;min-width:0}.nx61-testimonial span,.nx61-review-card>div{color:#e9a627;letter-spacing:3px}.nx61-testimonial blockquote{font-size:17px;line-height:1.6;margin:0;flex:1}.nx61-testimonial small{color:#6f7285}.nx61-testimonial:hover{transform:translateY(-5px);box-shadow:0 16px 32px #32298214}
+.nx61-product-reviews{margin-top:24px}.nx61-review-card h3{margin:0;font-size:17px}.nx61-review-card p{line-height:1.6;flex:1;margin:0}.nx61-review-card small,.nx61-muted{color:#747e96}.nx61-review-form{margin-top:18px;border:1px solid #ddddec;border-radius:15px;background:#fff;padding:18px 24px}.nx61-review-form summary{font-weight:750;cursor:pointer}.nx61-review-form form{display:grid;gap:15px;max-width:640px;margin-top:20px}.nx61-review-form label{display:grid;gap:7px;font-weight:650}.nx61-review-form input,.nx61-review-form textarea,.nx61-review-form select{border:1px solid #d1d2df;border-radius:10px;padding:12px;width:100%;font:inherit}
+.nx61-faq-list{max-width:940px;margin:28px 0;display:grid;gap:12px}.nx61-faq-list details{border:1px solid #e2e2f2;border-radius:14px;padding:20px 24px;background:white}.nx61-faq-list summary{cursor:pointer;font-size:17px;font-weight:750}.nx61-faq-list p{line-height:1.7;margin-bottom:0;max-width:75ch}
+.nx61-compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:30px}.nx61-compare-grid article{display:grid;align-content:start;gap:12px;border:1px solid #e5e3ed;background:#fff;border-radius:18px;padding:20px}.nx61-compare-grid img{width:100%;height:240px;object-fit:contain}.nx61-compare-grid h2{font-size:19px;margin:0;line-height:1.4}.nx61-compare-grid button{border:0;background:transparent;color:#4e3fc9;cursor:pointer}
+.nx61-review-moderation{display:grid;gap:14px;padding:18px}.nx61-review-moderation article{border-bottom:1px solid #e4e5ee;padding:18px 0;max-width:100%;overflow-wrap:anywhere}.nx61-review-moderation article>div:first-child{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.nx61-review-moderation small{color:#818192}.nx61-review-moderation h3{margin-bottom:6px}.nx61-review-actions{display:flex;gap:10px}.nx61-review-actions button{border:1px solid #dedaf3;border-radius:10px;background:#f3f0ff;color:#4733be;padding:10px 18px;font-weight:700;cursor:pointer}
+/* Intentional bespoke Nexora motion, not copied theme code. */
+.nx61-footer-marquee{overflow:hidden;border-bottom:1px solid #ffffff25;padding:10px 0;white-space:nowrap;color:#c7c0f9;font-weight:700;letter-spacing:.16em;font-size:12px}.nx61-footer-marquee span{display:inline-block;min-width:200%;animation:nx61-marquee 36s linear infinite}.nx61-footer-marquee:hover span{animation-play-state:paused}@keyframes nx61-marquee{to{transform:translateX(-50%)}}
+.nx34-footer-nav a{transition:color .22s ease,transform .22s ease}.nx34-footer-nav a:hover{transform:translateX(5px);color:#c4b9ff}.nx16-category-grid>a,.nx48-recent-card,.product-card{transition:transform .28s ease,box-shadow .28s ease}.product-card:hover{transform:translateY(-4px)}
+@media(max-width:800px){.nx61-newsletter{grid-template-columns:1fr}.nx61-newsletter-art{min-height:145px}.nx61-testimonial-grid,.nx61-reviews-grid{grid-template-columns:1fr}.nx61-card-actions{opacity:1;transform:none;pointer-events:auto;right:8px;top:8px}.nx61-card-actions button{width:35px;height:35px}.nx61-quick-add{position:static;opacity:1;transform:none;pointer-events:auto;margin:10px auto}.nx61-quick-view{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.nx61-footer-marquee span{animation:none}.nx34-footer-nav a,.product-card,.nx61-card-actions,.nx61-quick-add,.nx61-testimonial{transition:none!important;transform:none!important}}
+
+/* ---- legacy layer 62.css : retained cascading behavior ---- */
+/* Phase62 — storefront motion fixes; consistent centered circular controls. */
+.storefront .nx61-card-actions button{display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;transform:none!important;transition:background .2s,border-color .2s,box-shadow .2s!important}
+.storefront .nx61-card-actions button svg{display:block!important;flex:none!important;margin:0!important;transform:none!important;transition:none!important}
+.storefront .nx61-card-actions button:hover{background:#5c47d4!important;color:#fff!important;box-shadow:0 0 0 4px rgba(110,82,222,.15),0 6px 14px rgba(46,30,100,.16)!important}
+.storefront .nx29-card-arrows button svg{transform:none!important;vertical-align:middle!important;transition:none!important}
+.storefront .nx29-card-arrows button:hover{box-shadow:0 0 0 4px rgba(110,82,222,.13),0 6px 16px rgba(30,22,80,.17)!important}
+/* The old single 200%-wide span couldn't loop seamlessly on wide screens. */
+.storefront .nx62-footer-marquee{width:100%;display:block;overflow:hidden;padding:12px 0}
+.storefront .nx62-ticker-track{width:max-content;display:flex;align-items:center;animation:nx62-ticker 34s linear infinite;will-change:transform}
+.storefront .nx62-ticker-group{display:flex;flex:0 0 auto;align-items:center;justify-content:space-around;min-width:100vw;gap:0}
+.storefront .nx62-ticker-word{display:inline-flex;flex-shrink:0;align-items:center;white-space:nowrap;padding-inline:24px;font-size:12px;letter-spacing:.14em;font-weight:750}
+.storefront .nx62-ticker-spark{margin-left:48px;font-size:10px;color:#a69aff}
+.storefront .nx62-ticker-track:hover,.storefront .nx62-footer-marquee:hover .nx62-ticker-track{animation-play-state:paused}
+@keyframes nx62-ticker{to{transform:translateX(-50%)}}
+.storefront .nx62-footer-top{min-width:0}
+.storefront .nx62-footer-top p{overflow-wrap:anywhere}
+.storefront .nx62-footer-art{height:72px;max-width:110px;object-fit:contain;border-radius:12px}
+/* Hover has a fine line and colour shift instead of diagonal arrows or jumpy layout. */
+.storefront .nx34-footer-nav a{position:relative;width:max-content;max-width:100%;transition:color .22s ease,letter-spacing .22s ease!important;transform:none!important}
+.storefront .nx34-footer-nav a::after{content:"";position:absolute;bottom:-3px;left:0;width:100%;height:1px;background:#c6bbff;transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+.storefront .nx34-footer-nav a:hover{letter-spacing:.012em;color:#faf9ff!important;transform:none!important}
+.storefront .nx34-footer-nav a:hover::after{transform:scaleX(1)}
+/* Recently viewed behaves like regular products, while retaining navigable image and title. */
+.storefront .nx62-recent-card{display:block}
+.storefront .nx62-recent-stage{position:relative;margin:10px 10px 0;overflow:hidden;border-radius:14px}
+.storefront .nx62-recent-stage .nx48-recent-image{margin:0!important;width:100%;display:grid}
+.storefront .nx62-recent-stage .nx61-card-actions{right:9px;top:9px;opacity:0;transform:translateX(5px)}
+.storefront .nx62-recent-card:hover .nx61-card-actions,.storefront .nx62-recent-card:focus-within .nx61-card-actions{opacity:1;transform:none;pointer-events:auto}
+.storefront .nx62-recent-card .nx48-recent-copy{display:flex!important}
+.storefront .nx62-recent-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#1a2647;text-decoration:none;font-size:.9rem;line-height:1.4;font-weight:760}
+.storefront .nx62-recent-name:hover{color:#624ac9}
+/* Admin footer content editor */
+.nx62-footer-editor{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.8fr);align-items:start;gap:24px;padding:25px!important}
+.nx62-footer-editor h2{font-size:20px;margin:12px 0}
+.nx62-editor-form,.nx62-artwork-form{min-width:0;display:grid;align-content:start;gap:12px}
+.nx62-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.nx62-editor-form label{display:grid;gap:6px;font-size:13px;font-weight:700}
+.nx62-editor-form input,.nx62-artwork-form input{min-width:0;max-width:100%;width:100%;padding:12px 14px;border:1px solid #d4d2e5;border-radius:12px;background:#fff;font:inherit;color:#182341}
+.nx62-ticker-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px}
+.nx62-ticker-row button,.nx62-secondary{padding:10px;border:1px solid #ded7ed;background:#f7f5ff;color:#5b45bb;border-radius:10px;font-weight:750;cursor:pointer}
+.nx62-ticker-row button:disabled,.nx62-secondary:disabled{opacity:.5;cursor:not-allowed}
+.nx62-artwork-form{border-left:1px solid #e4e3ed;padding-left:24px}
+.nx62-art-preview{max-height:160px;max-width:100%;object-fit:contain}
+.nx62-editor-success{color:#12623b;background:#edfaf3;padding:12px;border-radius:10px;grid-column:1/-1}.nx62-editor-error{color:#a52134;background:#fff2f2;padding:12px;border-radius:10px;grid-column:1/-1}
+@media(hover:none){.storefront .nx62-recent-stage .nx61-card-actions{opacity:1;transform:none;pointer-events:auto}}
+@media(max-width:830px){.nx62-footer-editor{grid-template-columns:1fr}.nx62-artwork-form{border-left:0;border-top:1px solid #e4e3ed;padding:20px 0 0}}
+@media(max-width:540px){.nx62-editor-grid{grid-template-columns:1fr}.nx62-ticker-row{grid-template-columns:1fr 1fr}.nx62-ticker-row input{grid-column:1/-1}.storefront .nx62-ticker-word{padding-inline:14px}}
+@media(prefers-reduced-motion:reduce){.storefront .nx62-ticker-track{animation:none!important}.storefront .nx34-footer-nav a::after{transition:none!important}}
+/* Override Phase61's broad descendant span animation: ONLY the shared track moves. */
+.storefront .nx62-footer-marquee span{animation:none!important;min-width:0}
+.storefront .nx62-footer-marquee .nx62-ticker-group{display:flex;min-width:100vw;width:max-content}
+.storefront .nx62-footer-marquee .nx62-ticker-word{display:inline-flex;min-width:0}
+.storefront .nx62-footer-marquee .nx62-ticker-spark{display:inline;min-width:0}
+.nx62-coupon-editor{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:24px;padding:24px!important}
+.nx62-coupon-warning{grid-column:1/-1;background:#f6f3ff;border:1px solid #e1d8ff;padding:15px;border-radius:12px;line-height:1.55;color:#4a3e72}
+.nx62-coupon-form{display:grid;gap:12px}.nx62-coupon-form label{display:grid;gap:5px;font-size:13px;font-weight:700}
+.nx62-coupon-form input,.nx62-coupon-form select{padding:12px;border:1px solid #ddd8e8;border-radius:10px;width:100%;font:inherit}
+.nx62-coupon-list{display:grid;align-content:start;gap:12px}.nx62-coupon-item{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px;border:1px solid #e3e0ef;border-radius:12px}
+.nx62-coupon-item div{display:grid;gap:3px}.nx62-coupon-item small{color:#65708a}.nx62-coupon-item button{padding:8px 11px;background:#fff3f3;border:1px solid #f2cbcb;color:#9d273a;border-radius:10px;cursor:pointer}
+@media(max-width:830px){.nx62-coupon-editor{grid-template-columns:1fr}}
+
+/* ---- legacy layer 63.css : retained cascading behavior ---- */
+/* Phase63: independently scrollable admin sidebar with accessible keyboard focus.
+   The earlier fixed sidebar had no overflow handling; bottom menu links became unreachable. */
+.admin-shell{min-height:100dvh;overflow:visible}
+.admin-shell .admin-sidebar{height:100dvh;max-height:100dvh;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scrollbar-width:thin;scrollbar-color:#69729a transparent;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+.admin-shell .admin-sidebar .admin-nav{flex:0 0 auto}
+.admin-shell .admin-sidebar .admin-sidebar-footer{flex:0 0 auto;margin-top:auto}
+.admin-shell .admin-main{min-width:0;overflow:visible;min-height:100dvh}
+.admin-shell .admin-sidebar a:focus-visible,.admin-shell .admin-sidebar button:focus-visible{outline:2px solid #c2b5ff;outline-offset:2px}
+/* Decorative arrows replaced by editorial underline and a subtle vertical lift.
+   Keep functional next/previous carousel arrows, dropdown chevrons and back controls. */
+.storefront .section-heading a.text-link{position:relative;display:inline-flex;align-items:center;min-height:40px;overflow:visible;text-decoration:none!important;transition:color .2s ease,transform .2s ease}
+.storefront .section-heading a.text-link svg{display:none!important}
+.storefront .section-heading a.text-link::after{content:"";position:absolute;left:0;right:0;bottom:5px;height:2px;border-radius:2px;background:#6650de;transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+.storefront .section-heading a.text-link:hover{color:#5b40c7;transform:translateY(-2px)}
+.storefront .section-heading a.text-link:hover::after,.storefront .section-heading a.text-link:focus-visible::after{transform:scaleX(1)}
+.storefront .nx37-category-card .nx37-category-arrow{display:none!important}
+.storefront .nx37-category-card{transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease!important}
+.storefront .nx37-category-card:hover{transform:translateY(-4px)!important;box-shadow:0 16px 36px rgba(36,26,92,.12)!important;border-color:#c9bdff!important}
+.storefront .nx37-category-bottom span:first-child{position:relative;display:inline-block;padding-bottom:4px}
+.storefront .nx37-category-bottom span:first-child::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:#674bdc;transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+.storefront .nx37-category-card:hover .nx37-category-bottom span:first-child::after,.storefront .nx37-category-card:focus-visible .nx37-category-bottom span:first-child::after{transform:scaleX(1)}
+/* Editable homepage wording */
+.nx63-store-copy{max-width:1100px}
+.nx63-copy-form{display:grid;gap:23px}
+.nx63-copy-form fieldset{min-width:0;border:1px solid #e4e1ef;border-radius:16px;padding:20px;background:#fbfaff}
+.nx63-copy-form legend{padding:0 9px;font-size:18px;font-weight:800;color:#251e46}
+.nx63-copy-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.nx63-copy-fields label{display:grid;gap:7px;font-size:13px;font-weight:750;color:#2f3150;min-width:0}
+.nx63-copy-fields input,.nx63-copy-fields textarea{width:100%;min-width:0;max-width:100%;border:1px solid #ded8ea;border-radius:10px;padding:12px 13px;font:inherit;background:white;color:#1a2037}
+.nx63-copy-form>button{justify-self:start}
+/* Advanced draft coupon editor */
+.nx63-coupon-editor{grid-template-columns:minmax(0,1.2fr) minmax(285px,.8fr)}
+.nx63-coupon-editor .nx62-coupon-form{min-width:0}
+.nx63-two-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.nx63-coupon-fieldset{min-width:0;border:1px solid #e2ddf4;border-radius:14px;padding:14px;background:#fcfbff;display:grid;gap:14px}
+.nx63-coupon-fieldset legend{font-weight:850;padding:0 8px}
+.nx63-choice-row{display:flex;flex-wrap:wrap;gap:8px}
+.nx63-choice-row label{display:flex!important;flex-direction:row;align-items:center;gap:7px!important;font-size:12px!important;padding:10px;border:1px solid #e3dff0;border-radius:10px;background:white;cursor:pointer}
+.nx63-choice-row label.is-active{border-color:#7959de;background:#f0ebff}
+.nx63-target-picker{display:grid;gap:9px}
+.nx63-target-picker>input{min-width:0;min-height:40px}
+.nx63-target-list{display:grid;max-height:206px;overflow-y:auto;border:1px solid #e7e3f0;border-radius:10px;background:white;scrollbar-width:thin}
+.nx63-target-list label{display:flex!important;flex-direction:row;align-items:center;gap:10px!important;padding:8px 12px;border-bottom:1px solid #f1eff6;font-weight:650!important;font-size:12px!important;cursor:pointer}
+.nx63-target-list label span{min-width:0;overflow-wrap:anywhere}
+.nx63-target-list small{font-size:10px;color:#88899c}
+.nx63-target-picker>small{font-size:11px;color:#626c86}
+.nx63-rule-flags{display:grid;gap:10px;background:#faf9ff;border:1px solid #e8e4f1;padding:14px;border-radius:12px}
+.nx63-rule-flags label,.nx63-check{display:flex!important;flex-direction:row!important;gap:10px!important;align-items:center;font-size:12px!important}
+.nx63-coupon-editor input[type=checkbox],.nx63-coupon-editor input[type=radio]{width:16px!important;height:16px;flex:none;accent-color:#6449d6}
+.nx63-coupon-item{align-items:start}
+.nx63-coupon-actions{display:flex!important;flex-direction:row!important;gap:7px!important;flex-wrap:wrap;flex:none}
+.nx63-coupon-actions button:first-child{color:#4e3bb6;background:#f5f2ff;border-color:#dfd4ff}
+@media(max-width:1000px){.nx63-coupon-editor{grid-template-columns:1fr}}
+@media(max-width:700px){.nx63-copy-fields,.nx63-two-fields{grid-template-columns:1fr}.nx63-coupon-item{flex-direction:column}.nx63-store-copy{padding:14px!important}}
+@media(prefers-reduced-motion:reduce){.storefront .section-heading a.text-link,.storefront .section-heading a.text-link::after,.storefront .nx37-category-card,.storefront .nx37-category-bottom span:first-child::after{transition:none!important;transform:none!important}}
+
+/* ---- legacy layer 66.css : retained cascading behavior ---- */
+/* Phase 66 — product discovery, gallery and timeline visual consistency. */
+/* Unselected variant gallery: photographs are real assets, not synthetic or different-colour fallbacks. */
+.nx66-gallery-context{margin:0 0 10px;color:#625d7e;font-size:12px;line-height:1.5;padding:0 3px}
+.nx64-quick-gallery .nx64-quick-photo{min-height:300px}
+.nx64-quick-image-nav{top:50%;transform:translateY(-50%);left:10px;right:10px}
+.nx64-quick-image-nav button{inline-size:auto;min-inline-size:52px;block-size:34px;padding:0 11px!important;border-radius:999px;font-size:11px;font-weight:750;letter-spacing:.01em;line-height:1;box-shadow:0 5px 16px #211c4d18}
+.nx64-quick-image-nav button:hover{background:#5c48d2;color:#fff;border-color:#5c48d2;transform:translateY(-2px)}
+.nx64-quick-thumbnails button{transition:border-color .18s,box-shadow .18s,transform .18s}
+.nx64-quick-thumbnails button:hover{transform:translateY(-2px);box-shadow:0 5px 10px #39296c15}
+/* No decorative arrows in the catalogue hero, department list or subcategory CTA. */
+.storefront .catalogue-page .nx48-hero-collections,.storefront .nx48-departments-all{position:relative;overflow:hidden;text-decoration:none;transition:background .25s,border-color .25s,color .25s,box-shadow .25s,transform .25s}
+.storefront .catalogue-page .nx48-hero-collections::after,.storefront .nx48-departments-all::after{content:"";position:absolute;bottom:5px;left:14px;right:14px;height:2px;border-radius:2px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.storefront .nx48-departments-all::after{left:0;right:0;bottom:-1px}
+.storefront .catalogue-page .nx48-hero-collections:hover,.storefront .nx48-departments-all:hover{color:#4833ae;transform:translateY(-2px)}
+.storefront .catalogue-page .nx48-hero-collections:hover::after,.storefront .nx48-departments-all:hover::after{transform:scaleX(1)}
+.storefront .nx48-department{position:relative;overflow:hidden;isolation:isolate;padding-right:19px;transition:transform .23s ease,background .23s,border-color .23s,box-shadow .23s}
+.storefront .nx48-department .nx66-department-accent{position:absolute;right:0;top:18%;bottom:18%;width:3px;border-radius:8px;background:#6851de;opacity:0;transform:scaleY(.22);transition:opacity .24s ease,transform .28s ease}
+.storefront .nx48-department:hover .nx66-department-accent,.storefront .nx48-department.is-active .nx66-department-accent{opacity:1;transform:scaleY(1)}
+.storefront .nx48-department:hover .nx48-department-icon{transform:scale(1.055)}
+.storefront .nx48-department-icon{transition:transform .23s ease}
+.storefront .nx17-subcategory-shelf a>.nx34-category-action{display:inline-block!important;width:max-content;max-width:100%;position:relative;transition:color .2s,transform .2s}
+.storefront .nx17-subcategory-shelf a>.nx34-category-action::after{content:"";height:2px;background:currentColor;position:absolute;left:0;right:0;bottom:-3px;transform-origin:left;transform:scaleX(0);transition:transform .25s ease}
+.storefront .nx17-subcategory-shelf a:hover>.nx34-category-action::after{transform:scaleX(1)}
+/* Replace circular arrow controls on listing tiles with small photo-navigation words, shown when relevant. */
+.storefront .nx29-card-arrows{left:8px;right:8px;top:52%;gap:6px}
+.storefront .nx29-card-arrows button{width:auto;min-width:48px;height:32px;padding:0 8px!important;display:grid;place-items:center;border-radius:999px;color:#4c379f;font-size:11px;font-weight:750;line-height:1;letter-spacing:.01em;box-shadow:0 6px 14px #21183f17;transform:translateY(3px);opacity:0;transition:transform .19s,opacity .19s,background .19s,color .19s}
+.storefront .nx29-preview-card:hover .nx29-card-arrows button,.storefront .nx29-card-arrows button:focus-visible,.storefront .nx29-preview-card:focus-within .nx29-card-arrows button{transform:translateY(0);opacity:1}
+.storefront .nx29-card-arrows button:hover{background:#5a45d0;color:#fff;transform:translateY(-2px)}
+/* Uniform typographic styles for currency, discount and stock across catalogue cards. */
+.storefront .product-card .product-meta{display:flex;gap:9px;align-items:end;justify-content:space-between;min-width:0}
+.storefront .product-card .product-price.nx66-product-price{display:flex;flex-wrap:wrap;gap:3px 7px;align-items:baseline;min-width:0;font-variant-numeric:tabular-nums;font-family:inherit;letter-spacing:-.015em;line-height:1.48;margin:0}
+.storefront .product-card .nx66-selling-price{font-size:inherit;color:#14203b;font-weight:850;white-space:nowrap}
+.storefront .product-card .nx66-product-price .detail-discount{font-size:.75em;white-space:nowrap;letter-spacing:0}
+.storefront .product-card .nx66-product-price .detail-mrp{font-size:.92em;white-space:nowrap;font-weight:600;color:#848795}
+.storefront .product-card .product-meta>span{flex-shrink:0;white-space:nowrap}
+.storefront .catalogue-results-bar{font-variant-numeric:tabular-nums}
+/* Tracking history: center every marker on exactly the same vertical rail. */
+.nx38-history ol{position:relative;border:0!important;padding:5px 0 0 30px!important;margin:10px 0 0 0!important;gap:0!important}
+.nx38-history ol::before{content:"";position:absolute;inset-block:16px 16px;left:11px;width:2px;border-radius:3px;background:#d7cdf7}
+.nx38-history ol li{position:relative;display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:start!important;column-gap:12px;row-gap:3px;padding:13px 8px 13px 0!important;min-height:58px;line-height:1.5;min-width:0}
+.nx38-history ol li::before{content:"";position:absolute;top:19px;left:-24px;width:12px;height:12px;box-sizing:border-box;border-radius:50%;border:2px solid #f2eeff;background:#6952de;box-shadow:0 0 0 2px #e5defc}
+.nx38-history ol li span{min-width:0;overflow-wrap:anywhere;font-size:12px;line-height:1.45}
+.nx38-history ol li time{margin:0;min-width:0;text-align:right;font-size:11px;line-height:1.45;font-variant-numeric:tabular-nums}
+.nx38-history ol li small{grid-column:1/-1;font-size:11px;line-height:1.5;margin:0;max-width:100%}
+@media(max-width:580px){.nx38-history ol li{grid-template-columns:1fr;gap:3px}.nx38-history ol li time{text-align:left;margin:0}.storefront .nx29-card-arrows button{opacity:1;transform:none;min-width:44px}}
+@media(hover:none){.storefront .nx29-card-arrows button{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.storefront .nx48-department,.storefront .nx48-department-icon,.storefront .catalogue-page .nx48-hero-collections,.storefront .nx48-departments-all,.storefront .nx29-card-arrows button,.nx64-quick-image-nav button,.nx64-quick-thumbnails button{transition:none!important;transform:none!important}.storefront .catalogue-page .nx48-hero-collections::after,.storefront .nx48-departments-all::after,.storefront .nx17-subcategory-shelf a>.nx34-category-action::after,.storefront .nx66-department-accent{transition:none!important}}
+
+/* ---- legacy layer 67.css : retained cascading behavior ---- */
+/* Phase 67 — consistent navigation and restrained interactions. */
+/* Product photography is the one place Previous/Next image arrows are intentional. */
+.storefront .nx29-preview-card .nx29-card-arrows{left:9px;right:9px;top:50%}
+.storefront .nx29-preview-card .nx29-card-arrows button{width:37px!important;min-width:37px!important;height:37px!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:50%!important;font-size:0!important;background:rgba(255,255,255,.97);color:#4938a5;border:1px solid #e8e1fa;box-shadow:0 6px 15px #1e194329;opacity:0;transform:scale(.9);transition:opacity .18s ease,transform .18s ease,background .18s ease,color .18s ease!important}
+.storefront .nx29-preview-card:hover .nx29-card-arrows button,.storefront .nx29-preview-card:focus-within .nx29-card-arrows button,.storefront .nx29-preview-card .nx29-card-arrows button:focus-visible{opacity:1;transform:scale(1)}
+.storefront .nx29-preview-card .nx29-card-arrows button svg{display:block!important;width:17px;height:17px;flex:none;transform:none!important;margin:0!important}
+.storefront .nx29-preview-card .nx29-card-arrows button:hover{color:white;background:#5946db;transform:scale(1.08)}
+/* Make clear-history consistent with other animated text controls, without a redundant icon. */
+.storefront .nx67-clear-history{position:relative;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;background:transparent;border:0;border-radius:6px;color:#5943cb;font-size:.87rem;font-weight:850;padding:8px 2px;text-decoration:none!important;cursor:pointer;transition:color .24s ease,transform .24s ease}
+.storefront .nx67-clear-history::after{content:"";position:absolute;bottom:4px;left:2px;right:2px;background:currentColor;height:2px;border-radius:3px;transform:scaleX(0);transform-origin:center;transition:transform .26s cubic-bezier(.16,1,.3,1)}
+.storefront .nx67-clear-history:hover{color:#34208d;transform:translateY(-2px)}
+.storefront .nx67-clear-history:hover::after,.storefront .nx67-clear-history:focus-visible::after{transform:scaleX(1)}
+.storefront .nx67-clear-history:focus-visible{outline:2px solid #7959e4;outline-offset:3px}
+/* Orders can now be managed from the dashboard itself, using the same modal as Admin Orders. */
+.admin-shell .nx67-order-table-row{cursor:pointer;transition:background-color .2s ease,box-shadow .2s ease}
+.admin-shell .nx67-order-table-row:hover,.admin-shell .nx67-order-table-row:focus-visible{background:#f3f0ff;box-shadow:inset 3px 0 #7257e1;outline:none}
+.admin-shell .nx67-order-table-row:focus-visible{outline:2px solid #7257e1;outline-offset:-2px}
+@media(hover:none){.storefront .nx29-preview-card .nx29-card-arrows button{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.storefront .nx29-preview-card .nx29-card-arrows button,.storefront .nx67-clear-history,.storefront .nx67-clear-history::after,.admin-shell .nx67-order-table-row{transition:none!important;transform:none!important}}
+
+.admin-shell .nx67-dashboard-order-open{appearance:none;border:0;background:transparent;color:#283658;font:inherit;font-weight:900;padding:4px 2px;margin:-4px -2px;border-radius:5px;cursor:pointer;transition:color .2s ease}
+.admin-shell .nx67-order-table-row:hover .nx67-dashboard-order-open,.admin-shell .nx67-dashboard-order-open:hover{color:#5840c9}
+.admin-shell .nx67-dashboard-order-open:focus-visible{outline:2px solid #6f4ed9;outline-offset:3px}
+
+/* ---- legacy layer 68.css : retained cascading behavior ---- */
+/* Phase 68 — Nexora reflection accents.
+   These effects are purely decorative. They never gate authentication,
+   checkout results, payment verification, order status, or navigation. */
+
+/* A single reflected highlight stays inside the curved surface. */
+.nx68-order-reflect,
+.nx68-auth-reflect .auth-card {
+  position: relative;
+  isolation: isolate;
+}
+.nx68-order-reflect::after,
+.nx68-auth-reflect .auth-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background-image: linear-gradient(
+    110deg,
+    transparent 26%,
+    rgba(255, 255, 255, .02) 36%,
+    rgba(255, 255, 255, .66) 49%,
+    rgba(215, 204, 255, .22) 54%,
+    transparent 66%
+  );
+  background-size: 290% 100%;
+  background-position: 140% center;
+  transition: background-position .78s cubic-bezier(.2,.68,.2,1), opacity .3s ease;
+}
+.nx68-order-reflect:is(:hover, :focus-within)::after,
+.nx68-auth-reflect .auth-card:is(:hover, :focus-within)::after {
+  opacity: .42;
+  background-position: -135% center;
+}
+
+/* Customer orders: calm glass surface and soft purple edge on hover.
+   All links, timeline buttons and expanded content remain usable. */
+.nx60-orders-page .nx68-order-reflect {
+  border: 1px solid #e5e4f4;
+  border-radius: 19px;
+  background: #fff;
+  transition: border-color .28s ease, box-shadow .3s ease, transform .3s ease;
+}
+.nx60-orders-page .nx68-order-reflect:hover {
+  border-color: #b9aaee;
+  box-shadow: 0 17px 42px rgba(67, 52, 141, .10), 0 0 0 1px rgba(112, 84, 220, .06);
+  transform: translateY(-2px);
+}
+.nx60-orders-page .nx68-order-reflect:focus-within {
+  border-color: #b19ced;
+}
+
+/* Sign-in and sign-up: frosted white form card without changing the form
+   markup, validation, submit transitions, or existing enter animation. */
+.nx68-auth-reflect .auth-card {
+  border: 1px solid rgba(124, 99, 204, .17);
+  border-radius: 24px;
+  background: linear-gradient(150deg, rgba(255,255,255,.97), rgba(250,247,255,.92));
+  box-shadow: 0 20px 64px -39px rgba(47, 27, 119, .24), inset 0 1px 0 rgba(255,255,255,.9);
+  padding: clamp(21px, 3vw, 30px);
+  transition: border-color .3s ease, box-shadow .32s ease;
+}
+.nx68-auth-reflect .auth-card:is(:hover, :focus-within) {
+  border-color: rgba(113, 79, 222, .40);
+  box-shadow: 0 25px 66px -40px rgba(67, 38, 169, .32),
+              0 0 24px -17px rgba(111, 79, 219, .2),
+              inset 0 1px 0 rgba(255,255,255,.95);
+}
+/* The reflection sits over the glass, not over focus outlines or field hit areas. */
+.nx68-auth-reflect .auth-card > * {
+  position: relative;
+  z-index: 3;
+}
+
+/* Preserve the current angled showcase positions; only sweep their glass. */
+.nx68-auth-reflect .nx32-showcase-card {
+  overflow: hidden;
+  transition: border-color .35s ease, box-shadow .35s ease;
+}
+.nx68-auth-reflect .nx32-showcase-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.27) 51%, transparent 70%);
+  background-size: 290% 100%;
+  background-position: 140% center;
+  opacity: 0;
+  transition: background-position .7s cubic-bezier(.2,.68,.2,1), opacity .3s ease;
+}
+.nx68-auth-reflect .nx32-showcase-card:hover::after {
+  background-position: -130% center;
+  opacity: .9;
+}
+.nx68-auth-reflect .nx32-showcase-card:hover {
+  border-color: rgba(233,220,255,.6);
+  box-shadow: 0 25px 65px rgba(14,6,51,.32);
+}
+
+/* Order Now (COD / Razorpay) and Login / Sign-up buttons:
+   a one-time reflection on actual interaction, never a fake loading loop. */
+.nx68-order-action,
+.nx68-auth-reflect .auth-submit {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.nx68-order-action::after,
+.nx68-auth-reflect .auth-submit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.37) 50%, transparent 70%);
+  background-size: 260% 100%;
+  background-position: 140% center;
+  opacity: 0;
+  transition: background-position .63s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
+}
+.nx68-order-action:not(:disabled):is(:hover, :focus-visible)::after,
+.nx68-auth-reflect .auth-submit:not(:disabled):is(:hover, :focus-visible)::after {
+  opacity: .9;
+  background-position: -130% center;
+}
+.nx68-order-action:disabled::after,
+.nx68-auth-reflect .auth-submit:disabled::after {
+  opacity: 0;
+  transition: none;
+}
+
+@media (max-width: 600px) {
+  .nx68-auth-reflect .auth-card {border-radius: 19px; padding: 21px;}
+  .nx60-orders-page .nx68-order-reflect:hover {transform:none;}
+}
+@media (prefers-reduced-motion: reduce) {
+  .nx68-order-reflect, .nx68-auth-reflect .auth-card,
+  .nx68-auth-reflect .nx32-showcase-card,
+  .nx68-order-reflect::after, .nx68-auth-reflect .auth-card::after,
+  .nx68-auth-reflect .nx32-showcase-card::after,
+  .nx68-order-action::after, .nx68-auth-reflect .auth-submit::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .nx68-order-reflect::after, .nx68-auth-reflect .auth-card::after,
+  .nx68-auth-reflect .nx32-showcase-card::after,
+  .nx68-order-action::after, .nx68-auth-reflect .auth-submit::after {opacity:0!important;}
+  .nx60-orders-page .nx68-order-reflect:hover {transform:none;}
+}
+@media (forced-colors: active) {
+  .nx68-order-reflect::after, .nx68-auth-reflect .auth-card::after,
+  .nx68-auth-reflect .nx32-showcase-card::after,
+  .nx68-order-action::after, .nx68-auth-reflect .auth-submit::after {opacity:0!important;}
+  .nx68-auth-reflect .auth-card {border:1px solid CanvasText;}
+}
+
+/* ---- related-products.css : retained cascading behavior ---- */
+.related-products {
+    margin-block: clamp(2rem, 5vw, 4rem);
+}
+
+.related-products-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 900px) {
+    .related-products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .related-products-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+

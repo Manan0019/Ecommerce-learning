@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predev": "node scripts/build-styles.mjs",
+    "prebuild": "node scripts/build-styles.mjs",
+    "styles:build": "node scripts/build-styles.mjs",
+    "styles:check": "node scripts/build-styles.mjs --check",
+    "styles:watch": "node scripts/build-styles.mjs --watch"
   },
   "dependencies": {
     "react": "^19.2.8",

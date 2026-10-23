@@ -1,0 +1,96 @@
+/* Product review disclosure and curved counter-clockwise action reveal.
+   Keep these final rules after historic selectors to preserve keyboard access. */
+.storefront .nx64-review-form>summary.nx-review-toggle {
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  min-height:76px;padding:18px 24px;cursor:pointer;
+  list-style:none;user-select:none;
+  transition:background-color .26s ease;
+}
+.storefront .nx64-review-form>summary.nx-review-toggle::-webkit-details-marker{display:none}
+.storefront .nx64-review-form>summary.nx-review-toggle::marker{content:''}
+.storefront .nx64-review-form>summary.nx-review-toggle:is(:hover,:focus-visible){background:#fbf9ff}
+.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible{outline:3px solid #8f78f5;outline-offset:-5px;border-radius:12px}
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-heading {
+  display:grid;gap:4px;min-width:0;padding:0!important;background:transparent!important;
+  border:0!important;border-radius:0!important;color:#17233e!important;
+  text-decoration:none!important;transform:none!important;
+}
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-heading::after,
+.storefront .nx64-review-form>summary.nx-review-toggle .nx-review-action-copy::after{
+  content:none!important;display:none!important;
+}
+.storefront .nx-review-heading strong{font-size:clamp(1rem,1.5vw,1.12rem);line-height:1.3;font-weight:850}
+.storefront .nx-review-heading small{font-size:.67rem;letter-spacing:.12em;text-transform:uppercase;font-weight:850;color:#725bd3}
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action {
+  position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;
+  gap:10px;flex-shrink:0;min-width:158px;min-height:44px;padding:10px 16px!important;
+  overflow:hidden!important;white-space:nowrap;border:1px solid #d9cffc!important;
+  background:#f1edff!important;color:#543bc9!important;
+  border-radius:999px!important;font-size:.82rem!important;font-weight:850;
+  text-decoration:none!important;box-shadow:none!important;
+  transform:none!important;transition:border-color .3s ease,box-shadow .35s ease,color .3s ease!important;
+}
+/* Expanding curved fill: a circular lavender/purple panel makes one anti-clockwise turn. */
+.storefront .nx-review-action::before {
+  content:'';position:absolute;z-index:-1;inset:-145% -24%;border-radius:50%;
+  background:linear-gradient(145deg,#896af3 3%,#6548db 48%,#4e32b8 100%);
+  transform:translate(71%,64%) scale(.06) rotate(0deg);
+  transform-origin:76% 76%;pointer-events:none;
+  transition:transform .72s cubic-bezier(.16,1,.3,1);
+}
+/* A short arc travels anti-clockwise around the pill, without an underline. */
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action::after {
+  content:''!important;position:absolute;z-index:0;inset:2px;bottom:2px;left:2px;right:2px;
+  border:2px solid transparent;border-top-color:rgba(255,255,255,.78);
+  border-left-color:rgba(255,255,255,.5);border-radius:inherit;
+  background:none!important;background-image:none!important;
+  height:auto!important;width:auto!important;
+  transform:rotate(0deg)!important;transform-origin:center;
+  opacity:0;pointer-events:none;
+  transition:transform .72s cubic-bezier(.16,1,.3,1),opacity .2s ease!important;
+}
+.storefront .nx-review-action .nx-review-action-copy {
+  position:relative;z-index:1;min-width:0;display:block;white-space:nowrap;
+  background:none!important;border:0!important;padding:0!important;
+  color:inherit!important;transform:none!important;text-decoration:none!important;
+}
+.storefront .nx-review-action>svg{
+  position:relative;z-index:1;flex:none;transform:rotate(0deg);
+  transition:transform .32s cubic-bezier(.16,1,.3,1);color:inherit;
+}
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover,
+.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible>.nx-review-action,
+.storefront .nx64-review-form[open]>summary.nx-review-toggle>.nx-review-action {
+  color:white!important;border-color:#5a3cc7!important;
+  box-shadow:0 9px 22px rgba(72,46,172,.22)!important;
+}
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::before,
+.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::before,
+.storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::before{
+  transform:translate(0,0) scale(1.1) rotate(-360deg);
+}
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::after,
+.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::after,
+.storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::after{
+  opacity:1;transform:rotate(-360deg)!important;
+}
+.storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action>svg{transform:rotate(180deg)}
+.storefront .nx64-review-form[open]>summary.nx-review-toggle {border-bottom:1px solid #eae7f3}
+/* Disclosure content stays hidden by native details until explicitly expanded. */
+.storefront .nx64-review-form>form{padding-top:20px}
+@media(max-width:540px){
+  .storefront .nx64-review-form>summary.nx-review-toggle{gap:10px;padding:15px 13px;min-height:70px}
+  .storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action{min-width:130px;padding:9px 11px!important;font-size:.75rem!important;gap:6px}
+  .storefront .nx-review-heading strong{font-size:.91rem}
+  .storefront .nx-review-heading small{font-size:.57rem}
+}
+@media(prefers-reduced-motion:reduce){
+  .storefront .nx-review-action::before,.storefront .nx-review-action::after,
+  .storefront .nx-review-action>svg,.storefront .nx64-review-form>summary.nx-review-toggle{transition:none!important}
+  .storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::before,
+.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::before,
+  .storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::before{transform:translate(0,0) scale(1.1) rotate(0deg)}
+  .storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::after,
+.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::after,
+  .storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::after{opacity:0}
+}
