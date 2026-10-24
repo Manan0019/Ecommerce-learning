@@ -8195,12 +8195,11 @@ button.nx53-orders-link:hover{background:#e8e0fb}button.nx53-orders-link:disable
 .storefront .nx77-category-menu-toggle:focus-visible{outline:2px solid #6450de;outline-offset:2px}
 .storefront .nx35-category-nav.is-open .nx77-category-menu-toggle{background:#eeeaff}
 
-/* The single image has no second gallery frame; use an intentional photo treatment. */
-.storefront .nx77-single-image{isolation:isolate;overflow:hidden}
-.storefront .nx77-single-image .nx29-card-image{transition:transform .55s cubic-bezier(.2,.85,.25,1),filter .45s ease;transform-origin:center}
-.storefront .nx77-single-image:hover .nx29-card-image{transform:scale(1.055);filter:contrast(1.025) saturate(1.045)}
-.storefront .nx77-single-image::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0;background:linear-gradient(110deg,transparent 32%,rgba(255,255,255,.32) 48%,transparent 64%);transform:translateX(-120%);transition:transform .65s ease,opacity .25s ease}
-.storefront .nx77-single-image:hover::after{transform:translateX(120%);opacity:1}
+/* Keep photography consistent for every card. No isolated glare on single-image items. */
+.storefront .nx29-card-stage{isolation:isolate;overflow:hidden}
+.storefront .nx29-card-stage .nx29-card-image{transition:transform .42s cubic-bezier(.2,.85,.25,1),filter .35s ease;transform-origin:center}
+.storefront .nx29-card-stage:hover .nx29-card-image{transform:scale(1.035);filter:contrast(1.015) saturate(1.025)}
+.storefront .nx77-single-image::after{content:none!important}
 
 /* Departments fill from both sides instead of drawing a clipping underline. */
 .storefront .nx48-department{position:relative;isolation:isolate;overflow:hidden!important;transition:background-size .48s cubic-bezier(.18,.9,.24,1),transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .3s!important}
@@ -8295,7 +8294,7 @@ button.nx53-orders-link:hover{background:#e8e0fb}button.nx53-orders-link:disable
 .nx77-shipping-help{margin:14px 0 8px;color:#3e3658;font-size:12px;font-weight:700;line-height:1.6}
 
 @media(max-width:680px){.nx77-table-toolbar{align-items:stretch}.nx77-search-field{max-width:none}.nx77-filter-label{flex:1}.nx77-filter-label select{flex:1;min-width:110px}.nx77-delivery-mini-head,.nx77-delivery-mini-table>button{font-size:10px;gap:5px}.nx77-real-cart-test{padding:14px}}
-@media(prefers-reduced-motion:reduce){.storefront .nx48-department::before,.storefront .nx48-department::after,.storefront .nx77-single-image::after,.storefront .nx77-single-image .nx29-card-image,.storefront .login-button,.storefront .nx48-hero-collections,.storefront .nx33-see-all,.nx77-pagination button,.nx77-category-menu-toggle{transition:none!important;transform:none!important}}
+@media(prefers-reduced-motion:reduce){.storefront .nx48-department::before,.storefront .nx48-department::after,.storefront .nx29-card-stage .nx29-card-image,.storefront .login-button,.storefront .nx48-hero-collections,.storefront .nx33-see-all,.nx77-pagination button,.nx77-category-menu-toggle{transition:none!important;transform:none!important}}
 
 /* Discover CTAs across homepage, compare, product search and empty states. */
 .storefront a.button[href^="/products"],.storefront .nx69-compare-choose,.storefront .nx33-see-all{
@@ -8488,6 +8487,34 @@ button.nx53-orders-link:hover{background:#e8e0fb}button.nx53-orders-link:disable
 @media(max-width:750px){.nx82-policy-layout{grid-template-columns:1fr}.nx82-policy-contact{position:static}.nx82-policy-body{padding:0 19px}.nx82-policy-body section{grid-template-columns:30px 1fr;gap:10px}}
 
 .nx82-newsletter-confirm{max-width:720px;margin:30px auto;padding:40px;border-radius:26px;border:1px solid #ded9f4;background:#fff;text-align:center;display:flex;flex-direction:column;gap:17px;align-items:center}.nx82-newsletter-confirm>p:first-child{letter-spacing:.16em;color:#6b56da;font-size:12px;font-weight:850}.nx82-newsletter-confirm h1{font-size:clamp(30px,5vw,45px);letter-spacing:-.04em;margin:0}.nx82-newsletter-confirm>span{color:#6b728d;line-height:1.7}.nx82-newsletter-confirm button{padding:14px 24px;border:0;background:#634bde;border-radius:13px;color:white;font-weight:800;cursor:pointer}.nx82-newsletter-confirm>a{color:#5d47ce;text-decoration:underline}
+
+/* Legal navigation: one shared underline motion across breadcrumb, support and policies. */
+.storefront .nx82-policy-page .nx83-policy-animated-link{
+  text-decoration:none!important;cursor:pointer;color:#5540c5;
+  transition:color .22s ease,border-color .22s ease,background-color .22s ease,transform .22s ease;
+}
+.storefront .nx82-policy-page .nx83-policy-animated-link>span:first-child{
+  display:inline-block;position:relative;text-decoration:none!important;
+}
+.storefront .nx82-policy-page .nx83-policy-animated-link>span:first-child::after{
+  content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;
+  background:currentColor;border-radius:2px;transform:scaleX(0);transform-origin:center;
+  transition:transform .28s cubic-bezier(.16,1,.3,1);
+}
+.storefront .nx82-policy-page .nx83-policy-animated-link:is(:hover,:focus-visible){color:#32218c}
+.storefront .nx82-policy-page .nx83-policy-animated-link:is(:hover,:focus-visible)>span:first-child::after{transform:scaleX(1)}
+.storefront .nx82-policy-page .nx83-policy-animated-link:focus-visible{outline:2px solid #7057e5;outline-offset:4px}
+.storefront .nx82-policy-page .nx82-policy-other a{display:inline-flex;align-items:center;justify-content:center;min-height:46px}
+.storefront .nx82-policy-page .nx82-policy-other a:is(:hover,:focus-visible){background:#f4f0ff;border-color:#afa0ed;transform:translateY(-2px)}
+.storefront .nx82-policy-page .nx82-policy-other a[aria-current="page"]{background:#f4f0ff;border-color:#d0c5ff;font-weight:800}
+.storefront .nx82-policy-page .nx83-policy-support-link{display:inline-flex;align-items:center;gap:6px;max-width:100%}
+.storefront .nx82-policy-page .nx83-policy-support-arrow{display:inline-block;transition:transform .25s ease}
+.storefront .nx82-policy-page .nx83-policy-support-link:is(:hover,:focus-visible) .nx83-policy-support-arrow{transform:translateX(4px)}
+@media(prefers-reduced-motion:reduce){
+  .storefront .nx82-policy-page .nx83-policy-animated-link,
+  .storefront .nx82-policy-page .nx83-policy-animated-link>span:first-child::after,
+  .storefront .nx82-policy-page .nx83-policy-support-arrow{transition:none!important}
+}
 
 /* Phase 82 — delivery operations · visual language shared with admin. Functional controls remain intact. */
 .nx82-delivery-shell{background:#f3f5fd;min-height:100vh;color:#152341}

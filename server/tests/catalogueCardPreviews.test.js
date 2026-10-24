@@ -37,3 +37,22 @@ test("Safe fallback when a product has no images", () => {
   const [card] = attachCardPreviews([{ id: "6", imageUrl: null }], media);
   assert.deepEqual(card.previewImages, []);
 });
+
+test("Exactly two shared images produce a two-frame product preview", () => {
+  const images = [
+    { id: 1, product_id: 17, media_type: "image", media_url: "/first.webp", sort_order: 0 },
+    { id: 2, product_id: 17, media_type: "image", media_url: "/second.webp", sort_order: 1 },
+  ];
+  const [card] = attachCardPreviews([{ id: "17", imageUrl: "/first.webp" }], images);
+  assert.deepEqual(card.previewImages, ["/first.webp", "/second.webp"]);
+});
+
+test("Exactly two selected-variant images never leak an unrelated colour image", () => {
+  const images = [
+    { id: 1, product_id: 18, media_type: "image", media_url: "/red-1.webp", variant_id: 3, sort_order: 0 },
+    { id: 2, product_id: 18, media_type: "image", media_url: "/red-2.webp", variant_id: 3, sort_order: 1 },
+    { id: 3, product_id: 18, media_type: "image", media_url: "/blue.webp", variant_id: 4, sort_order: 2 },
+  ];
+  const [card] = attachCardPreviews([{ id: "18", imageUrl: "/red-1.webp", selectedVariantId: "3" }], images);
+  assert.deepEqual(card.previewImages, ["/red-1.webp", "/red-2.webp"]);
+});

@@ -11,12 +11,11 @@
 .storefront .nx77-category-menu-toggle:focus-visible{outline:2px solid #6450de;outline-offset:2px}
 .storefront .nx35-category-nav.is-open .nx77-category-menu-toggle{background:#eeeaff}
 
-/* The single image has no second gallery frame; use an intentional photo treatment. */
-.storefront .nx77-single-image{isolation:isolate;overflow:hidden}
-.storefront .nx77-single-image .nx29-card-image{transition:transform .55s cubic-bezier(.2,.85,.25,1),filter .45s ease;transform-origin:center}
-.storefront .nx77-single-image:hover .nx29-card-image{transform:scale(1.055);filter:contrast(1.025) saturate(1.045)}
-.storefront .nx77-single-image::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0;background:linear-gradient(110deg,transparent 32%,rgba(255,255,255,.32) 48%,transparent 64%);transform:translateX(-120%);transition:transform .65s ease,opacity .25s ease}
-.storefront .nx77-single-image:hover::after{transform:translateX(120%);opacity:1}
+/* Keep photography consistent for every card. No isolated glare on single-image items. */
+.storefront .nx29-card-stage{isolation:isolate;overflow:hidden}
+.storefront .nx29-card-stage .nx29-card-image{transition:transform .42s cubic-bezier(.2,.85,.25,1),filter .35s ease;transform-origin:center}
+.storefront .nx29-card-stage:hover .nx29-card-image{transform:scale(1.035);filter:contrast(1.015) saturate(1.025)}
+.storefront .nx77-single-image::after{content:none!important}
 
 /* Departments fill from both sides instead of drawing a clipping underline. */
 .storefront .nx48-department{position:relative;isolation:isolate;overflow:hidden!important;transition:background-size .48s cubic-bezier(.18,.9,.24,1),transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .3s!important}
@@ -111,7 +110,7 @@
 .nx77-shipping-help{margin:14px 0 8px;color:#3e3658;font-size:12px;font-weight:700;line-height:1.6}
 
 @media(max-width:680px){.nx77-table-toolbar{align-items:stretch}.nx77-search-field{max-width:none}.nx77-filter-label{flex:1}.nx77-filter-label select{flex:1;min-width:110px}.nx77-delivery-mini-head,.nx77-delivery-mini-table>button{font-size:10px;gap:5px}.nx77-real-cart-test{padding:14px}}
-@media(prefers-reduced-motion:reduce){.storefront .nx48-department::before,.storefront .nx48-department::after,.storefront .nx77-single-image::after,.storefront .nx77-single-image .nx29-card-image,.storefront .login-button,.storefront .nx48-hero-collections,.storefront .nx33-see-all,.nx77-pagination button,.nx77-category-menu-toggle{transition:none!important;transform:none!important}}
+@media(prefers-reduced-motion:reduce){.storefront .nx48-department::before,.storefront .nx48-department::after,.storefront .nx29-card-stage .nx29-card-image,.storefront .login-button,.storefront .nx48-hero-collections,.storefront .nx33-see-all,.nx77-pagination button,.nx77-category-menu-toggle{transition:none!important;transform:none!important}}
 
 /* Discover CTAs across homepage, compare, product search and empty states. */
 .storefront a.button[href^="/products"],.storefront .nx69-compare-choose,.storefront .nx33-see-all{

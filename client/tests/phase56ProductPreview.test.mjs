@@ -14,7 +14,7 @@ test('product cards have no numeric badges or pagination dots', () => {
 
 test('manual browsing, hover cycling and touch swipe are preserved', () => {
   const src = read('components/common/ProductCard.jsx');
-  for (const expression of [/startPreview\(\)/, /onMouseLeave=\{\(\) => \{ stopPreview\(true\); manuallyNavigated\.current = false; \}\}/, /choose\(active - 1\)/, /choose\(active \+ 1\)/, /onTouchStart/, /onTouchEnd/, /aria-label=\{`Previous image/, /aria-label=\{`Next image/]) {
+  for (const expression of [/startPreview\(\)/, /onPointerLeave=\{\(\) => \{ stopPreview\(true\); manuallyNavigated\.current = false; \}\}/, /choose\(active - 1\)/, /choose\(active \+ 1\)/, /onTouchStart/, /onTouchEnd/, /aria-label=\{`Previous image/, /aria-label=\{`Next image/]) {
     assert.match(src, expression);
   }
 });

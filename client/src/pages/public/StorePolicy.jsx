@@ -26,11 +26,13 @@ const entries={
 export default function StorePolicy({kind='terms'}){
  const entry=entries[kind]||entries.terms;
  return <CustomerLayout mainClassName="nx82-policy-page">
-  <nav aria-label="Breadcrumb" className="nx82-policy-crumb"><Link to="/">Home</Link><span> / </span>{entry.title}</nav>
+  <nav aria-label="Breadcrumb" className="nx82-policy-crumb"><Link className="nx83-policy-animated-link" to="/"><span>Home</span></Link><span> / </span>{entry.title}</nav>
   <header className="nx82-policy-heading"><p>SHOP WITH CONFIDENCE</p><h1>{entry.title}</h1><span>{entry.sub}</span></header>
   {!SITE_POLICIES_COMPLETE&&<aside className="nx82-policy-warning" role="status"><strong>Merchant publication pending.</strong> These are draft customer disclosures, not finalized policies. Real merchant contact details, delivery promises, return windows and legal review are required before live payment onboarding.</aside>}
   <div className="nx82-policy-layout"><article className="nx82-policy-body">{entry.sections.map(([heading,content],i)=><section key={heading}><small>{String(i+1).padStart(2,'0')}</small><div><h2>{heading}</h2><p>{content}</p></div></section>)}</article>
-  <aside className="nx82-policy-contact"><strong>Merchant & support</strong><p>{SITE_MERCHANT_NAME||'Legal business name: to be published'}</p><p>{SITE_MERCHANT_ADDRESS||'Registered business address: to be published'}</p><p>{SITE_SUPPORT_EMAIL?<a href={`mailto:${SITE_SUPPORT_EMAIL}`}>{SITE_SUPPORT_EMAIL}</a>:'Support email: to be published'}</p><p>{SITE_SUPPORT_PHONE||'Support phone: to be published'}</p><p>Grievance officer: {SITE_GRIEVANCE_NAME||'to be published'}</p><Link to="/contact">Contact customer support →</Link></aside></div>
-  <div className="nx82-policy-other"><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link><Link to="/returns-refunds">Returns & refunds</Link><Link to="/shipping-policy">Shipping</Link></div>
+  <aside className="nx82-policy-contact"><strong>Merchant & support</strong><p>{SITE_MERCHANT_NAME||'Legal business name: to be published'}</p><p>{SITE_MERCHANT_ADDRESS||'Registered business address: to be published'}</p><p>{SITE_SUPPORT_EMAIL?<a className="nx83-policy-animated-link" href={`mailto:${SITE_SUPPORT_EMAIL}`}><span>{SITE_SUPPORT_EMAIL}</span></a>:'Support email: to be published'}</p><p>{SITE_SUPPORT_PHONE||'Support phone: to be published'}</p><p>Grievance officer: {SITE_GRIEVANCE_NAME||'to be published'}</p><Link className="nx83-policy-animated-link nx83-policy-support-link" to="/contact"><span>Contact customer support</span><span aria-hidden="true" className="nx83-policy-support-arrow">→</span></Link></aside></div>
+  <nav aria-label="Store policies" className="nx82-policy-other">
+   {[['terms','/terms','Terms'],['privacy','/privacy','Privacy'],['refunds','/returns-refunds','Returns & refunds'],['shipping','/shipping-policy','Shipping']].map(([policy,to,label])=><Link key={policy} to={to} className="nx83-policy-animated-link" aria-current={kind===policy?'page':undefined}><span>{label}</span></Link>)}
+  </nav>
  </CustomerLayout>;
 }

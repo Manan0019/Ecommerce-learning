@@ -9,3 +9,31 @@
 @media(max-width:750px){.nx82-policy-layout{grid-template-columns:1fr}.nx82-policy-contact{position:static}.nx82-policy-body{padding:0 19px}.nx82-policy-body section{grid-template-columns:30px 1fr;gap:10px}}
 
 .nx82-newsletter-confirm{max-width:720px;margin:30px auto;padding:40px;border-radius:26px;border:1px solid #ded9f4;background:#fff;text-align:center;display:flex;flex-direction:column;gap:17px;align-items:center}.nx82-newsletter-confirm>p:first-child{letter-spacing:.16em;color:#6b56da;font-size:12px;font-weight:850}.nx82-newsletter-confirm h1{font-size:clamp(30px,5vw,45px);letter-spacing:-.04em;margin:0}.nx82-newsletter-confirm>span{color:#6b728d;line-height:1.7}.nx82-newsletter-confirm button{padding:14px 24px;border:0;background:#634bde;border-radius:13px;color:white;font-weight:800;cursor:pointer}.nx82-newsletter-confirm>a{color:#5d47ce;text-decoration:underline}
+
+/* Legal navigation: one shared underline motion across breadcrumb, support and policies. */
+.storefront .nx82-policy-page .nx83-policy-animated-link{
+  text-decoration:none!important;cursor:pointer;color:#5540c5;
+  transition:color .22s ease,border-color .22s ease,background-color .22s ease,transform .22s ease;
+}
+.storefront .nx82-policy-page .nx83-policy-animated-link>span:first-child{
+  display:inline-block;position:relative;text-decoration:none!important;
+}
+.storefront .nx82-policy-page .nx83-policy-animated-link>span:first-child::after{
+  content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;
+  background:currentColor;border-radius:2px;transform:scaleX(0);transform-origin:center;
+  transition:transform .28s cubic-bezier(.16,1,.3,1);
+}
+.storefront .nx82-policy-page .nx83-policy-animated-link:is(:hover,:focus-visible){color:#32218c}
+.storefront .nx82-policy-page .nx83-policy-animated-link:is(:hover,:focus-visible)>span:first-child::after{transform:scaleX(1)}
+.storefront .nx82-policy-page .nx83-policy-animated-link:focus-visible{outline:2px solid #7057e5;outline-offset:4px}
+.storefront .nx82-policy-page .nx82-policy-other a{display:inline-flex;align-items:center;justify-content:center;min-height:46px}
+.storefront .nx82-policy-page .nx82-policy-other a:is(:hover,:focus-visible){background:#f4f0ff;border-color:#afa0ed;transform:translateY(-2px)}
+.storefront .nx82-policy-page .nx82-policy-other a[aria-current="page"]{background:#f4f0ff;border-color:#d0c5ff;font-weight:800}
+.storefront .nx82-policy-page .nx83-policy-support-link{display:inline-flex;align-items:center;gap:6px;max-width:100%}
+.storefront .nx82-policy-page .nx83-policy-support-arrow{display:inline-block;transition:transform .25s ease}
+.storefront .nx82-policy-page .nx83-policy-support-link:is(:hover,:focus-visible) .nx83-policy-support-arrow{transform:translateX(4px)}
+@media(prefers-reduced-motion:reduce){
+  .storefront .nx82-policy-page .nx83-policy-animated-link,
+  .storefront .nx82-policy-page .nx83-policy-animated-link>span:first-child::after,
+  .storefront .nx82-policy-page .nx83-policy-support-arrow{transition:none!important}
+}
