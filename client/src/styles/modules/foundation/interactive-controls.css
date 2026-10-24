@@ -212,3 +212,28 @@
 
 .nx78-order-discount{color:#4d38c5}
 .nx78-order-discount strong{color:#4d38c5}
+
+/* Inventory alerts: five stable columns. The SKU cell wraps without bleeding into quantities. */
+.admin-shell .nx24-inventory-panel .nx84-inventory-scroll{max-width:100%;overflow-x:auto;scrollbar-color:#c9bff3 transparent}
+.admin-shell .nx24-inventory-panel .nx84-inventory-scroll:focus-visible{outline:2px solid #7056e2;outline-offset:3px;border-radius:12px}
+.admin-shell .nx24-inventory-panel .nx84-inventory-table{width:100%;min-width:850px;table-layout:fixed;border-collapse:collapse}
+.admin-shell .nx84-inventory-table .nx84-col-product{width:43%}
+.admin-shell .nx84-inventory-table .nx84-col-available{width:11%}
+.admin-shell .nx84-inventory-table .nx84-col-threshold{width:11%}
+.admin-shell .nx84-inventory-table .nx84-col-status{width:17%}
+.admin-shell .nx84-inventory-table .nx84-col-action{width:18%}
+.admin-shell .nx24-inventory-panel .nx84-inventory-table :is(th,td){padding:15px 12px;vertical-align:middle;text-align:left;box-sizing:border-box}
+.admin-shell .nx24-inventory-panel .nx84-inventory-table :is(th,td):first-child{padding-left:18px;width:auto;min-width:0}
+.admin-shell .nx24-inventory-panel .nx84-inventory-table td.nx84-inventory-product-cell{white-space:normal!important;overflow-wrap:anywhere;min-width:0}
+.admin-shell .nx84-inventory-product{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;max-width:100%}
+.admin-shell .nx84-inventory-product .nx46-product-title{display:block!important;max-width:100%;white-space:normal!important;line-height:1.5;font-weight:800;overflow-wrap:anywhere;word-break:normal}
+.admin-shell .nx84-inventory-product small{display:block;max-width:100%;white-space:normal!important;overflow-wrap:anywhere;word-break:break-word;font-size:12px;color:#7a87a0;line-height:1.55;margin:0!important}
+.admin-shell .nx84-inventory-table td:not(:first-child){white-space:nowrap}
+.admin-shell .nx84-inventory-table th{white-space:nowrap;font-size:11px;letter-spacing:.05em}
+.admin-shell .nx84-inventory-number{display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;padding:5px 8px;border-radius:9px;font-size:14px;font-weight:850;line-height:1.15;font-variant-numeric:tabular-nums}
+.admin-shell .nx84-inventory-number.is-out{color:#b0163c;background:#fff0f3}
+.admin-shell .nx84-inventory-number.is-low{color:#94631b;background:#fff6e6}
+.admin-shell .nx84-inventory-threshold{font-weight:800;color:#465373;font-variant-numeric:tabular-nums}
+.admin-shell .nx84-inventory-table .nx50-inventory-edit{display:inline-flex;justify-content:center;align-items:center;gap:8px;max-width:100%;white-space:nowrap;line-height:1.25;padding:10px 12px}
+.admin-shell .nx84-inventory-table .nx50-inventory-edit svg{flex-shrink:0}
+@media(max-width:720px){.admin-shell .nx24-inventory-panel .nx84-inventory-table{min-width:850px}.admin-shell .nx24-inventory-panel .nx84-inventory-table :is(th,td){padding-block:13px}}

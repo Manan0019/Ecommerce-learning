@@ -57,7 +57,7 @@ export default function AdminCustomers() {
           <input type="search" value={search} placeholder="Search name, email or ID" onChange={event => setSearch(event.target.value)} />
         </label>
         <span className="nx74-search-count" role="status">{loading ? "Loading customers…" : `${visibleCustomers.length} shown · ${total} matches`}</span>
-        {search && <button className="nx74-clear-search" type="button" onClick={() => setSearch("")}>Clear search</button>}
+        {search && <button className="nx74-clear-search nx84-admin-reset" type="button" onClick={() => setSearch("")}><UiIcon name="refresh-cw" size={15}/><span className="nx84-reset-label">Clear search</span></button>}
       </div>
       {error && <p className="admin-alert" role="alert">{error}</p>}
       {loading ? <div className="admin-empty">Loading customers…</div> : <div className="admin-table-wrap">

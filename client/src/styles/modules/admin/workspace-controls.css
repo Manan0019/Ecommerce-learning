@@ -316,3 +316,25 @@
 
 .storefront .nx61-sale-label{background:#be1747!important;color:#fff!important;box-shadow:0 5px 13px #be174733}
 
+
+/* Shared filter-reset interaction for catalogue, customers, and inventory. */
+.admin-shell .nx84-admin-reset,
+.admin-shell .nx69-product-filters .nx84-admin-reset{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:40px;max-width:100%;white-space:nowrap;padding:10px 14px;
+  color:#5540c2!important;background:#f7f4ff!important;
+  border:1px solid #dbd3f8!important;border-radius:11px;box-shadow:none;
+  font-size:12px;font-weight:800;line-height:1.25;cursor:pointer;overflow:hidden;isolation:isolate;
+  transition:transform .26s cubic-bezier(.18,.85,.3,1),background .26s,border-color .26s,box-shadow .26s,color .26s!important;
+}
+.admin-shell .nx84-admin-reset::before{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 20%,#ffffffa3 48%,transparent 77%);transform:translateX(-155%);transition:transform .55s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:-1}
+.admin-shell .nx84-admin-reset .nx47-icon{flex:none;transform-origin:center;transition:transform .45s cubic-bezier(.2,.85,.26,1)}
+.admin-shell .nx84-admin-reset .nx84-reset-label{position:relative;display:inline-block}
+.admin-shell .nx84-admin-reset .nx84-reset-label::after{content:"";position:absolute;bottom:-4px;left:0;right:0;height:2px;border-radius:10px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .28s ease}
+.admin-shell .nx84-admin-reset:is(:hover,:focus-visible):not(:disabled){background:#ede7ff!important;color:#4427aa!important;border-color:#a996f2!important;transform:translateY(-2px);box-shadow:0 8px 18px #4b35af21}
+.admin-shell .nx84-admin-reset:is(:hover,:focus-visible):not(:disabled)::before{transform:translateX(150%)}
+.admin-shell .nx84-admin-reset:is(:hover,:focus-visible):not(:disabled) .nx47-icon{transform:rotate(-55deg)}
+.admin-shell .nx84-admin-reset:is(:hover,:focus-visible):not(:disabled) .nx84-reset-label::after{transform:scaleX(1)}
+.admin-shell .nx84-admin-reset:focus-visible{outline:2px solid #7356dd;outline-offset:3px}
+.admin-shell .nx84-admin-reset:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+@media(prefers-reduced-motion:reduce){.admin-shell .nx84-admin-reset,.admin-shell .nx84-admin-reset::before,.admin-shell .nx84-admin-reset .nx47-icon,.admin-shell .nx84-admin-reset .nx84-reset-label::after{transition:none!important;transform:none!important}.admin-shell .nx84-admin-reset .nx84-reset-label::after{display:none}}

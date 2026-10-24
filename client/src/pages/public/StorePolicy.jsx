@@ -1,4 +1,5 @@
 import {Link} from 'react-router-dom';
+import UiIcon from '../../components/common/UiIcon';
 import CustomerLayout from '../../components/layout/CustomerLayout';
 import {SITE_NAME,SITE_SUPPORT_EMAIL,SITE_SUPPORT_PHONE,SITE_MERCHANT_NAME,SITE_MERCHANT_ADDRESS,SITE_GRIEVANCE_NAME,SITE_POLICIES_COMPLETE} from '../../config/site';
 const entries={
@@ -23,16 +24,40 @@ const entries={
   ['Delivery confirmation','Assigned deliveries can require an email OTP at the handover. Share the code only after receiving your order.'],
   ['Delivery times','The merchant must publish a realistic dispatch and delivery range for each service region before launch. Contact support if your order is delayed.']]}
 };
+const policyLinks = [
+  ['terms','/terms','Terms & conditions','list'],
+  ['privacy','/privacy','Privacy','eye'],
+  ['refunds','/returns-refunds','Returns & refunds','refresh-cw'],
+  ['shipping','/shipping-policy','Shipping & delivery','truck']
+];
 export default function StorePolicy({kind='terms'}){
  const entry=entries[kind]||entries.terms;
- return <CustomerLayout mainClassName="nx82-policy-page">
-  <nav aria-label="Breadcrumb" className="nx82-policy-crumb"><Link className="nx83-policy-animated-link" to="/"><span>Home</span></Link><span> / </span>{entry.title}</nav>
-  <header className="nx82-policy-heading"><p>SHOP WITH CONFIDENCE</p><h1>{entry.title}</h1><span>{entry.sub}</span></header>
-  {!SITE_POLICIES_COMPLETE&&<aside className="nx82-policy-warning" role="status"><strong>Merchant publication pending.</strong> These are draft customer disclosures, not finalized policies. Real merchant contact details, delivery promises, return windows and legal review are required before live payment onboarding.</aside>}
-  <div className="nx82-policy-layout"><article className="nx82-policy-body">{entry.sections.map(([heading,content],i)=><section key={heading}><small>{String(i+1).padStart(2,'0')}</small><div><h2>{heading}</h2><p>{content}</p></div></section>)}</article>
-  <aside className="nx82-policy-contact"><strong>Merchant & support</strong><p>{SITE_MERCHANT_NAME||'Legal business name: to be published'}</p><p>{SITE_MERCHANT_ADDRESS||'Registered business address: to be published'}</p><p>{SITE_SUPPORT_EMAIL?<a className="nx83-policy-animated-link" href={`mailto:${SITE_SUPPORT_EMAIL}`}><span>{SITE_SUPPORT_EMAIL}</span></a>:'Support email: to be published'}</p><p>{SITE_SUPPORT_PHONE||'Support phone: to be published'}</p><p>Grievance officer: {SITE_GRIEVANCE_NAME||'to be published'}</p><Link className="nx83-policy-animated-link nx83-policy-support-link" to="/contact"><span>Contact customer support</span><span aria-hidden="true" className="nx83-policy-support-arrow">→</span></Link></aside></div>
-  <nav aria-label="Store policies" className="nx82-policy-other">
-   {[['terms','/terms','Terms'],['privacy','/privacy','Privacy'],['refunds','/returns-refunds','Returns & refunds'],['shipping','/shipping-policy','Shipping']].map(([policy,to,label])=><Link key={policy} to={to} className="nx83-policy-animated-link" aria-current={kind===policy?'page':undefined}><span>{label}</span></Link>)}
+ const currentIndex=Math.max(0,policyLinks.findIndex(([key])=>key===kind));
+ const nextPolicy=policyLinks[(currentIndex+1)%policyLinks.length];
+ const topicIcon=policyLinks[currentIndex][3];
+ return <CustomerLayout mainClassName="nx82-policy-page nx84-policy-page">
+  <nav aria-label="Breadcrumb" className="nx82-policy-crumb"><Link className="nx83-policy-animated-link" to="/"><span>Home</span></Link><UiIcon name="chevron-right" size={13}/><span aria-current="page">{entry.title}</span></nav>
+  <header className="nx82-policy-heading nx84-policy-hero">
+   <div className="nx84-policy-hero-copy"><p className="nx84-policy-eyebrow"><span className="nx84-policy-eyebrow-dot"/> NEXORA · CUSTOMER INFORMATION</p><h1>{entry.title}</h1><span>{entry.sub}</span><div className="nx84-policy-hero-foot"><UiIcon name="check-circle" size={17}/><span>Clear information for a more confident shopping experience</span></div></div>
+   <div className="nx84-policy-hero-art" aria-hidden="true"><div className="nx84-policy-art-glow"/><div className="nx84-policy-art-symbol"><UiIcon name={topicIcon} size={68}/></div><div className="nx84-policy-art-lines"><i/><i/><i/></div></div>
+  </header>
+  <nav aria-label="Customer policies" className="nx82-policy-other nx84-policy-tabs">
+   {policyLinks.map(([policy,to,label,icon])=><Link key={policy} to={to} className="nx83-policy-animated-link nx84-policy-tab" aria-current={kind===policy?'page':undefined}><UiIcon name={icon} size={18}/><span>{label}</span>{kind===policy&&<span className="nx84-policy-selected" aria-hidden="true"><UiIcon name="check" size={15}/></span>}</Link>)}
   </nav>
+  {!SITE_POLICIES_COMPLETE&&<aside className="nx82-policy-warning nx84-policy-warning" role="status"><UiIcon name="check-circle" size={21}/><div><strong>Merchant publication pending</strong><p>These are draft customer disclosures, not finalized policies. Real merchant contact details, delivery promises, return windows and legal review are required before live payment onboarding.</p></div></aside>}
+  <div className="nx82-policy-layout nx84-policy-layout">
+   <article className="nx82-policy-body nx84-policy-body" aria-label={`${entry.title} details`}>
+    <div className="nx84-policy-document-head"><div><p>THE DETAILS</p><h2>What you should know</h2></div><span>{String(entry.sections.length).padStart(2,'0')} topics</span></div>
+    {entry.sections.map(([heading,content],i)=><section key={heading} id={`policy-section-${i+1}`}><small>{String(i+1).padStart(2,'0')}</small><div><h2>{heading}</h2><p>{content}</p></div></section>)}
+    <div className="nx84-policy-document-foot"><UiIcon name="check-circle" size={20}/><p>Questions about an order or these policies? Our customer support page is the best place to start.</p><Link className="nx83-policy-animated-link" to="/contact"><span>Get support</span><UiIcon name="right" size={16}/></Link></div>
+   </article>
+   <aside className="nx82-policy-contact nx84-policy-contact" aria-label="Merchant and support contact">
+    <div className="nx84-policy-aside-heading"><span className="nx84-policy-aside-icon"><UiIcon name="store" size={23}/></span><div><small>NEED ASSISTANCE?</small><strong>Merchant & support</strong></div></div>
+    <div className="nx84-policy-contact-list"><div><small>Registered business</small><p>{SITE_MERCHANT_NAME||'Legal business name: to be published'}</p></div><div><small>Business address</small><p>{SITE_MERCHANT_ADDRESS||'Registered business address: to be published'}</p></div><div><small>Customer service</small><p>{SITE_SUPPORT_EMAIL?<a className="nx83-policy-animated-link" href={`mailto:${SITE_SUPPORT_EMAIL}`}><span>{SITE_SUPPORT_EMAIL}</span></a>:'Support email: to be published'}</p><p>{SITE_SUPPORT_PHONE||'Support phone: to be published'}</p></div><div><small>Grievance contact</small><p>{SITE_GRIEVANCE_NAME||'To be published'}</p></div></div>
+    <Link className="nx83-policy-animated-link nx83-policy-support-link nx84-policy-contact-action" to="/contact"><span>Contact customer support</span><span aria-hidden="true" className="nx83-policy-support-arrow"><UiIcon name="right" size={18}/></span></Link>
+    <div className="nx84-policy-jump"><strong>On this page</strong>{entry.sections.map(([heading],i)=><a key={heading} href={`#policy-section-${i+1}`}><span>{String(i+1).padStart(2,'0')}</span>{heading}</a>)}</div>
+   </aside>
+  </div>
+  <footer className="nx84-policy-bottom"><div><span>CONTINUE EXPLORING</span><h2>More shopping information</h2><p>Everything you need to know, all in one place.</p></div><Link className="nx83-policy-animated-link nx84-policy-next" to={nextPolicy[1]}><UiIcon name={nextPolicy[3]} size={20}/><span>{nextPolicy[2]}</span><UiIcon name="right" size={19}/></Link></footer>
  </CustomerLayout>;
 }
