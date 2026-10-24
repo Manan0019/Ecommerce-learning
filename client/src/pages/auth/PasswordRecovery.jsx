@@ -1,11 +1,11 @@
 import {useState} from 'react';
-import {Link,useSearchParams} from 'react-router-dom';
+import {Link,useLocation,useSearchParams} from 'react-router-dom';
 import AuthLayout from '../../components/auth/AuthLayout';
 import PasswordField from '../../components/auth/PasswordField';
 import {requestPasswordReset,resetPassword} from '../../services/authService';
 export default function PasswordRecovery({reset=false}){
- const [params]=useSearchParams();const token=params.get('token')||'';
- const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirmPassword,setConfirm]=useState(''),[notice,setNotice]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const [params]=useSearchParams();const location=useLocation();const token=params.get('token')||'';
+ const [email,setEmail]=useState(typeof location.state?.email === 'string' ? location.state.email : ''),[password,setPassword]=useState(''),[confirmPassword,setConfirm]=useState(''),[notice,setNotice]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  async function submit(e){e.preventDefault();setError('');setNotice('');setBusy(true);
   try {const r=reset?await resetPassword({token,password,confirmPassword}):await requestPasswordReset(email);setNotice(r.message);if(reset){setPassword('');setConfirm('');}}
   catch(e){setError(e.message);}finally{setBusy(false);}

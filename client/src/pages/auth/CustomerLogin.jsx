@@ -16,6 +16,7 @@ export default function CustomerLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [invalidCredentials, setInvalidCredentials] = useState(false);
   const [feedback, setFeedback] = useState(location.state?.message
     ? { text: location.state.message, type: "success" }
     : null);
@@ -25,6 +26,7 @@ export default function CustomerLogin() {
 
     setLoading(true);
     setFeedback(null);
+    setInvalidCredentials(false);
 
     try {
       const data = await login({ email: email.trim(), password });
@@ -40,6 +42,8 @@ export default function CustomerLogin() {
       }
 
     } catch (error) {
+      // Reveal recovery only for rejected credentials, never for network or server errors.
+      setInvalidCredentials(error?.status === 401);
       setFeedback({ text: error.message, type: "error" });
 
     } finally {
@@ -80,9 +84,8 @@ export default function CustomerLogin() {
         </button>
       </form>
 
-      <p className="auth-switch"><Link to="/forgot-password">Forgot password?</Link></p>
+      {invalidCredentials && <p className="auth-switch"><Link to="/forgot-password" state={{ email: email.trim() }}>Forgot password?</Link></p>}
       <p className="auth-switch">New here? <Link to="/signup">Create an account</Link></p>
-      <p className="auth-switch">Delivery team? <Link to="/delivery/login">Open delivery sign in</Link></p>
       <p className="nx32-security-line">Your password is never displayed publicly.</p>
     </AuthLayout>;
 }

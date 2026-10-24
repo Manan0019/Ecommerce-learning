@@ -8669,6 +8669,46 @@ button.nx53-orders-link:hover{background:#e8e0fb}button.nx53-orders-link:disable
 
 .nx82-analytics{padding:10px 0 50px;max-width:1550px;margin:auto}.nx82-analytics-header{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:28px}.nx82-analytics-header small,.nx82-analytics-panel-head p{font-size:11px;letter-spacing:.15em;color:#6761a7;font-weight:900}.nx82-analytics-header h1{font-size:clamp(32px,4vw,48px);letter-spacing:-.05em;margin:9px 0}.nx82-analytics-header p{color:#70809b}.nx82-analytics-header label{color:#51607b;font-weight:750;display:flex;flex-direction:column;gap:8px}.nx82-analytics-header select{padding:12px 15px;border:1px solid #dedbf4;background:#fff;border-radius:12px;font-weight:760}.nx82-analytics-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}.nx82-analytics-kpi{padding:23px;border:1px solid #dcd4fc;border-radius:21px;background:linear-gradient(145deg,#f2eeff,#fff);min-width:0;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 25px #18274a09}.nx82-analytics-kpi.is-mint{background:linear-gradient(145deg,#e9faf4,#fff);border-color:#bee8d3}.nx82-analytics-kpi.is-blue{background:linear-gradient(145deg,#ebf3ff,#fff);border-color:#cde0fa}.nx82-analytics-kpi.is-amber{background:linear-gradient(145deg,#fff4e8,#fff);border-color:#f1d9b8}.nx82-analytics-kpi span{color:#61708c;font-weight:800;font-size:13px}.nx82-analytics-kpi strong{font-size:clamp(26px,3vw,36px);letter-spacing:-.04em;color:#15203b;overflow-wrap:anywhere}.nx82-analytics-kpi small{font-size:11px;color:#78849c}.nx82-analytics-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,1fr);gap:20px;margin:20px 0}.nx82-analytics-panel{border:1px solid #e1e5f2;background:#fff;border-radius:22px;padding:24px;box-shadow:0 11px 27px #25305d08;min-width:0}.nx82-analytics-panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}.nx82-analytics-panel-head p{margin:0 0 7px}.nx82-analytics-panel-head h2{margin:0;font-size:22px;letter-spacing:-.03em}.nx82-analytics-panel-head>span{color:#5d4cb1;font-weight:800;display:flex;gap:6px;align-items:center}.nx82-analytics-bars{height:228px;display:flex;align-items:flex-end;gap:7px;padding:10px 0 0}.nx82-analytics-bar{flex:1;min-width:5px;height:100%;display:flex;flex-direction:column;align-items:stretch;justify-content:end;gap:7px}.nx82-analytics-bar div{background:linear-gradient(180deg,#9f82f5,#5540cb);border-radius:5px 5px 2px 2px;min-height:3px;transition:height .2s ease}.nx82-analytics-bar small{white-space:nowrap;font-size:9px;color:#777fa0;transform:rotate(-45deg);min-height:26px;text-align:center}.nx82-analytics-progress{display:grid;gap:13px}.nx82-analytics-progress>div{display:flex;justify-content:space-between;align-items:center;background:#f6f5fc;border-radius:12px;padding:17px}.nx82-analytics-progress span{font-weight:700;color:#62708b}.nx82-analytics-progress strong{font-size:24px;color:#3e2ea9}.nx82-analytics-table{overflow:auto}.nx82-analytics-table table{width:100%;border-collapse:collapse}.nx82-analytics-table th{text-align:left;color:#64728e;background:#f7f7fc;padding:15px}.nx82-analytics-table td{border-bottom:1px solid #e9eafa;padding:15px;color:#25314b}.nx82-analytics-footnote{font-size:12px;color:#67748c;margin-top:20px;line-height:1.7}.nx82-analytics-error{padding:18px;border:1px solid #ffb9bd;background:#fff2f2;color:#a93342;border-radius:12px;margin-bottom:20px}
 @media(max-width:900px){.nx82-analytics-grid{grid-template-columns:1fr}.nx82-analytics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:570px){.nx82-analytics-header{flex-direction:column;align-items:stretch}.nx82-analytics-kpis{gap:9px}.nx82-analytics-kpi{padding:15px}.nx82-analytics-panel{padding:14px}}
+/* Phase 86: delivery team management, accessible table and bounded page controls. */
+.admin-shell .nx86-staff-directory{min-width:0}
+.admin-shell .nx86-staff-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0 10px}
+.admin-shell .nx86-staff-toolbar .nx86-staff-search{flex:1 1 275px;min-width:min(100%,260px);max-width:none;margin:0}
+.admin-shell .nx86-staff-search input[type="search"]{background-image:none!important;padding-left:0!important;background-color:transparent!important;min-width:0}
+.admin-shell .nx86-staff-select{display:flex;flex-direction:column;gap:6px;flex:0 1 178px;min-width:150px;font-size:12px;font-weight:750;color:#665a86}
+.admin-shell .nx86-staff-select select{width:100%;min-height:44px;box-sizing:border-box;padding:9px 12px;border:1px solid #dcd8f2;border-radius:12px;background:#fff;color:#30264d;font:inherit;cursor:pointer}
+.admin-shell .nx86-staff-per-page{min-width:88px;flex-basis:92px}
+.admin-shell .nx86-staff-count{margin:5px 0 12px;color:#6f648b;font-size:12px;font-weight:700}
+.admin-shell .nx86-staff-table-wrap{border:1px solid #ece8f6;border-radius:15px;max-width:100%;background:#fff}
+.admin-shell .nx86-staff-table{min-width:900px;table-layout:fixed;width:100%;border-collapse:collapse}
+.admin-shell .nx86-staff-table th{white-space:nowrap;background:#f9f8ff;vertical-align:middle;padding:16px 12px;letter-spacing:.055em}
+.admin-shell .nx86-staff-table td{padding:16px 12px;vertical-align:middle;overflow-wrap:anywhere;line-height:1.5}
+.admin-shell .nx86-staff-table th:nth-child(1){width:18%}
+.admin-shell .nx86-staff-table th:nth-child(2){width:23%}
+.admin-shell .nx86-staff-table th:nth-child(3){width:15%}
+.admin-shell .nx86-staff-table th:nth-child(4){width:13%}
+.admin-shell .nx86-staff-table th:nth-child(5){width:12%}
+.admin-shell .nx86-staff-table th:nth-child(6){width:19%;text-align:center}
+.admin-shell .nx86-staff-table td:nth-child(6){text-align:center}
+.admin-shell .nx86-staff-table tbody tr{transition:background .18s ease}
+.admin-shell .nx86-staff-table tbody tr:hover{background:#faf9ff}
+.admin-shell .nx86-staff-name{font-weight:800;color:#241b40}
+.admin-shell .nx86-staff-email{display:block;overflow-wrap:anywhere}
+.admin-shell .nx86-staff-meta{display:block;margin-top:3px;line-height:1.4;color:#8a83a0;font-size:11px}
+.admin-shell .nx86-staff-actions{justify-content:center;gap:7px;white-space:nowrap}
+.admin-shell .nx86-staff-actions .nx80-icon-btn{width:37px;height:37px;min-width:37px;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1}
+.admin-shell .nx86-staff-actions .nx80-icon-btn .nx47-icon{display:block;flex:none;margin:0;transform:none}
+.admin-shell .nx86-staff-empty{padding:30px 16px;text-align:center;color:#625681;background:#faf9ff;border:1px dashed #d9d0f4;border-radius:14px}
+.admin-shell .nx86-staff-empty button{border:0;background:none;color:#533acf;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+.admin-shell .nx86-staff-pagination{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:17px;color:#6c6185;font-size:12px}
+.admin-shell .nx86-page-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+.admin-shell .nx86-page-buttons button{box-sizing:border-box;min-width:35px;min-height:36px;padding:7px 10px;display:inline-flex;align-items:center;justify-content:center;gap:0;border:1px solid #e1daf7;border-radius:10px;background:#faf9ff;color:#4934a6;font-weight:800;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease,background .2s ease,color .2s ease}
+.admin-shell .nx86-page-buttons button svg+svg{margin-left:-7px}
+.admin-shell .nx86-page-buttons button.is-current{background:#5d43d9;color:#fff;border-color:#5d43d9}
+.admin-shell .nx86-page-buttons button:hover:not(:disabled):not(.is-current){background:#ece7ff;border-color:#8c7ae8;transform:translateY(-2px);box-shadow:0 5px 12px #4b36ad1f}
+.admin-shell .nx86-page-buttons button:disabled{opacity:.42;cursor:not-allowed}
+.admin-shell .nx86-staff-directory :is(input,select,button):focus-visible{outline:3px solid #7460df;outline-offset:2px}
+@media(max-width:700px){.admin-shell .nx86-staff-select{flex:1 1 135px;min-width:130px}.admin-shell .nx86-staff-per-page{flex:0 1 95px;min-width:90px}.admin-shell .nx86-staff-pagination{justify-content:center;text-align:center}.admin-shell .nx86-page-total{width:100%;text-align:center}}
+@media(prefers-reduced-motion:reduce){.admin-shell .nx86-page-buttons button,.admin-shell .nx86-staff-table tbody tr{transition:none!important;transform:none!important}}
 /* Product review disclosure and curved counter-clockwise action reveal.
    Keep these final rules after historic selectors to preserve keyboard access. */
 .storefront .nx64-review-form>summary.nx-review-toggle {

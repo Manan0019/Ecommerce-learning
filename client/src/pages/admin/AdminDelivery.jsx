@@ -2,6 +2,7 @@ import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import {useEffect,useMemo,useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import DeliveryExecutivePicker from '../../components/admin/DeliveryExecutivePicker';
+import DeliveryTeamTable from '../../components/admin/DeliveryTeamTable';
 import DeliveryBatchAssignmentDialog from '../../components/admin/DeliveryBatchAssignmentDialog';
 import {deliveryTeamWithWorkload} from '../../services/deliveryAssignmentView';
 import UiIcon from "../../components/common/UiIcon";
@@ -18,7 +19,7 @@ const isEligible=o=>['confirmed','processing','shipped'].includes(o.status)&&
 export default function AdminDelivery(){
  const [staff,setStaff]=useState([]),[assignments,setAssignments]=useState([]),[orders,setOrders]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const liveRevision=useRealtimeRevision(['delivery', 'orders', 'finance']);
- const [staffQuery,setStaffQuery]=useState(''),[orderQuery,setOrderQuery]=useState(''),[orderStatus,setOrderStatus]=useState('all'),[ordersPage,setOrdersPage]=useState(1);
+ const [orderQuery,setOrderQuery]=useState(''),[orderStatus,setOrderStatus]=useState('all'),[ordersPage,setOrdersPage]=useState(1);
  const [activityQuery,setActivityQuery]=useState(''),[activityStatus,setActivityStatus]=useState('all'),[activityPage,setActivityPage]=useState(1);
  const [retryOrder,setRetryOrder]=useState(null);
  const [selectedOrderIds,setSelectedOrderIds]=useState([]);
@@ -46,7 +47,6 @@ export default function AdminDelivery(){
  const unassigned=candidates.filter(o=>!assignmentMap.has(String(o.id)));
  const selectedOrders=unassigned.filter(o=>selectedOrderIds.includes(String(o.id)));
  const allSelected=unassigned.length>0&&unassigned.slice(0,25).every(o=>selectedOrderIds.includes(String(o.id)));
- const shownStaff=workload.filter(s=>`${s.fullName} ${s.email} ${s.mobile}`.toLowerCase().includes(staffQuery.trim().toLowerCase()));
  const matchingOrders=candidates.filter(o=>`${o.id} ${o.customerName||''} ${o.address?.city||''}`.toLowerCase().includes(orderQuery.trim().toLowerCase())&&(orderStatus==='all'||(orderStatus==='unassigned'&&!assignmentMap.has(String(o.id)))||(orderStatus==='assigned'&&assignmentMap.has(String(o.id)))));
  const ordersLimit=10, ordersPages=Math.max(1,Math.ceil(matchingOrders.length/ordersLimit)),ordersSlice=matchingOrders.slice((Math.min(ordersPage,ordersPages)-1)*ordersLimit,Math.min(ordersPage,ordersPages)*ordersLimit);
  const matchingActivity=assignments.filter(a=>`${a.orderId} ${a.executiveName||''} ${a.customerName||''}`.toLowerCase().includes(activityQuery.trim().toLowerCase())&&(activityStatus==='all'||a.deliveryStatus===activityStatus));
@@ -104,9 +104,10 @@ export default function AdminDelivery(){
   {error&&<p className="admin-alert" role="alert">{error}</p>}{notice&&<p className="nx46-success" role="status">{notice}</p>}
   <section className="nx46-metrics"><article><span>Delivery staff</span><strong>{staff.length}</strong><small>{staff.filter(s=>s.isActive).length} active</small></article><article><span>Eligible orders</span><strong>{candidates.length}</strong><small>Confirmed / preparing / dispatched</small></article><article><span>Out for delivery</span><strong>{assignments.filter(a=>a.deliveryStatus==='out_for_delivery').length}</strong><small>Currently with executives</small></article><article><span>Delivered</span><strong>{assignments.filter(a=>a.deliveryStatus==='delivered').length}</strong><small>Completed assignments</small></article></section>
   <Link to="/admin/finance" className="nx81-finance-link"><UiIcon name="right" size={17}/> View revenue, COD collection and delivery payouts</Link>
-  <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Delivery team</h2><p>Only administrators can create or disable delivery accounts.</p></div><Link className="nx78-panel-link" to="/delivery/login" target="_blank" rel="noopener noreferrer"><span>Open delivery sign-in</span><UiIcon name="chevron-right" size={16}/></Link></div>
-    <div className="nx77-table-toolbar"><label className="nx77-search-field"><UiIcon name="search" size={17}/><input aria-label="Search delivery staff" type="search" placeholder="Search staff by name, email or phone" value={staffQuery} onChange={e=>setStaffQuery(e.target.value)}/></label><span>{shownStaff.length} executives</span></div>
-    {loading?<p>Loading…</p>:!staff.length?<p>No delivery staff yet. Create the first account above.</p>:<div className="nx46-table-wrap"><table className="nx46-table"><thead><tr><th>Executive</th><th>Contact</th><th>Open deliveries</th><th>Status</th><th>Action</th></tr></thead><tbody>{shownStaff.map(s=><tr key={s.id}><td><strong>{s.fullName}</strong></td><td>{s.email}<br/><small>{s.mobile} · {money(s.payRate)}/delivery</small></td><td><strong className="nx55-workload-number">{s.openDeliveries}</strong><small className="nx55-workload-label">{s.openDeliveries===1?'active order':'active orders'}</small></td><td><span className={`nx46-pill ${s.isActive?'good':'muted'}`}>{s.isActive?'Active':'Disabled'}</span></td><td><div className="nx80-executive-actions"><button type="button" className="nx80-icon-btn" title="Edit details and pay rate" aria-label={`Edit ${s.fullName}`} disabled={busy} onClick={()=>{setEditingExecutive(s);setForm({fullName:s.fullName,email:s.email,mobileNumber:s.mobile,password:"",payRate:String(s.payRate||"0.00")});setFormErrors({});setError("");}}><UiIcon name="edit" size={18}/></button><button type="button" className="nx80-icon-btn" aria-label={`${s.isActive?'Disable':'Enable'} ${s.fullName}`} title={s.isActive?'Disable account':'Enable account'} disabled={busy} onClick={()=>toggle(s)}><UiIcon name={s.isActive?'ban':'check-circle'} size={18}/></button><button type="button" className="nx80-icon-btn nx80-icon-danger" title={Number(s.totalAssignments||0)>0?'Delivery history exists — disable instead':'Delete unused executive'} aria-label={`Delete ${s.fullName}`} disabled={busy||Number(s.totalAssignments||0)>0} onClick={()=>setPendingDelete(s)}><UiIcon name="trash" size={18}/></button></div></td></tr>)}</tbody></table></div>}
+  <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Delivery team</h2><p>Manage executive profiles, future pay rates, workload and account access.</p></div></div>
+    <DeliveryTeamTable staff={workload} loading={loading} busy={busy}
+      onEdit={member=>{setEditingExecutive(member);setForm({fullName:member.fullName,email:member.email,mobileNumber:member.mobile,password:'',payRate:String(member.payRate||'0.00')});setFormErrors({});setError('');}}
+      onToggle={toggle} onDelete={setPendingDelete}/>
   </section>
   <section className="admin-panel nx46-panel"><div className="admin-panel-heading"><div><h2>Assign delivery orders</h2><p>Dispatch an order using Orders before the executive can mark it out for delivery.</p></div><Link className="nx78-panel-link" to="/admin/orders"><span>Manage orders</span><UiIcon name="right" size={17}/></Link></div>
    <div className="nx55-batch-toolbar"><div><strong>Multi-order assignment</strong><small>Select 2–25 unassigned orders and give them to one executive. Each order still has only one assigned executive.</small></div><div><span>{selectedOrders.length} selected</span><button type="button" className="nx53-open-picker" disabled={busy||selectedOrders.length<2} onClick={()=>{setBulkError('');setBulkOpen(true);}}><UiIcon name="users" size={16}/> Assign selected</button></div></div>
