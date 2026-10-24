@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import {useEffect,useState} from 'react';
 import {getMyEarnings,getAdminEarnings,getAdminCollections,recordDeliveryPayout} from '../../services/deliveryService';
 import Modal from '../common/Modal';
@@ -12,6 +13,7 @@ function presetBounds(value){const now=new Date(),dayStr=d=>d.toLocaleDateString
 /** One reporting component for both Admin and Delivery, with role-appropriate access. */
 export default function EarningsLedger({admin=false,staff=[]}){
  const [period,setPeriod]=useState('month'),[range,setRange]=useState(()=>presetBounds('month'));
+ const liveRevision=useRealtimeRevision(['finance', 'delivery', 'orders']);
  const [executiveId,setExecutiveId]=useState('');
  const [earnings,setEarnings]=useState(null),[collections,setCollections]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState('');
  const [payOrder,setPayOrder]=useState(null),[reference,setReference]=useState(''),[payBusy,setPayBusy]=useState(false),[refreshKey,setRefreshKey]=useState(0);
@@ -21,7 +23,7 @@ export default function EarningsLedger({admin=false,staff=[]}){
  .then(([a,b])=>{if(!c.signal.aborted){setEarnings(a);setCollections(b);}})
  .catch(e=>{if(!c.signal.aborted)setError(e.message)})
  .finally(()=>{if(!c.signal.aborted)setLoading(false)});
- return()=>c.abort();},[admin,range.from,range.to,executiveId,refreshKey]);
+ return()=>c.abort();},[admin,range.from,range.to,executiveId,refreshKey,liveRevision]);
  async function payout(event){event.preventDefault();if(!payOrder||reference.trim().length<3)return;setPayBusy(true);setError('');
  try{await recordDeliveryPayout(payOrder.orderId,reference.trim());setPayOrder(null);setReference('');setRefreshKey(x=>x+1);}
  catch(e){setError(e.message);}finally{setPayBusy(false);}}

@@ -5,6 +5,7 @@ import { processRefundWebhook } from './razorpayRefundController.js';
 import { notifyAdmins } from '../services/notificationService.js';
 import {queueOrderEmail} from '../services/customerEmailOutbox.js';
 import pool from '../config/db.js';
+import {broadcastOrderChange,broadcastAdmins,broadcastAreas} from '../services/realtime.js';
 import { fromPaise, validateCartItems } from '../services/cartPricing.js';
 import { calculateCheckout } from '../services/checkoutPricing.js';
 import { acceptedQuoteError, quoteMatchesAccepted, quoteSummary } from '../services/checkoutAcceptance.js';
@@ -317,7 +318,17 @@ export async function razorpayWebhook(req,res){
       if(applied.error){await rollback(db);begun=false;return res.status(409).json({message:'Payment requires manual reconciliation.'});}
     }
     // payment.failed does not release stock: the same Razorpay order can be retried.
-    await db.query('COMMIT');begun=false;return res.json({received:true});
+    await db.query('COMMIT');begun=false;
+    if(type==='payment.captured'||type.startsWith('refund.')){
+      broadcastAdmins(['orders','finance','notifications','analytics','inventory']);
+      broadcastAreas(['catalog','inventory']);
+      const identifier=type==='payment.captured'?payment?.order_id:payload?.payload?.refund?.entity?.payment_id;
+      if(identifier){
+        const query=type==='payment.captured'?'SELECT id FROM cod_orders WHERE razorpay_order_id=$1':'SELECT id FROM cod_orders WHERE razorpay_payment_id=$1';
+        pool.query(query,[identifier]).then(result=>Promise.all(result.rows.map(row=>broadcastOrderChange(row.id)))).catch(error=>console.error('Realtime webhook refresh:',error));
+      }
+    }
+    return res.json({received:true});
   }catch(e){if(begun)await rollback(db);return fail(res,e,'Razorpay webhook:');}finally{db.release();}
 }
 // Shared by the admin endpoint and the periodic, fail-closed sweeper.

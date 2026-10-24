@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UiIcon from "../../components/common/UiIcon";
@@ -7,6 +8,7 @@ import { isAuthenticationError } from "../../services/apiClient";
 
 export default function AdminCustomers() {
   const navigate = useNavigate();
+  const liveRevision=useRealtimeRevision(["customers"]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -42,7 +44,7 @@ export default function AdminCustomers() {
     }
     loadCustomers();
     return () => controller.abort();
-  }, [navigate, serverQuery]);
+  }, [navigate, serverQuery,liveRevision]);
 
   const query = search.trim().toLocaleLowerCase();
   const visibleCustomers = customers.filter(customer => !query || [customer.id, customer.fullName, customer.email].some(value => String(value ?? "").toLocaleLowerCase().includes(query)));

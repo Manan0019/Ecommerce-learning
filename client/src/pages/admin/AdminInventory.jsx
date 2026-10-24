@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import {useEffect,useState} from 'react';
 import UiIcon from "../../components/common/UiIcon";
 import {Link} from 'react-router-dom';
@@ -6,10 +7,11 @@ import AdminProductEditDialog from '../../components/admin/AdminProductEditDialo
 import {getLowStockAlerts} from '../../services/inventoryService';
 export default function AdminInventory(){
   const [data,setData]=useState(null),[error,setError]=useState(''),[loading,setLoading]=useState(true);
+ const liveRevision=useRealtimeRevision(['inventory', 'catalog']);
   const [editor,setEditor]=useState(null);
   const [query,setQuery]=useState(''),[state,setState]=useState('all'),[page,setPage]=useState(1);
   async function reload(){setError('');setLoading(true);try{setData(await getLowStockAlerts(500));}catch(e){setError(e.message);}finally{setLoading(false);}}
-  useEffect(()=>{let active=true;getLowStockAlerts(500).then(r=>{if(active)setData(r);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[]);
+  useEffect(()=>{let active=true;getLowStockAlerts(500).then(r=>{if(active)setData(r);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[liveRevision]);
   const visible=(data?.items||[]).filter(item=>`${item.productName||''} ${item.sku||''} ${Object.values(item.attributes||{}).join(' ')}`.toLowerCase().includes(query.toLowerCase())&&(state==='all'||(state==='out'&&Number(item.available)===0)||(state==='low'&&Number(item.available)>0)));
   const pages=Math.max(1,Math.ceil(visible.length/15)),slice=visible.slice((Math.min(page,pages)-1)*15,Math.min(page,pages)*15);
   return <AdminLayout title="Inventory Alerts" subtitle="Low-stock and out-of-stock products and SKUs, based on your own alert thresholds."

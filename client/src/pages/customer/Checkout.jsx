@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import CheckoutProcessStatus from "../../components/customer/CheckoutProcessStatus";
 import {useEffect,useRef,useState} from 'react';
 import UiIcon from "../../components/common/UiIcon";
@@ -16,6 +17,7 @@ import {checkoutIntentKey,checkoutAcceptable} from '../../services/checkoutInten
 
 const money=value=>`₹${Number(value??0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 export default function Checkout(){
+ const liveRevision=useRealtimeRevision(["inventory","catalog","promotions"]);
  const navigate=useNavigate(),{items,clearCart}=useCart();
  const [addresses,setAddresses]=useState([]),[selectedId,setSelectedId]=useState('new'),[address,setAddress]=useState({...blankAddress});
  const [quote,setQuote]=useState(null),[estimate,setEstimate]=useState(null),[codEnabled,setCodEnabled]=useState(false);
@@ -35,6 +37,16 @@ export default function Checkout(){
   const [q,saved,paymentConfig]=await Promise.all([quoteCart(items,controller.signal),getAddresses(controller.signal),getRazorpayConfig(controller.signal).catch(()=>({enabled:false}))]);
   if(!controller.signal.aborted){setQuote(q);setQuotedCart(cartKey);setRazorpayEnabled(Boolean(paymentConfig.enabled));setAddresses(saved.addresses||[]);const preferred=(saved.addresses||[]).find(a=>a.isDefault)||(saved.addresses||[])[0];if(preferred)setSelectedId(preferred.id);}
  }catch(e){if(isAuthenticationError(e))navigate('/login',{replace:true,state:{from:'/checkout',message:'Sign in to complete checkout.'}});else if(!controller.signal.aborted)setError(e.message)}finally{if(!controller.signal.aborted)setChecking(false)}}load();return()=>controller.abort()},[items,navigate,cartKey]);
+ // Price, stock and coupon invalidation must not reset the address being edited.
+ useEffect(()=>{
+   if(!liveRevision||posting||!items.length)return;
+   const controller=new AbortController();
+   setEstimate(null);setEstimateFor('');setCodEnabled(false);
+   quoteCart(items,controller.signal).then(q=>{if(!controller.signal.aborted){setQuote(q);setQuotedCart(cartKey);}})
+     .catch(()=>{if(!controller.signal.aborted)setError('The catalogue changed. Please review your cart before paying.');});
+   return()=>controller.abort();
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[liveRevision]);
  const activeAddress=selectedId==='new'?address:addresses.find(a=>a.id===selectedId);
  const validAddress=activeAddress&&activeAddress.pincode?.length===6&&activeAddress.state?.trim()&&activeAddress.city?.trim()&&activeAddress.addressLine1?.length>=5&&activeAddress.fullName?.length>=2&&activeAddress.phone?.length>=10;
  const intentKey=checkoutIntentKey(items,selectedId,address)+'::coupon:'+appliedCoupon;

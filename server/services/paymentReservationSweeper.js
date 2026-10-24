@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import {broadcastOrderChange,broadcastAdmins,broadcastAreas} from './realtime.js';
 import {expirePendingReservation} from '../controllers/razorpayController.js';
 let running=false;
 export async function sweepPendingPayments({limit=25,log=console}={}){
@@ -11,7 +12,7 @@ export async function sweepPendingPayments({limit=25,log=console}={}){
   for(const order of rows.rows){
    summary.checked++;
    try {const result=await expirePendingReservation(String(order.id),null);
-    if(result.status===200)summary.expired++;else summary.held++;}
+    if(result.status===200){summary.expired++;broadcastAdmins(['orders','inventory','finance','analytics']);broadcastAreas(['catalog','inventory']);await broadcastOrderChange(order.id);}else summary.held++;}
    catch(error){summary.errors++;log.error('Payment reservation retained after failed provider verification:',String(order.id),error?.message);}
   }
   return summary;

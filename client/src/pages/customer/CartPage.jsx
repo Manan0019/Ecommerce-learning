@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
 import { Link } from "react-router-dom";
@@ -8,6 +9,7 @@ import { useCart } from "../../hooks/useCart";
 
 export default function CartPage() {
   const { items, updateQuantity, removeFromCart, clearCart } = useCart();
+ const liveRevision=useRealtimeRevision(["catalog","inventory"]);
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +31,7 @@ export default function CartPage() {
     }
     refreshQuote();
     return () => controller.abort();
-  }, [items]);
+  }, [items,liveRevision]);
 
   return <CustomerLayout mainClassName="cart-page">
     <header className="page-hero compact-hero"><p className="eyebrow">Your selection</p><h1>Shopping cart</h1></header>

@@ -1,5 +1,7 @@
 import "dotenv/config";
 import express from "express";
+import {createServer} from "node:http";
+import {createRealtimeServer,mutationRealtimeMiddleware} from "./services/realtime.js";
 import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,6 +45,7 @@ app.post("/api/payments/razorpay/webhook", express.raw({type:"application/json",
 app.use(express.json({ limit: "100kb" }));
 app.use(sessionMiddleware);
 app.use(unsafeRequestOrigin);
+app.use(mutationRealtimeMiddleware);
 app.get("/", (_req, res) => res.json({ message: "Ecommerce API is running." }));
 if(process.env.ENABLE_ADMIN_DB_TEST === "1") app.get("/api/db-test", requireAdmin, async (_req, res) => {
   try {
@@ -100,7 +103,9 @@ app.use((error, _req, res, _next) => {
 async function start() {
   try {
     await pool.query("SELECT 1");
-    app.listen(PORT, () => console.log(`Express running at http://localhost:${PORT}`));
+    const httpServer=createServer(app);
+    createRealtimeServer(httpServer,{origin:CLIENT_ORIGIN});
+    httpServer.listen(PORT, () => console.log(`Express + Socket.IO running at http://localhost:${PORT}`));
     startPaymentSweeper();
     startCustomerEmailOutbox();
   } catch (error) {

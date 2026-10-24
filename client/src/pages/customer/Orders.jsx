@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
@@ -25,6 +26,7 @@ function OrderProductPreview({item}){
 
 export default function Orders(){
  const navigate=useNavigate(),location=useLocation(),{items:cartItems,clearCart}=useCart();
+ const liveRevision=useRealtimeRevision(['orders', 'notifications']);
  const [orders,setOrders]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[success,setSuccess]=useState(''),[checkingId,setCheckingId]=useState('');
  const deepLinkedOrder=new URLSearchParams(location.search).get('order');
  const [expandedId,setExpandedId]=useState(deepLinkedOrder || location.state?.placedId || null);
@@ -72,7 +74,7 @@ export default function Orders(){
     checkout.open();opened=true;
   }catch(e){setError(e.message)}finally{if(!opened)release()}
  }
- useEffect(()=>{const controller=new AbortController();getMyOrders(controller.signal).then(d=>setOrders(d.orders||[])).catch(e=>{if(isAuthenticationError(e))navigate("/login",{replace:true,state:{from:"/orders"}});else if(e.name!=="AbortError")setError(e.message);}).finally(()=>{if(!controller.signal.aborted)setLoading(false);});return()=>controller.abort();},[navigate]);
+ useEffect(()=>{const controller=new AbortController();getMyOrders(controller.signal).then(d=>setOrders(d.orders||[])).catch(e=>{if(isAuthenticationError(e))navigate("/login",{replace:true,state:{from:"/orders"}});else if(e.name!=="AbortError")setError(e.message);}).finally(()=>{if(!controller.signal.aborted)setLoading(false);});return()=>controller.abort();},[navigate,liveRevision]);
  useEffect(()=>{
   if(!deepLinkedOrder || !/^[1-9]\d*$/.test(deepLinkedOrder))return;
   setExpandedId(deepLinkedOrder);

@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import UiIcon from "./UiIcon";
 import {notificationDestination,notificationKind} from '../../services/notificationTarget';
 import {useCallback,useEffect,useRef,useState} from 'react';
@@ -6,6 +7,7 @@ import {getNotifications,markNotificationRead,markAllNotificationsRead} from '..
 
 export default function NotificationBell(){
  const navigate=useNavigate(),[open,setOpen]=useState(false),[entries,setEntries]=useState([]),[unread,setUnread]=useState(0),[error,setError]=useState('');
+ const liveRevision=useRealtimeRevision(['notifications', 'orders', 'delivery']);
  const controller=useRef(null);
  const [markingAll,setMarkingAll]=useState(false);
  const refresh=useCallback(async()=>{
@@ -20,7 +22,7 @@ export default function NotificationBell(){
   const sessionChanged=()=>{setOpen(false);setEntries([]);setUnread(0);controller.current?.abort();refresh();};
   window.addEventListener('nexora:auth-changed',sessionChanged);
   return()=>{clearInterval(tick);controller.current?.abort();window.removeEventListener('focus',focus);window.removeEventListener('nexora:orders-updated',updated);window.removeEventListener('nexora:auth-changed',sessionChanged);};
- },[refresh]);
+ },[refresh,liveRevision]);
  async function visit(item){
   try{if(!item.read_at){await markNotificationRead(item.id);setEntries(old=>old.map(n=>n.id===item.id?{...n,read_at:new Date().toISOString()}:n));setUnread(n=>Math.max(0,n-1));}}
   catch{setError('Could not mark notification as read.');}

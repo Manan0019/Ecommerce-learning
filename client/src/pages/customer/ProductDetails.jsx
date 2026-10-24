@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { rememberProduct } from "../../services/recentlyViewed";
 import UiIcon from "../../components/common/UiIcon";
 import AdminProductEditDialog from "../../components/admin/AdminProductEditDialog";
@@ -21,6 +22,7 @@ export default function ProductDetails({adminPreview=false}) {
 }
 
 function ProductDetailsContent({ id,adminPreview=false }) {
+ const liveRevision=useRealtimeRevision(["catalog","inventory"]);
   const { addToCart } = useCart();
   const location = useLocation();
   const returnTo = /^\/admin\/(?:products|inventory|featured|dashboard|orders)(?:\/?|\?.*)$/.test(location.state?.from||"")
@@ -70,7 +72,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
     }
     loadProduct();
     return () => controller.abort();
-  }, [id,adminPreview,previewVersion]);
+  }, [id,adminPreview,previewVersion,liveRevision]);
 
   function addProduct() {
     if (variants.length && !selectedVariant) return;

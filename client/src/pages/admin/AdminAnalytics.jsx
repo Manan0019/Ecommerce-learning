@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import {useEffect,useMemo,useState} from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import UiIcon from '../../components/common/UiIcon';
@@ -6,10 +7,11 @@ const currency=x=>`₹${Number(x||0).toLocaleString('en-IN',{maximumFractionDigi
 const kpis=[['recorded_sales','Recorded sales','indigo'],['cod_collected','COD collected','mint'],['prepaid_captured','Prepaid captured','blue'],['orders','Orders placed','amber']];
 export default function AdminAnalytics(){
  const [days,setDays]=useState(30),[data,setData]=useState(null),[error,setError]=useState(''),[loading,setLoading]=useState(true);
+ const liveRevision=useRealtimeRevision(['analytics', 'orders', 'finance']);
  useEffect(()=>{const ctrl=new AbortController();setLoading(true);setError('');
   apiRequest(`/api/admin/analytics/overview?days=${days}`,{credentials:'include',signal:ctrl.signal})
    .then(setData).catch(e=>{if(e.name!=='AbortError')setError(e.message)}).finally(()=>{if(!ctrl.signal.aborted)setLoading(false)});
-  return()=>ctrl.abort();},[days]);
+  return()=>ctrl.abort();},[days,liveRevision]);
  const rows=data?.daily||[],highest=useMemo(()=>Math.max(1,...rows.map(r=>Number(r.collected||0))),[rows]);
  return <AdminLayout><div className="nx82-analytics"><header className="nx82-analytics-header"><div><small>ADMIN WORKSPACE / INSIGHTS</small><h1>Store analytics</h1><p>Verified collections and order activity, sourced from the database.</p></div>
   <label>Reporting period<select value={days} onChange={e=>setDays(Number(e.target.value))}><option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option></select></label></header>

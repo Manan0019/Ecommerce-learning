@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import ProductLoadingSkeleton from "../../components/common/ProductLoadingSkeleton";
 import { useEffect, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
@@ -16,6 +17,7 @@ import { rootCategories } from "../../services/categoryHierarchy";
 
 export default function ProductList() {
   const navigate = useNavigate();
+ const liveRevision=useRealtimeRevision(['catalog', 'inventory']);
   const { slug: routeCategory } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryString = searchParams.toString();
@@ -45,7 +47,7 @@ export default function ProductList() {
         if (requestError.name !== "AbortError") setError(requestError.message);
       });
     return () => controller.abort();
-  }, []);
+  }, [liveRevision]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -77,7 +79,7 @@ export default function ProductList() {
     }
     loadProducts();
     return () => controller.abort();
-  }, [queryString, selectedCategory]);
+  }, [queryString, selectedCategory,liveRevision]);
 
   function updateParams(change) {
     const next = new URLSearchParams(searchParams);

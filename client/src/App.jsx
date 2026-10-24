@@ -3,6 +3,7 @@ import UnsavedNavigationGuard from "./components/common/UnsavedNavigationGuard";
 import StoreErrorBoundary from "./components/common/StoreErrorBoundary";
 import RouteExperience from "./components/common/RouteExperience";
 import CartProvider from "./context/CartProvider";
+import RealtimeBridge from "./components/common/RealtimeBridge";
 import BrandingProvider from "./context/BrandingProvider";
 import AdminBranding from "./pages/admin/AdminBranding";
 import AdminFooter from "./pages/admin/AdminFooter";
@@ -147,6 +148,6 @@ const appRouter=createBrowserRouter(createRoutesFromElements(<Route element={<><
     <Route path="*" element={<NotFound />} />
   </Route>));
 export default function App() {
- return <StoreErrorBoundary><BrandingProvider><CartProvider><RouterProvider router={appRouter}/></CartProvider></BrandingProvider></StoreErrorBoundary>;
+ return <StoreErrorBoundary><BrandingProvider><CartProvider><RealtimeBridge/><RouterProvider router={appRouter}/></CartProvider></BrandingProvider></StoreErrorBoundary>;
 }
 

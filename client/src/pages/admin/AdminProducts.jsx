@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
@@ -11,6 +12,7 @@ const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN", { maxi
 
 export default function AdminProducts() {
   const navigate = useNavigate();
+ const liveRevision=useRealtimeRevision(['catalog', 'inventory']);
   const [products, setProducts] = useState([]);
   const [page,setPage]=useState(1),[total,setTotal]=useState(0),[sort,setSort]=useState('newest'),[revision,setRevision]=useState(0);
   const [facets,setFacets]=useState({categories:[],brands:[]}),[summary,setSummary]=useState({total:0,active:0,inactive:0});
@@ -41,7 +43,7 @@ export default function AdminProducts() {
       }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     },query?200:0);
     return () => {clearTimeout(timer);controller.abort();};
-  }, [navigate,page,query,filter,categoryFilter,brandFilter,stockFilter,sort,revision]);
+  }, [navigate,page,query,filter,categoryFilter,brandFilter,stockFilter,sort,revision,liveRevision]);
 
   const visible=products;
   const categories=facets.categories||[];

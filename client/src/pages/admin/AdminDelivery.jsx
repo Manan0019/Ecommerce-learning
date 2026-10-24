@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import {useEffect,useMemo,useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import DeliveryExecutivePicker from '../../components/admin/DeliveryExecutivePicker';
@@ -16,6 +17,7 @@ const isEligible=o=>['confirmed','processing','shipped'].includes(o.status)&&
  (o.paymentMethod==='Cash on Delivery'||(o.paymentMethod==='Razorpay'&&o.paymentStatus==='razorpay_paid'))&&!o.refundStatus&&o.cancellationRequest?.status!=='pending';
 export default function AdminDelivery(){
  const [staff,setStaff]=useState([]),[assignments,setAssignments]=useState([]),[orders,setOrders]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const liveRevision=useRealtimeRevision(['delivery', 'orders', 'finance']);
  const [staffQuery,setStaffQuery]=useState(''),[orderQuery,setOrderQuery]=useState(''),[orderStatus,setOrderStatus]=useState('all'),[ordersPage,setOrdersPage]=useState(1);
  const [activityQuery,setActivityQuery]=useState(''),[activityStatus,setActivityStatus]=useState('all'),[activityPage,setActivityPage]=useState(1);
  const [retryOrder,setRetryOrder]=useState(null);
@@ -37,7 +39,7 @@ export default function AdminDelivery(){
     const message=e.status===404?'The running backend does not have the delivery API. Merge Phase 51 server files, apply migration 028, and restart the server on port 4000.':e.message;
     setServiceError(message);setServiceReady(false);
    }).finally(()=>{if(active)setLoading(false);});
-  return()=>{active=false;controller.abort();};},[]);
+  return()=>{active=false;controller.abort();};},[liveRevision]);
  const assignmentMap=useMemo(()=>new Map(assignments.map(a=>[String(a.orderId),a])),[assignments]);
  const candidates=orders.filter(o=>isEligible(o));
  const workload=useMemo(()=>deliveryTeamWithWorkload(staff,assignments),[staff,assignments]);

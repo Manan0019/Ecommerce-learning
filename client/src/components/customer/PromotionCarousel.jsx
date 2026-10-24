@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useCallback, useEffect, useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import { Link } from "react-router-dom";
@@ -26,6 +27,7 @@ function PromotionCard({ banner, primary = false, priority = false }) {
  * Cycles through all eligible promotions; links, placements and image-only modes stay intact.
  */
 export default function PromotionCarousel({ position = "home", category, product, fallback = null }) {
+  const liveRevision=useRealtimeRevision(["promotions","catalog"]);
   const [banners, setBanners] = useState([]);
   const [active, setActive] = useState(0);
   const [loaded, setLoaded] = useState(false);
@@ -68,7 +70,7 @@ export default function PromotionCarousel({ position = "home", category, product
     const timer=window.setInterval(refresh,60_000);
     window.addEventListener("focus",refresh);
     return ()=>{controller.abort();window.clearInterval(timer);window.removeEventListener("focus",refresh);};
-  },[position,category,product]);
+  },[position,category,product,liveRevision]);
 
   const slide = useCallback((step) => {
     setActive(current => movePromotionSlide(current,step,banners.length));

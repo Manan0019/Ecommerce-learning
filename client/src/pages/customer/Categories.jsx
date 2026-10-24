@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
 import { Link } from "react-router-dom";
@@ -6,6 +7,7 @@ import { getCategories } from "../../services/categoryService";
 import CategoryTile from "../../components/customer/CategoryTile";
 
 export default function Categories() {
+  const liveRevision=useRealtimeRevision(["catalog"]);
   const [state, setState] = useState({ loading: true, categories: [], error: "" });
   useEffect(() => {
     const controller = new AbortController();
@@ -13,7 +15,7 @@ export default function Categories() {
       .then(data => { if (!controller.signal.aborted) setState({ loading: false, categories: data.categories || [], error: "" }); })
       .catch(err => { if (err.name !== "AbortError") setState({ loading: false, categories: [], error: err.message }); });
     return () => controller.abort();
-  }, []);
+  }, [liveRevision]);
   const top = state.categories.filter(c => !c.parentId);
   return <CustomerLayout mainClassName="nx-categories-page nx37-collections-page">
     <header className="nx37-collections-intro"><span className="eyebrow">THE COLLECTIONS</span><h1>Find your kind of everything.</h1><p>Explore categories made for the things you love, with an easier path to every subcategory.</p></header>

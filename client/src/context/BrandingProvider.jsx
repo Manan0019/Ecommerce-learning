@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../hooks/useRealtimeRevision";
 import { useCallback, useEffect, useState } from "react";
 import { BrandingContext } from "./brandingContext";
 import { getBranding } from "../services/brandingService";
@@ -9,6 +10,7 @@ function browserIconUrl(iconUrl, faviconOverrideUrl) {
 }
 
 export default function BrandingProvider({ children }) {
+  const liveRevision=useRealtimeRevision(["branding"]);
   const [branding, setBranding] = useState({ iconUrl: null, faviconOverrideUrl: null });
   const refreshBranding = useCallback(async (signal) => {
     try {
@@ -37,7 +39,7 @@ export default function BrandingProvider({ children }) {
     const onFocus = () => { void refreshBranding(controller.signal); };
     window.addEventListener("focus", onFocus);
     return () => { controller.abort(); window.removeEventListener("focus", onFocus); };
-  }, [refreshBranding]);
+  }, [refreshBranding,liveRevision]);
 
   useEffect(() => {
     document.title = `${SITE_NAME} | Discover more`;

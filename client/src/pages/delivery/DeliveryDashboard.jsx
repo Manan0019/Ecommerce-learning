@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import NotificationBell from '../../components/common/NotificationBell';
@@ -23,6 +24,7 @@ export default function DeliveryDashboard() {
   const [profileBusy,setProfileBusy]=useState(false);
   const [assignments, setAssignments] = useState([]);
   const [tab, setTab] = useState('all');
+ const liveRevision=useRealtimeRevision(['delivery', 'orders', 'finance']);
   const [search, setSearch] = useState('');
   const [page,setPage]=useState(1);
   const [view,setView]=useState('table');
@@ -39,7 +41,7 @@ export default function DeliveryDashboard() {
   const refresh = useCallback(async (signal) => {
     const response = await getMyAssignments(signal);
     if (!signal?.aborted) setAssignments(response.assignments || []);
-  }, []);
+  }, [liveRevision]);
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([getDeliverySession(controller.signal),getMyAssignments(controller.signal)])

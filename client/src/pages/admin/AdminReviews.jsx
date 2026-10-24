@@ -1,9 +1,11 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import {useEffect,useState} from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import {apiRequest} from '../../services/apiClient';
-export default function AdminReviews(){const [rows,setRows]=useState([]),[error,setError]=useState(''),[busy,setBusy]=useState(null);
+export default function AdminReviews(){
+ const liveRevision=useRealtimeRevision(["reviews"]);const [rows,setRows]=useState([]),[error,setError]=useState(''),[busy,setBusy]=useState(null);
  async function load(){const result=await apiRequest('/api/engagement/admin/reviews',{credentials:'include'});setRows(result.reviews||[]);}
- useEffect(()=>{load().catch(e=>setError(e.message));},[]);
+ useEffect(()=>{load().catch(e=>setError(e.message));},[liveRevision]);
  async function decide(id,status){setBusy(id);setError('');try{await apiRequest(`/api/engagement/admin/reviews/${id}`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});await load();}catch(e){setError(e.message);}finally{setBusy(null);}}
  return <AdminLayout title="Customer Reviews" subtitle="Approve real purchase reviews before publishing them on the storefront.">
  {error&&<p className="admin-alert" role="alert">{error}</p>}

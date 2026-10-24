@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useMemo, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
 import Modal from "../../components/common/Modal";
@@ -15,6 +16,7 @@ const labels={confirmed:"Confirm order",processing:"Mark preparing",delivered:"M
 
 export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, onOrdersChanged }){
  const routeLocation=useLocation(),routeNavigate=useNavigate();
+ const liveRevision=useRealtimeRevision(['orders', 'delivery', 'finance']);
  const linkedOrderId=!embeddedOrderId ? new URLSearchParams(routeLocation.search).get('order') : null;
  const [orders,setOrders]=useState([]),[serverPagination,setServerPagination]=useState({total:0,pages:1,page:1}),[loading,setLoading]=useState(true),[error,setError]=useState(""),[busy,setBusy]=useState(""),[filter,setFilter]=useState("all"),[search,setSearch]=useState("");
  const [dispatchId,setDispatchId]=useState(null),[partner,setPartner]=useState(""),[tracking,setTracking]=useState("");
@@ -53,7 +55,7 @@ export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, o
  useEffect(()=>{const c=new AbortController(); const timeout=setTimeout(()=>{
   setLoading(true);getAdminOrders(c.signal,{page:orderPage,limit:25,status:filter,search,sort:orderSort}).then(d=>{if(!c.signal.aborted){setOrders(d.orders||[]);setServerPagination(d.pagination||{total:0,pages:1,page:1});}})
   .catch(e=>{if(e.name!=="AbortError")setError(e.message);}).finally(()=>{if(!c.signal.aborted)setLoading(false);});
- },250);return()=>{clearTimeout(timeout);c.abort();};},[orderPage,filter,search,orderSort]);
+ },250);return()=>{clearTimeout(timeout);c.abort();};},[orderPage,filter,search,orderSort,liveRevision]);
  async function refreshOrders(){const result=await getAdminOrders(undefined,{page:orderPage,limit:25,status:filter,search,sort:orderSort});setOrders(result.orders||[]);setServerPagination(result.pagination||{total:0,pages:1,page:1});onOrdersChanged?.();}
  async function setStatus(order,status){
   if(status==="cancelled"&&order.paymentMethod==="Razorpay"){setError("Paid Razorpay orders cannot be cancelled here until their refund is reconciled.");return;}

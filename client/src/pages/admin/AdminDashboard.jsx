@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import {useEffect,useMemo,useState} from 'react';
 import UiIcon from "../../components/common/UiIcon";
 import AdminOrders from './AdminOrders';
@@ -12,7 +13,8 @@ import {getAdminAssignments} from '../../services/deliveryService';
 const money=v=>`₹${Number(v||0).toLocaleString('en-IN',{maximumFractionDigits:2,minimumFractionDigits:2})}`;
 const date=v=>new Date(v).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
 export default function AdminDashboard(){
- const navigate=useNavigate();const [openDashboardOrder,setOpenDashboardOrder]=useState(null);const [summary,setSummary]=useState(null),[products,setProducts]=useState([]),[orders,setOrders]=useState([]),[alerts,setAlerts]=useState(null),[assignments,setAssignments]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[serviceIssues,setServiceIssues]=useState([]),[revision,setRevision]=useState(0);
+ const navigate=useNavigate();
+ const liveRevision=useRealtimeRevision(['orders', 'inventory', 'catalog', 'delivery', 'finance', 'analytics']);const [openDashboardOrder,setOpenDashboardOrder]=useState(null);const [summary,setSummary]=useState(null),[products,setProducts]=useState([]),[orders,setOrders]=useState([]),[alerts,setAlerts]=useState(null),[assignments,setAssignments]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[serviceIssues,setServiceIssues]=useState([]),[revision,setRevision]=useState(0);
  useEffect(()=>{const c=new AbortController();Promise.allSettled([
   getAdminSummary(c.signal),getAdminProducts(c.signal),getAdminOrders(c.signal),getLowStockAlerts(5,c.signal),getAdminAssignments(c.signal)
  ]).then(results=>{if(c.signal.aborted)return;
@@ -28,7 +30,7 @@ export default function AdminDashboard(){
   const issues=results.flatMap((x,i)=>x.status==='rejected'&&x.reason?.name!=='AbortError'?[{label:labels[i],status:x.reason?.status,message:x.reason?.message||'Request failed'}]:[]);
   setServiceIssues(issues);
   setError(issues.filter(x=>x.label!=='Delivery assignments').length?'Some store metrics are unavailable. See the services below for details.':'');
- }).finally(()=>{if(!c.signal.aborted)setLoading(false);});return()=>c.abort();},[navigate,revision]);
+ }).finally(()=>{if(!c.signal.aborted)setLoading(false);});return()=>c.abort();},[navigate,revision,liveRevision]);
  const insights=useMemo(()=>{
   const active=orders.filter(o=>!['cancelled','payment_expired'].includes(o.status));
   const paid=orders.filter(o=>o.paymentStatus==='razorpay_paid'||o.paymentStatus==='cod_collected');

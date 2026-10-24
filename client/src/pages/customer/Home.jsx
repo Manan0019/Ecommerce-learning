@@ -1,3 +1,4 @@
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import ProductLoadingSkeleton from "../../components/common/ProductLoadingSkeleton";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -14,8 +15,9 @@ import {getStorefrontCopy} from "../../services/storefrontCopyService";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+ const liveRevision=useRealtimeRevision(['catalog', 'promotions', 'branding']);
   const [copy, setCopy] = useState(null);
-  useEffect(()=>{const controller=new AbortController();getStorefrontCopy(controller.signal).then(d=>{if(!controller.signal.aborted)setCopy(d.copy);}).catch(()=>{});return ()=>controller.abort();},[]);
+  useEffect(()=>{const controller=new AbortController();getStorefrontCopy(controller.signal).then(d=>{if(!controller.signal.aborted)setCopy(d.copy);}).catch(()=>{});return ()=>controller.abort();},[liveRevision]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categoryError, setCategoryError] = useState("");
@@ -39,7 +41,7 @@ export default function Home() {
     }
     loadProducts();
     return () => controller.abort();
-  }, []);
+  }, [liveRevision]);
 
   const featured = products.filter((product) => product.isFeatured).slice(0, 4);
   const featuredCategories = categories.filter(category => !category.parentId).slice(0, 8);
