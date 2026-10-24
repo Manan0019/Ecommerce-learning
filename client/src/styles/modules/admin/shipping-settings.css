@@ -1,8 +1,7 @@
 /* ===== Nexora Phase 75: state-assisted shipping and intent-driven motion ===== */
 .nx75-state-picker{position:relative;min-width:0;width:100%}
-.nx75-state-picker>input{width:100%;min-height:46px;box-sizing:border-box;padding:10px 13px;font:inherit;font-weight:650;color:#1f2a48;border:1px solid #cbd4e3;border-radius:11px;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
-.nx75-state-picker>input:focus{border-color:#886cf1;box-shadow:0 0 0 3px rgba(105,83,222,.14)}
-.nx75-state-picker>input::placeholder{color:#8490a5;font-weight:500;opacity:1}
+.nx75-state-picker>input{width:100%;min-height:46px;box-sizing:border-box;padding:10px 13px}
+.nx75-state-picker>input::placeholder{opacity:1}
 .nx75-state-suggestions{position:absolute;top:calc(100% + 5px);inset-inline:0;z-index:125;max-height:260px;overflow:auto;background:white;border:1px solid #dcd5fa;border-radius:13px;padding:5px;box-shadow:0 17px 40px #24144a29}
 .nx75-state-suggestions>[role=option]{padding:10px 11px;border-radius:9px;cursor:pointer;line-height:1.35;color:#263154;font-weight:650;font-size:.85rem}
 .nx75-state-suggestions>[role=option]:is(:hover,.is-highlighted){background:#eee8ff;color:#5539c1}
@@ -20,8 +19,8 @@
 .nx75-free-shipping strong{color:#1b2648;line-height:1.35;font-size:.83rem}
 .nx75-free-shipping small{color:#737c93;font-weight:450;font-size:.78rem;line-height:1.5}
 .nx75-preview-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;min-width:0}
-.nx75-preview-fields>label{display:grid;gap:7px;min-width:0;font-size:.78rem;font-weight:780;color:#24304f}
-.nx75-preview-fields>label>input{width:100%;height:46px;box-sizing:border-box;padding:10px 13px;font:inherit;border:1px solid #ccd4e5;border-radius:11px;background:white;min-width:0}
+.nx75-preview-fields>label{display:grid;gap:7px;min-width:0}
+.nx75-preview-fields>label>input{width:100%;height:46px;box-sizing:border-box;padding:10px 13px;min-width:0}
 .nx75-preview-result{display:flex;justify-content:space-between;align-items:center;gap:14px;border:1px solid #e1dbf5;border-radius:13px;padding:15px;background:#f1ecff;min-width:0}
 .nx75-preview-result>div{display:grid;gap:5px;min-width:0}
 .nx75-preview-result strong{color:#29234e;font-size:.83rem}
@@ -60,14 +59,12 @@
 
 /* Product names should NEVER acquire a line, including multi-line card titles. Text CTAs
    such as View details keep their intentional short underline animation. */
-.storefront .nx74-link-card .product-info h3 a,
-.storefront .nx74-link-card .nx62-recent-name{
+.storefront .nx74-link-card .product-info h3 a,.storefront .nx74-link-card .nx62-recent-name{
  background:none!important;background-image:none!important;background-size:auto!important;text-decoration:none!important;
  border-bottom:none!important;box-shadow:none!important;padding-bottom:0!important;
  transition:color .23s ease!important;
 }
-.storefront .nx74-link-card:is(:hover,:focus-within) .product-info h3 a,
-.storefront .nx74-link-card:is(:hover,:focus-within) .nx62-recent-name{color:#5c43c3!important}
+.storefront .nx74-link-card:is(:hover,:focus-within) .product-info h3 a,.storefront .nx74-link-card:is(:hover,:focus-within) .nx62-recent-name{color:#5c43c3!important}
 .storefront .nx74-link-card .nx48-recent-cta{
  display:inline-flex!important;width:fit-content!important;max-width:100%;padding:4px 0 6px!important;
  background-image:linear-gradient(90deg,#6048d4,#9277ed)!important;
@@ -87,7 +84,5 @@
 }
 .storefront .nx29-card-stage .nx56-card-preview-fill{background:linear-gradient(90deg,#6149d5,#9d83fa)!important}
 @media(prefers-reduced-motion:reduce){
- .storefront .nx48-department,.storefront .nx37-category-card,.storefront .nx17-subcategory-shelf>a,
- .storefront .nx48-department-icon,.storefront .nx17-subcategory-shelf .nx34-category-action,
- .storefront .nx74-link-card .nx48-recent-cta{transition:none!important;transform:none!important}
+ .storefront .nx48-department,.storefront .nx37-category-card,.storefront .nx17-subcategory-shelf>a,.storefront .nx48-department-icon,.storefront .nx17-subcategory-shelf .nx34-category-action,.storefront .nx74-link-card .nx48-recent-cta{transition:none!important;transform:none!important}
 }

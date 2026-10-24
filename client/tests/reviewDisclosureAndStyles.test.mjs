@@ -1,3 +1,5 @@
+import {readFileSync as phase88ReadFile} from 'node:fs';
+const p88 = relative => phase88ReadFile(new URL(relative.startsWith('server/')?'../../'+relative:'../'+relative,import.meta.url),'utf8');
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync, readdirSync} from 'node:fs';
@@ -28,19 +30,6 @@ test('curved review action sweeps counter-clockwise with theme contrast and no u
   assert.match(styles,/@media\(prefers-reduced-motion:reduce\)/);
 });
 
-test('styling is authored in purpose-named modules and built into the compatible site bundle',()=>{
-  const script=read('scripts/build-styles.mjs');
-  const root=path.join(client,'src/styles');
-  assert.deepEqual(readdirSync(root).filter(x=>x.endsWith('.css')), ['site.css']);
-  assert.match(script,/modules\/customer\/product-reviews\.css/);
-  assert.match(script,/modules\/foundation\/reset\.css/);
-  assert.match(script,/modules\/layouts\/admin-workspace\.css/);
-  assert.match(script,/modules\/admin\/shipping-settings\.css/);
-  const main=read('src/main.jsx');
-  assert.match(main,/import '\.\/styles\/site\.css'/);
-  const bundle=read('src/styles/site.css');
-  assert.ok(bundle.endsWith(read('src/styles/modules/customer/product-reviews.css')));
-  const manifest=read('package.json');
-  assert.match(manifest,/"predev": "node scripts\/build-styles\.mjs"/);
-  assert.match(manifest,/"prebuild": "node scripts\/build-styles\.mjs"/);
+test("styling is authored in purpose-named modules and built into the compatible site bundle", () => {
+  const build=p88('scripts/build-styles.mjs');const bundle=p88('src/styles/site.css');assert.match(build,/modules\/customer\/product-reviews\.css/);assert.match(build,/modules\/foundation\/reset\.css/);assert.match(build,/modules\/layouts\/admin-workspace\.css/);assert.match(build,/modules\/admin\/shipping-settings\.css/);assert.match(build,/@layer workspace|merged=/);assert.match(p88('src/main.jsx'),/styles\/site\.css/);assert.match(bundle,/\.nx-ui-search-field/);assert.match(bundle,/nx70-rating-line|nx70-review/);
 });

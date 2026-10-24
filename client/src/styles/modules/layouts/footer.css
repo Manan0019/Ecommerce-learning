@@ -105,8 +105,7 @@
   .admin-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .admin-dashboard-grid,
-  .admin-edit-grid {
+  .admin-dashboard-grid,.admin-edit-grid {
     grid-template-columns: 1fr;
   }
   .admin-category-layout {
@@ -181,8 +180,7 @@
   .product-detail-media {
     min-height: 60vw;
   }
-  .product-detail-copy,
-  .cart-summary {
+  .product-detail-copy,.cart-summary {
     position: static;
   }
   .cart-layout {
@@ -191,8 +189,7 @@
   .story-grid {
     grid-template-columns: 1fr;
   }
-  .story-grid article,
-  .story-grid article + article {
+  .story-grid article,.story-grid article + article {
     padding: 32px 0;
     border-left: 0;
     border-bottom: 1px solid var(--line);
@@ -248,16 +245,12 @@
   .admin-form-grid {
     grid-template-columns: 1fr;
   }
-  .admin-form-grid.two-column,
-  .admin-spec-grid {
+  .admin-form-grid.two-column,.admin-spec-grid {
     grid-template-columns: 1fr;
   }
   .admin-category-heading {
     align-items: stretch;
     flex-direction: column;
-  }
-  .admin-search {
-    width: 100%;
   }
   .admin-category-card {
     grid-template-columns: 82px 1fr;
@@ -265,8 +258,7 @@
   .admin-category-image {
     width: 82px;
   }
-  .admin-product-table th:nth-child(2),
-  .admin-product-table td:nth-child(2) {
+  .admin-product-table th:nth-child(2),.admin-product-table td:nth-child(2) {
     display: none;
   }
   .navbar {
@@ -293,11 +285,7 @@
   .hero-stats div {
     padding-right: 15px;
   }
-  .store-section,
-  .catalogue-page,
-  .product-page,
-  .cart-page,
-  .content-page {
+  .store-section,.catalogue-page,.product-page,.cart-page,.content-page {
     padding-right: 18px;
     padding-left: 18px;
   }
@@ -334,8 +322,8 @@
     min-height: 46px;
   }
   .catalogue-results-bar {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: flex-end;
+    flex-direction: row;
   }
   .catalogue-results .product-grid {
     grid-template-columns: 1fr 1fr;
@@ -411,9 +399,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *,*::before,*::after {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -458,7 +444,6 @@
 @keyframes galleryFade{from{opacity:.15;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
 .variant-admin-list{display:grid;gap:8px;margin:16px 0}
 .variant-admin-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid #e5e7eb;padding:9px;border-radius:9px}
-.admin-danger-action{background:#fff;color:#991b1b;border:1px solid #fda4af;border-radius:7px;padding:8px 12px;cursor:pointer}
 .admin-delete-confirm{border:1px solid #fda4af;padding:16px;border-radius:11px;margin-top:12px;background:#fff7f7}
 .admin-delete-confirm input{width:100%;margin:8px 0 12px}
 @media(prefers-reduced-motion:reduce){.gallery-transition{animation:none}.variant-option{transition:none}}

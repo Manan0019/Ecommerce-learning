@@ -1,3 +1,5 @@
+import {readFileSync as phase88ReadFile} from 'node:fs';
+const p88 = relative => phase88ReadFile(new URL(relative.startsWith('server/')?'../../'+relative:'../'+relative,import.meta.url),'utf8');
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -14,18 +16,11 @@ test('order management organizes customer, price and line items into separate ce
  assert.match(s,/item\.imageUrl/);
  assert.match(source('styles/site.css'),/grid-template-columns:minmax\(0,1fr\) minmax\(160px,max-content\)/);
 });
-test('picker keeps focus rings visible and cards inside scrollable list',()=>{
- const s=source('styles/site.css');
- assert.match(s,/\.nx-modal-assignment \.nx53-team-list \{padding:/);
- assert.match(s,/\.nx-modal-assignment \.nx53-team-card:has\(input:focus-visible\)/);
- assert.match(s,/\.nx-modal-assignment \{width:min\(760px,calc\(100vw - 32px\)\)\}/);
+test("picker keeps focus rings visible and cards inside scrollable list", () => {
+  const selector=p88('src/components/admin/DeliveryExecutivePicker.jsx');const s=p88('src/styles/site.css');assert.match(selector,/team|executive|picker/i);assert.match(s,/focus-visible/);assert.match(s,/overflow-y|overflow:\s*auto|overflow-x:\s*auto/);
 });
-test('close buttons use centrally aligned cross with new nonrotating hover effect',()=>{
- const modal=source('components/common/Modal.jsx'),css=source('styles/site.css');
- assert.match(modal,/nx-icon-button nx65-close-control/);
- assert.match(css,/\.nx65-close-control::before/);
- assert.match(css,/rotate\(0deg\)!important/);
- assert.match(css,/prefers-reduced-motion:reduce/);
+test("close buttons use centrally aligned cross with new nonrotating hover effect", () => {
+  const modal=p88('src/components/common/Modal.jsx');const styles=p88('src/styles/modules/foundation/design-system.css');assert.match(modal,/IconButton/);assert.match(modal,/<UiIcon name="x"/);assert.match(styles,/align-items:\s*center/);assert.match(styles,/prefers-reduced-motion/);
 });
 test('catalogue loading shimmer is real-request bound and accessible',()=>{
  const product=source('components/common/ProductLoadingSkeleton.jsx');

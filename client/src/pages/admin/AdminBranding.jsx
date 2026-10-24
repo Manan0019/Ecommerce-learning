@@ -1,3 +1,4 @@
+import { Button, Card } from "../../components/ui/index";
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import BrandLogo from "../../components/common/BrandLogo";
@@ -82,7 +83,7 @@ export default function AdminBranding() {
   }
 
   return <AdminLayout title="Brand identity" subtitle="Change the icon anytime. Nexora always stays visible as the store name.">
-    <section className="admin-panel nx27-branding-panel">
+    <Card as="section" className="admin-panel nx27-branding-panel">
       <div className="nx27-intro">
         <span className="nx27-eyebrow">STORE IDENTITY</span>
         <h2>One symbol. One recognizable name.</h2>
@@ -97,8 +98,8 @@ export default function AdminBranding() {
               onChange={(event) => { const message = icon.choose(event); setError(message || ""); setNotice(""); }} />
             <p className="nx27-hint">Recommended: square transparent PNG, at least 256 × 256 pixels. Wide logos containing the brand name are not supported as icons.</p>
             <div className="nx27-control-actions">
-              <button className="admin-primary-action" disabled={!icon.file || busy} type="submit">{busy ? "Please wait…" : "Save store icon"}</button>
-              {iconUrl && <button type="button" className="nx27-secondary" disabled={busy} onClick={() => restore("icon")}>Restore N icon</button>}
+              <Button variant="primary"  disabled={!icon.file || busy} type="submit">{busy ? "Please wait…" : "Save store icon"}</Button>
+              {iconUrl && <Button variant="secondary" type="button"  disabled={busy} onClick={() => restore("icon")}>Restore N icon</Button>}
             </div>
           </form>
           <form onSubmit={(event) => save("favicon", event)} className="nx27-setting-panel">
@@ -107,8 +108,8 @@ export default function AdminBranding() {
               onChange={(event) => { const message = favicon.choose(event); setError(message || ""); setNotice(""); }} />
             <p className="nx27-hint">Leave this empty to use your store icon automatically. A separate square image can improve visibility in tiny browser tabs.</p>
             <div className="nx27-control-actions">
-              <button className="admin-primary-action" disabled={!favicon.file || busy} type="submit">{busy ? "Please wait…" : "Save favicon"}</button>
-              {faviconOverrideUrl && <button type="button" className="nx27-secondary" disabled={busy} onClick={() => restore("favicon")}>Use store icon</button>}
+              <Button variant="primary"  disabled={!favicon.file || busy} type="submit">{busy ? "Please wait…" : "Save favicon"}</Button>
+              {faviconOverrideUrl && <Button variant="secondary" type="button"  disabled={busy} onClick={() => restore("favicon")}>Use store icon</Button>}
             </div>
           </form>
         </div>
@@ -126,6 +127,6 @@ export default function AdminBranding() {
           </section>
         </div>
       </div>
-    </section>
+    </Card>
   </AdminLayout>;
 }

@@ -1,3 +1,4 @@
+import { Button, EntitySubtitle, FormField, TextField } from "../ui/index";
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getProduct, getProductMedia } from '../../services/productService';
@@ -9,7 +10,7 @@ import { quickViewPictures } from './quickViewGallery';
 const money = value => `₹${Number(value || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 export default function ProductQuickView({ productId, detailUrl, onAdd }) {
  const [data,setData]=useState(null),[variants,setVariants]=useState([]),[media,setMedia]=useState([]),[selectedId,setSelectedId]=useState(null),[imageIndex,setImageIndex]=useState(0),[quantity,setQuantity]=useState(1),[error,setError]=useState(''),[loading,setLoading]=useState(true);
- useEffect(()=>{let active=true;setLoading(true);setError('');
+ useEffect(()=>{let active=true;queueMicrotask(()=>{if(active){setLoading(true);setError('');}});
   Promise.all([getProduct(productId),getVariants(productId),getProductMedia(productId)]).then(([p,v,m])=>{
     if(!active)return;
     setData(p.product);setVariants(v.variants||[]);setMedia(m.media||[]);
@@ -36,22 +37,22 @@ export default function ProductQuickView({ productId, detailUrl, onAdd }) {
    <div className="nx64-quick-photo">
     {picture?<img src={apiAssetUrl(picture.url)} alt={`${data.name} — photo ${imageIndex+1} of ${pictures.length}`}/>:<span className="nx64-no-photo">No photographs are available for this configuration</span>}
     {pictures.length>1&&<div className="nx64-quick-image-nav">
-      <button type="button" aria-label="Previous product image" onClick={()=>setImageIndex(i=>(i+pictures.length-1)%pictures.length)}>Prev</button>
-      <button type="button" aria-label="Next product image" onClick={()=>setImageIndex(i=>(i+1)%pictures.length)}>Next</button>
+      <Button variant="plain" type="button" aria-label="Previous product image" onClick={()=>setImageIndex(i=>(i+pictures.length-1)%pictures.length)}>Prev</Button>
+      <Button variant="plain" type="button" aria-label="Next product image" onClick={()=>setImageIndex(i=>(i+1)%pictures.length)}>Next</Button>
     </div>}
    </div>
-   {pictures.length>1&&<div className="nx64-quick-thumbnails">{pictures.map((m,i)=><button type="button" key={`${m.id}-${m.url}`} className={i===imageIndex?'is-active':''} onClick={()=>setImageIndex(i)} aria-label={`View image ${i+1}`}><img src={apiAssetUrl(m.url)} alt=""/></button>)}</div>}
+   {pictures.length>1&&<div className="nx64-quick-thumbnails">{pictures.map((m,i)=><Button variant="plain" type="button" key={`${m.id}-${m.url}`} className={i===imageIndex?'is-active':''} onClick={()=>setImageIndex(i)} aria-label={`View image ${i+1}`}><img src={apiAssetUrl(m.url)} alt=""/></Button>)}</div>}
   </div>
   <div className="nx64-quick-info">
-   <small className="eyebrow">{data.category}</small><h3>{data.name}</h3>
+   <EntitySubtitle className="eyebrow">{data.category}</EntitySubtitle><h3>{data.name}</h3>
    {data.showSaleBadge && Number(mrp)>Number(price) && <span className="nx70-detail-sale-label">SALE</span>}
    <div className="nx64-quick-prices">{Number(mrp)>Number(price)&&<del>{money(mrp)}</del>}<strong>{money(price)}</strong></div>
    <p className="nx64-quick-description">{data.shortDescription || (data.description||'').slice(0,220) || 'Explore this product and its available options.'}</p>
    <ProductVariantSelector variants={variants} selectedVariant={selected} media={media} coverUrl={!variants.length?data.imageUrl:null}
     onSelect={id=>{setSelectedId(id);setImageIndex(0);setQuantity(1);}} />
    <p className="nx64-quick-stock" role="status">{!ready?'Choose your options to check availability':stock>0?`${stock} available`:'Out of stock'}</p>
-   <div className="nx64-quick-qty"><label htmlFor="nx64-quick-quantity">Quantity</label><input id="nx64-quick-quantity" type="number" min="1" max={Math.max(stock,1)} value={quantity} onChange={e=>setQuantity(Math.min(Math.max(1,Number(e.target.value)||1),Math.max(1,stock)))}/></div>
-   <div className="nx64-quick-actions"><button type="button" disabled={!canAdd} className="button button-primary" onClick={()=>onAdd(String(data.id),quantity,selected?.id||null)}>{!ready?'Choose options':'Add to cart'}</button><Link className="button button-secondary" to={selectedUrl}>Full product details</Link></div>
+   <div className="nx64-quick-qty"><FormField htmlFor="nx64-quick-quantity">Quantity</FormField><TextField id="nx64-quick-quantity" type="number" min="1" max={Math.max(stock,1)} value={quantity} onChange={e=>setQuantity(Math.min(Math.max(1,Number(e.target.value)||1),Math.max(1,stock)))}/></div>
+   <div className="nx64-quick-actions"><Button variant="primary" type="button" disabled={!canAdd}  onClick={()=>onAdd(String(data.id),quantity,selected?.id||null)}>{!ready?'Choose options':'Add to cart'}</Button><Button as={Link} variant="secondary"  to={selectedUrl}>Full product details</Button></div>
   </div>
  </div>;
 }

@@ -1,4 +1,5 @@
-import { Select } from "../ui/index";
+import { Button, FormField, IconButton, Select } from "../ui/index";
+
 import { useState } from "react";
 import UiIcon from "../common/UiIcon";
 import { apiAssetUrl } from "../../services/apiClient";
@@ -29,8 +30,8 @@ export default function PromotionOrderManager({ items, onSaved }) {
   return <section className="nx39-order-panel" aria-label="Promotion positions">
     <div className="nx39-order-top"><div><span className="nx39-eyebrow">DISPLAY SEQUENCE</span><h2>Promotion positions</h2>
       <p>Position 1 appears first. Drag a banner, choose its number, or use the move controls. All locations share this order.</p></div>
-      <div className="nx39-order-actions"><button type="button" className="nx69-icon-action nx69-icon-danger" title="Discard unsaved order changes" aria-label="Discard unsaved order changes" disabled={!dirty||busy} onClick={()=>{setPendingIds(null);setMessage("");}}><UiIcon name="x" size={18}/><span className="sr-only">Discard changes</span></button>
-        <button type="button" className="admin-primary-action" disabled={!dirty||busy} onClick={save}><UiIcon name="save" size={17}/>{busy?"Saving…":"Save positions"}</button></div>
+      <div className="nx39-order-actions"><IconButton variant="danger" type="button"  title="Discard unsaved order changes" aria-label="Discard unsaved order changes" disabled={!dirty||busy} onClick={()=>{setPendingIds(null);setMessage("");}}><UiIcon name="x" size={18}/><span className="sr-only">Discard changes</span></IconButton>
+        <Button variant="primary" type="button"  disabled={!dirty||busy} onClick={save}><UiIcon name="save" size={17}/>{busy?"Saving…":"Save positions"}</Button></div>
     </div>
     {message&&<p className="nx39-feedback" role="status">{message}</p>}
     <ol className="nx39-order-list">{ids.map((id,i)=>{
@@ -42,10 +43,10 @@ export default function PromotionOrderManager({ items, onSaved }) {
         <span className="nx39-rank" aria-label={`Position ${i+1}`}>{i+1}</span>
         <img src={apiAssetUrl(item.imageUrl)} alt="" loading="lazy"/>
         <div className="nx39-order-copy"><strong>{item.title}</strong><span>{item.position.replaceAll("_"," ")} · {item.isActive?"Enabled":"Hidden"}</span></div>
-        <label className="nx39-select-position"><span>Position</span><Select aria-label={`Position of ${item.title}`} value={i} disabled={busy}
-          onChange={e=>change(i,Number(e.target.value))}>{ids.map((_,j)=><option key={j} value={j}>{j+1}</option>)}</Select></label>
-        <div className="nx39-order-movers"><button type="button" aria-label={`Move ${item.title} up`} disabled={busy||i===0} onClick={()=>change(i,i-1)}><UiIcon name="up" size={17}/></button>
-          <button type="button" aria-label={`Move ${item.title} down`} disabled={busy||i===ids.length-1} onClick={()=>change(i,i+1)}><UiIcon name="down" size={17}/></button></div>
+        <FormField className="nx39-select-position"><span>Position</span><Select aria-label={`Position of ${item.title}`} value={i} disabled={busy}
+          onChange={e=>change(i,Number(e.target.value))}>{ids.map((_,j)=><option key={j} value={j}>{j+1}</option>)}</Select></FormField>
+        <div className="nx39-order-movers"><IconButton variant="secondary" type="button" aria-label={`Move ${item.title} up`} disabled={busy||i===0} onClick={()=>change(i,i-1)}><UiIcon name="up" size={17}/></IconButton>
+          <IconButton variant="secondary" type="button" aria-label={`Move ${item.title} down`} disabled={busy||i===ids.length-1} onClick={()=>change(i,i+1)}><UiIcon name="down" size={17}/></IconButton></div>
       </li>;
     })}</ol>
     {!items.length&&<p className="nx39-empty">Add your first promotion to manage its position.</p>}

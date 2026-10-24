@@ -1,3 +1,4 @@
+import { Button, Card, Checkbox, FormField, TextField, Textarea, Tabs, Tab } from "../ui/index";
 import FileUploadField from "./FileUploadField";
 import { useEffect, useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
@@ -115,58 +116,60 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
   if (!form) return <p className="admin-alert" role="alert">{error || "Product not found."}</p>;
 
   return <div className="nx-product-editor">
-    <nav className="nx-editor-tabs" aria-label="Product editor sections">
-      {tabs.map((item, index) => <button key={item.id} type="button" className={tab === item.id ? "is-active" : ""}
-        onClick={() => { setTab(item.id); setError(""); setMessage(""); }} aria-current={tab === item.id ? "step" : undefined}>
+    <Tabs className="nx-editor-tabs" label="Product editor sections">
+      {tabs.map((item, index) => <Tab key={item.id} selected={tab === item.id} id={`product-${productId}-${item.id}-tab`} aria-controls={`product-${productId}-panel`}
+        onClick={() => { setTab(item.id); setError(""); setMessage(""); }}>
         <span className="nx-tab-index">0{index + 1}</span><span><strong>{item.label}</strong><small>{item.description}</small></span>
-      </button>)}
-    </nav>
+      </Tab>)}
+    </Tabs>
     {error && <p className="admin-alert" role="alert">{error}</p>}
     {message && <p className="admin-form-message" role="status">{message}</p>}
+    <div role="tabpanel" id={`product-${productId}-panel`} aria-labelledby={`product-${productId}-${tab}-tab`}>
     {tab === "details" && <div className="nx-editor-detail-grid">
-      <section className="admin-panel admin-form-panel">
+      <Card as="section" className="admin-panel admin-form-panel">
         <div className="admin-panel-heading"><div><h2>Product information</h2><p>Changes are saved independently of gallery and variants.</p></div></div>
         <form className="admin-form" onSubmit={saveDetails}>
-          <label><span className="nx34-field-label">Product name <b className="nx34-required" aria-hidden="true">*</b></span><input name="name" value={form.name} onChange={handleChange} required /></label>
+          <FormField><span className="nx34-field-label">Product name <b className="nx34-required" aria-hidden="true">*</b></span><TextField name="name" value={form.name} onChange={handleChange} required /></FormField>
           <div className="admin-form-grid two-column">
-            <label>Brand<input name="brand" value={form.brand} onChange={handleChange} maxLength={80} /></label>
-            <label>Model<input name="model" value={form.model} onChange={handleChange} maxLength={120} /></label>
+            <FormField>Brand<TextField name="brand" value={form.brand} onChange={handleChange} maxLength={80} /></FormField>
+            <FormField>Model<TextField name="model" value={form.model} onChange={handleChange} maxLength={120} /></FormField>
           </div>
-          <label><span className="nx34-field-label">Short description</span><textarea name="shortDescription" rows={2} maxLength={320} value={form.shortDescription} onChange={handleChange} placeholder="The quick product summary customers see first" /><small>Up to 320 characters.</small></label>
-          <label><span className="nx34-field-label">Full description <b className="nx34-required" aria-hidden="true">*</b></span><textarea name="description" rows={4} value={form.description} onChange={handleChange} required /></label>
+          <FormField><span className="nx34-field-label">Short description</span><Textarea name="shortDescription" rows={2} maxLength={320} value={form.shortDescription} onChange={handleChange} placeholder="The quick product summary customers see first" /><small>Up to 320 characters.</small></FormField>
+          <FormField><span className="nx34-field-label">Full description <b className="nx34-required" aria-hidden="true">*</b></span><Textarea name="description" rows={4} value={form.description} onChange={handleChange} required /></FormField>
           <div className="admin-form-grid two-column">
             <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || !categories.length}
               onChange={categoryId => { setSpecifications({}); setForm(old => ({ ...old, categoryId })); }} />
             {!hasSkus && <>
-              <label><span className="nx34-field-label">Simple product stock <b className="nx34-required" aria-hidden="true">*</b></span><input name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
-              <label><span className="nx34-field-label">Low-stock alert threshold <b className="nx34-required" aria-hidden="true">*</b></span><input name="lowStockThreshold" type="number" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>Warn the admin at or below this quantity.</small></label>
+              <FormField><span className="nx34-field-label">Simple product stock <b className="nx34-required" aria-hidden="true">*</b></span><TextField name="stock" type="number" min="0" step="1" value={form.stock} onChange={handleChange} required /></FormField>
+              <FormField><span className="nx34-field-label">Low-stock alert threshold <b className="nx34-required" aria-hidden="true">*</b></span><TextField name="lowStockThreshold" type="number" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>Warn the admin at or below this quantity.</small></FormField>
             </>}
           </div>
           {hasSkus ? <p className="nx22-sku-notice"><strong>SKU-controlled product:</strong> Selling price, MRP and stock are managed per SKU in the SKUs tab. Parent values are retained only for legacy compatibility.</p>
             : <VariantPriceFields row={form} disabled={saving} onFieldChange={(key, value) => setForm(old => updatePricingDraft(old, key, value))}/>}
           <section className={`nx70-sale-editor ${saleEnabled ? "is-enabled" : "is-disabled"}`} aria-label="Sale badge setting">
             <div className="nx70-sale-editor-heading"><span className="nx70-sale-tag">SALE</span><div><strong>Storefront Sale label</strong><small>Shown only when Sale is enabled and the selected product or SKU has a real discount (selling price below MRP).</small></div><span className="nx70-sale-state" role="status">{saleEnabled ? "Enabled" : "Disabled"}</span></div>
-            <label className="nx70-sale-toggle"><input type="checkbox" checked={saleEnabled} disabled={saleSaving || saving} onChange={e => updateSale(e.target.checked)}/><span>{saleEnabled ? "Sale visibility is on" : "Show a Sale badge on discounted products"}</span></label>
+            <FormField inline className="nx70-sale-toggle"><Checkbox type="checkbox" checked={saleEnabled} disabled={saleSaving || saving} onChange={e => updateSale(e.target.checked)}/><span>{saleEnabled ? "Sale visibility is on" : "Show a Sale badge on discounted products"}</span></FormField>
             {saleMessage && <small className="nx70-sale-message" role="status">{saleMessage}</small>}
           </section>
-          <label className="nx25-gst-field">GST rate for this product (%)<input name="gstPercent" type="number" min="0" max="40" step="0.01" value={form.gstPercent ?? ""} onChange={handleChange} placeholder="Use store default"/><small>Leave empty for the store default rate.</small></label>
+          <FormField className="nx25-gst-field">GST rate for this product (%)<TextField name="gstPercent" type="number" min="0" max="40" step="0.01" value={form.gstPercent ?? ""} onChange={handleChange} placeholder="Use store default"/><small>Leave empty for the store default rate.</small></FormField>
           <ProductSpecificationFields definition={definition.definition} specifications={specifications}
             onChange={(key,value) => setSpecifications(old => ({ ...old, [key]: value }))} loading={definition.loading}/>
           {(categoriesError || definition.error) && <p className="admin-alert" role="alert">{categoriesError || definition.error}</p>}
-          <div className="nx-sticky-actions"><button className="admin-primary-action" type="submit" disabled={saving}>{saving ? "Saving…" : "Save product details"}</button></div>
+          <div className="nx-sticky-actions"><Button variant="primary"  type="submit" disabled={saving}>{saving ? "Saving…" : "Save product details"}</Button></div>
         </form>
-      </section>
+      </Card>
       <aside className="admin-panel nx-cover-panel">
         <h2>Catalogue cover</h2><p>This is the image customers see on product cards. The Gallery tab controls all media.</p>
         <div className="nx-cover-preview">{imageUrl ? <img src={apiAssetUrl(imageUrl)} alt="Current product cover" /> : <span>No image</span>}</div>
         <form className="admin-form" onSubmit={uploadCover} ref={imageFormRef}>
           <FileUploadField label="Replace cover image" selection={newImage?.name||''} onChange={e => setNewImage(e.target.files?.[0] || null)}/>
-          <button type="submit" className="admin-secondary-action" disabled={uploading || !newImage}>{uploading ? "Uploading…" : "Replace cover"}</button>
+          <Button variant="primary" type="submit"  disabled={uploading || !newImage}>{uploading ? "Uploading…" : "Replace cover"}</Button>
         </form>
-        <button className="nx-text-action" type="button" onClick={() => setTab("gallery")}>Manage all gallery images <UiIcon name="right" size={17}/></button>
+        <Button variant="ghost" className="nx-text-action" type="button" onClick={() => setTab("gallery")}>Manage all gallery images <UiIcon name="right" size={17}/></Button>
       </aside>
     </div>}
     {tab === "variants" && <ProductVariantsManager productId={productId} />}
     {tab === "gallery" && <ProductMediaManager productId={productId} initialFeatured={featured} coverUrl={imageUrl} onCoverChanged={setImageUrl} />}
+    </div>
   </div>;
 }

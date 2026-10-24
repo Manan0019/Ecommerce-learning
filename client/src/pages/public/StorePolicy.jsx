@@ -1,7 +1,8 @@
+import { Button } from "../../components/ui/index";
 import {Link} from 'react-router-dom';
 import UiIcon from '../../components/common/UiIcon';
 import CustomerLayout from '../../components/layout/CustomerLayout';
-import {SITE_NAME,SITE_SUPPORT_EMAIL,SITE_SUPPORT_PHONE,SITE_MERCHANT_NAME,SITE_MERCHANT_ADDRESS,SITE_GRIEVANCE_NAME,SITE_POLICIES_COMPLETE} from '../../config/site';
+import {SITE_SUPPORT_EMAIL,SITE_SUPPORT_PHONE,SITE_MERCHANT_NAME,SITE_MERCHANT_ADDRESS,SITE_GRIEVANCE_NAME,SITE_POLICIES_COMPLETE} from '../../config/site';
 const entries={
  terms:{title:'Terms & conditions',sub:'How orders, payments and shopping work.',sections:[
   ['Your order','Product descriptions, availability and final payable amounts are displayed at checkout. Submitting an order creates a request which may be accepted, fulfilled or cancelled under the disclosed policies.'],
@@ -54,7 +55,7 @@ export default function StorePolicy({kind='terms'}){
    <aside className="nx82-policy-contact nx84-policy-contact" aria-label="Merchant and support contact">
     <div className="nx84-policy-aside-heading"><span className="nx84-policy-aside-icon"><UiIcon name="store" size={23}/></span><div><small>NEED ASSISTANCE?</small><strong>Merchant & support</strong></div></div>
     <div className="nx84-policy-contact-list"><div><small>Registered business</small><p>{SITE_MERCHANT_NAME||'Legal business name: to be published'}</p></div><div><small>Business address</small><p>{SITE_MERCHANT_ADDRESS||'Registered business address: to be published'}</p></div><div><small>Customer service</small><p>{SITE_SUPPORT_EMAIL?<a className="nx83-policy-animated-link" href={`mailto:${SITE_SUPPORT_EMAIL}`}><span>{SITE_SUPPORT_EMAIL}</span></a>:'Support email: to be published'}</p><p>{SITE_SUPPORT_PHONE||'Support phone: to be published'}</p></div><div><small>Grievance contact</small><p>{SITE_GRIEVANCE_NAME||'To be published'}</p></div></div>
-    <Link className="nx83-policy-animated-link nx83-policy-support-link nx84-policy-contact-action" to="/contact"><span>Contact customer support</span><span aria-hidden="true" className="nx83-policy-support-arrow"><UiIcon name="right" size={18}/></span></Link>
+    <Button as={Link} variant="secondary" className="nx83-policy-animated-link nx83-policy-support-link nx84-policy-contact-action" to="/contact"><span>Contact customer support</span><span aria-hidden="true" className="nx83-policy-support-arrow"><UiIcon name="right" size={18}/></span></Button>
     <div className="nx84-policy-jump"><strong>On this page</strong>{entry.sections.map(([heading],i)=><a key={heading} href={`#policy-section-${i+1}`}><span>{String(i+1).padStart(2,'0')}</span>{heading}</a>)}</div>
    </aside>
   </div>

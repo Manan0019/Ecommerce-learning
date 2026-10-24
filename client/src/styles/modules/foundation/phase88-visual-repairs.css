@@ -1,0 +1,551 @@
+/* Phase 88 correction: placement and semantic treatments only.
+   Included AFTER the shared design system by build-styles.mjs. Standard control
+   sizing, fonts, focus and animation still come from the shared UI components. */
+
+/* Navigation: do not allow the legacy hover rule to wash the icon/text out. */
+.admin-shell .admin-nav a {transition: background-color var(--nx-motion), color var(--nx-motion), box-shadow var(--nx-motion);}
+.admin-shell .admin-nav a:not(.active):is(:hover,:focus-visible),
+.admin-shell .admin-sidebar-footer > a:is(:hover,:focus-visible) {
+  background: #322d55; color:#fff;
+}
+.admin-shell .admin-nav a:not(.active):is(:hover,:focus-visible) > span,
+.admin-shell .admin-sidebar-footer > a:is(:hover,:focus-visible) > svg {color:#fff;opacity:1;}
+.admin-shell .admin-nav a.active {background:#eeebff;color:#4837be;box-shadow:inset 3px 0 #8066f0;}
+.admin-shell .admin-nav a.active > span {color:#513bc6;opacity:1;}
+.admin-shell .admin-nav a:focus-visible {outline:2px solid #b9a7ff;outline-offset:1px;}
+.admin-shell .admin-sidebar-footer > button.nx-ui-button:is(:hover,:focus-visible) {--nx-button-bg:#eee9ff;--nx-button-ink:#513ac4;--nx-button-border:#d2c6f4;}
+
+/* Notification counts are semantic danger red, never purple, and truly round. */
+.nx46-bell-count.nx-ui-count,
+.admin-shell .nx24-sidebar-count.nx-ui-count {
+  background:#d21648;color:white;border:2px solid white;border-radius:999px;
+  width:22px;min-width:22px;height:22px;min-height:22px;padding:0;
+  font:700 10px/1 var(--nx-font-family);display:inline-grid;place-items:center;
+  box-sizing:border-box;white-space:nowrap;
+}
+.admin-shell .nx24-sidebar-count.nx-ui-count {width:auto;min-width:22px;padding-inline:3px;}
+.admin-shell .nx24-stock-link:is(:hover,:focus-visible) {
+  background:#ffe5eb;color:#a81139;border-color:#ee8fa9;box-shadow:0 5px 14px #cf174918;
+}
+.admin-shell .nx24-stock-link:is(:hover,:focus-visible) svg {color:inherit;}
+.admin-shell .admin-header-actions {display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;min-width:0;}
+.admin-shell .admin-header-actions .nx46-bell-wrap {flex:none;margin-right:1px;}
+
+/* Equalized product creation columns. The category picker contains an extra
+   step label above the native Select; the stock columns need its height. */
+.admin-shell .admin-form-grid.nx-product-stock-row {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;column-gap:15px;row-gap:12px;}
+.admin-shell .nx-product-stock-row > .nx-ui-field {margin:0;padding-top:34px;min-width:0;}
+.admin-shell .nx-product-stock-row > .nx71-category-cascade {min-width:0;margin:0;}
+.admin-shell .nx-product-stock-row > .nx-ui-field > .nx-ui-input {width:100%;}
+.admin-shell .nx-product-stock-row .nx-ui-field-label {min-height:20px;display:inline-flex;align-items:center;gap:3px;}
+@media(max-width:820px) { .admin-shell .admin-form-grid.nx-product-stock-row {grid-template-columns:1fr;} .admin-shell .nx-product-stock-row > .nx-ui-field {padding-top:0;} }
+
+/* One search icon in the shared SearchField, plus a recognizable submit arrow. */
+.storefront .nx34-header .nx-nav-search {
+  display:flex;align-items:center;gap:8px;min-width:0;min-height:var(--nx-control-height-lg);
+  padding:3px 5px; border:0;background:transparent;box-shadow:none;
+}
+.storefront .nx34-header .nx-nav-search > .nx-ui-search-field {
+  flex:1 1 0;min-width:0;width:auto;margin:0;height:var(--nx-control-height-lg);
+  background:white;border:1px solid var(--nx-control-border);border-radius:14px;
+}
+.storefront .nx34-header .nx-nav-search > .nx-ui-search-field input {
+  padding:0;margin:0;border:0;background:none;box-shadow:none;min-width:0;width:100%;
+}
+.storefront .nx34-header .nx-nav-search > .nx-store-search-submit.nx-ui-button {
+  display:inline-grid;place-items:center;flex:0 0 44px;width:44px;min-width:44px;
+  height:44px;min-height:44px;margin:0;padding:0;border-radius:12px;line-height:1;
+}
+.storefront .nx34-header .nx-nav-search > .nx-store-search-submit svg {display:block;width:19px;height:19px;}
+.storefront .nx52-promotion-progress {display:flex;align-items:center;justify-content:center;gap:8px;max-width:100%;margin:15px auto 0;width:auto;}
+.storefront .nx52-promotion-progress .nx-ui-button:not(.nx-ui-button--plain) {
+  --nx-button-bg:#c7c2de;--nx-button-border:transparent;
+  display:block;flex:0 0 11px;width:11px;min-width:11px;height:11px;min-height:11px;
+  margin:0;padding:0;border:0;border-radius:99px;box-shadow:none;transform:none;
+  transition:background-color var(--nx-motion),width var(--nx-motion),flex-basis var(--nx-motion);
+}
+.storefront .nx52-promotion-progress .nx-ui-button[aria-current='true']:not(.nx-ui-button--plain) {--nx-button-bg:var(--nx-accent);flex-basis:31px;width:31px;}
+.storefront .nx52-promotion-progress .nx-ui-button:not(.nx-ui-button--plain) span {display:none;}
+
+/* Common actions: no last action wrapping below the others. Tables that need
+   horizontal space scroll within TableContainer rather than crushing buttons. */
+.admin-shell .admin-product-table {table-layout:fixed;min-width:980px;}
+.admin-shell .admin-product-table th:last-child,.admin-shell .admin-product-table td:last-child {width:250px;min-width:250px;}
+.admin-shell .admin-product-table .nx-ui-actions {display:grid;grid-template-columns:repeat(5,40px);gap:6px;justify-content:start;align-items:center;flex-wrap:nowrap;}
+.admin-shell .admin-product-table .nx-ui-actions .nx-ui-icon-button {width:40px;min-width:40px;height:40px;min-height:40px;padding:0;}
+.admin-shell .admin-product-table .admin-product-cell {text-align:left;align-items:center;min-width:0;}
+.admin-shell .admin-product-table .nx-ui-entity-title {font-size:var(--nx-entity-font);line-height:1.45;}
+.admin-shell .admin-product-table .nx-ui-entity-subtitle {font-size:var(--nx-helper-font);}
+.admin-shell .admin-product-table th,.admin-shell .admin-product-table td {vertical-align:middle;}
+.admin-shell .nx-filter-pills .nx-ui-button {min-width:66px;}
+.admin-shell .nx-filter-pills .nx-ui-button[aria-pressed='true'] {--nx-button-bg:#ece7ff;--nx-button-border:#735bea;--nx-button-ink:#5136c4;}
+.admin-shell .nx69-product-filters {align-items:end;}
+.admin-shell .nx69-product-filters > .nx-ui-field {padding:0;align-items:stretch;min-height:0;gap:6px;}
+.admin-shell .nx69-product-filters > .nx-ui-field .nx-ui-select {width:100%;max-width:210px;}
+.admin-shell .nx69-product-filters .nx-ui-clear-filters {order:20;margin-left:0;align-self:end;}
+.admin-shell .nx69-filter-total {align-self:end;min-height:var(--nx-control-height);display:flex;align-items:center;white-space:nowrap;}
+
+/* Category directory: thumbnails zoom through its already wired modal; cards
+   must form an actual multi-column grid with images proportionate to each card. */
+.admin-shell .nx69-category-table {table-layout:fixed;min-width:790px;}
+.admin-shell .nx69-category-table th:first-child {width:47%;}
+.admin-shell .nx69-category-table th:nth-child(2) {width:17%;}
+.admin-shell .nx69-category-table th:nth-child(3) {width:11%;}
+.admin-shell .nx69-category-table th:nth-child(4) {width:11%;}
+.admin-shell .nx69-category-table th:nth-child(5) {width:14%;}
+.admin-shell .nx69-category-table th,.admin-shell .nx69-category-table td {text-align:start;vertical-align:middle;}
+.admin-shell .nx69-category-table th:nth-child(3),.admin-shell .nx69-category-table td:nth-child(3) {text-align:end;}
+.admin-shell .nx69-category-table .nx-ui-actions {display:flex;align-items:center;flex-wrap:nowrap;gap:6px;}
+.admin-shell .nx69-category-table .nx-ui-icon-button {width:38px;min-width:38px;height:38px;min-height:38px;padding:0;}
+.admin-shell .admin-category-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,265px),1fr));gap:16px;align-items:stretch;}
+.admin-shell .admin-category-grid > .admin-category-card {
+  display:flex;flex-direction:column;min-width:0;gap:13px;padding:14px;
+  border:1px solid #e2deee;border-radius:16px;background:#fff;
+  box-shadow:0 8px 22px #261b6009;
+}
+.admin-shell .admin-category-grid .admin-category-image {width:100%;aspect-ratio:16/10;height:auto;min-height:0;border-radius:12px;overflow:hidden;}
+.admin-shell .admin-category-grid .admin-category-image .nx-category-thumb-button,
+.admin-shell .admin-category-grid .admin-category-image img {width:100%;height:100%;object-fit:cover;}
+.admin-shell .admin-category-grid .admin-category-copy {display:flex;flex:1;min-width:0;flex-direction:column;gap:10px;}
+.admin-shell .admin-category-grid .admin-category-copy h3 {font:var(--nx-entity-weight) var(--nx-entity-card-font)/1.4 var(--nx-font-family);color:var(--nx-ink);}
+.admin-shell .admin-category-grid .admin-category-copy p {white-space:normal;overflow-wrap:anywhere;line-height:1.4;}
+.admin-shell .admin-category-grid .admin-category-copy dl {display:flex;flex-wrap:wrap;gap:20px;}
+.admin-shell .admin-category-grid .admin-category-copy > .nx-ui-actions {margin-top:auto;display:flex;flex-wrap:nowrap;}
+.nx-category-thumb-button {display:block;border:0;border-radius:10px;overflow:hidden;padding:0;background:transparent;cursor:zoom-in;}
+.nx-category-thumb-button:focus-visible {outline:2px solid var(--nx-accent);outline-offset:2px;}
+.nx-category-thumb-button img {transition:transform var(--nx-motion);}
+.nx-category-thumb-button:hover img {transform:scale(1.045);}
+.nx-category-preview-content {display:grid;place-items:center;padding:12px;max-height:70vh;}
+.nx-category-preview-content img {max-width:100%;width:auto;height:auto;max-height:65vh;object-fit:contain;border-radius:12px;}
+
+/* Promotion ordering: all 6 columns are explicit so selector and move arrows
+   share a baseline; allow the title column to shrink without squeezing arrows. */
+.admin-shell .nx39-order-row {
+  display:grid;grid-template-columns:24px 52px 88px minmax(0,1fr) 86px 104px;
+  align-items:center;column-gap:12px;row-gap:8px;
+}
+.admin-shell .nx39-order-row > img {width:88px;height:62px;max-width:100%;object-fit:contain;}
+.admin-shell .nx39-order-copy {min-width:0;}
+.admin-shell .nx39-select-position {min-width:0;gap:5px;align-self:center;margin:0;}
+.admin-shell .nx39-select-position .nx-ui-select {width:100%;height:44px;min-height:44px;}
+.admin-shell .nx39-order-movers {display:flex;align-items:center;justify-content:flex-end;gap:6px;min-height:0;}
+.admin-shell .nx39-order-movers .nx-ui-icon-button {width:44px;min-width:44px;height:44px;min-height:44px;padding:0;}
+
+/* Inventory, orders and delivery tables: same header/cell typography and
+   proper toolbar flow; don't center long product descriptions by accident. */
+.admin-shell .nx77-table-toolbar {display:flex;flex-wrap:wrap;align-items:end;gap:12px;min-width:0;}
+.admin-shell .nx77-table-toolbar > .nx-ui-search-field {flex:1 1 290px;min-width:190px;}
+.admin-shell .nx77-table-toolbar > .nx77-filter-label {display:flex;flex:0 0 185px;align-items:stretch;flex-direction:column;gap:6px;min-width:150px;}
+.admin-shell .nx77-table-toolbar > .nx77-filter-label .nx-ui-select {width:100%;}
+.admin-shell .nx77-table-toolbar > strong {align-self:end;min-height:var(--nx-control-height);display:flex;align-items:center;white-space:nowrap;margin:0;}
+.admin-shell .nx77-table-toolbar > .nx-ui-clear-filters {align-self:end;}
+.admin-shell .nx84-inventory-table {table-layout:fixed;min-width:870px;}
+.admin-shell .nx84-inventory-table th,.admin-shell .nx84-inventory-table td {vertical-align:middle;}
+.admin-shell .nx84-inventory-table th:nth-child(2),.admin-shell .nx84-inventory-table th:nth-child(3),
+.admin-shell .nx84-inventory-table td:nth-child(2),.admin-shell .nx84-inventory-table td:nth-child(3) {text-align:end;}
+.admin-shell .nx84-inventory-product-cell,.admin-shell .nx84-inventory-product-cell .nx84-inventory-product {min-width:0;text-align:left;}
+.admin-shell .nx84-inventory-product-cell .nx-ui-entity-title {display:block;line-height:1.45;text-align:left;}
+.admin-shell .nx84-inventory-product-cell .nx-ui-entity-subtitle {display:block;line-height:1.5;overflow-wrap:anywhere;white-space:normal;text-align:left;}
+.admin-shell .nx84-inventory-table .nx50-inventory-edit {white-space:nowrap;}
+.admin-shell .nx-ui-table-header {vertical-align:middle;}
+.admin-shell .nx-ui-table-cell[data-actions] .nx-ui-actions {justify-content:flex-start;}
+
+/* SKU rows and coupon product picker reuse global buttons; only their layout
+   belongs here. Each Add label is its own grid cell, not an anonymous text node. */
+.admin-shell .nx-matrix-group {display:grid;grid-template-columns:minmax(145px,.8fr) minmax(190px,1.3fr) 44px;gap:12px;align-items:end;}
+.admin-shell .nx-matrix-group > .nx-ui-field {min-width:0;margin:0;}
+.admin-shell .nx-matrix-group > .nx-ui-icon-button {width:44px;min-width:44px;height:44px;min-height:44px;margin:0;align-self:end;}
+.admin-shell .nx77-live-lookup {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:280px;overflow-y:auto;overflow-x:hidden;padding:2px;}
+.admin-shell .nx77-live-lookup > .nx-ui-button:not(.nx-ui-button--plain) {
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+  gap:8px;width:100%;min-width:0;min-height:74px;height:auto;padding:10px;
+  white-space:normal;text-align:left;--nx-button-bg:#fff;--nx-button-border:#e4def7;--nx-button-ink:var(--nx-ink);
+}
+.admin-shell .nx77-live-lookup .nx77-lookup-name {display:block;min-width:0;overflow-wrap:anywhere;line-height:1.4;font-size:var(--nx-helper-font);font-weight:600;}
+.admin-shell .nx77-live-lookup .nx77-lookup-add {color:var(--nx-accent);white-space:nowrap;font-size:var(--nx-helper-font);font-weight:750;}
+.admin-shell .nx77-live-cart-items .nx-ui-icon-button {--nx-button-bg:#fff1f4;--nx-button-border:#efc4ce;--nx-button-ink:var(--nx-danger);}
+
+/* Unsaved changes: keep editing is the default; destructive exit stays red. */
+.nx81-leave-buttons {display:flex;justify-content:flex-end;align-items:center;gap:10px;flex-wrap:wrap;}
+.nx81-leave-buttons .nx-ui-button--secondary {--nx-button-bg:#f8f7fc;--nx-button-ink:#513ac4;--nx-button-border:#dad3f0;}
+.nx81-leave-buttons .nx-ui-button--danger {--nx-button-bg:#be123c;--nx-button-ink:#fff;--nx-button-border:#be123c;}
+.nx81-leave-buttons .nx-ui-button--danger:not(.nx-ui-button--plain):hover:not(:disabled) {--nx-button-bg:#9f1239;--nx-button-ink:#fff;--nx-button-border:#9f1239;filter:none;}
+
+@media(max-width:1050px) {
+  .admin-shell .nx39-order-row {grid-template-columns:24px 45px 74px minmax(0,1fr);}
+  .admin-shell .nx39-order-row > img {width:74px;}
+  .admin-shell .nx39-select-position {grid-column:3;grid-row:auto;}
+  .admin-shell .nx39-order-movers {grid-column:4;justify-content:flex-start;}
+}
+@media(max-width:650px) {
+  .admin-shell .admin-category-grid,.admin-shell .nx77-live-lookup {grid-template-columns:1fr;}
+  .admin-shell .nx39-order-row {grid-template-columns:23px 47px minmax(0,1fr);}
+  .admin-shell .nx39-order-row > img {grid-column:2;width:47px;}
+  .admin-shell .nx39-order-copy {grid-column:3;}
+  .admin-shell .nx39-select-position {grid-column:2 / 3;}
+  .admin-shell .nx39-order-movers {grid-column:3;}
+  .admin-shell .nx77-table-toolbar > .nx77-filter-label {flex:1 1 150px;}
+  .admin-shell .admin-header-actions {justify-content:flex-start;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .nx-category-thumb-button img,.admin-shell .admin-nav a,.storefront .nx52-promotion-progress .nx-ui-button:not(.nx-ui-button--plain) {transition:none;transform:none;}
+}
+
+
+/* Phase 88 follow-up: integrated controls and tables, audited against current JSX.
+   Shared components retain typography, colour tokens and keyboard semantics. */
+.admin-shell .nx46-dashboard-welcome .nx46-welcome-actions a {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:46px;border:1px solid #d8d0f8;border-radius:12px;
+  color:#352361;background:#fff;box-shadow:none;
+  transition:transform var(--nx-motion),color var(--nx-motion),background-color var(--nx-motion),border-color var(--nx-motion),box-shadow var(--nx-motion);
+}
+.admin-shell .nx46-dashboard-welcome .nx46-welcome-actions a+a {background:#65529d;border-color:#a99add;color:#fff;}
+.admin-shell .nx46-dashboard-welcome .nx46-welcome-actions a:is(:hover,:focus-visible) {background:#ece7ff;color:#39269c;border-color:#d1c5ff;box-shadow:0 8px 18px #18094335;transform:translateY(-2px);}
+.admin-shell .nx46-dashboard-welcome .nx46-welcome-actions a+a:is(:hover,:focus-visible) {background:#fff;color:#39269c;border-color:#fff;}
+.admin-shell .nx46-dashboard-welcome .nx46-welcome-actions a svg {color:currentColor;opacity:1;}
+.admin-shell .nx46-dashboard-two .nx46-table-wrap {overflow-x:auto;max-width:100%;}
+.admin-shell .nx46-dashboard-two .nx46-table {width:100%;min-width:570px;border-collapse:collapse;table-layout:auto;}
+.admin-shell .nx46-dashboard-two .nx46-table th,
+.admin-shell .nx46-dashboard-two .nx46-table td {text-align:left;vertical-align:middle;white-space:normal;}
+.admin-shell .nx46-dashboard-two .nx46-table th[data-align='end'],
+.admin-shell .nx46-dashboard-two .nx46-table td[data-numeric] {text-align:right;}
+.admin-shell .nx46-dashboard-two .nx46-table td:first-child {min-width:140px;}
+.admin-shell .nx46-dashboard-two .nx-ui-pagination {margin-top:13px;}
+
+/* Preserve readable button labels during hover; remove legacy sheen which
+   can leave a solid accent background with invisible text in some themes. */
+.admin-shell .nx57-open-order.nx-ui-button,
+.admin-shell .nx67-dashboard-order-open.nx-ui-button {
+  isolation:auto;overflow:visible;position:relative;
+}
+.admin-shell .nx57-open-order.nx-ui-button::after,
+.admin-shell .nx57-open-order.nx-ui-button::before {content:none;display:none;}
+.admin-shell .nx57-open-order.nx-ui-button:is(:hover,:focus-visible),
+.admin-shell .nx67-dashboard-order-open.nx-ui-button:is(:hover,:focus-visible) {
+  --nx-button-bg:#eeeaff;--nx-button-ink:#4a32ba;--nx-button-border:#bbaaf4;
+  background:var(--nx-button-bg);color:var(--nx-button-ink);border-color:var(--nx-button-border);
+  filter:none;box-shadow:0 5px 15px #4a32ba22;transform:translateY(-1px);
+}
+.admin-shell .nx57-open-order.nx-ui-button svg {color:currentColor;}
+.admin-shell .nx45-review-shortcut.nx-ui-button {
+  width:100%;min-width:0;display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;
+  gap:12px;margin-bottom:18px;padding:14px 18px;text-align:left;
+  --nx-button-bg:#faf7ff;--nx-button-border:#ddd2fb;--nx-button-ink:#4b33a4;
+}
+.admin-shell .nx45-review-shortcut.nx-ui-button >strong {margin-left:0;flex:none;}
+.admin-shell .nx45-review-shortcut.nx-ui-button >span {margin-left:auto;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;color:inherit;}
+.admin-shell .nx45-review-shortcut.nx-ui-button:is(:hover,:focus-visible) {
+  --nx-button-bg:#f0eaff;--nx-button-border:#b9a5f4;--nx-button-ink:#4b33a4;
+  background:var(--nx-button-bg);color:var(--nx-button-ink);filter:none;
+}
+
+/* Shared toolbar geometry: label sits over its own control, not over a neighbour. */
+.admin-shell .nx-cod-toolbar {display:grid;grid-template-columns:minmax(260px,1fr) minmax(165px,240px) minmax(150px,190px) auto;gap:12px;align-items:end;min-width:0;padding:16px 20px;}
+.admin-shell .nx-cod-toolbar > .nx-ui-search-field {width:100%;min-width:0;align-self:end;}
+.admin-shell .nx-cod-toolbar > .nx-ui-field {width:100%;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:6px;}
+.admin-shell .nx-cod-toolbar .nx-ui-select {width:100%;min-width:0;}
+.admin-shell .nx-cod-toolbar > .nx-ui-clear-filters {justify-self:start;align-self:end;}
+.admin-shell .nx77-table-toolbar {display:grid;grid-template-columns:minmax(220px,1fr) minmax(175px,230px) auto auto;gap:14px;align-items:end;min-width:0;}
+.admin-shell .nx77-table-toolbar > .nx-ui-search-field {width:100%;min-width:0;flex:initial;align-self:end;}
+.admin-shell .nx77-table-toolbar > .nx77-filter-label {min-width:0;width:100%;display:flex;flex-direction:column;gap:6px;align-items:stretch;}
+.admin-shell .nx77-table-toolbar > .nx77-filter-label .nx-ui-select {width:100%;}
+.admin-shell .nx77-table-toolbar > strong {margin:0;min-height:var(--nx-control-height);display:flex;align-items:center;white-space:nowrap;}
+.admin-shell .nx77-table-toolbar > .nx-ui-clear-filters {align-self:end;}
+
+/* Table column headers and numbers align with the cells they describe. */
+.admin-shell .nx84-inventory-table .nx84-inventory-product-cell,
+.admin-shell .nx84-inventory-table .nx84-inventory-product-cell * {text-align:left;}
+.admin-shell .nx84-inventory-table .nx84-inventory-product {display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;}
+.admin-shell .nx84-inventory-table .nx84-inventory-product .nx-ui-entity-title {width:100%;text-align:left;}
+.admin-shell .nx84-inventory-table .nx84-inventory-product .nx-ui-entity-subtitle {width:100%;text-align:left;overflow-wrap:anywhere;}
+.admin-shell .nx84-inventory-table th:nth-child(2),
+.admin-shell .nx84-inventory-table th:nth-child(3),
+.admin-shell .nx84-inventory-table td:nth-child(2),
+.admin-shell .nx84-inventory-table td:nth-child(3) {text-align:center;}
+.admin-shell .nx84-inventory-table th:last-child,
+.admin-shell .nx84-inventory-table td:last-child {text-align:left;}
+.admin-shell .nx84-inventory-table .nx50-inventory-edit {display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;}
+.admin-shell .nx73-assignment-table {table-layout:auto;min-width:820px;}
+.admin-shell .nx73-assignment-table th,
+.admin-shell .nx73-assignment-table td {vertical-align:middle;text-align:left;}
+.admin-shell .nx73-assignment-table .nx55-select-th,
+.admin-shell .nx73-assignment-table .nx55-select-cell {width:48px;min-width:48px;text-align:center;}
+.admin-shell .nx73-assignment-table .nx78-assignment-cell {min-width:215px;}
+.admin-shell .nx73-assignment-table .nx53-order-action {display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;}
+.admin-shell .nx73-assignment-table td:nth-child(2) {text-align:left;}
+.admin-shell .nx73-assignment-table .nx53-order-assignee {min-width:0;text-align:left;}
+.admin-shell .nx73-assignment-table .nx53-open-picker {min-width:170px;}
+
+/* Coupon test: search must be exactly one normal-height field, with a
+   readable two-column picker below it rather than a stretched input. */
+.admin-shell .nx77-real-cart-test {display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0;}
+.admin-shell .nx77-real-cart-test > .nx-ui-field {display:flex;flex-direction:column;align-items:stretch;width:100%;min-width:0;gap:6px;}
+.admin-shell .nx77-real-cart-test > .nx-ui-field > .nx-ui-search-field {flex:0 0 auto;min-height:var(--nx-control-height);height:var(--nx-control-height);max-height:var(--nx-control-height);width:100%;}
+.admin-shell .nx77-real-cart-test .nx-ui-search-input {height:100%;min-height:0;}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:9px;max-height:290px;overflow-y:auto;overflow-x:hidden;padding:3px;}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup > .nx-ui-button {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:7px;min-width:0;width:100%;height:auto;min-height:64px;padding:11px;background:#fff;white-space:normal;text-align:left;}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup .nx77-lookup-name {display:block;line-height:1.35;font:600 var(--nx-control-font)/1.4 var(--nx-font-family);overflow-wrap:anywhere;min-width:0;color:var(--nx-ink);}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup .nx77-lookup-add {display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;color:var(--nx-accent);font:700 var(--nx-helper-font)/1.3 var(--nx-font-family);}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup > .nx-ui-button:hover {background:#f6f3ff;}
+.admin-shell .nx77-real-cart-test > .nx-ui-button {align-self:stretch;width:100%;}
+
+/* Single focus treatment for the complete storefront search; no doubled
+   inner and outer purple outlines. */
+.storefront .nx34-header .nx-nav-search {display:flex;align-items:center;gap:7px;padding:0;border:0;background:transparent;box-shadow:none;outline:0;}
+.storefront .nx34-header .nx-nav-search:focus-within {box-shadow:none;border-color:transparent;outline:0;}
+.storefront .nx34-header .nx-nav-search > .nx-ui-search-field {height:46px;min-height:46px;border:1px solid #dcd9ed;box-shadow:none;outline:0;}
+.storefront .nx34-header .nx-nav-search > .nx-ui-search-field:focus-within {outline:0;border-color:#6850d8;box-shadow:0 0 0 2px #6850d821;}
+.storefront .nx34-header .nx-nav-search .nx-ui-search-input:is(:focus,:focus-visible) {outline:0;box-shadow:none;border:0;}
+.storefront .nx34-header .nx-nav-search > .nx-store-search-submit.nx-ui-button {height:46px;min-height:46px;flex-basis:46px;width:46px;min-width:46px;border-radius:12px;}
+.storefront .nx34-header .nx69-header-compare {color:#1a2440;}
+.storefront .nx34-header .nav-actions .nx69-header-compare {display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border:1px solid transparent;border-radius:15px;background:transparent;transition:background-color var(--nx-motion),color var(--nx-motion),border-color var(--nx-motion),transform var(--nx-motion);}
+.storefront .nx34-header .nav-actions .nx69-header-compare:is(:hover,:focus-visible) {background:#f0edff;border-color:#e6e0ff;color:var(--nx-accent);transform:translateY(-2px);}
+.storefront .nx34-header .nav-actions .nx69-header-compare svg {width:26px;height:26px;}
+
+/* Flyout typography and usable spacing; submenu remains navigable on hover
+   or keyboard focus, with predictable right-side alignment. */
+.storefront .nx35-category-dropdown {left:0;width:288px;max-width:calc(100vw - 24px);padding:12px;}
+.storefront .nx35-category-heading {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.storefront .nx35-category-submenu {width:270px;max-width:min(270px,calc(100vw - 32px));}
+.storefront .nx35-category-item-row {gap:4px;}
+.storefront .nx35-category-link {min-width:0;gap:9px;line-height:1.4;}
+.storefront .nx35-category-link span:last-child {min-width:0;overflow-wrap:break-word;}
+.storefront .nx35-category-expand {flex:0 0 39px;min-width:39px;width:39px;height:39px;min-height:39px;padding:0;}
+@media(max-width:1050px) {
+  .admin-shell .nx-cod-toolbar {grid-template-columns:repeat(2,minmax(0,1fr));}
+  .admin-shell .nx77-table-toolbar {grid-template-columns:minmax(0,1fr) minmax(175px,220px) auto;}
+  .admin-shell .nx77-table-toolbar > .nx-ui-clear-filters {grid-column:auto;}
+}
+@media(max-width:690px) {
+  .admin-shell .nx-cod-toolbar,.admin-shell .nx77-table-toolbar {grid-template-columns:minmax(0,1fr);}
+  .admin-shell .nx77-table-toolbar > .nx77-filter-label,.admin-shell .nx77-table-toolbar > .nx-ui-clear-filters {justify-self:stretch;}
+  .admin-shell .nx77-real-cart-test .nx77-live-lookup {grid-template-columns:1fr;}
+  .storefront .nx34-header .nav-actions .nx69-header-compare {width:36px;height:36px;flex-basis:36px;border-radius:12px;}
+}
+@media(prefers-reduced-motion:reduce) {
+ .admin-shell .nx46-dashboard-welcome .nx46-welcome-actions a,
+ .admin-shell .nx57-open-order.nx-ui-button,
+ .storefront .nx34-header .nav-actions .nx69-header-compare {transition:none;transform:none;}
+}
+
+/* Footer reorder/remove use the same shared action geometry as other editors. */
+.admin-shell .nx62-ticker-row {display:grid;grid-template-columns:minmax(0,1fr) 44px 44px;gap:8px;align-items:center;}
+.admin-shell .nx62-ticker-row > .nx-ui-icon-button {display:inline-grid;place-items:center;width:44px;min-width:44px;height:44px;min-height:44px;padding:0;margin:0;}
+.admin-shell .nx62-ticker-row > .nx-ui-icon-button.nx-ui-button--danger {
+ --nx-button-bg:#fff1f4;--nx-button-border:#f3c8d0;--nx-button-ink:#bd1546;
+}
+.admin-shell .nx62-ticker-row > .nx-ui-icon-button.nx-ui-button--danger:hover:not(:disabled) {
+ --nx-button-bg:#ffe0e7;--nx-button-border:#e7a5b4;--nx-button-ink:#a50f38;
+ background:var(--nx-button-bg);color:var(--nx-button-ink);border-color:var(--nx-button-border);filter:none;
+}
+@media(max-width:540px) {
+ .admin-shell .nx62-ticker-row {grid-template-columns:minmax(0,1fr) 44px 44px;}
+ .admin-shell .nx62-ticker-row > .nx-ui-input {grid-column:1;min-width:0;}
+}
+
+/* Phase 88 continuation: toolbar layout is separate from shared control styling. */
+.admin-shell .nx69-category-toolbar {
+  display:grid;grid-template-columns:minmax(210px,1fr) minmax(132px,160px) minmax(132px,160px) auto;
+  align-items:center;column-gap:10px;row-gap:12px;margin-bottom:18px;
+}
+.admin-shell .nx69-category-toolbar > .nx-ui-search-field {min-width:0;width:100%;flex:none;}
+.admin-shell .nx69-category-toolbar > .nx-ui-select {width:100%;max-width:none;min-width:0;}
+.admin-shell .nx69-category-toolbar > .nx69-category-actions {display:flex;justify-self:end;align-items:center;gap:10px;min-width:0;white-space:nowrap;}
+.admin-shell .nx69-category-actions > .nx69-view-switch {margin:0;flex:none;}
+.admin-shell .nx69-category-actions > .nx-ui-clear-filters {flex:none;margin:0;align-self:center;}
+/* Keep table view and card view beside one another even when reset becomes visible. */
+.admin-shell .nx69-view-switch {display:inline-flex;white-space:nowrap;}
+.admin-shell .nx69-category-toolbar .nx69-view-switch > button {min-height:var(--nx-control-height);}
+/* Force left-aligned product identity, including inherited flex alignment. */
+.admin-shell .nx84-inventory-table .nx84-inventory-product {display:block;text-align:start;width:100%;}
+.admin-shell .nx84-inventory-table .nx84-inventory-product-copy {display:grid;grid-template-columns:minmax(0,1fr);justify-items:start;gap:4px;width:100%;min-width:0;text-align:start;}
+.admin-shell .nx84-inventory-table .nx84-inventory-product-copy > * {margin:0;text-align:start;max-width:100%;}
+.admin-shell .nx84-inventory-table th:nth-child(2),.admin-shell .nx84-inventory-table td:nth-child(2),
+.admin-shell .nx84-inventory-table th:nth-child(3),.admin-shell .nx84-inventory-table td:nth-child(3) {text-align:end;}
+.admin-shell .nx84-inventory-table th:nth-child(4),.admin-shell .nx84-inventory-table td:nth-child(4),
+.admin-shell .nx84-inventory-table th:nth-child(5),.admin-shell .nx84-inventory-table td:nth-child(5) {text-align:start;}
+.admin-shell .nx77-table-toolbar {display:grid;grid-template-columns:minmax(240px,1fr) minmax(168px,220px) auto;align-items:end;gap:12px;}
+.admin-shell .nx77-table-toolbar > .nx-ui-search-field {min-height:var(--nx-control-height);height:var(--nx-control-height);width:100%;min-width:0;flex:none;}
+.admin-shell .nx77-table-toolbar > .nx77-filter-label {display:flex;min-width:0;width:100%;flex-direction:column;gap:6px;align-self:end;}
+.admin-shell .nx77-table-toolbar > .nx-ui-filter-actions {align-self:end;justify-self:end;}
+.admin-shell .nx77-table-toolbar > .nx-ui-filter-actions .nx-ui-clear-filters {margin:0;}
+.admin-shell .nx-cod-toolbar {display:grid;grid-template-columns:minmax(230px,1fr) minmax(170px,235px) minmax(155px,190px) auto;align-items:end;gap:12px;}
+.admin-shell .nx-cod-toolbar > .nx-ui-search-field {height:var(--nx-control-height);min-height:var(--nx-control-height);width:100%;align-self:end;flex:none;}
+.admin-shell .nx-cod-toolbar > .nx-ui-filter-actions {align-self:end;justify-self:end;}
+/* Cancellation shortcut layout is owned by one component, with a count attached to its label. */
+.admin-shell .nx45-review-shortcut.nx-ui-button {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-block:0 18px;padding:15px 20px;min-height:58px;}
+.admin-shell .nx45-review-shortcut .nx45-review-copy {display:inline-flex;flex-wrap:wrap;align-items:center;gap:10px;min-width:0;text-align:left;margin:0;}
+.admin-shell .nx45-review-shortcut .nx45-review-copy strong {display:inline-grid;place-items:center;min-width:27px;height:27px;padding:0 7px;border-radius:50px;background:#6750d3;color:white;}
+.admin-shell .nx45-review-shortcut .nx45-review-cta {margin-left:auto;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;color:inherit;}
+/* Coupon search height and picker cards cannot inherit stretched search controls. */
+.admin-shell .nx77-real-cart-test > .nx-ui-field:has(> .nx-ui-search-field) {flex:0 0 auto;align-self:stretch;}
+.admin-shell .nx77-real-cart-test > .nx-ui-field > .nx-ui-search-field {flex:0 0 auto;height:var(--nx-control-height);min-height:var(--nx-control-height);max-height:var(--nx-control-height);}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto;align-content:start;gap:10px;max-height:310px;overflow:auto;padding:3px;}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup > .nx-ui-button:not(.nx-ui-button--plain) {width:100%;height:auto;min-height:64px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;text-align:start;gap:8px;padding:10px 12px;white-space:normal;}
+.admin-shell .nx77-live-lookup .nx77-lookup-name {min-width:0;overflow-wrap:anywhere;line-height:1.4;text-align:start;}
+.admin-shell .nx77-live-lookup .nx77-lookup-add {justify-self:end;white-space:nowrap;}
+/* Never reintroduce purple on semantic destructive actions (footer, coupon, SKU). */
+.admin-shell .nx62-ticker-row > .nx-ui-button--danger:is(:hover,:focus-visible),
+.admin-shell .nx-matrix-group > .nx-ui-button--danger:is(:hover,:focus-visible) {background:#ffe5ea;border-color:#eb9eae;color:#a60c3d;filter:none;}
+@media(max-width:1180px){
+  .admin-shell .nx69-category-toolbar {grid-template-columns:minmax(210px,1fr) minmax(130px,160px) minmax(130px,160px);}
+  .admin-shell .nx69-category-toolbar > .nx69-category-actions {grid-column:1/-1;justify-self:end;}
+}
+@media(max-width:820px){
+  .admin-shell .nx77-table-toolbar {grid-template-columns:minmax(0,1fr) minmax(150px,210px);}
+  .admin-shell .nx77-table-toolbar > .nx-ui-filter-actions {grid-column:1/-1;justify-self:end;}
+  .admin-shell .nx-cod-toolbar {grid-template-columns:repeat(2,minmax(0,1fr));}
+  .admin-shell .nx-cod-toolbar > .nx-ui-filter-actions {grid-column:1/-1;justify-self:end;}
+}
+@media(max-width:650px){
+  .admin-shell .nx69-category-toolbar {grid-template-columns:repeat(2,minmax(0,1fr));}
+  .admin-shell .nx69-category-toolbar > .nx-ui-search-field {grid-column:1/-1;}
+  .admin-shell .nx69-category-toolbar > .nx69-category-actions {grid-column:1/-1;justify-self:stretch;justify-content:space-between;white-space:normal;flex-wrap:wrap;}
+  .admin-shell .nx77-table-toolbar,.admin-shell .nx-cod-toolbar {grid-template-columns:minmax(0,1fr);}
+  .admin-shell .nx77-table-toolbar > .nx-ui-filter-actions,.admin-shell .nx-cod-toolbar > .nx-ui-filter-actions {grid-column:1;justify-self:end;}
+  .admin-shell .nx45-review-shortcut.nx-ui-button {flex-wrap:wrap;}
+  .admin-shell .nx45-review-shortcut .nx45-review-cta {margin-left:0;}
+  .admin-shell .nx77-real-cart-test .nx77-live-lookup {grid-template-columns:minmax(0,1fr);}
+}
+
+/* Header icon interactions are one shared set: Compare, Wishlist and Cart. */
+.storefront .nx34-header .nav-actions :is(.nx69-header-compare,.nx34-wishlist-icon,.cart-link) {
+  display:inline-grid;place-items:center;flex:0 0 43px;width:43px;height:43px;
+  padding:8px;border:1px solid transparent;border-radius:15px;background:transparent;
+  color:#1a2440;text-decoration:none;
+  transition:background-color var(--nx-motion) var(--nx-ease),color var(--nx-motion) var(--nx-ease),
+    border-color var(--nx-motion) var(--nx-ease),transform var(--nx-motion) var(--nx-ease);
+}
+.storefront .nx34-header .nav-actions :is(.nx69-header-compare,.nx34-wishlist-icon,.cart-link):is(:hover,:focus-visible) {
+  background:#f0edff;border-color:#e6e0ff;color:var(--nx-accent);transform:translateY(-2px);
+}
+.storefront .nx34-header .nav-actions :is(.nx69-header-compare,.nx34-wishlist-icon,.cart-link):focus-visible {
+  outline:2px solid var(--nx-accent);outline-offset:2px;
+}
+@media(max-width:440px){
+  .storefront .nx34-header .nav-actions :is(.nx69-header-compare,.nx34-wishlist-icon,.cart-link) {flex-basis:36px;width:36px;height:36px;border-radius:12px;padding:5px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .storefront .nx34-header .nav-actions :is(.nx69-header-compare,.nx34-wishlist-icon,.cart-link) {transition:none;transform:none;}
+}
+
+/* Phase 88 targeted finishing corrections: align the assignment header with
+   the fixed executive-action button slot (the assignee label occupies the other slot). */
+.admin-shell .nx73-assignment-table th.nx78-assignment-heading {
+  text-align: left;
+  white-space: nowrap;
+}
+.admin-shell .nx73-assignment-table th.nx78-assignment-heading > span {
+  display: block;
+  box-sizing: border-box;
+  margin-left: auto;
+  width: 174px;
+  max-width: 100%;
+  text-align: center;
+}
+.admin-shell .nx73-assignment-table td.nx78-assignment-cell .nx53-order-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 174px;
+  justify-content: end;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+.admin-shell .nx73-assignment-table td.nx78-assignment-cell .nx53-open-picker {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 174px;
+  justify-self: end;
+  white-space: nowrap;
+}
+.admin-shell .nx73-assignment-table td.nx78-assignment-cell .nx53-order-assignee {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: end;
+  min-width: 0;
+}
+
+/* Coupon catalogue picker: narrow sidebar gets full-width rows, not squeezed
+   two-column buttons. Explicitly undo the old nowrap rule on button spans. */
+.admin-shell .nx77-real-cart-test .nx77-live-lookup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: auto;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 320px;
+  gap: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  align-content: start;
+}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup > .nx-ui-button:not(.nx-ui-button--plain) {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  min-height: 54px;
+  padding: 10px 12px;
+  overflow: hidden;
+  text-align: start;
+  white-space: normal;
+}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup .nx77-lookup-name {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-overflow: clip;
+  line-height: 1.4;
+  text-align: start;
+}
+.admin-shell .nx77-real-cart-test .nx77-live-lookup .nx77-lookup-add {
+  display: inline-flex;
+  justify-self: end;
+  align-self: center;
+  width: max-content;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Product results: one canonical reset control in the active-filter chips,
+   and a result count anchored on the left of Show/Sort. */
+.storefront .catalogue-results-bar {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.storefront .catalogue-results-bar .nx-catalogue-result-count {
+  margin: 0 auto 0 0;
+  padding: 0 0 11px;
+  flex: 1 1 130px;
+  min-width: 100px;
+  font: 700 var(--nx-control-font)/1.5 var(--nx-font-family);
+  color: var(--nx-ink);
+  font-variant-numeric: tabular-nums;
+}
+.storefront .catalogue-results-bar > .nx-ui-field {
+  flex: 0 1 208px;
+  min-width: 160px;
+  max-width: 240px;
+  align-self: end;
+}
+.storefront .catalogue-results-bar > .nx-ui-field .nx-ui-select { width: 100%; }
+@media (max-width: 600px) {
+  .storefront .catalogue-results-bar .nx-catalogue-result-count {flex-basis: 100%;padding: 0;}
+  .storefront .catalogue-results-bar > .nx-ui-field {flex: 1 1 145px;max-width: none;}
+}

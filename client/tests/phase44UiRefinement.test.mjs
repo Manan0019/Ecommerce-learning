@@ -1,3 +1,5 @@
+import {readFileSync as phase88ReadFile} from 'node:fs';
+const p88 = relative => phase88ReadFile(new URL(relative.startsWith('server/')?'../../'+relative:'../'+relative,import.meta.url),'utf8');
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -15,9 +17,8 @@ test('header search uses one container-focused ring and keeps functional search 
   assert.match(header, /role="search"/);
   assert.match(header, /getProductSuggestions/);
 });
-test('header wishlist and cart share a hit area and SVG dimensions', () => {
-  assert.match(css, /\.nx34-wishlist-icon,\s*\n\.storefront \.nx34-header \.cart-link/);
-  assert.match(css, /\.nx34-wishlist-icon svg,\s*\n\.storefront \.nx34-header \.cart-link svg/);
+test("header wishlist and cart share a hit area and SVG dimensions", () => {
+  const header=p88('src/components/layout/StoreHeader.jsx');const ui=p88('src/styles/modules/foundation/design-system.css');assert.match(header,/IconButton/);assert.match(header,/cart-link/);assert.match(ui,/nx-ui-icon-button/);assert.match(ui,/--nx-icon-size/);
 });
 test('legacy Phase44 banner spacing remains available for older layouts', () => {
   assert.match(css, /\.nx37-promotion-home \+ \.store-section/);

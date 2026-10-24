@@ -15,8 +15,7 @@
   border:0!important;border-radius:0!important;color:#17233e!important;
   text-decoration:none!important;transform:none!important;
 }
-.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-heading::after,
-.storefront .nx64-review-form>summary.nx-review-toggle .nx-review-action-copy::after{
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-heading::after,.storefront .nx64-review-form>summary.nx-review-toggle .nx-review-action-copy::after{
   content:none!important;display:none!important;
 }
 .storefront .nx-review-heading strong{font-size:clamp(1rem,1.5vw,1.12rem);line-height:1.3;font-weight:850}
@@ -58,20 +57,14 @@
   position:relative;z-index:1;flex:none;transform:rotate(0deg);
   transition:transform .32s cubic-bezier(.16,1,.3,1);color:inherit;
 }
-.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover,
-.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible>.nx-review-action,
-.storefront .nx64-review-form[open]>summary.nx-review-toggle>.nx-review-action {
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover,.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible>.nx-review-action,.storefront .nx64-review-form[open]>summary.nx-review-toggle>.nx-review-action {
   color:white!important;border-color:#5a3cc7!important;
   box-shadow:0 9px 22px rgba(72,46,172,.22)!important;
 }
-.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::before,
-.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::before,
-.storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::before{
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::before,.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::before,.storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::before{
   transform:translate(0,0) scale(1.1) rotate(-360deg);
 }
-.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::after,
-.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::after,
-.storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::after{
+.storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::after,.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::after,.storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::after{
   opacity:1;transform:rotate(-360deg)!important;
 }
 .storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action>svg{transform:rotate(180deg)}
@@ -85,12 +78,7 @@
   .storefront .nx-review-heading small{font-size:.57rem}
 }
 @media(prefers-reduced-motion:reduce){
-  .storefront .nx-review-action::before,.storefront .nx-review-action::after,
-  .storefront .nx-review-action>svg,.storefront .nx64-review-form>summary.nx-review-toggle{transition:none!important}
-  .storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::before,
-.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::before,
-  .storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::before{transform:translate(0,0) scale(1.1) rotate(0deg)}
-  .storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::after,
-.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::after,
-  .storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::after{opacity:0}
+  .storefront .nx-review-action::before,.storefront .nx-review-action::after,.storefront .nx-review-action>svg,.storefront .nx64-review-form>summary.nx-review-toggle{transition:none!important}
+  .storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::before,.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::before,.storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::before{transform:translate(0,0) scale(1.1) rotate(0deg)}
+  .storefront .nx64-review-form>summary.nx-review-toggle>.nx-review-action:hover::after,.storefront .nx64-review-form>summary.nx-review-toggle:focus-visible .nx-review-action::after,.storefront .nx64-review-form[open]>summary.nx-review-toggle .nx-review-action::after{opacity:0}
 }

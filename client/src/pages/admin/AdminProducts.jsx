@@ -1,4 +1,5 @@
-import { Select, SearchInput, DataTable, Pagination, ClearFilters, EmptyState } from "../../components/ui/index";
+import { EntityCell, MetricCard, Button, Card, ClearFilters, DataTable, EmptyState, EntitySubtitle, EntityTitle, FormField, IconActionGroup, IconButton, Pagination, SearchField, Select, StatusBadge, TableBody, TableCell, TableContainer, TableHead, TableHeader, TableRow, TextField } from "../../components/ui/index";
+
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -36,7 +37,7 @@ export default function AdminProducts() {
       setLoading(true);
       getAdminProducts(controller.signal,{page,q:query,status:filter,category:categoryFilter,brand:brandFilter,stock:stockFilter,sort}).then(data => {
         if (controller.signal.aborted) return;
-        setProducts(data.products || []);setTotal(Number(data.total||0));
+        setProducts(data.products || []);setTotal(Number(data.total||0));setPage(current=>Math.min(current,Math.max(1,Math.ceil(Number(data.total||0)/10))));
         setFacets(data.facets||{categories:[],brands:[]});setSummary(data.summary||{total:0,active:0,inactive:0});setError('');
       }).catch(err => {
         if (controller.signal.aborted) return;
@@ -87,59 +88,59 @@ export default function AdminProducts() {
   }
 
   return <AdminLayout title="Product catalogue" subtitle="Manage your products without leaving this workspace."
-    actions={<Link className="admin-primary-action" to="/admin/products/new">+ Add new product</Link>}>
+    actions={<Button as={Link} variant="primary"  to="/admin/products/new">+ Add new product</Button>}>
     <section className="nx-admin-summary" aria-label="Catalogue summary">
-      <div><small>All products</small><strong>{summary.total}</strong></div>
-      <div><small>Published</small><strong>{summary.active}</strong></div>
-      <div><small>Inactive</small><strong>{summary.inactive}</strong></div>
-      <div><small>Matching filters</small><strong>{total}</strong></div>
+      <MetricCard as="div" tone="neutral" label={<>All products</>} value={<>{summary.total}</>}/>
+      <MetricCard as="div" tone="neutral" label={<>Published</>} value={<>{summary.active}</>}/>
+      <MetricCard as="div" tone="neutral" label={<>Inactive</>} value={<>{summary.inactive}</>}/>
+      <MetricCard as="div" tone="neutral" label={<>Matching filters</>} value={<>{total}</>}/>
     </section>
     {error && <p className="admin-alert" role="alert">{error}</p>}
-    <section className="admin-panel nx-products-panel">
+    <Card as="section" className="admin-panel nx-products-panel">
       <div className="admin-panel-heading"><div><h2>All products</h2><p>Click any product to preview it. The Edit button opens its editor here.</p></div></div>
       <div className="nx-table-toolbar">
-        <label className="admin-search nx69-search"><span className="sr-only">Search catalogue</span><UiIcon name="search" size={19}/><SearchInput value={query} onChange={e => {setQuery(e.target.value);setPage(1);}} placeholder="Search products…" /></label>
+        <SearchField value={query} onChange={e => {setQuery(e.target.value);setPage(1);}} placeholder="Search products…" />
         <div className="nx-filter-pills" aria-label="Product status filter">
-          {[ ["all", "All"], ["active", "Active"], ["inactive", "Inactive"] ].map(([value,label]) => <button type="button" key={value} aria-pressed={filter === value} className={filter === value ? "is-active" : ""} onClick={() => {setFilter(value);setPage(1);}}>{label}</button>)}
+          {[ ["all", "All"], ["active", "Active"], ["inactive", "Inactive"] ].map(([value,label]) => <Button variant="secondary" type="button" key={value} aria-pressed={filter === value} className={filter === value ? "is-active" : ""} onClick={() => {setFilter(value);setPage(1);}}>{label}</Button>)}
         </div>
       </div>
       <div className="nx69-product-filters" aria-label="Catalogue filters">
-        <label><UiIcon name="filter" size={17}/><span className="sr-only">Category</span><Select aria-label="Filter by category" value={categoryFilter} onChange={e=>{setCategoryFilter(e.target.value);setPage(1);}}><option value="all">All categories</option>{categories.map(v=><option key={v} value={v}>{v}</option>)}</Select></label>
-        <label><span className="sr-only">Brand</span><Select aria-label="Filter by brand" value={brandFilter} onChange={e=>{setBrandFilter(e.target.value);setPage(1);}}><option value="all">All brands</option>{brands.map(v=><option key={v} value={v}>{v}</option>)}</Select></label>
-        <label><span className="sr-only">Stock</span><Select aria-label="Filter by stock" value={stockFilter} onChange={e=>{setStockFilter(e.target.value);setPage(1);}}><option value="all">All stock levels</option><option value="out">Out of stock</option><option value="low">Low stock (1–5)</option><option value="healthy">Above 5 in stock</option></Select></label>
+        <FormField label="Category"><Select aria-label="Filter by category" value={categoryFilter} onChange={e=>{setCategoryFilter(e.target.value);setPage(1);}}><option value="all">All categories</option>{categories.map(v=><option key={v} value={v}>{v}</option>)}</Select></FormField>
+        <FormField label="Brand"><Select aria-label="Filter by brand" value={brandFilter} onChange={e=>{setBrandFilter(e.target.value);setPage(1);}}><option value="all">All brands</option>{brands.map(v=><option key={v} value={v}>{v}</option>)}</Select></FormField>
+        <FormField label="Stock"><Select aria-label="Filter by stock" value={stockFilter} onChange={e=>{setStockFilter(e.target.value);setPage(1);}}><option value="all">All stock levels</option><option value="out">Out of stock</option><option value="low">Low stock (1–5)</option><option value="healthy">Above 5 in stock</option></Select></FormField>
         <ClearFilters active={Boolean(query)||filter!=='all'||categoryFilter!=='all'||brandFilter!=='all'||stockFilter!=='all'||sort!=='newest'} label="Clear product filters" onClear={()=>{setQuery('');setFilter('all');setCategoryFilter('all');setBrandFilter('all');setStockFilter('all');setPage(1);setSort('newest');}}/>
-        <label className="nx71-products-sort">Sort <Select value={sort} aria-label="Sort products" onChange={e=>{setSort(e.target.value);setPage(1);}}><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="name">Name A–Z</option><option value="stock">Lowest stock</option></Select></label><span className="nx69-filter-total" role="status">{total} matching products</span>
+        <FormField className="nx71-products-sort">Sort <Select value={sort} aria-label="Sort products" onChange={e=>{setSort(e.target.value);setPage(1);}}><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="name">Name A–Z</option><option value="stock">Lowest stock</option></Select></FormField><span className="nx69-filter-total" role="status">{total} matching products</span>
       </div>
-      {loading ? <div className="admin-empty">Loading your catalogue…</div> : <div className="admin-table-wrap">
+      {loading ? <div className="admin-empty">Loading your catalogue…</div> : <TableContainer className="admin-table-wrap">
         <DataTable className="admin-table admin-product-table">
-          <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Manage</th></tr></thead>
-          <tbody>{visible.length === 0 ? <tr><td colSpan={6}><EmptyState title="No products found" description="Try another search or clear your filters."/></td></tr> : visible.map(product => <tr key={product.id} className="nx50-product-row" tabIndex={0}
+          <TableHead><TableRow><TableHeader>Product</TableHeader><TableHeader>Category</TableHeader><TableHeader align="end">Price</TableHeader><TableHeader align="end">Stock</TableHeader><TableHeader>Status</TableHeader><TableHeader>Manage</TableHeader></TableRow></TableHead>
+          <TableBody>{visible.length === 0 ? <TableRow><TableCell colSpan={6}><EmptyState title={summary.total?"No matching products":"No products yet"} description={summary.total?"Try another search or clear your filters.":"Add your first product to build the catalogue."}/></TableCell></TableRow> : visible.map(product => <TableRow key={product.id} className="nx50-product-row" tabIndex={0}
             aria-label={`Preview ${product.name}. Use the Edit button to edit without navigating.`}
             onClick={event => openProductPreview(event, product)}
             onKeyDown={event => openProductPreview(event, product)}>
-            <td><div className="admin-product-cell"><Link className="nx-admin-product-image" to={`/admin/products/${product.id}/preview`} state={{from:"/admin/products"}} title={`View ${product.name}`}>{product.imageUrl ? <img src={apiAssetUrl(product.imageUrl)} alt=""/> : <span>□</span>}</Link><div><Link className="nx46-product-title" title={product.name} to={`/admin/products/${product.id}/preview`} state={{from:"/admin/products"}}>{product.name}</Link><small>{product.brand || "Product"} · ID {product.id}</small></div></div></td>
-            <td className="admin-muted">{product.category}</td><td><strong>{money(product.displayPrice ?? product.price)}</strong>{product.hasVariants && <small>SKU starting price</small>}</td><td>{product.displayStock ?? product.stock}{product.hasVariants && <small>Across active SKUs</small>}</td>
-            <td><span className={`admin-status ${product.isActive ? "is-active" : "is-inactive"}`}>{product.isActive ? "Active" : "Inactive"}</span></td>
-            <td><div className="admin-row-actions nx-actions">
-              <Link className="nx69-icon-action nx70-preview-action" title="Preview product" aria-label={`Preview ${product.name}`} to={`/admin/products/${product.id}/preview`} state={{from:"/admin/products"}}><UiIcon name="eye" size={17}/></Link>
-              <button className="nx69-icon-action" title="Edit product" aria-label={`Edit ${product.name}`} type="button" onClick={() => setEditor({ id: product.id, name: product.name })}><UiIcon name="edit" size={17}/></button>
-              <button className="nx69-icon-action" title={product.isActive?'Deactivate product':'Activate product'} aria-label={`${product.isActive?'Deactivate':'Activate'} ${product.name}`} type="button" disabled={busyId === product.id} onClick={() => changeStatus(product)}><UiIcon name={product.isActive?'ban':'check'} size={17}/></button>
-              <button className={`nx69-icon-action nx69-sale-action ${product.showSaleBadge ? "nx70-sale-on" : "nx70-sale-off"}`} aria-pressed={Boolean(product.showSaleBadge)} type="button" disabled={busyId === product.id} title={product.showSaleBadge?'Hide sale label':'Show sale label (requires a real price reduction)'} aria-label={`${product.showSaleBadge?'Hide':'Show'} sale badge for ${product.name}`} onClick={() => toggleSaleBadge(product)}><span aria-hidden="true">SALE</span><span className="sr-only">{product.showSaleBadge ? "enabled" : "disabled"}</span></button>
-              <button className="nx69-icon-action nx69-icon-danger" title="Delete product" aria-label={`Delete ${product.name}`} type="button" disabled={busyId === product.id} onClick={() => { setDeleteTarget(product); setDeleteConfirmation(""); setError(""); }}><UiIcon name="trash" size={17}/></button>
-            </div></td>
-          </tr>)}</tbody>
+            <TableCell><EntityCell className="admin-product-cell"><Link  className="nx-admin-product-image" to={`/admin/products/${product.id}/preview`} state={{from:"/admin/products"}} title={`View ${product.name}`}>{product.imageUrl ? <img src={apiAssetUrl(product.imageUrl)} alt=""/> : <span>□</span>}</Link><div><EntityTitle as={Link}  title={product.name} to={`/admin/products/${product.id}/preview`} state={{from:"/admin/products"}}>{product.name}</EntityTitle><EntitySubtitle>{product.brand || "Product"} · ID {product.id}</EntitySubtitle></div></EntityCell></TableCell>
+            <TableCell className="admin-muted">{product.category}</TableCell><TableCell numeric><strong>{money(product.displayPrice ?? product.price)}</strong>{product.hasVariants && <small>SKU starting price</small>}</TableCell><TableCell numeric>{product.displayStock ?? product.stock}{product.hasVariants && <small>Across active SKUs</small>}</TableCell>
+            <TableCell><StatusBadge tone={product.isActive ? "success" : "neutral"} >{product.isActive ? "Active" : "Inactive"}</StatusBadge></TableCell>
+            <TableCell actions><IconActionGroup >
+              <IconButton as={Link} variant="secondary" className="nx70-preview-action" title="Preview product" aria-label={`Preview ${product.name}`} to={`/admin/products/${product.id}/preview`} state={{from:"/admin/products"}}><UiIcon name="eye" size={17}/></IconButton>
+              <IconButton variant="secondary"  title="Edit product" aria-label={`Edit ${product.name}`} type="button" onClick={() => setEditor({ id: product.id, name: product.name })}><UiIcon name="edit" size={17}/></IconButton>
+              <IconButton variant="secondary"  title={product.isActive?'Deactivate product':'Activate product'} aria-label={`${product.isActive?'Deactivate':'Activate'} ${product.name}`} type="button" disabled={busyId === product.id} onClick={() => changeStatus(product)}><UiIcon name={product.isActive?'ban':'check'} size={17}/></IconButton>
+              <IconButton variant={product.showSaleBadge ? "success" : "secondary"} aria-pressed={Boolean(product.showSaleBadge)} type="button" disabled={busyId === product.id} title={product.showSaleBadge?'Hide sale label':'Show sale label (requires a real price reduction)'} aria-label={`${product.showSaleBadge?'Hide':'Show'} sale badge for ${product.name}`} onClick={() => toggleSaleBadge(product)}><span aria-hidden="true">SALE</span><span className="sr-only">{product.showSaleBadge ? "enabled" : "disabled"}</span></IconButton>
+              <IconButton variant="danger"  title="Delete product" aria-label={`Delete ${product.name}`} type="button" disabled={busyId === product.id} onClick={() => { setDeleteTarget(product); setDeleteConfirmation(""); setError(""); }}><UiIcon name="trash" size={17}/></IconButton>
+            </IconActionGroup></TableCell>
+          </TableRow>)}</TableBody>
         </DataTable>
-      </div>}
+      </TableContainer>}
       <Pagination page={page} pages={pages} total={total} pageSize={10} label="products" onPageChange={setPage}/>
-    </section>
+    </Card>
     {editor && <AdminProductEditDialog productId={editor.id} name={editor.name}
       onClose={() => { setEditor(null); refresh(); }}
       onSaved={refresh}/>}
     {deleteTarget && <Modal title="Delete product permanently?" subtitle="This action is irreversible and may be refused when there are historical dependencies." size="small" onClose={() => { if (busyId === null) { setDeleteTarget(null); setDeleteConfirmation(""); } }} closeDisabled={busyId !== null}>
       {error && <p className="admin-alert" role="alert">{error}</p>}
       <div className="nx-delete-warning"><strong>{deleteTarget.name}</strong><p>All related SKU and media database records will be removed if the server determines deletion is safe. Local image/video files stay on disk for separate cleanup.</p></div>
-      <label className="nx-confirm-label">Enter the exact product name to confirm<input autoComplete="off" value={deleteConfirmation} onChange={e => setDeleteConfirmation(e.target.value)} placeholder={deleteTarget.name}/></label>
-      <div className="admin-form-actions"><button className="admin-danger-action" type="button" disabled={busyId !== null || deleteConfirmation !== deleteTarget.name} onClick={remove}>{busyId !== null ? "Deleting…" : "Yes, delete permanently"}</button><button type="button" onClick={() => { setDeleteTarget(null); setDeleteConfirmation(""); }} disabled={busyId !== null}>Cancel</button></div>
+      <FormField className="nx-confirm-label">Enter the exact product name to confirm<TextField autoComplete="off" value={deleteConfirmation} onChange={e => setDeleteConfirmation(e.target.value)} placeholder={deleteTarget.name}/></FormField>
+      <div className="admin-form-actions"><Button variant="danger"  type="button" disabled={busyId !== null || deleteConfirmation !== deleteTarget.name} onClick={remove}>{busyId !== null ? "Deleting…" : "Yes, delete permanently"}</Button><Button variant="secondary" type="button" onClick={() => { setDeleteTarget(null); setDeleteConfirmation(""); }} disabled={busyId !== null}>Cancel</Button></div>
     </Modal>}
   </AdminLayout>;
 }

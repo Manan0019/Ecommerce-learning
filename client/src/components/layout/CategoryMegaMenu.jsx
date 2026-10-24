@@ -1,3 +1,4 @@
+import { Button, IconButton } from "../ui/index";
 import { useEffect, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import { Link } from "react-router-dom";
@@ -32,16 +33,16 @@ function MenuBranch({ category, close, depth = 0, ancestors = [] }) {
   return <li className={`nx35-category-item ${hasChildren ? "has-children" : ""} ${expanded ? "is-expanded" : ""} ${direction === "left" ? "opens-left" : ""}`}
     onPointerEnter={selectSide} onFocus={selectSide}>
     <div className="nx35-category-item-row">
-      <Link to={target} className="nx35-category-link" onClick={close}>
+      <Link  to={target} className="nx35-category-link" onClick={close}>
         <CategoryGlyph name={category.name} iconUrl={category.menuIconUrl} />
         <span>{category.name}</span>
       </Link>
-      {hasChildren && <button type="button" className="nx35-category-expand" aria-expanded={expanded}
+      {hasChildren && <IconButton variant="secondary" type="button" className="nx35-category-expand" aria-expanded={expanded}
         aria-label={`${expanded ? "Collapse" : "Expand"} ${category.name} subcategories`}
-        onClick={() => setExpanded(open => !open)}><UiIcon name="chevron-right" size={16}/></button>}
+        onClick={() => setExpanded(open => !open)}><UiIcon name="chevron-right" size={16}/></IconButton>}
     </div>
     {hasChildren && <ul className="nx35-category-submenu" aria-label={`${category.name} subcategories`}>
-      <li className="nx35-menu-parent-link"><Link to={target} onClick={close}>View all {category.name} <UiIcon name="chevron-right" size={15}/></Link></li>
+      <li className="nx35-menu-parent-link"><Link  to={target} onClick={close}>View all {category.name} <UiIcon name="chevron-right" size={15}/></Link></li>
       {children.map(child => <MenuBranch key={child.id} category={child} close={close} depth={depth+1} ancestors={[...ancestors,id]} />)}
     </ul>}
   </li>;
@@ -65,12 +66,12 @@ export default function CategoryMegaMenu({ mobileOpen, onNavigate }) {
     onBlur={event => {if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);}}
     onKeyDown={event => { if (event.key === "Escape") {event.preventDefault();event.currentTarget.querySelector(".nx35-category-trigger")?.focus();setOpen(false);} }}>
     <div className="nx35-nav-trigger-row">
-      <button className="nx35-category-trigger nx78-category-unified" type="button"
+      <Button variant="secondary" className="nx35-category-trigger nx78-category-unified" type="button"
         aria-label="Explore categories and subcategories" aria-controls="nx78-category-dropdown"
         aria-haspopup="true" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/></svg>
         <span>Categories</span><UiIcon name="chevron-down" size={16}/>
-      </button>
+      </Button>
     </div>
     <nav id="nx78-category-dropdown" className="nx35-category-dropdown" aria-label="Category and subcategory navigation">
       <div className="nx35-category-heading"><span>EXPLORE BY CATEGORY</span><Link to="/categories" onClick={close}>View all <UiIcon name="chevron-right" size={15}/></Link></div>

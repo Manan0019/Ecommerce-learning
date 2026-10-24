@@ -105,8 +105,7 @@
   transform: scaleX(0);
   transition: transform 0.2s ease;
 }
-.store-nav a:hover::after,
-.store-nav a.active::after {
+.store-nav a:hover::after,.store-nav a.active::after {
   transform: scaleX(1);
 }
 .nav-search {
@@ -118,20 +117,12 @@
 .nav-search input {
   width: 100%;
   padding: 9px 4px;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--ink);
 }
 .nav-search button {
   width: 34px;
   padding: 7px;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
 }
-.nav-search svg,
-.cart-link svg {
+.nav-search svg,.cart-link svg {
   width: 21px;
   fill: none;
   stroke: currentColor;
@@ -214,8 +205,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.profile-dropdown a,
-.profile-dropdown button {
+.profile-dropdown a,.profile-dropdown button {
   width: 100%;
   display: block;
   padding: 10px 9px;
@@ -227,8 +217,7 @@
   text-align: left;
   text-decoration: none;
 }
-.profile-dropdown a:hover,
-.profile-dropdown button:hover {
+.profile-dropdown a:hover,.profile-dropdown button:hover {
   background: #f1f1ec;
 }
 .profile-dropdown small {
@@ -265,15 +254,13 @@
 .hero-copy .eyebrow {
   color: #67e8f9;
 }
-.hero-copy .hero-description,
-.hero-copy .hero-stats dd {
+.hero-copy .hero-description,.hero-copy .hero-stats dd {
   color: #b8c5d8;
 }
 .hero-copy .hero-stats div {
   border-color: rgba(255, 255, 255, 0.16);
 }
-.hero-copy .hero-stats dt,
-.hero-copy .text-link {
+.hero-copy .hero-stats dt,.hero-copy .text-link {
   color: #fff;
 }
 .hero-copy .button-primary {
@@ -381,8 +368,7 @@
   border-radius: 28%;
   background: linear-gradient(135deg, #0f172a, #2563eb);
 }
-.device-watch::before,
-.device-watch::after {
+.device-watch::before,.device-watch::after {
   position: absolute;
   left: 35%;
   width: 30%;
@@ -407,9 +393,7 @@
   font-family: inherit;
   font-style: normal;
 }
-.section-heading h2,
-.editorial-banner h2,
-.content-callout h2 {
+.section-heading h2,.editorial-banner h2,.content-callout h2 {
   font-family: inherit;
   font-weight: 720;
 }
@@ -483,9 +467,7 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
-.hero-copy h1,
-.page-hero h1,
-.product-detail-copy h1 {
+.hero-copy h1,.page-hero h1,.product-detail-copy h1 {
   margin: 0;
   color: var(--ink);
   font:
@@ -611,9 +593,7 @@
   justify-content: space-between;
   gap: 24px;
 }
-.section-heading h2,
-.editorial-banner h2,
-.content-callout h2 {
+.section-heading h2,.editorial-banner h2,.content-callout h2 {
   margin: 0;
   color: var(--ink);
   font:
@@ -636,8 +616,7 @@
   overflow: hidden;
   background: #ecece6;
 }
-.product-card img,
-.product-card .missing-image {
+.product-card img,.product-card .missing-image {
   width: 100%;
   height: 100%;
   display: flex;
@@ -812,18 +791,9 @@
   min-width: 0;
   flex: 1;
   padding: 17px 18px;
-  border: 0;
-  border-radius: inherit;
-  outline: 0;
-  background: transparent;
 }
 .catalogue-search button {
   padding: 0 26px;
-  border: 0;
-  border-radius: 10px;
-  background: #2563eb;
-  color: #fff;
-  font-weight: 800;
 }
 .category-tabs {
   padding: 15px 0;
@@ -846,15 +816,9 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  color: var(--muted);
-  font-size: 0.75rem;
 }
 .catalogue-results-bar select {
   padding: 9px 32px 9px 11px;
-  border: 1px solid #d4dce7;
-  border-radius: 8px;
-  background: #fff;
-  color: var(--ink);
 }
 .catalogue-layout {
   display: grid;
@@ -891,11 +855,6 @@
 }
 .filter-panel-heading button {
   padding: 0;
-  border: 0;
-  background: transparent;
-  color: #2563eb;
-  font-size: 0.7rem;
-  font-weight: 750;
 }
 .filter-group {
   margin: 0;
@@ -935,23 +894,13 @@
 .price-filter label {
   display: grid;
   gap: 5px;
-  color: #667085;
-  font-size: 0.68rem;
 }
 .price-filter input {
   width: 100%;
   padding: 8px;
-  border: 1px solid #d7dee9;
-  border-radius: 7px;
 }
 .price-filter > button {
   padding: 8px;
-  border: 0;
-  border-radius: 7px;
-  background: #eaf1ff;
-  color: #1746a2;
-  font-size: 0.7rem;
-  font-weight: 800;
 }
 .filter-help {
   color: var(--muted);
@@ -968,18 +917,12 @@
 .pagination button {
   min-height: 40px;
   padding: 0 16px;
-  border: 1px solid #d5dce8;
-  border-radius: 8px;
-  background: #fff;
-  color: #344054;
-  font-weight: 750;
 }
 .pagination span {
   color: var(--muted);
   font-size: 0.78rem;
 }
-.product-detail-copy h1,
-.page-hero h1 {
+.product-detail-copy h1,.page-hero h1 {
   font-family: inherit;
   font-weight: 720;
 }
@@ -1034,10 +977,7 @@
   font-weight: 700;
   text-align: right;
 }
-.catalogue-page,
-.product-page,
-.cart-page,
-.content-page {
+.catalogue-page,.product-page,.cart-page,.content-page {
   min-height: 65vh;
   padding: 0 5vw clamp(70px, 8vw, 120px);
 }
@@ -1068,8 +1008,7 @@
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
-.catalogue-toolbar > p,
-.search-summary {
+.catalogue-toolbar > p,.search-summary {
   color: var(--muted);
   font-size: 0.8rem;
 }
@@ -1080,21 +1019,12 @@
 }
 .category-filters button {
   padding: 8px 13px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
   white-space: nowrap;
-}
-.category-filters button.is-active {
-  background: var(--ink);
-  color: #fff;
 }
 .search-summary {
   margin: -16px 0 30px;
 }
-.store-empty,
-.store-alert {
+.store-empty,.store-alert {
   padding: 32px;
   border: 1px solid var(--line);
   background: #fff;
@@ -1176,8 +1106,6 @@
 .purchase-panel > label {
   display: block;
   margin-bottom: 10px;
-  font-size: 0.78rem;
-  font-weight: 800;
 }
 .purchase-row {
   display: flex;
@@ -1193,14 +1121,9 @@
 .quantity-picker button {
   width: 42px;
   height: 100%;
-  border: 0;
-  background: transparent;
-  font-size: 1.1rem;
 }
 .quantity-picker input {
   width: 46px;
-  border: 0;
-  outline: 0;
   text-align: center;
   appearance: textfield;
 }
@@ -1298,8 +1221,7 @@
 .compact-picker button {
   width: 34px;
 }
-.remove-button,
-.clear-cart-button {
+.remove-button,.clear-cart-button {
   padding: 4px 0;
   border: 0;
   border-bottom: 1px solid currentColor;
@@ -1417,9 +1339,7 @@
   gap: 42px;
   align-content: start;
 }
-.contact-details a,
-.contact-details address,
-.contact-details div > p:last-child {
+.contact-details a,.contact-details address,.contact-details div > p:last-child {
   color: var(--ink);
   font-style: normal;
   line-height: 1.7;
@@ -1440,9 +1360,6 @@
 .contact-form label {
   display: grid;
   gap: 7px;
-  color: var(--ink);
-  font-size: 0.78rem;
-  font-weight: 750;
 }
 .contact-form textarea {
   resize: vertical;

@@ -10,7 +10,6 @@ import AdminFooter from "./pages/admin/AdminFooter";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminStorefrontCopy from "./pages/admin/AdminStorefrontCopy";
 import AddProduct from "./pages/admin/AddProduct";
-import AdminComingSoon from "./pages/admin/AdminComingSoon";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -150,4 +149,3 @@ const appRouter=createBrowserRouter(createRoutesFromElements(<Route element={<><
 export default function App() {
  return <StoreErrorBoundary><BrandingProvider><CartProvider><RealtimeBridge/><RouterProvider router={appRouter}/></CartProvider></BrandingProvider></StoreErrorBoundary>;
 }
-

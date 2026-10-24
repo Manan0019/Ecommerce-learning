@@ -35,15 +35,7 @@ body {
   background: var(--cream);
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-button,
-a {
+button,a {
   -webkit-tap-highlight-color: transparent;
 }
 

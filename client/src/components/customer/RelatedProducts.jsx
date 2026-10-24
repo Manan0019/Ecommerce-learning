@@ -1,6 +1,6 @@
+import { Button } from "../ui/index";
 import ProductLoadingSkeleton from "../common/ProductLoadingSkeleton";
 
-import UiIcon from "../common/UiIcon";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../common/ProductCard";
@@ -45,7 +45,7 @@ export default function RelatedProducts({ productId }) {
     {status === "error" && <div className="nx33-recommendations-state" role="status">
       <strong>Recommendations are temporarily unavailable.</strong>
       <p>You can still explore the catalogue while we reconnect.</p>
-      <button className="button button-primary" type="button" onClick={() => { setStatus("loading"); setAttempt(x => x + 1); }}>Try again</button>
+      <Button variant="primary"  type="button" onClick={() => { setStatus("loading"); setAttempt(x => x + 1); }}>Try again</Button>
     </div>}
     {status === "ready" && (items.length
       ? <div className="product-grid related-products-grid">
@@ -53,7 +53,7 @@ export default function RelatedProducts({ productId }) {
         </div>
       : <div className="nx33-recommendations-state"><strong>Explore more from Nexora</strong>
           <p>There aren't any closely related products published yet.</p>
-          <Link className="button button-primary" to="/products?view=products">Browse the collection</Link>
+          <Button as={Link} variant="primary"  to="/products?view=products">Browse the collection</Button>
         </div>)}
   </section>;
 }

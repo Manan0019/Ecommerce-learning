@@ -1,3 +1,4 @@
+import { Button, EmptyState } from "../../components/ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import ProductLoadingSkeleton from "../../components/common/ProductLoadingSkeleton";
 import { useEffect, useState } from "react";
@@ -54,7 +55,7 @@ export default function Home() {
           <h1>Find what you love,<br />all in one place.</h1>
           <p className="hero-description">Explore products across every category, discover new favorites and shop with confidence.</p>
           <div className="hero-actions">
-            <Link className="button button-primary" to="/products">Explore products</Link>
+            <Button as={Link} variant="primary"  to="/products">Explore products</Button>
             <Link className="text-link" to="/about">Why shop with us </Link>
           </div>
           <dl className="hero-stats">
@@ -83,7 +84,7 @@ export default function Home() {
           {[1, 2, 3, 4].map((item) => <ProductLoadingSkeleton key={item} />)}
         </div>}
         {error && <p className="store-alert" role="alert">{error}</p>}
-        {!loading && !error && featured.length === 0 && <div className="store-empty">No featured products yet. An admin can mark products as Featured.</div>}
+        {!loading && !error && featured.length === 0 && <EmptyState icon="star" title="No featured products yet" description="An admin can mark products as Featured." />}
         {!loading && !error && featured.length > 0 && <div className="product-grid">
           {featured.map((product) => <ProductCard product={product} key={product.cardKey || product.id} />)}
         </div>}
@@ -97,7 +98,7 @@ export default function Home() {
         {categoryError && <p className="store-alert" role="alert">{categoryError}</p>}
         {featuredCategories.length > 0 ? <div className="nx16-category-grid">
           {featuredCategories.map((category,index) => <CategoryTile key={category.id} category={category} index={index} />)}
-        </div> : !loading && <p className="store-empty">Categories will appear as products are added.</p>}
+        </div> : !loading && <EmptyState icon="grid" title="No categories yet" description="Categories will appear as products are added." />}
       </section>
 
 
@@ -109,7 +110,7 @@ export default function Home() {
         <p className="eyebrow">{copy?.editorialEyebrow||"Thoughtfully selected"}</p>
         <h2>{copy?.editorialTitle||"Discover something new every day."}</h2>
         <p>{copy?.editorialDescription||"Explore products by category, brand and price, with useful details and a clear shopping cart."}</p>
-        <Link className="button button-light" to="/products">{copy?.editorialButton||"Browse products"}</Link>
+        <Button as={Link} variant="secondary" className="button-light" to="/products">{copy?.editorialButton||"Browse products"}</Button>
       </section>
     <NewsletterPopup />
   </CustomerLayout>;

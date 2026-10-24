@@ -1,3 +1,4 @@
+import { TextField } from "../ui/index";
 import {useId,useState} from 'react';
 import {INDIAN_STATES,canonicalIndianState} from '../../constants/indianStates';
 
@@ -15,7 +16,7 @@ export default function IndianStatePicker({value='',onChange,disabled=false,requ
   if(event.key==='Enter'&&expanded&&candidates[highlight]){event.preventDefault();pick(candidates[highlight])}
  }
  return <div className="nx75-state-picker">
-  <input name={name} role="combobox" aria-autocomplete="list" aria-controls={listId} aria-expanded={expanded} aria-activedescendant={expanded&&candidates[highlight]?`${listId}-${highlight}`:undefined} autoComplete="address-level1" maxLength={100} value={value} placeholder={placeholder} required={required} disabled={disabled}
+  <TextField name={name} role="combobox" aria-autocomplete="list" aria-controls={listId} aria-expanded={expanded} aria-activedescendant={expanded&&candidates[highlight]?`${listId}-${highlight}`:undefined} autoComplete="address-level1" maxLength={100} value={value} placeholder={placeholder} required={required} disabled={disabled}
    onFocus={()=>{setFocused(true);setHighlight(0)}} onBlur={()=>setFocused(false)} onChange={event=>{onChange(event.target.value);setFocused(true);setHighlight(0)}} onKeyDown={keyDown}/>
   {expanded&&<div id={listId} className="nx75-state-suggestions" role="listbox" aria-label="Suggested Indian states and union territories">
    {candidates.map((item,index)=><div role="option" aria-selected={highlight===index} id={`${listId}-${index}`} key={item} className={highlight===index?'is-highlighted':''} onPointerDown={event=>{event.preventDefault();pick(item)}}>{item}</div>)}

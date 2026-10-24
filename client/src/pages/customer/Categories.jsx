@@ -1,4 +1,6 @@
-import { EmptyState } from "../../components/ui/index";
+import usePagination from '../../hooks/usePagination';
+import { Pagination, EmptyState } from "../../components/ui/index";
+
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
@@ -18,13 +20,14 @@ export default function Categories() {
     return () => controller.abort();
   }, [liveRevision]);
   const top = state.categories.filter(c => !c.parentId);
+  const pager=usePagination(top);
   return <CustomerLayout mainClassName="nx-categories-page nx37-collections-page">
     <header className="nx37-collections-intro"><span className="eyebrow">THE COLLECTIONS</span><h1>Find your kind of everything.</h1><p>Explore categories made for the things you love, with an easier path to every subcategory.</p></header>
     {state.loading && <div className="nx37-category-grid" aria-label="Loading categories">{[1, 2, 3, 4].map(i => <div className="nx37-category-placeholder" key={i}/>)}</div>}
     {state.error && <div className="store-alert" role="alert">{state.error}</div>}
     {!state.loading && !state.error && top.length === 0 && <EmptyState icon="grid" title="No categories yet" description="New collections will appear here when available."/>}
     <div className="nx37-category-grid nx37-directory-grid">
-      {top.map((category, index) => {
+      {pager.items.map((category, index) => {
         const children = state.categories.filter(sub => String(sub.parentId) === String(category.id));
         return <section className="nx37-category-group" key={category.id}>
           <CategoryTile category={category} index={index} directory />
@@ -34,5 +37,6 @@ export default function Categories() {
         </section>;
       })}
     </div>
+  <Pagination {...pager} label="categories" onPageChange={pager.setPage}/>
   </CustomerLayout>;
 }

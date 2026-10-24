@@ -1,3 +1,4 @@
+import { Button } from "../ui/index";
 import { apiAssetUrl } from "../../services/apiClient";
 
 const priority=["color","colour","system_memory","ram","memory","storage","size"];
@@ -21,7 +22,7 @@ export default function ProductVariantSelector({variants,selectedVariant,onSelec
   const ai=priority.indexOf(a),bi=priority.indexOf(b);
   return (ai<0?100:ai)-(bi<0?100:bi);
  });
- if(!ordered.length)return <div className="variant-selection"><h3>Configuration</h3>{variants.map(v=><button key={v.id} type="button" className={`variant-option ${selectedVariant?.id===v.id?"is-selected":""}`} onClick={()=>onSelect(v.id)}>{v.sku} · {money(v.price)}</button>)}</div>;
+ if(!ordered.length)return <div className="variant-selection"><h3>Configuration</h3>{variants.map(v=><Button variant="plain" key={v.id} type="button" className={`variant-option ${selectedVariant?.id===v.id?"is-selected":""}`} onClick={()=>onSelect(v.id)}>{v.sku} · {money(v.price)}</Button>)}</div>;
  return <div className="variant-selection" aria-label="Select product configuration">
   {ordered.map(key=><fieldset key={key} className="variant-option-group">
    <legend><strong>{key.replaceAll("_"," ").replace(/\b\w/g,s=>s.toUpperCase())}:</strong> <span>{selectedVariant?.attributes?.[key]||"Choose"}</span></legend>
@@ -34,7 +35,7 @@ export default function ProductVariantSelector({variants,selectedVariant,onSelec
        String(m.variantId)===String(candidate?.id) && candidate?.id!=null));
      const picture=relevant.find(m=>m.isCardCover)||relevant[0];
      const img=picture?.url||coverUrl;
-     return <button type="button" key={value} disabled={!candidate} aria-pressed={selected}
+     return <Button variant="plain" type="button" key={value} disabled={!candidate} aria-pressed={selected}
        aria-label={`${value}${candidate?.stock===0?", out of stock":""}`}
        className={`variant-option ${selected?"is-selected":""} ${candidate?.stock===0?"is-sold-out":""} ${isColor?"is-image-option":""}`}
        onClick={()=>candidate&&onSelect(candidate.id)}>
@@ -42,7 +43,7 @@ export default function ProductVariantSelector({variants,selectedVariant,onSelec
        <span>{value}</span>
        {key==="storage"&&candidate&&<small>{money(candidate.price)}</small>}
        {candidate?.stock===0&&<small>Out of stock</small>}
-     </button>;
+     </Button>;
    })}</div>
   </fieldset>)}
   <p className="variant-selection-summary">Selected: {ordered.map(k=>selectedVariant?.attributes?.[k]).filter(Boolean).join(" · ")}</p>

@@ -1,3 +1,4 @@
+import { Button, FormField, TextField } from "../../components/ui/index";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerCustomer } from "../../services/authService";
@@ -17,7 +18,6 @@ export default function CustomerSignup() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [attempted, setAttempted] = useState(false);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -31,7 +31,6 @@ export default function CustomerSignup() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    setAttempted(true);
     setLoading(true);
     setMessage("");
 
@@ -64,8 +63,8 @@ export default function CustomerSignup() {
     description="Save favourites, manage delivery addresses and track your orders in one place.">
       <form className="auth-form auth-signup-form nx37-signup-form" onSubmit={handleSubmit}>
         <div className="nx37-signup-note"><span aria-hidden="true">✦</span> One account for favourites, addresses and orders.</div>
-        <label className="auth-field" htmlFor="signup-name"><span>Full name <b className="nx37-required" aria-hidden="true">*</b></span>
-          <input id="signup-name"
+        <FormField className="auth-field" htmlFor="signup-name"><span>Full name <b className="nx37-required" aria-hidden="true">*</b></span>
+          <TextField id="signup-name"
           type="text"
           name="fullName"
           placeholder="Your full name"
@@ -74,10 +73,10 @@ export default function CustomerSignup() {
           autoComplete="name"
           required
           />
-        </label>
+        </FormField>
 
-        <label className="auth-field" htmlFor="signup-email"><span>Email address <b className="nx37-required" aria-hidden="true">*</b></span>
-          <input id="signup-email"
+        <FormField className="auth-field" htmlFor="signup-email"><span>Email address <b className="nx37-required" aria-hidden="true">*</b></span>
+          <TextField id="signup-email"
           type="email"
           name="email"
           placeholder="you@example.com"
@@ -87,10 +86,10 @@ export default function CustomerSignup() {
           maxLength={254}
           required
           />
-        </label>
+        </FormField>
 
-        <label className="auth-field" htmlFor="signup-mobile"><span>Mobile number <b className="nx37-required" aria-hidden="true">*</b></span>
-          <input id="signup-mobile"
+        <FormField className="auth-field" htmlFor="signup-mobile"><span>Mobile number <b className="nx37-required" aria-hidden="true">*</b></span>
+          <TextField id="signup-mobile"
           type="tel"
           name="mobileNumber"
           placeholder="Your mobile number"
@@ -101,7 +100,7 @@ export default function CustomerSignup() {
           maxLength={16}
           required
           />
-        </label>
+        </FormField>
 
         <PasswordField id="signup-password" label="Password"
           name="password"
@@ -133,10 +132,10 @@ export default function CustomerSignup() {
 
         {message && <p className="auth-message auth-message-error" role="alert">{message}</p>}
 
-        <button className="auth-submit" type="submit" disabled={loading}>
+        <Button variant="primary"  type="submit" disabled={loading}>
           {loading && <span className="auth-spinner" aria-hidden="true" />}
           {loading ? "Sending verification code…" : "Create account"}
-        </button>
+        </Button>
       </form>
 
       <p className="auth-switch nx37-signup-switch">Already have an account? <Link to="/login">Sign in</Link></p>

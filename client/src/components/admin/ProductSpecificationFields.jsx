@@ -1,42 +1,43 @@
-import { Select } from "../ui/index";
+import { Checkbox, FormField, Select, TextField } from "../ui/index";
+
 function SpecificationInput({ field, value, onChange, disabled }) {
   const id = `specification-${field.key}`;
   if (field.type === "boolean") {
-    return <label className="admin-boolean-field" htmlFor={id}>
-      <input id={id} type="checkbox" checked={value === true} disabled={disabled}
+    return <FormField inline className="admin-boolean-field" htmlFor={id}>
+      <Checkbox id={id} type="checkbox" checked={value === true} disabled={disabled}
         onChange={(event) => onChange(field.key, event.target.checked)} />
       <span>{field.label}</span>
-    </label>;
+    </FormField>;
   }
 
   if (field.type === "multiSelect") {
-    return <label htmlFor={id}>{field.label}{field.unit ? ` (${field.unit})` : ""}
+    return <FormField htmlFor={id}>{field.label}{field.unit ? ` (${field.unit})` : ""}
       <Select id={id} multiple value={Array.isArray(value) ? value : []} disabled={disabled}
         onChange={(event) => onChange(field.key,
           [...event.target.selectedOptions].map((option) => option.value))}>
         {field.options.map((option) => <option value={option} key={option}>{option}</option>)}
       </Select>
       <small>Hold Ctrl or Command to select multiple values.</small>
-    </label>;
+    </FormField>;
   }
 
   if (field.type === "select") {
-    return <label htmlFor={id}>{field.label}
+    return <FormField htmlFor={id}>{field.label}
       <Select id={id} value={value ?? ""} disabled={disabled}
         onChange={(event) => onChange(field.key, event.target.value)}>
         <option value="">Select {field.label.toLowerCase()}</option>
         {field.options.map((option) => <option value={option} key={option}>{option}</option>)}
       </Select>
-    </label>;
+    </FormField>;
   }
 
-  return <label htmlFor={id}>{field.label}{field.unit ? ` (${field.unit})` : ""}
-    <input id={id} type={field.type === "number" ? "number" : "text"}
+  return <FormField htmlFor={id}>{field.label}{field.unit ? ` (${field.unit})` : ""}
+    <TextField id={id} type={field.type === "number" ? "number" : "text"}
       value={value ?? ""} disabled={disabled}
       min={field.min} max={field.max} step={field.type === "number" ? "any" : undefined}
       maxLength={field.maxLength}
       onChange={(event) => onChange(field.key, event.target.value)} />
-  </label>;
+  </FormField>;
 }
 
 export default function ProductSpecificationFields({ definition, specifications, onChange, loading }) {

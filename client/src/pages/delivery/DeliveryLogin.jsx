@@ -1,3 +1,4 @@
+import { Button, FormField, TextField } from "../../components/ui/index";
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/auth/AuthLayout';
@@ -41,12 +42,12 @@ export default function DeliveryLogin() {
   return <AuthLayout workforce eyebrow="NEXORA DELIVERY TEAM" title="Ready for your route?"
     description="Sign in with the delivery account created by your Nexora administrator.">
     <form className="auth-form nx52-delivery-login" onSubmit={submit} aria-busy={busy || checking}>
-      <label className="auth-field" htmlFor="delivery-email"><span>Delivery email</span>
-        <input id="delivery-email" type="email" value={email} required autoComplete="username" maxLength={254}
-          placeholder="executive@example.com" onChange={e => setEmail(e.target.value)} /></label>
+      <FormField className="auth-field" htmlFor="delivery-email"><span>Delivery email</span>
+        <TextField id="delivery-email" type="email" value={email} required autoComplete="username" maxLength={254}
+          placeholder="executive@example.com" onChange={e => setEmail(e.target.value)} /></FormField>
       <PasswordField id="delivery-password" label="Password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" required />
       {error && <p role="alert" className="auth-message auth-message-error">{error}</p>}
-      <button className="auth-submit" disabled={busy || checking} type="submit">{checking ? 'Checking session…' : busy ? 'Verifying account…' : 'Enter delivery workspace'} <UiIcon name="right" size={17}/></button>
+      <Button variant="primary"  disabled={busy || checking} type="submit">{checking ? 'Checking session…' : busy ? 'Verifying account…' : 'Enter delivery workspace'} <UiIcon name="right" size={17}/></Button>
     </form>
   </AuthLayout>;
 }

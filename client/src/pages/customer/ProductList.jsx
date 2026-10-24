@@ -1,4 +1,5 @@
-import { Select, Pagination } from "../../components/ui/index";
+import { EmptyState, Button, EntityTitle, FormField, Pagination, Select } from "../../components/ui/index";
+
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import ProductLoadingSkeleton from "../../components/common/ProductLoadingSkeleton";
 import { useEffect, useState } from "react";
@@ -65,6 +66,10 @@ export default function ProductList() {
         if (!params.has("view")) params.set("view", "products");
         const data = await getProducts({ signal: controller.signal, params });
         if (!controller.signal.aborted) {
+          const lastPage=Math.max(1,Number(data.pagination?.pages)||1);
+          if(Number(params.get('page')||1)>lastPage){
+            const next=new URLSearchParams(queryString);next.set('page',String(lastPage));setSearchParams(next,{replace:true});return;
+          }
           setProducts(data.products || []);
           setFacets(data.facets || []);
           setPriceBounds(data.priceBounds || null);
@@ -81,7 +86,7 @@ export default function ProductList() {
     }
     loadProducts();
     return () => controller.abort();
-  }, [queryString, selectedCategory,liveRevision]);
+  }, [queryString, selectedCategory,liveRevision,setSearchParams]);
 
   function updateParams(change) {
     const next = new URLSearchParams(searchParams);
@@ -157,7 +162,7 @@ export default function ProductList() {
           <Link to="/categories" className="nx48-departments-all">All categories</Link>
         </div>
         <div className="nx48-department-track" role="group" aria-label="Choose a department">
-          <button type="button" className={`nx48-department ${!selectedCategory ? "is-active" : ""}`}
+          <Button variant="secondary" type="button" className={`nx48-department ${!selectedCategory ? "is-active" : ""}`}
             aria-pressed={!selectedCategory} onClick={() => chooseCategory("")}>
             <span className="nx48-department-icon nx49-all-departments-icon" aria-hidden="true">
               {rootCategories(categories).length ? <span className="nx49-all-departments-mosaic">
@@ -166,15 +171,15 @@ export default function ProductList() {
             </span>
             <span className="nx48-department-text"><strong>All products</strong><small>Everything in store</small></span>
             <span className="nx66-department-accent" aria-hidden="true"/>
-          </button>
+          </Button>
           {rootCategories(categories).map(item => {
             const isActive = item.slug === selectedCategory || ancestors.some(ancestor => ancestor.slug === item.slug);
-            return <button key={item.id} type="button" className={`nx48-department ${isActive ? "is-active" : ""}`}
+            return <Button variant="secondary" key={item.id} type="button" className={`nx48-department ${isActive ? "is-active" : ""}`}
               aria-pressed={isActive} onClick={() => chooseCategory(item.slug)}>
               <CategoryMiniArtwork category={item} className="nx48-department-icon" />
-              <span className="nx48-department-text"><strong>{item.name}</strong><small>{Number(item.productCount)>0?`${item.productCount} products`:"View collection"}</small></span>
+              <span className="nx48-department-text"><EntityTitle>{item.name}</EntityTitle><small>{Number(item.productCount)>0?`${item.productCount} products`:"View collection"}</small></span>
               <span className="nx66-department-accent" aria-hidden="true"/>
-            </button>;
+            </Button>;
           })}
         </div>
       </section>
@@ -186,18 +191,18 @@ export default function ProductList() {
       </section>}
 
       <div className="catalogue-results-bar">
-        <p>
+        <p className="nx-catalogue-result-count" aria-live="polite">
           {loading
             ? "Searching…"
             : `${pagination.total} ${(searchParams.get("view") || "products") === "products" ? "products" : searchParams.get("view") === "colors" ? "color choices" : "configurations"}`}
         </p>
-        <label className="nx17-view-control">
+        <FormField className="nx17-view-control">
           Show
           <Select value={searchParams.get("view") || "products"} onChange={e => updateParams(next=>next.set("view",e.target.value))}>
             <option value="products">One per product</option><option value="colors">By color</option><option value="variants">All configurations</option>
           </Select>
-        </label>
-        <label>
+        </FormField>
+        <FormField>
           Sort by
           <Select
             value={
@@ -214,14 +219,14 @@ export default function ProductList() {
             <option value="price_desc">Price: high to low</option>
             <option value="name">Name</option>
           </Select>
-        </label>
+        </FormField>
       </div>
 
       <ActiveFilterChips
         params={searchParams}
         facets={facets}
         onRemove={(chip) => setSearchParams(removeCatalogueFilter(searchParams, chip))}
-        onClear={() => changeFilter(null, [])}
+        onClear={() => routeCategory ? navigate("/products") : setSearchParams(new URLSearchParams())}
       />
 
       <div className="catalogue-layout">
@@ -254,20 +259,13 @@ export default function ProductList() {
             </p>
           )}
           {!loading && !error && selectedCategory && !category && (
-            <div className="store-empty">
-              <h2>Category unavailable</h2>
-              <p>This category is inactive or does not exist.</p>
-            </div>
+            <EmptyState icon="grid" title="Category unavailable" description="This category is inactive or does not exist."/>
           )}
           {!loading &&
             !error &&
             products.length === 0 &&
             (!selectedCategory || category) && (
-              <div className="store-empty">
-                <h2>No matching products</h2>
-                <p>{parentCategory ? `No active products are assigned to ${activeCategory.name} yet. Try ${parentCategory.name} or remove a filter.` : "Remove a filter or try a broader search."}</p>
-                {parentCategory && <Link to={`/categories/${encodeURIComponent(parentCategory.slug)}`} className="button button-primary">Browse {parentCategory.name}</Link>}
-              </div>
+              <EmptyState icon="search" title={searchParams.size||selectedCategory?"No matching products":"No products yet"} description={parentCategory?`No active products are assigned to ${activeCategory.name} yet. Try ${parentCategory.name} or remove a filter.`:"Try another search or check back for new products."} action={parentCategory&&<Button as={Link} variant="primary" to={`/categories/${encodeURIComponent(parentCategory.slug)}`}>Browse {parentCategory.name}</Button>}/>
             )}
           {!loading && !error && products.length > 0 && (
             <div className="product-grid">
@@ -276,7 +274,7 @@ export default function ProductList() {
               ))}
             </div>
           )}
-          {!loading && !error && pagination.pages > 1 && (
+          {!loading && !error && pagination.total > 0 && (
             <Pagination page={pagination.page} pages={pagination.pages} total={pagination.total} pageSize={10} label="products" onPageChange={changePage}/>
           )}
         </section>

@@ -4,8 +4,8 @@
 .nx81-finance-head h2{color:#122445;font-size:clamp(22px,2vw,29px);margin:6px 0 7px}
 .nx81-finance-head p{color:#747a98;max-width:580px}
 .nx81-finance-filters{display:flex;flex-wrap:wrap;gap:9px;align-items:end}
-.nx81-finance-filters label{display:grid;gap:5px;color:#49406b;font-size:12px;font-weight:800}
-.nx81-finance-filters input,.nx81-finance-filters select{background:#fbfaff;border:1px solid #dcd6ef;border-radius:11px;padding:10px;color:#262044;min-height:41px;max-width:170px}
+.nx81-finance-filters label{display:grid;gap:5px}
+.nx81-finance-filters input,.nx81-finance-filters select{padding:10px;min-height:41px;max-width:170px}
 .nx81-finance-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0 22px}
 .nx81-finance-cards article{display:grid;gap:10px;min-width:0;border:1px solid;border-radius:17px;padding:17px;background:#fff;transition:transform .22s ease,box-shadow .22s ease}
 .nx81-finance-cards article:hover{transform:translateY(-2px);box-shadow:0 12px 25px #33277610}
@@ -23,16 +23,11 @@
 .nx81-table-scroll th,.nx81-table-scroll td{padding:12px 10px;text-align:left;white-space:nowrap}
 .nx81-payout-button{border:1px solid #c9bafa;border-radius:10px;padding:9px 12px;background:#eee8ff;color:#5540b4;font-weight:750;cursor:pointer}
 .nx81-payout-button:hover{background:#5b42d6;color:#fff}
-.nx80-icon-btn>svg,.nx80-icon-btn>.nx47-icon,.nx80-executive-actions svg{display:block;position:static;flex:0 0 auto;margin:0!important;transform:none!important;vertical-align:middle}
-.nx80-executive-actions{display:flex;align-items:center;justify-content:center;gap:8px}
-.nx80-executive-actions>.nx80-icon-btn{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 43px;padding:0!important;line-height:1!important;text-indent:0!important}
 .nx81-leave-overlay{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:#121626af;padding:18px}
 .nx81-leave-dialog{background:white;border:1px solid #dedaf3;box-shadow:0 30px 80px #16133745;border-radius:24px;padding:30px;width:min(100%,470px)}
 .nx81-leave-dialog h2{font-size:26px;color:#142243;margin:10px 0}.nx81-leave-dialog p{color:#616681;line-height:1.6}
 .nx81-leave-buttons{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-top:22px}
-.nx81-leave-buttons button{padding:12px 18px;border:1px solid #d7cefb;border-radius:11px;background:#f7f4ff;color:#5742b3;font-weight:800;cursor:pointer;transition:transform .2s ease}
-.nx81-leave-buttons button:last-child{background:#ba2448;color:white;border-color:#ba2448}
-.nx81-leave-buttons button:hover{transform:translateY(-2px)}
+.nx81-leave-buttons button{padding:12px 18px;cursor:pointer}
 @media(max-width:1150px){.nx81-finance-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.nx81-finance{padding:15px}.nx81-finance-cards{grid-template-columns:1fr}.nx81-finance-filters{width:100%}.nx81-finance-filters label{flex:1 1 130px}.nx81-finance-filters input,.nx81-finance-filters select{max-width:100%;width:100%}}
 @media(prefers-reduced-motion:reduce){.nx81-finance *,.nx81-leave-dialog *{transition:none!important;transform:none!important}}

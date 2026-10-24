@@ -1,3 +1,4 @@
+import { Button, FormField, TextField } from "../../components/ui/index";
 import { useState } from "react";
 import {
   useLocation,
@@ -46,7 +47,7 @@ export default function VerifyOTP() {
   if (!email) {
     return <AuthLayout eyebrow="Verification" title="No pending signup found."
       description="Start registration again to request a new verification code." compact>
-      <Link className="auth-submit auth-link-button" to="/signup">Create your account</Link>
+      <Button as={Link} variant="primary" className="auth-link-button" to="/signup">Create your account</Button>
       <p className="auth-switch"><Link to="/login">Return to sign in</Link></p>
     </AuthLayout>;
   }
@@ -56,8 +57,8 @@ export default function VerifyOTP() {
       <p className="auth-verification-note">Enter the six-digit code sent to <strong>{email}</strong>.</p>
 
       <form className="auth-form" onSubmit={handleVerify}>
-        <label className="auth-field" htmlFor="verification-code"><span>Verification code</span>
-          <input id="verification-code" className="auth-otp-input"
+        <FormField className="auth-field" htmlFor="verification-code"><span>Verification code</span>
+          <TextField id="verification-code" className="auth-otp-input"
           type="text"
           inputMode="numeric"
           autoComplete="one-time-code"
@@ -73,17 +74,17 @@ export default function VerifyOTP() {
           }}
           required
           />
-        </label>
+        </FormField>
 
         {message && <p className="auth-message auth-message-error" role="alert">{message}</p>}
 
-        <button className="auth-submit"
+        <Button variant="primary" 
           type="submit"
           disabled={loading || otp.length !== 6}
         >
           {loading && <span className="auth-spinner" aria-hidden="true" />}
           {loading ? "Verifying…" : "Verify email"}
-        </button>
+        </Button>
       </form>
 
       <p className="auth-switch">Wrong email? <Link to="/signup">Start again</Link></p>

@@ -1,11 +1,30 @@
-import {forwardRef} from 'react';
+import { forwardRef, useRef, useState } from 'react';
 import UiIcon from '../common/UiIcon';
-/** Search input and optional complete field use the same native input design. */
-export const SearchInput=forwardRef(function SearchInput({className='',placeholder='Search',...props},ref){
- return <input ref={ref} type="search" className={`nx-ui-search-input ${className}`.trim()}
-  placeholder={placeholder} aria-label={props['aria-label']||placeholder} {...props}/>;
+import IconButton from './IconButton';
+
+/** Owns the icon, native input, clear action and spacing. Ref points at the input. */
+const SearchField = forwardRef(function SearchField({ label, value, defaultValue = '', onChange, onClear, placeholder = 'Search', clearable = true,
+  size = 'md', className = '', disabled, ...props }, ref) {
+  const inputRef = useRef(null);
+  const [localValue, setLocalValue] = useState(defaultValue);
+  const currentValue = value === undefined ? localValue : value;
+  function clear() {
+    const input = inputRef.current;
+    // Preserve real target/currentTarget semantics in existing React change handlers.
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+    setter.call(input, '');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    setLocalValue('');
+    onClear?.();
+    input.focus();
+  }
+  return <span className={`nx-ui-search-field nx-ui-size--${size} ${className}`.trim()} data-disabled={disabled || undefined}>
+    <UiIcon name="search"/>
+    <input {...props} ref={node => { inputRef.current = node; if (typeof ref === 'function') ref(node); else if (ref) ref.current = node; }}
+      type="search" className="nx-ui-search-input" disabled={disabled} value={currentValue} placeholder={placeholder}
+      aria-label={props['aria-label'] || label || placeholder} onChange={event => { setLocalValue(event.target.value); onChange?.(event); }}/>
+    {clearable && String(currentValue || '').length > 0 && <IconButton icon="x" label={`Clear ${label || props['aria-label'] || 'search'}`}
+      className="nx-ui-search-clear" variant="ghost" disabled={disabled} onClick={clear}/>}
+  </span>;
 });
-export default function SearchField({label='Search',value,onChange,placeholder=label,className='',...props}){
- return <label className={`nx-ui-search-field ${className}`.trim()}><UiIcon name="search" size={18}/>
-  <SearchInput value={value} onChange={onChange} placeholder={placeholder} aria-label={label} {...props}/></label>;
-}
+export default SearchField;

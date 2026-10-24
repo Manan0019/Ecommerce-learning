@@ -1,3 +1,4 @@
+import { ClearFilters, Button, FormField, TextField } from "../ui/index";
 import { useId, useRef, useState } from "react";
 import {
   getSelectedPriceRange,
@@ -122,11 +123,11 @@ function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
 
   return <div className="nx30-price-filter nx32-price-filter" aria-label="Filter by price">
     <div className="nx32-price-entry-row">
-      {(["min", "max"]).map((handle) => <label className="nx32-price-entry" key={handle} htmlFor={handle === "min" ? minId : maxId}>
+      {(["min", "max"]).map((handle) => <FormField className="nx32-price-entry" key={handle} htmlFor={handle === "min" ? minId : maxId}>
         <span>{handle === "min" ? "Min price" : "Max price"}</span>
         <span className={`nx32-price-input-wrap${validation.errors[handle] ? " is-invalid" : ""}`}>
           <span className="nx32-rupee" aria-hidden="true">₹</span>
-          <input
+          <TextField
             id={handle === "min" ? minId : maxId}
             type="text"
             inputMode="numeric"
@@ -141,7 +142,7 @@ function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
             aria-describedby={validation.errors[handle] ? errorId : undefined}
           />
         </span>
-      </label>)}
+      </FormField>)}
     </div>
 
     <div
@@ -186,8 +187,8 @@ function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
       {validation.errors.min || validation.errors.max}
     </p>}
     <div className="nx30-price-actions">
-      <button className="nx30-price-apply" type="button" onClick={apply} disabled={disabled || !dirty || !validation.valid}>Apply range</button>
-      {(modified || hasFilter) && <button className="nx30-price-reset" type="button" onClick={reset} disabled={disabled}>Reset</button>}
+      <Button variant="secondary" className="nx30-price-apply" type="button" onClick={apply} disabled={disabled || !dirty || !validation.valid}>Apply range</Button>
+      <ClearFilters active={modified||hasFilter} label="Clear price range" onClear={reset} disabled={disabled}/>
     </div>
   </div>;
 }

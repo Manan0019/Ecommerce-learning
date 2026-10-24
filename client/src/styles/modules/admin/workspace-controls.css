@@ -2,76 +2,63 @@
 /* Phase 69 · Nexora compare workspace & accessible admin controls. */
 /* Shared UI tokens. Preserve operational meaning: red=danger, purple=primary. */
 :root{--nx69-purple:#5b45da;--nx69-purple-deep:#33218c;--nx69-red:#be123c;--nx69-red-soft:#fff1f3;--nx69-line:#e0e4f1}
-.nx69-icon-action{appearance:none!important;display:inline-grid!important;place-items:center!important;flex:0 0 auto;min-width:38px!important;width:38px!important;height:38px!important;min-height:38px!important;padding:0!important;border:1px solid #dcdcf0!important;border-radius:11px!important;background:#f8f7ff!important;color:#5941ba!important;cursor:pointer;font-weight:850;line-height:1!important;text-decoration:none!important;transition:transform .22s cubic-bezier(.2,.75,.3,1),box-shadow .22s,background .22s,border-color .22s!important}
-.nx69-icon-action svg{display:block;transform:none!important;margin:0!important}
-.nx69-icon-action:is(:hover,:focus-visible):not(:disabled){transform:translateY(-3px) scale(1.05);background:#ebe5ff!important;border-color:#aa98eb!important;box-shadow:0 8px 17px #3b259322}
-.nx69-icon-action:focus-visible{outline:2px solid #6b50df!important;outline-offset:2px}
-.nx69-icon-action:disabled{opacity:.35!important;cursor:not-allowed}
-.nx69-icon-danger{color:var(--nx69-red)!important;background:var(--nx69-red-soft)!important;border-color:#ffd3dd!important}
-.nx69-icon-danger:is(:hover,:focus-visible):not(:disabled){background:#ffe4e9!important;border-color:#e990a4!important;box-shadow:0 7px 19px #b91c1c29}
+.nx69-icon-action{appearance:none;display:inline-grid;place-items:center;flex:0 0 auto;min-width:38px;width:38px;height:38px;min-height:38px;padding:0;cursor:pointer;text-decoration:none}
+.nx69-icon-action svg{display:block;margin:0}
+.nx69-icon-action:disabled{opacity:.35;cursor:not-allowed}
+.nx69-icon-danger{color:var(--nx69-red);background:var(--nx69-red-soft);border-color:#ffd3dd}
+.nx69-icon-danger:is(:hover,:focus-visible):not(:disabled){background:#ffe4e9;border-color:#e990a4;box-shadow:0 7px 19px #b91c1c29}
 .nx69-sale-action{font-size:9px!important;letter-spacing:.03em;min-width:42px!important;width:42px!important}
-.admin-shell .nx69-row-actions,.admin-shell .nx-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.admin-shell .nx69-search{position:relative;display:flex;align-items:center;min-width:0}
-.admin-shell .nx69-search > .nx47-icon{position:absolute;left:13px;z-index:1;flex:none;color:#6c55ba;pointer-events:none}
-.admin-shell .nx69-search input{width:100%;padding-left:42px!important;background-image:none!important}
+.admin-shell .nx-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 /* Keep the visible search icon for other native search fields without changing the search semantics. */
-.admin-shell input[type="search"]:not(.nx69-search input),.nx62-editor-form input[type="search"]{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236451aa' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='10.8' cy='10.8' r='6.4'/%3E%3Cpath d='m16 16 4.5 4.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:13px center;padding-left:42px!important}
-.admin-shell input::placeholder,.admin-shell textarea::placeholder,.storefront input::placeholder,.storefront textarea::placeholder{font-family:inherit!important;font-size:.91rem!important;font-weight:400!important;letter-spacing:normal!important;color:#828da5!important;opacity:1}
+.nx62-editor-form input[type="search"]{padding-left:42px}
+.admin-shell input::placeholder,.admin-shell textarea::placeholder,.storefront input::placeholder,.storefront textarea::placeholder{opacity:1}
 /* Use the same checkbox order across admin interfaces: checkbox before text. */
-.admin-shell label:has(>input[type="checkbox"]){display:inline-flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important}
-.admin-shell label:has(>input[type="checkbox"])>input[type="checkbox"]{order:-1!important;flex:0 0 18px!important;width:18px!important;height:18px!important;margin:0!important;accent-color:#5d44d8}
-.admin-shell .nx41-autoplay-toggle{align-self:center;min-width:max-content;min-height:47px;gap:10px!important}
+.admin-shell label:has(>input[type="checkbox"]){display:inline-flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:9px}
+.admin-shell label:has(>input[type="checkbox"])>input[type="checkbox"]{order:-1;flex:0 0 18px;width:18px;height:18px;margin:0;accent-color:#5d44d8}
+.admin-shell .nx41-autoplay-toggle{align-self:center;min-width:max-content;min-height:47px;gap:10px}
 /* Strong red urgency rather than yellow for inventory and admin needs-attention indicators. */
-.admin-shell .nx24-sidebar-count{background:#d3204b!important;color:white!important;border-radius:9px;box-shadow:0 2px 10px #b91c1c2b}
-.admin-shell .nx24-low,.admin-shell .nx24-out{background:#ffe5eb!important;color:#b11239!important;border:1px solid #fecbd8!important;border-radius:50px;font-weight:800}
-.admin-shell .admin-alert{color:#991b36!important;border:1px solid #ffb7c7!important;background:#fff0f3!important}
-.admin-shell .nx24-alert-summary > div:first-child,.admin-shell .nx24-alert-summary>div:nth-child(2){border-color:#ffc9d3!important}
-.admin-shell .nx24-alert-summary > div:first-child strong,.admin-shell .nx24-alert-summary>div:nth-child(2) strong{color:#b8123e!important}
+.admin-shell .nx24-sidebar-count{background:#d3204b;color:white;border-radius:9px;box-shadow:0 2px 10px #b91c1c2b}
+.admin-shell .nx24-low,.admin-shell .nx24-out{background:#ffe5eb;color:#b11239;border:1px solid #fecbd8;border-radius:50px;font-weight:800}
+.admin-shell .admin-alert{color:#991b36;border:1px solid #ffb7c7;background:#fff0f3}
+.admin-shell .nx24-alert-summary > div:first-child,.admin-shell .nx24-alert-summary>div:nth-child(2){border-color:#ffc9d3}
+.admin-shell .nx24-alert-summary > div:first-child strong,.admin-shell .nx24-alert-summary>div:nth-child(2) strong{color:#b8123e}
 .admin-shell .nx39-layout-panel{align-items:end;column-gap:16px;row-gap:20px}
 .admin-shell .nx39-layout-panel>label{display:flex;flex-direction:column;justify-content:flex-end;gap:8px;min-width:0}
-.admin-shell .nx39-layout-panel>label select{min-height:46px;max-width:100%;border-radius:11px}
-.admin-shell .nx39-layout-panel>.nx41-autoplay-toggle{flex-direction:row!important;justify-content:flex-start!important}
-.admin-shell .nx39-layout-panel>.nx41-autoplay-toggle>input{order:0!important}
-.admin-shell .nx39-layout-panel button.admin-primary-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:46px}
-.admin-shell .nx17-banner-actions button{border-radius:11px}
+.admin-shell .nx39-layout-panel>label select{min-height:46px;max-width:100%}
+.admin-shell .nx39-layout-panel>.nx41-autoplay-toggle{flex-direction:row;justify-content:flex-start}
+.admin-shell .nx39-layout-panel>.nx41-autoplay-toggle>input{order:0}
 .admin-shell .nx39-order-actions{display:flex;gap:8px;align-items:center}
-.admin-shell .nx39-order-actions .admin-primary-action{display:inline-flex;align-items:center;gap:8px}
 .admin-shell .nx69-promotion-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:0 0 18px}
-.admin-shell .nx69-promotion-toolbar .nx69-search{flex:1 1 290px;max-width:475px}
-.admin-shell .nx69-promotion-toolbar select{min-height:44px;padding:0 12px;border:1px solid #dce1ec;border-radius:11px;background:white;color:#14203a}
+.admin-shell .nx69-promotion-toolbar select{min-height:44px;padding:0 12px}
 /* Product-management filters */
 .admin-shell .nx69-product-filters{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;margin:0 0 17px}
-.admin-shell .nx69-product-filters label{display:flex;align-items:center;gap:6px;border:1px solid var(--nx69-line);background:white;border-radius:11px;padding:0 11px;min-height:43px;min-width:0}
-.admin-shell .nx69-product-filters select{border:0;background:transparent;color:#203153;min-height:40px;max-width:200px;font-size:.82rem}
+.admin-shell .nx69-product-filters label{display:flex;align-items:center;gap:6px;padding:0 11px;min-height:43px;min-width:0}
+.admin-shell .nx69-product-filters select{min-height:40px;max-width:200px}
 .admin-shell .nx69-product-filters .nx69-filter-reset{border:0;background:transparent;color:#5940c8;font-weight:800;padding:10px;cursor:pointer}
 .admin-shell .nx69-filter-total{color:#66738b;font-size:.8rem;margin-left:auto}
 /* Category directory and hierarchy guided form */
 .admin-shell .nx69-category-directory{min-width:0}
 .admin-shell .nx69-category-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 17px}
-.admin-shell .nx69-category-toolbar>.nx69-search{flex:1 1 235px;max-width:460px}
-.admin-shell .nx69-category-toolbar>select{min-height:44px;border:1px solid var(--nx69-line);border-radius:10px;padding:0 10px;max-width:210px;background:white;color:#1a2a48}
+.admin-shell .nx69-category-toolbar>select{min-height:44px;padding:0 10px;max-width:210px}
 .admin-shell .nx69-view-switch{display:flex;align-items:center;gap:4px;margin-left:auto;background:#f1effa;border-radius:10px;padding:4px}
-.admin-shell .nx69-view-switch button{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:.78rem;background:transparent;color:#6d7290;border:0;border-radius:8px;cursor:pointer}
-.admin-shell .nx69-view-switch button[aria-pressed="true"]{background:white;color:#503ac1;box-shadow:0 3px 12px #1e1d4a16}
+.admin-shell .nx69-view-switch button{display:flex;align-items:center;gap:6px;padding:8px 12px;cursor:pointer}
 .admin-shell .nx69-category-table{min-width:760px;width:100%;table-layout:auto}
 .admin-shell .nx69-category-table th:last-child,.admin-shell .nx69-category-table td:last-child{width:150px}
-.admin-shell .nx69-category-table tr:hover td{background:#fbfaff}
 .admin-shell .nx69-category-name-cell{display:flex;gap:12px;align-items:center;min-width:0}
 .admin-shell .nx69-category-name-cell img,.admin-shell .nx69-category-initial{width:50px;height:50px;border-radius:10px;object-fit:cover;flex-shrink:0}
 .admin-shell .nx69-category-initial{display:grid;place-items:center;background:#ece8ff;color:#5d46cb;font-weight:850}
 .admin-shell .nx69-category-name-cell span:last-child{display:grid;gap:3px;min-width:0}
 .admin-shell .nx69-category-name-cell strong{font-size:.84rem;overflow-wrap:anywhere}
 .admin-shell .nx69-category-name-cell small{color:#72809a;line-height:1.35;overflow-wrap:anywhere}
-.admin-shell .nx69-category-table .nx69-row-actions{flex-wrap:nowrap}
 .admin-shell .nx69-category-form .nx69-category-guide{border:1px solid #e4dafc;background:linear-gradient(120deg,#f7f3ff,#fdfcff);border-radius:13px;padding:17px 20px}
 .admin-shell .nx69-category-guide h3{margin:0 0 7px;font-size:1rem}
 .admin-shell .nx69-category-guide p{margin:0 0 12px;line-height:1.5;color:#56627b;font-size:.87rem}
 .admin-shell .nx69-category-steps{display:flex;gap:7px;flex-wrap:wrap}
 .admin-shell .nx69-category-steps span{border-radius:50px;padding:5px 9px;background:#fff;border:1px solid #e6dcff;color:#5844b7;font-size:.74rem;font-weight:700}
-.admin-shell .nx69-category-preview{display:flex;align-items:center;gap:9px;padding:11px 13px!important;border-radius:9px;background:#f5f4fa;color:#475775;overflow-wrap:anywhere}
+.admin-shell .nx69-category-preview{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:9px;background:#f5f4fa;color:#475775;overflow-wrap:anywhere}
 .admin-shell .nx69-category-preview strong{color:#3c299e}
 /* Shared moving-phrase editor layout */
-.admin-shell .nx62-ticker-row button{display:inline-grid;place-items:center;width:42px;min-width:42px;height:42px!important;padding:0!important}
+.admin-shell .nx62-ticker-row button{display:inline-grid;place-items:center;width:42px;min-width:42px;height:42px;padding:0}
 .admin-shell .nx62-editor-actions button{display:inline-flex;align-items:center;gap:9px}
 .admin-shell .nx62-artwork-form .nx69-icon-danger{width:42px}
 /* Compare navigation: present alongside wishlist, cart and profile. */
@@ -85,33 +72,28 @@
 .storefront .nx69-compare-intro h1{font-size:clamp(2rem,4vw,3.25rem);margin:5px 0 8px;color:#172348}
 .storefront .nx69-compare-intro p:not(.eyebrow){color:#64728a;max-width:630px;line-height:1.55}
 .storefront .nx69-compare-search{position:relative;max-width:650px;padding:18px 20px;background:white;border:1px solid #e2def1;border-radius:18px;margin-bottom:20px;box-shadow:0 12px 30px #1f174813}
-.storefront .nx69-compare-search>label{display:flex;justify-content:space-between;gap:8px;font-weight:850;margin-bottom:9px;color:#1b2850}
-.storefront .nx69-compare-search>label small{color:#654fd0}
+.storefront .nx69-compare-search>label{display:flex;justify-content:space-between;gap:8px;margin-bottom:9px}
 .storefront .nx69-compare-search-field{display:flex;gap:10px;align-items:center;border:1px solid #d8d9eb;border-radius:12px;padding:0 12px;background:#faf9ff;color:#634bc3}
-.storefront .nx69-compare-search-field input{min-height:48px;min-width:0;width:100%;border:0!important;outline:0!important;background:transparent!important;font:inherit;box-shadow:none!important}
+.storefront .nx69-compare-search-field input{min-height:48px;min-width:0;width:100%}
 .storefront .nx69-compare-results{position:absolute;z-index:8;top:calc(100% - 10px);left:20px;right:20px;background:white;border:1px solid #dfdded;border-radius:13px;padding:7px;box-shadow:0 21px 50px #30275e33;max-height:300px;overflow-y:auto}
 .storefront .nx69-compare-results p{padding:12px;margin:0;color:#687591}
-.storefront .nx69-compare-results button{display:flex;align-items:center;gap:11px;width:100%;border:0;background:white;padding:9px;border-radius:9px;text-align:left;color:#1c2944;cursor:pointer}
-.storefront .nx69-compare-results button:hover{background:#f4f1ff}
-.storefront .nx69-compare-results button>span:first-child{width:48px;height:48px;display:grid;place-items:center;background:#f7f6fb;border-radius:8px;flex-shrink:0}
+.storefront .nx69-compare-results button{display:flex;align-items:center;gap:11px;width:100%;padding:9px;text-align:left;cursor:pointer}
+.storefront .nx69-compare-results button>span:first-child{width:48px;height:48px;display:grid;place-items:center;flex-shrink:0}
 .storefront .nx69-compare-results img{width:45px;height:45px;object-fit:contain}
 .storefront .nx69-compare-results button>span:nth-child(2){min-width:0;flex:1;display:grid;gap:4px}
-.storefront .nx69-compare-results button strong{font-size:.82rem;line-height:1.4}
-.storefront .nx69-compare-results button small{color:#738099}
 .storefront .nx69-compare-message{color:#5541a1;background:#eeeaff;border-radius:10px;padding:10px 14px}
 .storefront .nx69-compare-empty{text-align:center;border:1px dashed #c9bfed;background:#fcfbff;border-radius:20px;padding:65px 20px;display:grid;justify-items:center;gap:10px;color:#5343b3}
 .storefront .nx69-compare-empty h2{color:#19284b;margin:5px}
 .storefront .nx69-compare-empty p{max-width:430px;margin:0 0 8px;color:#64718c}
 .storefront .nx69-compare-scroll{overflow-x:auto;overscroll-behavior-inline:contain;border:1px solid #deddeb;border-radius:20px;background:white;box-shadow:0 15px 42px #201a4b15}
 .storefront .nx69-compare-table{width:100%;min-width:680px;border-spacing:0;border-collapse:separate;table-layout:fixed;color:#25334f}
-.storefront .nx69-compare-table thead th{vertical-align:top;background:#faf9fe;padding:14px;border-bottom:1px solid #dedfeb}
-.storefront .nx69-compare-table th:first-child{width:190px;position:sticky;left:0;z-index:2;text-align:left;background:#f6f5fc;border-right:1px solid #e8e5f3}
-.storefront .nx69-compare-table thead th:first-child{padding:30px 19px;color:#5e4ac4;font-size:.9rem}
-.storefront .nx69-compare-table tbody th{font-size:.8rem;font-weight:850;padding:15px 17px}
-.storefront .nx69-compare-table tbody td{text-align:center;font-size:.86rem;overflow-wrap:anywhere;line-height:1.55;padding:17px 12px;border-bottom:1px solid #eceaf3}
-.storefront .nx69-compare-table tbody th small{display:block;font-size:.68rem;color:#8a82b5;margin-bottom:4px}
-.storefront .nx69-compare-table .nx69-compare-group th{position:static;background:#eae5ff;color:#482ca5;text-align:left;font-size:.79rem;letter-spacing:.055em;text-transform:uppercase;padding:14px 17px}
-.storefront .nx69-compare-table tbody tr:not(.nx69-compare-group):hover td{background:#fcfbff}
+.storefront .nx69-compare-table thead th{vertical-align:top;padding:14px}
+.storefront .nx69-compare-table th:first-child{width:190px;position:sticky;left:0;z-index:2;text-align:left}
+.storefront .nx69-compare-table thead th:first-child{padding:30px 19px}
+.storefront .nx69-compare-table tbody th{padding:15px 17px}
+.storefront .nx69-compare-table tbody td{text-align:center;overflow-wrap:anywhere;padding:17px 12px}
+.storefront .nx69-compare-table tbody th small{display:block;margin-bottom:4px}
+.storefront .nx69-compare-table .nx69-compare-group th{position:static;text-align:left;padding:14px 17px}
 .storefront .nx69-compare-product{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
 .storefront .nx69-compare-remove{align-self:flex-end!important;width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important}
 .storefront .nx69-compare-image{display:grid;place-items:center;width:100%;height:185px;background:#f5f5fa;border-radius:11px;overflow:hidden;color:#8e8caf}
@@ -124,27 +106,17 @@
 .storefront .nx69-compare-choose:hover{background:#4931b2;transform:translateY(-2px)}
 .storefront .nx69-compare-footnote{font-size:.78rem;color:#64738b;padding:12px 2px;line-height:1.5}
 /* All shared modal close actions: orbiting double ring and a bright X, no pointer trapping. */
-.nx-modal .nx65-close-control,.admin-shell .nx65-close-control,.storefront .nx65-close-control{isolation:isolate;position:relative;overflow:visible;transition:color .35s,background .35s,transform .48s cubic-bezier(.16,1,.3,1),box-shadow .35s!important}
-.nx-modal .nx65-close-control:before,.nx-modal .nx65-close-control:after{content:'';position:absolute;inset:-5px;border-radius:50%;opacity:0;pointer-events:none;transform:scale(.45);border:1.5px solid #a99df9;transition:transform .55s cubic-bezier(.14,.9,.24,1),opacity .4s}
-.nx-modal .nx65-close-control:after{inset:-10px;border-color:#d2c8ff;transition-delay:.07s}
-.nx-modal .nx65-close-control:is(:hover,:focus-visible):not(:disabled){color:white!important;background:#6445db!important;transform:rotate(90deg) scale(1.07)!important;box-shadow:0 0 23px #6944e16e,0 6px 22px #21116638!important}
-.nx-modal .nx65-close-control:is(:hover,:focus-visible):not(:disabled):before,.nx-modal .nx65-close-control:is(:hover,:focus-visible):not(:disabled):after{opacity:1;transform:scale(1)}
-.nx-modal .nx65-close-control svg{pointer-events:none;display:block;margin:auto}
 @media(max-width:800px){.storefront .nx69-compare-table th:first-child{width:145px}.storefront .nx69-compare-table{min-width:850px}.storefront .nx69-compare-image{height:150px}.admin-shell .nx69-category-toolbar .nx69-view-switch{margin-left:0}}
 @media(max-width:580px){.storefront .nx69-header-compare{width:37px;min-width:37px}.storefront .nx69-compare-shell{padding-inline:13px}.storefront .nx69-compare-search{padding:12px}.storefront .nx69-compare-results{left:12px;right:12px}.admin-shell .nx69-product-filters label{flex:1 1 145px}.admin-shell .nx69-product-filters select{max-width:100%}.admin-shell .nx69-category-toolbar>select{flex:1 1 145px}}
-@media(prefers-reduced-motion:reduce){.nx69-icon-action,.nx69-compare-choose,.nx69-compare-image img,.nx69-header-compare,.nx-modal .nx65-close-control,.nx-modal .nx65-close-control:before,.nx-modal .nx65-close-control:after{transition:none!important;animation:none!important;transform:none!important}}
+@media(prefers-reduced-motion:reduce){.nx69-icon-action,.nx69-compare-choose,.nx69-compare-image img,.nx69-header-compare{transition:none;animation:none;transform:none}}
 /* Red is the visual urgency colour in every admin alert surface. */
-.admin-shell .nx24-stock-link,.admin-shell .admin-main .nx24-stock-link{background:#fff0f3!important;color:#b11238!important;border-color:#f3a5b9!important;box-shadow:0 3px 12px #b91c1c10}
-.admin-shell .nx24-stock-link svg{color:#c71748!important}
-.admin-shell .nx46-bell-count,.storefront .nx46-bell-count{background:#c9144b!important;color:#fff!important;border-color:#fff!important}
-.admin-shell .nx24-low{background:#ffebef!important;color:#bb1641!important}
+.admin-shell .nx24-stock-link,.admin-shell .admin-main .nx24-stock-link{background:#fff0f3;color:#b11238;border-color:#f3a5b9;box-shadow:0 3px 12px #b91c1c10}
+.admin-shell .nx24-stock-link svg{color:#c71748}
+.admin-shell .nx46-bell-count,.storefront .nx46-bell-count{background:#c9144b;color:#fff;border-color:#fff}
+.admin-shell .nx24-low{background:#ffebef;color:#bb1641}
 /* Close buttons in notification dropdowns receive the same halo motion. */
-.nx46-notification-panel .nx65-close-control{display:grid;place-items:center;width:34px;height:34px;min-width:34px;min-height:34px;border-radius:50%;color:#5d42be;background:#f5f1ff;transition:color .3s,background .3s,transform .45s,box-shadow .3s!important}
-.nx46-notification-panel .nx65-close-control:is(:hover,:focus-visible){background:#673fdf;color:#fff;transform:rotate(90deg) scale(1.06);box-shadow:0 0 17px #7557e28a}
 .storefront .nx25-address-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-.storefront .nx25-address-actions .nx69-icon-action,.storefront .remove-button.nx69-icon-action{border:1px solid #ddd2ee!important;line-height:1!important}
 .admin-shell .nx24-actions,.admin-shell .nx63-coupon-actions{display:flex;align-items:center;gap:9px}
-.admin-shell .nx24-actions button.admin-primary-action{display:inline-flex;gap:8px;align-items:center}
 .storefront .nx69-compare-main-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .storefront .nx69-compare-clear{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;border-radius:10px;border:1px solid #f0c2cf;color:#a70f37;background:#fff5f7;font-weight:800;padding:9px 15px;cursor:pointer;transition:background .22s,transform .22s}
 .storefront .nx69-compare-clear:hover{background:#ffe3e9;transform:translateY(-2px)}
@@ -155,84 +127,49 @@
 
 /* Phase 70 — polish fixes after compare/admin experience review. */
 /* Keep placeholder typography identical across admin, customer, auth and modal forms. */
-.admin-shell :is(input,textarea)::placeholder,
-.storefront :is(input,textarea)::placeholder,
-.auth-shell :is(input,textarea)::placeholder,
-.nx-modal :is(input,textarea)::placeholder{
-  font-family:inherit!important;
-  font-size:.91rem!important;
-  font-weight:400!important;
-  letter-spacing:normal!important;
-  line-height:1.35!important;
-  color:#828da5!important;
-  opacity:1!important;
+.admin-shell :is(input,textarea)::placeholder,.storefront :is(input,textarea)::placeholder,.auth-shell :is(input,textarea)::placeholder,.nx-modal :is(input,textarea)::placeholder{
+  opacity:1;
 }
 
 /* Do not hide operational icons inside dedicated icon-action links. */
 .admin-shell .admin-main a:not(.nx69-icon-action)>svg.nx47-icon{display:none}
-.admin-shell .admin-main .nx69-icon-action>svg.nx47-icon{display:block!important}
+.admin-shell .admin-main .nx69-icon-action>svg.nx47-icon{display:block}
 .admin-shell .admin-main .nx70-preview-action{
-  color:#4d38ba!important;
-  background:#f4f1ff!important;
-  border-color:#d8d0fa!important;
+  color:#4d38ba;
+  background:#f4f1ff;
+  border-color:#d8d0fa;
   box-shadow:inset 0 0 0 1px rgba(102,73,224,.04);
 }
 .admin-shell .admin-main .nx70-preview-action:is(:hover,:focus-visible){
-  background:#ebe5ff!important;
-  border-color:#a794ef!important;
+  background:#ebe5ff;
+  border-color:#a794ef;
 }
 
 /* Promotion studio controls: aligned like one row of settings, with preview below. */
 .admin-shell .nx39-layout-panel{
-  display:grid!important;
+  display:grid;
   grid-template-columns:minmax(280px,1.3fr) minmax(210px,.95fr) auto minmax(160px,.72fr) auto;
-  align-items:end!important;
-  gap:20px 18px!important;
+  align-items:end;
+  gap:20px 18px;
 }
 .admin-shell .nx39-layout-panel>div:first-child{align-self:start;max-width:650px}
 .admin-shell .nx39-layout-panel>label{margin:0;align-self:end}
 .admin-shell .nx39-layout-panel>.nx41-autoplay-toggle{
-  align-self:center!important;
+  align-self:center;
   min-height:46px;
   padding-bottom:2px;
 }
-.admin-shell .nx39-layout-panel>.admin-primary-action,
-.admin-shell .nx39-layout-panel>button.admin-primary-action{align-self:end;min-height:46px}
 .admin-shell .nx39-layout-panel .nx41-admin-layout-preview{grid-column:1 / -1}
 @media(max-width:1120px){
   .admin-shell .nx39-layout-panel{grid-template-columns:minmax(0,1fr) repeat(2,minmax(180px,1fr));}
-  .admin-shell .nx39-layout-panel>.nx41-autoplay-toggle,
-  .admin-shell .nx39-layout-panel>.admin-primary-action,
-  .admin-shell .nx39-layout-panel>button.admin-primary-action{justify-self:start}
+  .admin-shell .nx39-layout-panel>.nx41-autoplay-toggle{justify-self:start}
 }
 @media(max-width:760px){
-  .admin-shell .nx39-layout-panel{grid-template-columns:1fr!important}
-  .admin-shell .nx39-layout-panel>.nx41-autoplay-toggle,
-  .admin-shell .nx39-layout-panel>.admin-primary-action,
-  .admin-shell .nx39-layout-panel>button.admin-primary-action{width:100%;justify-self:stretch}
+  .admin-shell .nx39-layout-panel{grid-template-columns:1fr}
+  .admin-shell .nx39-layout-panel>.nx41-autoplay-toggle{width:100%;justify-self:stretch}
 }
 
 /* Auth hover shine: immediate, smooth and never visually blanks the button. */
-.nx68-auth-reflect .auth-submit{
-  background:linear-gradient(135deg,#5b45da,#4631ba)!important;
-  will-change:transform,box-shadow;
-}
-.nx68-auth-reflect .auth-submit::after{
-  inset:-10% auto -10% -34%;
-  width:34%;
-  border-radius:inherit;
-  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.34),rgba(255,255,255,0));
-  opacity:.72;
-  transform:translateX(-165%) skewX(-18deg);
-  transition:transform .58s cubic-bezier(.16,.8,.23,1),opacity .18s ease;
-}
-.nx68-auth-reflect .auth-submit:not(:disabled):is(:hover,:focus-visible)::after{
-  opacity:.82;
-  transform:translateX(430%) skewX(-18deg);
-}
-.nx68-auth-reflect .auth-submit:hover:not(:disabled){
-  background:linear-gradient(135deg,#523cd0,#3f2fb5)!important;
-}
 
 /* Review composer: centered rating line and fixed-size textarea. */
 .storefront .nx64-review-form form{max-width:720px!important}
@@ -248,7 +185,6 @@
 .related-products .nx61-quick-add{display:none!important}
 
 /* Slightly stronger product action visibility in admin manage products. */
-.admin-shell .admin-product-table .nx69-row-actions{justify-content:flex-start}
 
 /* Keep review summary/details and compact cards steady on smaller screens. */
 @media(max-width:820px){
@@ -258,11 +194,11 @@
 
 
 /* Phase 70 revised — merchandising state, notifications and selectors. */
-.admin-shell .nx69-sale-action{width:49px!important;min-width:49px!important;font-size:10px!important;font-weight:900!important;letter-spacing:.035em;transition:background .2s,transform .25s,box-shadow .25s!important}
-.admin-shell .nx69-sale-action.nx70-sale-on{color:#fff!important;background:#ba174a!important;border-color:#ba174a!important;box-shadow:0 0 0 2px #ffe1ea!important}
-.admin-shell .nx69-sale-action.nx70-sale-off{color:#7b7790!important;background:#f5f5fa!important;border-color:#dddde9!important;text-decoration:line-through!important;box-shadow:none!important}
-.admin-shell .nx69-sale-action.nx70-sale-on:hover{background:#991038!important}
-.admin-shell .nx69-sale-action.nx70-sale-off:hover{background:#f0e9f8!important}
+.admin-shell .nx69-sale-action{width:49px;min-width:49px;font-size:10px;font-weight:900;letter-spacing:.035em;transition:background .2s,transform .25s,box-shadow .25s}
+.admin-shell .nx69-sale-action.nx70-sale-on{color:#fff;background:#ba174a;border-color:#ba174a;box-shadow:0 0 0 2px #ffe1ea}
+.admin-shell .nx69-sale-action.nx70-sale-off{color:#7b7790;background:#f5f5fa;border-color:#dddde9;text-decoration:line-through;box-shadow:none}
+.admin-shell .nx69-sale-action.nx70-sale-on:hover{background:#991038}
+.admin-shell .nx69-sale-action.nx70-sale-off:hover{background:#f0e9f8}
 .nx70-sale-editor{display:grid;gap:13px;padding:17px 19px;border:1px solid #d9dfef;border-radius:15px;background:#f8f8fd;transition:background .25s,border-color .25s,box-shadow .25s}
 .nx70-sale-editor.is-enabled{border-color:#ec9eb5;background:#fff6f8;box-shadow:inset 4px 0 #ba174a}
 .nx70-sale-editor-heading{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
@@ -280,14 +216,11 @@
 @keyframes nx70-sale-appear{from{opacity:.4;transform:translateY(5px)}to{opacity:1;transform:none}}
 /* Fixed-coordinate portal prevents dropdown clipping behind editor panels and sticky actions. */
 .nx70-category-picker{position:relative;min-width:0}
-.nx70-category-picker .nx18-combobox-wrap input{padding-right:48px!important;font-weight:650!important;font-size:.88rem!important;color:#192542!important}
+.nx70-category-picker .nx18-combobox-wrap input{padding-right:48px}
 .nx70-category-picker .nx70-category-search-icon{position:absolute;top:50%;right:14px;transform:translateY(-50%);pointer-events:none;color:#6250b9}
 .nx70-category-picker .nx18-search-symbol{display:none}
 .nx70-category-options{position:fixed!important;right:auto!important;bottom:auto!important;z-index:99999!important;box-sizing:border-box;max-height:320px;overflow:auto;overscroll-behavior:contain;box-shadow:0 20px 42px rgba(17,21,48,.2)!important;border:1px solid #ccc4f1!important;background:white!important;padding:6px!important}
-.nx70-category-options li>button{font-family:inherit!important;font-size:.86rem!important;font-weight:650!important;line-height:1.45!important;color:#1b2745;padding:10px 12px;min-height:50px}
-.nx70-category-options li>button span{font-size:.85rem;font-weight:700;color:#1b2745;line-height:1.5}
-.nx70-category-options li>button small{font-size:.74rem!important;font-weight:500!important;color:#6e7890!important}
-.nx70-category-options li.is-highlighted>button,.nx70-category-options li[aria-selected=true]>button{background:#f0ebff!important}
+.nx70-category-options li>button{padding:10px 12px;min-height:50px}
 /* Read receipts visually and functionally clear the shared bell for every role. */
 .nx70-bell-header-actions{display:flex;align-items:center;gap:8px}
 .nx70-mark-all{border:1px solid #ddd5fc;border-radius:9px;padding:7px 10px;background:#f4f0ff;color:#5337bf;font-weight:800;font-size:.75rem;cursor:pointer}
@@ -296,45 +229,35 @@
 .nx46-notification-list>button.is-read{opacity:.72;background:#fff!important}
 .nx46-notification-list>button.unread{border-left:3px solid #d51852}
 /* Reflective sweep on lavender / purple actions without suppressing their text or icons. */
-.admin-shell .admin-primary-action,.nx-modal .admin-primary-action,.storefront .button.button-primary,.auth-shell .button.button-primary,
-.storefront .nx69-compare-choose,.storefront .nx69-compare-clear,.admin-shell .nx69-icon-action:not(.nx69-icon-danger){position:relative;isolation:isolate;overflow:hidden}
-.admin-shell .admin-primary-action::after,.nx-modal .admin-primary-action::after,.storefront .button.button-primary::after,
-.auth-shell .button.button-primary::after,.storefront .nx69-compare-choose::after,.storefront .nx69-compare-clear::after,
-.admin-shell .nx69-icon-action:not(.nx69-icon-danger)::after{
+.storefront .button.button-primary,.auth-shell .button.button-primary,.storefront .nx69-compare-choose,.storefront .nx69-compare-clear,.admin-shell .nx69-icon-action:not(.nx69-icon-danger){position:relative;isolation:isolate;overflow:hidden}
+.storefront .button.button-primary::after,.auth-shell .button.button-primary::after,.storefront .nx69-compare-choose::after,.storefront .nx69-compare-clear::after,.admin-shell .nx69-icon-action:not(.nx69-icon-danger)::after{
  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;opacity:0;
  background:linear-gradient(110deg,transparent 27%,rgba(255,255,255,.37) 49%,transparent 70%);
  transform:translateX(-130%);transition:transform .65s cubic-bezier(.18,.72,.2,1),opacity .22s ease}
-.admin-shell .admin-primary-action:is(:hover,:focus-visible):not(:disabled)::after,
-.nx-modal .admin-primary-action:is(:hover,:focus-visible):not(:disabled)::after,
-.storefront .button.button-primary:is(:hover,:focus-visible):not(:disabled)::after,
-.auth-shell .button.button-primary:is(:hover,:focus-visible):not(:disabled)::after,
-.storefront .nx69-compare-choose:is(:hover,:focus-visible)::after,
-.storefront .nx69-compare-clear:is(:hover,:focus-visible)::after,
-.admin-shell .nx69-icon-action:not(.nx69-icon-danger):is(:hover,:focus-visible):not(:disabled)::after{
+.storefront .button.button-primary:is(:hover,:focus-visible):not(:disabled)::after,.auth-shell .button.button-primary:is(:hover,:focus-visible):not(:disabled)::after,.storefront .nx69-compare-choose:is(:hover,:focus-visible)::after,.storefront .nx69-compare-clear:is(:hover,:focus-visible)::after,.admin-shell .nx69-icon-action:not(.nx69-icon-danger):is(:hover,:focus-visible):not(:disabled)::after{
  opacity:1;transform:translateX(130%)}
-@media(prefers-reduced-motion:reduce){.nx70-detail-sale-label{animation:none!important}.admin-shell .admin-primary-action::after,.nx-modal .admin-primary-action::after,.storefront .button.button-primary::after,.auth-shell .button.button-primary::after,.storefront .nx69-compare-choose::after,.storefront .nx69-compare-clear::after,.admin-shell .nx69-icon-action::after{transition:none!important;opacity:0!important}}
+@media(prefers-reduced-motion:reduce){.nx70-detail-sale-label{animation:none}.storefront .button.button-primary::after,.auth-shell .button.button-primary::after,.storefront .nx69-compare-choose::after,.storefront .nx69-compare-clear::after,.admin-shell .nx69-icon-action::after{transition:none;opacity:0}}
 
-.storefront .nx61-sale-label{background:#be1747!important;color:#fff!important;box-shadow:0 5px 13px #be174733}
+.storefront .nx61-sale-label{background:#be1747;color:#fff;box-shadow:0 5px 13px #be174733}
 
 
 /* Shared filter-reset interaction for catalogue, customers, and inventory. */
-.admin-shell .nx84-admin-reset,
-.admin-shell .nx69-product-filters .nx84-admin-reset{
+.admin-shell .nx84-admin-reset,.admin-shell .nx69-product-filters .nx84-admin-reset{
   position:relative;display:inline-flex;align-items:center;justify-content:center;gap:9px;
   min-height:40px;max-width:100%;white-space:nowrap;padding:10px 14px;
-  color:#5540c2!important;background:#f7f4ff!important;
-  border:1px solid #dbd3f8!important;border-radius:11px;box-shadow:none;
+  color:#5540c2;background:#f7f4ff;
+  border:1px solid #dbd3f8;border-radius:11px;box-shadow:none;
   font-size:12px;font-weight:800;line-height:1.25;cursor:pointer;overflow:hidden;isolation:isolate;
-  transition:transform .26s cubic-bezier(.18,.85,.3,1),background .26s,border-color .26s,box-shadow .26s,color .26s!important;
+  transition:transform .26s cubic-bezier(.18,.85,.3,1),background .26s,border-color .26s,box-shadow .26s,color .26s;
 }
 .admin-shell .nx84-admin-reset::before{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 20%,#ffffffa3 48%,transparent 77%);transform:translateX(-155%);transition:transform .55s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:-1}
 .admin-shell .nx84-admin-reset .nx47-icon{flex:none;transform-origin:center;transition:transform .45s cubic-bezier(.2,.85,.26,1)}
 .admin-shell .nx84-admin-reset .nx84-reset-label{position:relative;display:inline-block}
 .admin-shell .nx84-admin-reset .nx84-reset-label::after{content:"";position:absolute;bottom:-4px;left:0;right:0;height:2px;border-radius:10px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .28s ease}
-.admin-shell .nx84-admin-reset:is(:hover,:focus-visible):not(:disabled){background:#ede7ff!important;color:#4427aa!important;border-color:#a996f2!important;transform:translateY(-2px);box-shadow:0 8px 18px #4b35af21}
+.admin-shell .nx84-admin-reset:is(:hover,:focus-visible):not(:disabled){background:#ede7ff;color:#4427aa;border-color:#a996f2;transform:translateY(-2px);box-shadow:0 8px 18px #4b35af21}
 .admin-shell .nx84-admin-reset:is(:hover,:focus-visible):not(:disabled)::before{transform:translateX(150%)}
 .admin-shell .nx84-admin-reset:is(:hover,:focus-visible):not(:disabled) .nx47-icon{transform:rotate(-55deg)}
 .admin-shell .nx84-admin-reset:is(:hover,:focus-visible):not(:disabled) .nx84-reset-label::after{transform:scaleX(1)}
 .admin-shell .nx84-admin-reset:focus-visible{outline:2px solid #7356dd;outline-offset:3px}
 .admin-shell .nx84-admin-reset:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
-@media(prefers-reduced-motion:reduce){.admin-shell .nx84-admin-reset,.admin-shell .nx84-admin-reset::before,.admin-shell .nx84-admin-reset .nx47-icon,.admin-shell .nx84-admin-reset .nx84-reset-label::after{transition:none!important;transform:none!important}.admin-shell .nx84-admin-reset .nx84-reset-label::after{display:none}}
+@media(prefers-reduced-motion:reduce){.admin-shell .nx84-admin-reset,.admin-shell .nx84-admin-reset::before,.admin-shell .nx84-admin-reset .nx47-icon,.admin-shell .nx84-admin-reset .nx84-reset-label::after{transition:none;transform:none}.admin-shell .nx84-admin-reset .nx84-reset-label::after{display:none}}

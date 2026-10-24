@@ -1,4 +1,5 @@
-import { Select } from "../../components/ui/index";
+import { Button, Card, Checkbox, FormField, Select, TextField, Textarea } from "../../components/ui/index";
+
 import FileUploadField from "../../components/admin/FileUploadField";
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -153,51 +154,51 @@ export default function AddProduct() {
   }
 
   return <AdminLayout title="Add Product" subtitle="Create a product with its gallery, videos and featured status."
-    actions={<Link className="admin-secondary-action" to="/admin/products">Cancel</Link>}>
-    {createdProduct ? <section className="admin-panel admin-form-panel nx-saved-product">
+    actions={<Button as={Link} variant="secondary"  to="/admin/products">Cancel</Button>}>
+    {createdProduct ? <Card as="section" className="admin-panel admin-form-panel nx-saved-product">
       <div className="nx-saved-mark" aria-hidden="true">✓</div>
       <h2>Product created</h2>
       <p role="status">{uploadReport}</p>
       <p>The product is saved. Continue editing from these focused popups—you do not need to scroll through every section.</p>
       {variantFailures.length > 0 && <p className="admin-alert" role="alert">{variantFailures.length} SKU(s) need correction. Open Manage SKUs and save the missing configurations; do not create the product again.</p>}
       <div className="nx-saved-actions">
-        <button type="button" className="admin-primary-action" onClick={() => setSavedPanel("gallery")}>Manage gallery & visibility</button>
-        <button type="button" className="admin-secondary-action" onClick={() => setSavedPanel("variants")}>Manage SKUs & prices</button>
-        <button type="button" className="admin-secondary-action" onClick={() => setSavedPanel("details")}>Edit product details</button>
+        <Button variant="primary" type="button"  onClick={() => setSavedPanel("gallery")}>Manage gallery & visibility</Button>
+        <Button variant="secondary" type="button"  onClick={() => setSavedPanel("variants")}>Manage SKUs & prices</Button>
+        <Button variant="secondary" type="button"  onClick={() => setSavedPanel("details")}>Edit product details</Button>
       </div>
       <div className="admin-form-actions">
-        <Link className="admin-secondary-action" to="/admin/products">Back to products</Link>
-        <button type="button" className="admin-primary-action" onClick={() => {
+        <Button as={Link} variant="secondary"  to="/admin/products">Back to products</Button>
+        <Button variant="primary" type="button"  onClick={() => {
           setCreatedProduct(null); setSavedPanel(null); setQueuedMedia([]); setFeatured(false);
           setUploadReport(""); setVariantDrafts([]); setVariantFailures([]);
           setForm({ name:"", brand:"", model:"", description:"", categoryId:"", mrp:"", price:"", stock:"", lowStockThreshold:"5",gstPercent:"", pricingMode:"price" });
           setSpecifications({}); setImage(null); formRef.current?.reset();
-        }}>Create another product</button>
+        }}>Create another product</Button>
       </div>
       {savedPanel && <Modal title={`Product #${createdProduct.id} · ${savedPanel === "gallery" ? "Gallery" : savedPanel === "variants" ? "SKUs" : "Details"}`}
         subtitle="Edit the saved product without leaving this page." size="large" onClose={() => setSavedPanel(null)}>
         <ProductEditorWorkspace key={`${createdProduct.id}-${savedPanel}`} productId={createdProduct.id} initialTab={savedPanel}/>
       </Modal>}
-    </section> : <section className="admin-panel admin-form-panel">
+    </Card> : <Card as="section" className="admin-panel admin-form-panel">
       <form className="admin-form" ref={formRef} onSubmit={handleSubmit}>
-        <label><span className="nx34-field-label">Product name <b className="nx34-required" aria-hidden="true">*</b></span><input name="name" placeholder="Product name" value={form.name} onChange={handleChange} required /></label>
+        <FormField><span className="nx34-field-label">Product name <b className="nx34-required" aria-hidden="true">*</b></span><TextField name="name" placeholder="Product name" value={form.name} onChange={handleChange} required /></FormField>
         <div className="admin-form-grid two-column">
-          <label>Brand<input name="brand" placeholder="Brand" value={form.brand} onChange={handleChange} maxLength={80} /></label>
-          <label>Model<input name="model" placeholder="Model number or family" value={form.model} onChange={handleChange} maxLength={120} /></label>
+          <FormField>Brand<TextField name="brand" placeholder="Brand" value={form.brand} onChange={handleChange} maxLength={80} /></FormField>
+          <FormField>Model<TextField name="model" placeholder="Model number or family" value={form.model} onChange={handleChange} maxLength={120} /></FormField>
         </div>
-        <label><span className="nx34-field-label">Short description (shown near product price)</span><textarea name="shortDescription" rows={2} maxLength={320} placeholder="A concise summary of the product, ideally 1–2 sentences" value={form.shortDescription} onChange={handleChange}/><small>Up to 320 characters. Customers see this before choosing variants.</small></label>
-        <label><span className="nx34-field-label">Full description <b className="nx34-required" aria-hidden="true">*</b></span><textarea name="description" placeholder="Product description" value={form.description} onChange={handleChange} required /></label>
-        <div className="admin-form-grid">
+        <FormField><span className="nx34-field-label">Short description (shown near product price)</span><Textarea name="shortDescription" rows={2} maxLength={320} placeholder="A concise summary of the product, ideally 1–2 sentences" value={form.shortDescription} onChange={handleChange}/><small>Up to 320 characters. Customers see this before choosing variants.</small></FormField>
+        <FormField><span className="nx34-field-label">Full description <b className="nx34-required" aria-hidden="true">*</b></span><Textarea name="description" placeholder="Product description" value={form.description} onChange={handleChange} required /></FormField>
+        <div className="admin-form-grid nx-product-stock-row">
           <CategoryPicker categories={categories} value={form.categoryId} disabled={categoriesLoading || categories.length === 0}
             onChange={categoryId => { setSpecifications({}); setForm(previous => ({...previous, categoryId})); }} />
           {variantDrafts.length === 0 && <>
-            <label><span className="nx34-field-label">Simple product stock <b className="nx34-required" aria-hidden="true">*</b></span><input type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></label>
-            <label><span className="nx34-field-label">Low-stock alert threshold (units) <b className="nx34-required" aria-hidden="true">*</b></span><input type="number" name="lowStockThreshold" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>0 alerts only when out of stock.</small></label>
+            <FormField><span className="nx34-field-label">Simple product stock <b className="nx34-required" aria-hidden="true">*</b></span><TextField type="number" name="stock" placeholder="Stock quantity" min="0" step="1" value={form.stock} onChange={handleChange} required /></FormField>
+            <FormField><span className="nx34-field-label">Low-stock alert threshold (units) <b className="nx34-required" aria-hidden="true">*</b></span><TextField type="number" name="lowStockThreshold" min="0" max="1000000" step="1" value={form.lowStockThreshold} onChange={handleChange} required /><small>0 alerts only when out of stock.</small></FormField>
           </>}
         </div>
         {variantDrafts.length === 0 ? <VariantPriceFields row={form} onFieldChange={(field,value)=>setForm(old=>updatePricingDraft(old,field,value))} disabled={loading}/>
           : <p className="nx22-sku-notice"><strong>SKU pricing is active.</strong> Price, MRP and stock come from each SKU below. The parent product's legacy values will be initialized automatically and are not separately entered.</p>}
-        <label className="nx25-gst-field">GST rate for this product (%)<input name="gstPercent" type="number" min="0" max="40" step="0.01" value={form.gstPercent} onChange={handleChange} placeholder="Use store default"/><small>Leave blank to use the rate in Shipping & Tax Settings. Rates require verification by product classification.</small></label>
+        <FormField className="nx25-gst-field">GST rate for this product (%)<TextField name="gstPercent" type="number" min="0" max="40" step="0.01" value={form.gstPercent} onChange={handleChange} placeholder="Use store default"/><small>Leave blank to use the rate in Shipping & Tax Settings. Rates require verification by product classification.</small></FormField>
         <DraftVariants variants={variantDrafts} onChange={setVariantDrafts} disabled={loading} />
         <ProductSpecificationFields definition={specification.definition} specifications={specifications}
           onChange={updateSpecification} loading={specification.loading} />
@@ -207,26 +208,26 @@ export default function AddProduct() {
           <h2>Gallery and videos</h2>
           <p>Start with your cover image and up to 59 more gallery items or YouTube videos. They upload as <strong>Shared</strong> by default. After creating the product, use <strong>Manage gallery & visibility</strong> to assign a specific color or SKU. Local MP4/WebM uploads are available there too.</p>
           <FileUploadField label="Additional gallery images" multiple help="JPG, PNG or WebP · maximum 12 MB each" selection={queuedMedia.filter(item=>item.type==='image').length?`${queuedMedia.filter(item=>item.type==='image').length} images queued`:''} onChange={queueImages}/>
-          <label>YouTube video URL
-            <input type="url" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
-          </label>
-          <button type="button" onClick={queueVideo} disabled={loading || !videoUrl.trim() || queuedMedia.length >= 59}>Queue video</button>
-          <label className="admin-featured-toggle"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)}/> Feature this product on the homepage</label>
+          <FormField>YouTube video URL
+            <TextField type="url" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+          </FormField>
+          <Button variant="secondary" type="button" onClick={queueVideo} disabled={loading || !videoUrl.trim() || queuedMedia.length >= 59}>Queue video</Button>
+          <FormField inline className="admin-featured-toggle"><Checkbox type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)}/> Feature this product on the homepage</FormField>
           {featured && <p>Featured products are ordered in <Link to="/admin/featured">Featured Products</Link> — no overlapping position numbers.</p>}
           <p className="nx15-media-hint">Use the position dropdown to arrange new media. After saving you can drag gallery cards freely.</p>
           <ol className="media-manager-list">
             {queuedMedia.map((item, index) => <li className="media-manager-item" key={item.key}>
               <span><strong>{index + 2}. {item.type === "image" ? "Image" : "YouTube video"}</strong> · {item.type === "image" ? item.file.name : item.url}<small> · Shared (you can change this after saving)</small></span>
-              <label className="nx15-position-control">Position <Select disabled={loading} value={index} onChange={e => moveQueued(index, Number(e.target.value))}>{queuedMedia.map((_, i) => <option value={i} key={i}>{i+1}</option>)}</Select></label>
-              <button type="button" disabled={loading} onClick={() => setQueuedMedia((previous) => previous.filter((candidate) => candidate.key !== item.key))}>Remove</button>
+              <FormField className="nx15-position-control">Position <Select disabled={loading} value={index} onChange={e => moveQueued(index, Number(e.target.value))}>{queuedMedia.map((_, i) => <option value={i} key={i}>{i+1}</option>)}</Select></FormField>
+              <Button variant="secondary" type="button" disabled={loading} onClick={() => setQueuedMedia((previous) => previous.filter((candidate) => candidate.key !== item.key))}>Remove</Button>
             </li>)}
           </ol>
         </section>
-        <button className="admin-primary-action" type="submit" disabled={loading}>{loading ? "Creating…" : "Create Product"}</button>
+        <Button variant="primary"  type="submit" disabled={loading}>{loading ? "Creating…" : "Create Product"}</Button>
       </form>
       {message && <p className="admin-alert" role="alert">{message}</p>}
       {categoriesError && <p className="admin-alert" role="alert">{categoriesError}</p>}
       {!categoriesLoading && categories.length === 0 && <p className="admin-alert">Create an active category before adding products.</p>}
-    </section>}
+    </Card>}
   </AdminLayout>;
 }

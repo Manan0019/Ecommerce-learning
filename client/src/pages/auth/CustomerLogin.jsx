@@ -1,3 +1,4 @@
+import { Button, FormField, TextField } from "../../components/ui/index";
 import { useState } from "react";
 import {
   useNavigate,
@@ -55,9 +56,9 @@ export default function CustomerLogin() {
   return <AuthLayout reflection eyebrow="Unified account access" title="Welcome back."
     description="Sign in to save favourites, manage addresses and follow your orders.">
       <form className="auth-form" onSubmit={handleLogin} aria-busy={loading}>
-        <label className="auth-field" htmlFor="login-email">
+        <FormField className="auth-field" htmlFor="login-email">
           <span>Email address</span>
-          <input id="login-email"
+          <TextField id="login-email"
           type="email"
           placeholder="you@example.com"
           value={email}
@@ -67,7 +68,7 @@ export default function CustomerLogin() {
           autoFocus
           required
           />
-        </label>
+        </FormField>
 
         <PasswordField id="login-password" label="Password"
           value={password}
@@ -79,10 +80,10 @@ export default function CustomerLogin() {
         {feedback && <p className={`auth-message auth-message-${feedback.type}`}
           role={feedback.type === "error" ? "alert" : "status"}>{feedback.text}</p>}
 
-        <button className="auth-submit" type="submit" disabled={loading}>
+        <Button variant="primary"  type="submit" disabled={loading}>
           {loading && <span className="auth-spinner" aria-hidden="true" />}
           {loading ? "Signing in…" : "Sign in"}
-        </button>
+        </Button>
       </form>
 
       {invalidCredentials && <p className="auth-switch"><Link to="/forgot-password" state={{ email: email.trim() }}>Forgot password?</Link></p>}

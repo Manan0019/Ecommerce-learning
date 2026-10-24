@@ -1,3 +1,4 @@
+import { Button } from "../ui/index";
 import { useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import { apiAssetUrl } from "../../services/apiClient";
@@ -50,21 +51,21 @@ export default function ProductMediaGallery({ product, variantId = null, variant
   return <div className="product-gallery nx29-detail-gallery">
     <div className="gallery-main" aria-live="off" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {!current ? <div className="missing-image">Image coming soon</div>
-        : current.type === "image" ? <button
+        : current.type === "image" ? <Button variant="plain"
           type="button" className="nx29-zoom-trigger"
           aria-label={`Enlarge image ${index + 1} of ${visible.length}`}
           onClick={() => { if (swipedRef.current) { swipedRef.current = false; return; } zoomRef.current?.showModal(); }}
-        >{mediaContent(current)}<span className="nx29-zoom-hint" aria-hidden="true"><UiIcon name="maximize" size={16}/> View larger</span></button>
+        >{mediaContent(current)}<span className="nx29-zoom-hint" aria-hidden="true"><UiIcon name="maximize" size={16}/> View larger</span></Button>
           : mediaContent(current)}
       {visible.length > 1 && <div className="nx57-gallery-arrows">
-        <button type="button" onClick={() => moveSelection(-1)} aria-label="Previous product image"><UiIcon name="chevron-left" size={19}/></button>
-        <button type="button" onClick={() => moveSelection(1)} aria-label="Next product image"><UiIcon name="chevron-right" size={19}/></button>
+        <Button variant="plain" type="button" onClick={() => moveSelection(-1)} aria-label="Previous product image"><UiIcon name="chevron-left" size={19}/></Button>
+        <Button variant="plain" type="button" onClick={() => moveSelection(1)} aria-label="Next product image"><UiIcon name="chevron-right" size={19}/></Button>
       </div>}
     </div>
     {visible.length > 1 && <div className="nx57-thumbnail-shell">
-      <button type="button" className="nx57-thumbnail-scroll" aria-label="Scroll thumbnails left" onClick={()=>thumbsRef.current?.scrollBy({left:-240,behavior:'smooth'})}><UiIcon name="chevron-left" size={17}/></button>
+      <Button variant="plain" type="button" className="nx57-thumbnail-scroll" aria-label="Scroll thumbnails left" onClick={()=>thumbsRef.current?.scrollBy({left:-240,behavior:'smooth'})}><UiIcon name="chevron-left" size={17}/></Button>
       <div ref={thumbsRef} className="gallery-thumbnails nx29-gallery-thumbnails nx57-thumbnail-track" aria-label="Product gallery thumbnails">
-      {visible.map((item, thumbIndex) => <button type="button" key={item.id}
+      {visible.map((item, thumbIndex) => <Button variant="plain" type="button" key={item.id}
         className={String(selected?.id) === String(item.id) ? "selected" : ""}
         onClick={() => { setSelectedId(item.id); setHoveredId(null); }}
         onPointerEnter={event => { if (event.pointerType === "mouse") setHoveredId(item.id); }}
@@ -74,11 +75,11 @@ export default function ProductMediaGallery({ product, variantId = null, variant
         aria-label={`Show media ${thumbIndex + 1} of ${visible.length}`}
         aria-pressed={String(selected?.id) === String(item.id)}>
         {item.type === "image" ? <img src={apiAssetUrl(item.url)} alt="" loading="lazy" /> : <span>▶ {item.type === "video" ? "Video" : "YouTube"}</span>}
-      </button>)}
-      </div><button type="button" className="nx57-thumbnail-scroll" aria-label="Scroll thumbnails right" onClick={()=>thumbsRef.current?.scrollBy({left:240,behavior:'smooth'})}><UiIcon name="chevron-right" size={17}/></button>
+      </Button>)}
+      </div><Button variant="plain" type="button" className="nx57-thumbnail-scroll" aria-label="Scroll thumbnails right" onClick={()=>thumbsRef.current?.scrollBy({left:240,behavior:'smooth'})}><UiIcon name="chevron-right" size={17}/></Button>
     </div>}
     <dialog ref={zoomRef} className="nx29-image-dialog" aria-label={`${product.name} enlarged image`}>
-      <button type="button" className="nx29-image-dialog-close nx64-animated-close nx65-close-control" onClick={() => zoomRef.current?.close()} aria-label="Close enlarged image"><UiIcon name="x" size={18}/></button>
+      <Button variant="plain" type="button" className="nx29-image-dialog-close" onClick={() => zoomRef.current?.close()} aria-label="Close enlarged image"><UiIcon name="x" size={18}/></Button>
       {current?.type === "image" && <img src={apiAssetUrl(current.url)} alt={product.name} />}
     </dialog>
   </div>;

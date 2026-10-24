@@ -1,3 +1,4 @@
+import { FormField, TextField } from "../ui/index";
 import IndianStatePicker from '../common/IndianStatePicker';
 const fields=[
   {key:'fullName',label:'Full name',autoComplete:'name',max:100},
@@ -9,10 +10,10 @@ const fields=[
   {key:'pincode',label:'6-digit PIN code',max:6,inputMode:'numeric',pattern:'[0-9]{6}',autoComplete:'postal-code'},
 ];
 export default function AddressFields({address,onChange,disabled=false}){
-  return <div className="nx-cod-fields">{fields.map(field=><label key={field.key} className={`nx-cod-field ${field.wide?'nx-cod-wide':''}`}>
+  return <div className="nx-cod-fields">{fields.map(field=><FormField key={field.key} className={`nx-cod-field ${field.wide?'nx-cod-wide':''}`}>
     <span>{field.label}{!field.optional&&<b aria-label="required"> *</b>}</span>
-    {field.key==='state'?<IndianStatePicker name="state" value={address.state||''} disabled={disabled} required onChange={value=>onChange({...address,state:value})}/>:<input name={field.key} value={address[field.key]??''} onChange={e=>onChange({...address,[field.key]:e.target.value})}
+    {field.key==='state'?<IndianStatePicker name="state" value={address.state||''} disabled={disabled} required onChange={value=>onChange({...address,state:value})}/>:<TextField name={field.key} value={address[field.key]??''} onChange={e=>onChange({...address,[field.key]:e.target.value})}
       type={field.type||'text'} required={!field.optional} disabled={disabled} maxLength={field.max} minLength={field.min}
       inputMode={field.inputMode} pattern={field.pattern} autoComplete={field.autoComplete}/>}
-  </label>)}</div>
+  </FormField>)}</div>
 }

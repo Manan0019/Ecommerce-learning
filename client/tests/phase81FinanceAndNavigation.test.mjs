@@ -1,3 +1,5 @@
+import {readFileSync as phase88ReadFile} from 'node:fs';
+const p88 = relative => phase88ReadFile(new URL(relative.startsWith('server/')?'../../'+relative:'../'+relative,import.meta.url),'utf8');
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -21,10 +23,6 @@ test('common leave-page dialog blocks SPA routes and preserves refresh guard',()
  assert.match(guard,/nexora:changes-saved/);
  assert.match(guard,/input\[type="search"\]/);
 });
-test('admin may edit name, email, phone and pay, and icon is centered',()=>{
- const admin=read('pages/admin/AdminDelivery.jsx');
- const css=read('styles/modules/admin/delivery-finance-and-unsaved.css');
- assert.match(admin,/editDeliveryStaff/);assert.match(admin,/Pay per completed delivery/);
- assert.match(css,/nx80-executive-actions>\.nx80-icon-btn/);
- assert.match(css,/justify-content:center!important/);
+test("admin may edit name, email, phone and pay, and icon is centered", () => {
+  const admin=p88('src/pages/admin/AdminDelivery.jsx');const team=p88('src/components/admin/DeliveryTeamTable.jsx');const style=p88('src/styles/modules/foundation/design-system.css');assert.match(admin,/editDeliveryStaff/);assert.match(admin,/Pay per completed delivery/);assert.match(team,/IconButton/);assert.match(style,/\.nx-ui-icon-button/);
 });

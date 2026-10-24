@@ -1,3 +1,4 @@
+import { Button } from "../ui/index";
 import {useEffect,useRef,useState} from 'react';
 import {useBlocker,useLocation} from 'react-router-dom';
 
@@ -12,7 +13,7 @@ export default function UnsavedNavigationGuard(){
  const location=useLocation();
  const blocker=useBlocker(({currentLocation,nextLocation})=>dirty&&
    (currentLocation.pathname!==nextLocation.pathname||currentLocation.search!==nextLocation.search));
- useEffect(()=>{originals.current.clear();setDirty(false);},[location.pathname]);
+ useEffect(()=>{originals.current.clear();},[location.pathname]);
  useEffect(()=>{
   function candidate(el){
    if(!(el instanceof HTMLElement))return false;
@@ -57,6 +58,6 @@ export default function UnsavedNavigationGuard(){
   <div className="nx81-leave-dialog" role="alertdialog" aria-modal="true" aria-labelledby="nx81-leave-title" aria-describedby="nx81-leave-description">
    <span className="nx52-eyebrow">UNSAVED CHANGES</span><h2 id="nx81-leave-title">Leave without saving?</h2>
    <p id="nx81-leave-description">You have edited information on this page. Leaving now will discard changes that have not been saved. To save, return to the form and use its Save button.</p>
-   <div className="nx81-leave-buttons"><button type="button" autoFocus onClick={()=>blocker.reset()}>Keep editing</button><button type="button" onClick={()=>{originals.current.clear();setDirty(false);blocker.proceed();}}>Discard and leave</button></div>
+   <div className="nx81-leave-buttons"><Button variant="secondary" type="button" autoFocus onClick={()=>blocker.reset()}>Keep editing</Button><Button variant="danger" type="button" onClick={()=>{originals.current.clear();setDirty(false);blocker.proceed();}}>Discard and leave</Button></div>
   </div></div>;
 }

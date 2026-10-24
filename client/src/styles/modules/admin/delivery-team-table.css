@@ -1,16 +1,14 @@
 /* Phase 86: delivery team management, accessible table and bounded page controls. */
 .admin-shell .nx86-staff-directory{min-width:0}
 .admin-shell .nx86-staff-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0 10px}
-.admin-shell .nx86-staff-toolbar .nx86-staff-search{flex:1 1 275px;min-width:min(100%,260px);max-width:none;margin:0}
-.admin-shell .nx86-staff-search input[type="search"]{background-image:none!important;padding-left:0!important;background-color:transparent!important;min-width:0}
 .admin-shell .nx86-staff-select{display:flex;flex-direction:column;gap:6px;flex:0 1 178px;min-width:150px;font-size:12px;font-weight:750;color:#665a86}
-.admin-shell .nx86-staff-select select{width:100%;min-height:44px;box-sizing:border-box;padding:9px 12px;border:1px solid #dcd8f2;border-radius:12px;background:#fff;color:#30264d;font:inherit;cursor:pointer}
+.admin-shell .nx86-staff-select select{width:100%;min-height:44px;box-sizing:border-box;padding:9px 12px;cursor:pointer}
 .admin-shell .nx86-staff-per-page{min-width:88px;flex-basis:92px}
 .admin-shell .nx86-staff-count{margin:5px 0 12px;color:#6f648b;font-size:12px;font-weight:700}
 .admin-shell .nx86-staff-table-wrap{border:1px solid #ece8f6;border-radius:15px;max-width:100%;background:#fff}
 .admin-shell .nx86-staff-table{min-width:900px;table-layout:fixed;width:100%;border-collapse:collapse}
-.admin-shell .nx86-staff-table th{white-space:nowrap;background:#f9f8ff;vertical-align:middle;padding:16px 12px;letter-spacing:.055em}
-.admin-shell .nx86-staff-table td{padding:16px 12px;vertical-align:middle;overflow-wrap:anywhere;line-height:1.5}
+.admin-shell .nx86-staff-table th{white-space:nowrap;vertical-align:middle;padding:16px 12px}
+.admin-shell .nx86-staff-table td{padding:16px 12px;vertical-align:middle;overflow-wrap:anywhere}
 .admin-shell .nx86-staff-table th:nth-child(1){width:18%}
 .admin-shell .nx86-staff-table th:nth-child(2){width:23%}
 .admin-shell .nx86-staff-table th:nth-child(3){width:15%}
@@ -20,21 +18,14 @@
 .admin-shell .nx86-staff-table td:nth-child(6){text-align:center}
 .admin-shell .nx86-staff-table tbody tr{transition:background .18s ease}
 .admin-shell .nx86-staff-table tbody tr:hover{background:#faf9ff}
-.admin-shell .nx86-staff-name{font-weight:800;color:#241b40}
 .admin-shell .nx86-staff-email{display:block;overflow-wrap:anywhere}
 .admin-shell .nx86-staff-meta{display:block;margin-top:3px;line-height:1.4;color:#8a83a0;font-size:11px}
-.admin-shell .nx86-staff-actions{justify-content:center;gap:7px;white-space:nowrap}
-.admin-shell .nx86-staff-actions .nx80-icon-btn{width:37px;height:37px;min-width:37px;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1}
-.admin-shell .nx86-staff-actions .nx80-icon-btn .nx47-icon{display:block;flex:none;margin:0;transform:none}
 .admin-shell .nx86-staff-empty{padding:30px 16px;text-align:center;color:#625681;background:#faf9ff;border:1px dashed #d9d0f4;border-radius:14px}
-.admin-shell .nx86-staff-empty button{border:0;background:none;color:#533acf;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+.admin-shell .nx86-staff-empty button{cursor:pointer;text-decoration:underline;text-underline-offset:4px}
 .admin-shell .nx86-staff-pagination{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:17px;color:#6c6185;font-size:12px}
 .admin-shell .nx86-page-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
-.admin-shell .nx86-page-buttons button{box-sizing:border-box;min-width:35px;min-height:36px;padding:7px 10px;display:inline-flex;align-items:center;justify-content:center;gap:0;border:1px solid #e1daf7;border-radius:10px;background:#faf9ff;color:#4934a6;font-weight:800;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease,background .2s ease,color .2s ease}
+.admin-shell .nx86-page-buttons button{box-sizing:border-box;min-width:35px;min-height:36px;padding:7px 10px;display:inline-flex;align-items:center;justify-content:center;gap:0;cursor:pointer}
 .admin-shell .nx86-page-buttons button svg+svg{margin-left:-7px}
-.admin-shell .nx86-page-buttons button.is-current{background:#5d43d9;color:#fff;border-color:#5d43d9}
-.admin-shell .nx86-page-buttons button:hover:not(:disabled):not(.is-current){background:#ece7ff;border-color:#8c7ae8;transform:translateY(-2px);box-shadow:0 5px 12px #4b36ad1f}
 .admin-shell .nx86-page-buttons button:disabled{opacity:.42;cursor:not-allowed}
-.admin-shell .nx86-staff-directory :is(input,select,button):focus-visible{outline:3px solid #7460df;outline-offset:2px}
 @media(max-width:700px){.admin-shell .nx86-staff-select{flex:1 1 135px;min-width:130px}.admin-shell .nx86-staff-per-page{flex:0 1 95px;min-width:90px}.admin-shell .nx86-staff-pagination{justify-content:center;text-align:center}.admin-shell .nx86-page-total{width:100%;text-align:center}}
-@media(prefers-reduced-motion:reduce){.admin-shell .nx86-page-buttons button,.admin-shell .nx86-staff-table tbody tr{transition:none!important;transform:none!important}}
+@media(prefers-reduced-motion:reduce){.admin-shell .nx86-page-buttons button,.admin-shell .nx86-staff-table tbody tr{transition:none;transform:none}}

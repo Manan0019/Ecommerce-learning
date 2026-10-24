@@ -1,3 +1,4 @@
+import { Button, Checkbox, FormField } from "../ui/index";
 import { useState } from "react";
 import PriceRangeSlider from "./PriceRangeSlider";
 
@@ -46,25 +47,22 @@ function ProductFiltersContent({
 
   return (
     <aside className={`catalogue-filters ${open ? "is-open" : ""}`}>
-      <button
+      <Button variant="plain"
         className="filter-mobile-toggle"
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >
         {open ? "Hide filters" : "Show filters"}
-      </button>
+      </Button>
       <div className="filter-panel">
         <div className="filter-panel-heading">
           <h2>Filters</h2>
-          <button type="button" onClick={() => onFilterChange(null, [])}>
-            Clear all
-          </button>
         </div>
         <fieldset className="filter-group">
           <legend>Availability</legend>
-          <label className="filter-option">
-            <input
+          <FormField inline className="filter-option">
+            <Checkbox
               type="checkbox"
               disabled={disabled}
               checked={inStock}
@@ -73,7 +71,7 @@ function ProductFiltersContent({
               }
             />
             <span>In stock only</span>
-          </label>
+          </FormField>
         </fieldset>
         <fieldset className="filter-group price-filter nx28-price-filter">
           <legend>Price range</legend>
@@ -91,8 +89,8 @@ function ProductFiltersContent({
               {facet.unit ? ` (${facet.unit})` : ""}
             </legend>
             {facet.options.map((option) => (
-              <label className="filter-option" key={option.value}>
-                <input
+              <FormField inline className="filter-option" key={option.value}>
+                <Checkbox
                   type="checkbox"
                   disabled={disabled}
                   checked={selectedValues(params, facet.key).includes(
@@ -104,7 +102,7 @@ function ProductFiltersContent({
                 />
                 <span>{option.label}</span>
                 <small>{option.count}</small>
-              </label>
+              </FormField>
             ))}
           </fieldset>
         ))}

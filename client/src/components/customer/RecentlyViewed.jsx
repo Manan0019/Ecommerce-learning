@@ -1,3 +1,4 @@
+import { Button, EntitySubtitle, EntityTitle } from "../ui/index";
 import { useEffect, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import { Link } from "react-router-dom";
@@ -26,7 +27,7 @@ export default function RecentlyViewed() {
   },[items]);
   if (!items.length) return null;
   return <section className="store-section nx37-recent-section nx48-recent-section" aria-labelledby="nx-recent-heading">
-    <div className="section-heading"><div><p className="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2 id="nx-recent-heading">Recently viewed</h2></div><button className="nx37-text-button nx67-clear-history" type="button" onClick={() => { clearRecentlyViewed(); setItems([]); setLiveProducts({}); }}>Clear viewed items</button></div>
+    <div className="section-heading"><div><p className="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2 id="nx-recent-heading">Recently viewed</h2></div><Button variant="secondary" className="nx37-text-button nx67-clear-history" type="button" onClick={() => { clearRecentlyViewed(); setItems([]); setLiveProducts({}); }}>Clear viewed items</Button></div>
     <div className="nx48-recent-grid">{items.map(item => {
       const detailUrl = `/products/${encodeURIComponent(item.id)}`;
       const latest=liveProducts[item.id];
@@ -34,12 +35,12 @@ export default function RecentlyViewed() {
         stock: latest?Number(latest.stock||0):0,
         hasVariants: latest?Boolean(latest.hasVariants):true };
       return <article key={item.id} className="nx48-recent-card nx62-recent-card nx74-link-card">
-        <Link className="nx74-card-hit-area" to={detailUrl} aria-label={`Open ${item.name} details`} />
+        <Link  className="nx74-card-hit-area" to={detailUrl} aria-label={`Open ${item.name} details`} />
         <div className="nx62-recent-stage">
-          <Link to={detailUrl} className="nx48-recent-image">{item.imageUrl ? <img alt={item.name} src={apiAssetUrl(item.imageUrl)} loading="lazy"/> : <span aria-hidden="true"><UiIcon name="bag" size={35}/></span>}</Link>
+          <Link  to={detailUrl} className="nx48-recent-image">{item.imageUrl ? <img alt={item.name} src={apiAssetUrl(item.imageUrl)} loading="lazy"/> : <span aria-hidden="true"><UiIcon name="bag" size={35}/></span>}</Link>
           {latest && <StorefrontCardActions product={product} detailUrl={detailUrl} imageUrl={latest.imageUrl || item.imageUrl}/>}
         </div>
-        <div className="nx48-recent-copy"><small>{item.category || "Discover Nexora"}</small><Link to={detailUrl} className="nx62-recent-name">{item.name}</Link><Link to={detailUrl} className="nx48-recent-cta">View details</Link></div>
+        <div className="nx48-recent-copy"><EntitySubtitle>{item.category || "Discover Nexora"}</EntitySubtitle><EntityTitle as={Link} to={detailUrl} className="nx62-recent-name">{item.name}</EntityTitle><Link to={detailUrl} className="nx48-recent-cta">View details</Link></div>
       </article>;
     })}</div>
   </section>;

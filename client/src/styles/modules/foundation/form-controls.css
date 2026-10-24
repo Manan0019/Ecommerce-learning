@@ -1,17 +1,11 @@
 /* ---- legacy layer 22.css : retained cascading behavior ---- */
 /* Phase 22: required fields, validation and compact admin controls. */
-.admin-main .admin-form label:has(input[required]):not(.nx-inline-checkbox)::before,
-.admin-main .admin-form label:has(textarea[required])::before,
-.admin-main .admin-form label:has(select[required])::before,
-.admin-main .nx-sku-form label:has(input[required])::before { content:"* "; color:#c92640; font-weight:800; }
+.admin-main .admin-form label:has(input[required]):not(.nx-inline-checkbox)::before,.admin-main .admin-form label:has(textarea[required])::before,.admin-main .admin-form label:has(select[required])::before,.admin-main .nx-sku-form label:has(input[required])::before { content:"* "; }
 .nx22-required { color:#c92640; font-weight:800; }
-.admin-main input[data-invalid="true"], .admin-main textarea[data-invalid="true"],
-.admin-main select[data-invalid="true"], .admin-main input:user-invalid,
-.admin-main textarea:user-invalid,.admin-main select:user-invalid { border:2px solid #c92640 !important; background:#fff5f6; outline-offset:2px; }
-.admin-main label:has([data-invalid="true"])::after { content:"Please enter a valid value for this field."; display:block; color:#b42335; font-size:.76rem; margin-top:.3rem; }
+.admin-main label:has([data-invalid="true"])::after { content:"Please enter a valid value for this field."; display:block; margin-top:.3rem; }
 .nx22-sku-notice { border:1px solid #d6ddf5; background:#f4f6ff; border-radius:12px; padding:13px 16px; color:#34405f; line-height:1.5; }
 .nx22-media-selection-toolbar,.nx22-featured-order { display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:10px 0; }
-.nx22-media-selection-toolbar button,.nx22-featured-order button { border:1px solid #cdd5e6; background:white; border-radius:9px; padding:8px 12px; cursor:pointer; color:#253152; }
+.nx22-media-selection-toolbar button,.nx22-featured-order button { padding:8px 12px; cursor:pointer; }
 .nx22-media-selection-toolbar button:disabled,.nx22-featured-order button:disabled{opacity:.48; cursor:default;}
 .nx22-featured-order input { width:80px; margin-left:8px; padding:6px; }
 .nx22-featured-order small {color:#667085;}
@@ -42,8 +36,8 @@
 @media(max-width:650px){.storefront .nx58-specifications .specification-groups{grid-template-columns:1fr;padding:12px}.storefront .nx58-specifications>summary{padding:19px}.storefront .nx58-product-description{padding:19px}}
 
 .nx58-code-handover{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#f5f2ff;border:1px solid #e4dbff;border-radius:13px;padding:14px;margin:12px 0;font-size:12px;color:#45416b}
-.nx58-code-handover button{border:1px solid #d6ccfa;border-radius:9px;background:white;color:#5842c2;font-weight:800;padding:8px 12px;cursor:pointer}
-.nx58-otp-dialog label{display:grid;gap:8px;font-weight:800;font-size:13px;margin:15px 0}.nx58-otp-dialog input{min-height:47px;border:1px solid #cfc8f2;border-radius:12px;padding:10px 14px;font-size:1.2rem;letter-spacing:.17em;width:100%;max-width:250px}
+.nx58-code-handover button{padding:8px 12px;cursor:pointer}
+.nx58-otp-dialog label{display:grid;gap:8px;margin:15px 0}.nx58-otp-dialog input{min-height:47px;padding:10px 14px;width:100%;max-width:250px}
 .nx58-otp-dialog .nx52-confirm-actions{flex-wrap:wrap}
 
 /* ---- legacy layer 59.css : retained cascading behavior ---- */
@@ -96,8 +90,7 @@
 /* ---- legacy layer 60.css : retained cascading behavior ---- */
 /* Phase 60: order images and denser storefront rhythm. */
 .storefront main.nx60-home > .nx37-promotion-home {margin-bottom:16px!important}
-.storefront main.nx60-home > .store-section,
-.storefront main.nx60-home > .store-section:not(.nx48-recent-section) {margin-top:0!important;margin-bottom:28px!important;padding-top:0!important;padding-bottom:0!important}
+.storefront main.nx60-home > .store-section,.storefront main.nx60-home > .store-section:not(.nx48-recent-section) {margin-top:0!important;margin-bottom:28px!important;padding-top:0!important;padding-bottom:0!important}
 .storefront main.nx60-home > .nx37-promotion-home + .store-section {padding-top:8px!important}
 .storefront main.nx60-home > .store-section .section-heading{margin-bottom:17px!important}
 .storefront main.nx60-home > .category-section {margin-top:8px!important}
@@ -118,21 +111,14 @@
 .nx60-orders-page .nx59-order-preview-price{align-self:center;font-size:13px}
 .nx60-orders-toolbar{display:flex;justify-content:space-between;align-items:center;gap:13px;flex-wrap:wrap;margin:0 0 17px}
 .nx60-order-filters{display:flex;flex-wrap:wrap;gap:7px}
-.nx60-order-filters button{cursor:pointer;color:#54617b;background:#fff;border:1px solid #e3e2ee;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:750}
-.nx60-order-filters button:hover{border-color:#aaa0e8;color:#503fc1;background:#f8f7ff}
-.nx60-order-filters button.is-active{color:#fff;background:#5946cf;border-color:#5946cf}
-.nx60-order-filters button:focus-visible{outline:3px solid #b1a2ff;outline-offset:2px}
-.nx60-order-search{display:flex;align-items:center;gap:8px;min-width:min(100%,250px);flex:0 1 290px;background:#fff;border:1px solid #e1dfec;border-radius:12px;padding:0 12px;color:#6e5ec7}
-.nx60-order-search:focus-within{border-color:#8b79ec;box-shadow:0 0 0 3px #9784ef20}
-.nx60-order-search input{height:40px;min-width:0;width:100%;border:0!important;background:transparent!important;outline:0!important;box-shadow:none!important;font-size:12px;color:#202b48}
+.nx60-order-filters button{cursor:pointer;padding:9px 14px}
 .nx60-no-orders{padding:28px;border:1px solid #e6e4f2;border-radius:15px;background:#fff;text-align:center;color:#68758b}
-.nx60-no-orders button{margin-left:6px;color:#5c49c9;font-weight:800;background:none;border:0;cursor:pointer;text-decoration:underline}
-@media(max-width:700px){.nx60-orders-page .nx59-customer-order{padding:14px}.nx60-order-search{flex:1 1 100%}.nx60-order-filters{flex-wrap:nowrap;overflow:auto;max-width:100%;padding-bottom:5px}.nx60-order-filters button{white-space:nowrap}.nx60-orders-page .nx59-order-preview-image{flex-basis:72px;width:72px;height:76px}.nx60-orders-page .nx59-order-preview-item{flex-wrap:wrap}.nx60-orders-page .nx59-order-preview-price{margin-left:auto}.storefront main.nx60-home > .store-section{margin-bottom:21px!important}}
-@media(prefers-reduced-motion:reduce){.nx60-order-filters button{transition:none}}
+.nx60-no-orders button{margin-left:6px;cursor:pointer;text-decoration:underline}
+@media(max-width:700px){.nx60-orders-page .nx59-customer-order{padding:14px}.nx60-order-filters{flex-wrap:nowrap;overflow:auto;max-width:100%;padding-bottom:5px}.nx60-order-filters button{white-space:nowrap}.nx60-orders-page .nx59-order-preview-image{flex-basis:72px;width:72px;height:76px}.nx60-orders-page .nx59-order-preview-item{flex-wrap:wrap}.nx60-orders-page .nx59-order-preview-price{margin-left:auto}.storefront main.nx60-home > .store-section{margin-bottom:21px!important}}
 
 /* ---- legacy layer 64.css : retained cascading behavior ---- */
 /* Phase 64 — stable admin dock; unobtrusive link motion. */
-.admin-shell .admin-sidebar{overflow:hidden!important;display:flex;flex-direction:column;padding-bottom:0!important}
+.admin-shell .admin-sidebar{overflow:hidden;display:flex;flex-direction:column;padding-bottom:0}
 .admin-shell .admin-sidebar .admin-brand{flex:0 0 auto}
 .admin-shell .admin-sidebar .nx64-sidebar-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#666e90 transparent;overscroll-behavior:contain;padding:0 2px 14px 0}
 .admin-shell .admin-sidebar .admin-nav{margin-top:22px;display:grid}
@@ -179,8 +165,7 @@
 .nx64-quick-image-nav button{pointer-events:auto;border:1px solid #ded9f9;background:#fff;border-radius:50%;width:37px;height:37px;display:grid;place-items:center;color:#5543cf;cursor:pointer;transition:background .18s ease,transform .18s ease}
 .nx64-quick-image-nav button:hover{background:#f2edff;transform:scale(1.08)}
 .nx64-quick-thumbnails{display:flex;gap:7px;overflow-x:auto;padding:10px 2px;scrollbar-width:thin}
-.nx64-quick-thumbnails button{border:1px solid #e5e3f1;border-radius:10px;background:white;flex:none;width:59px;height:59px;overflow:hidden;padding:3px}
-.nx64-quick-thumbnails button.is-active{border:2px solid #6048e1}
+.nx64-quick-thumbnails button{flex:none;width:59px;height:59px;overflow:hidden;padding:3px}
 .nx64-quick-thumbnails img{height:100%;width:100%;object-fit:contain}
 .nx64-quick-info{min-width:0;display:flex;flex-direction:column;gap:13px;padding:5px 2px}
 .nx64-quick-info h3{font-size:clamp(21px,2.2vw,30px);line-height:1.22;margin:0;color:#18233f}
@@ -188,7 +173,7 @@
 .nx64-quick-description{line-height:1.65;font-size:13px;color:#666e83;margin:0}
 .nx64-quick-info .variant-selection{max-height:275px;overflow-y:auto;min-width:0}
 .nx64-quick-stock{font-size:12px;color:#476a50;margin:0}
-.nx64-quick-qty{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:700}.nx64-quick-qty input{width:76px;min-height:40px;padding:7px;border:1px solid #ded8ef;border-radius:10px}
+.nx64-quick-qty{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:700}.nx64-quick-qty input{width:76px;min-height:40px;padding:7px}
 .nx64-quick-actions{display:flex;gap:8px;flex-wrap:wrap}.nx64-quick-actions .button{flex:1;justify-content:center;min-width:130px}
 .nx64-quick-loading{padding:50px;text-align:center;color:#6c6885}
 /* Minimize extra chrome for products that have exactly one authentic photograph. */
@@ -209,20 +194,6 @@
 .admin-shell .admin-sidebar .admin-identity small{display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
 
 /* Phase 64: consistent modal close alignment. Animate only the icon, not its hit target. */
-.nx-modal .nx-modal-header .nx-icon-button {
- flex:0 0 40px!important;inline-size:40px!important;block-size:40px!important;
- display:grid!important;place-items:center!important;padding:0!important;
- line-height:0!important;align-self:center;position:relative;
- border-radius:12px;transition:background-color .22s ease,border-color .22s ease,box-shadow .22s ease!important;
-}
-.nx-modal .nx-modal-header .nx-icon-button svg{
- width:18px!important;height:18px!important;display:block;grid-area:1/1;margin:0!important;
- transform-origin:50% 50%;transition:transform .3s cubic-bezier(.22,1,.36,1),color .24s ease;
-}
-.nx-modal .nx-modal-header .nx-icon-button:hover{background:#eeeaff!important;border-color:#cfc5ff!important;box-shadow:0 4px 14px #5b3df515}
-.nx-modal .nx-modal-header .nx-icon-button:hover svg{transform:rotate(90deg) scale(1.07);color:#5b3df5}
-.nx-modal .nx-modal-header .nx-icon-button:active svg{transform:rotate(90deg) scale(.94)}
-.nx-modal .nx-modal-header .nx-icon-button:focus-visible{outline:2px solid #6645e9;outline-offset:3px}
 /* Loading placeholders mirror the actual image/title/price card structure. */
 .product-skeleton.nx64-product-skeleton{
  aspect-ratio:auto!important;min-height:340px;animation:none!important;background:#fff!important;
@@ -261,18 +232,10 @@
 @keyframes nx64-indeterminate{0%{transform:translateX(-120%)}100%{transform:translateX(300%)}}
 @media(prefers-reduced-motion:reduce){
  .nx64-skeleton-shape::after,.nx64-checkout-stage::before,.nx64-checkout-item,.nx64-checkout-track>span{animation:none!important}
- .nx-modal .nx-modal-header .nx-icon-button svg{transition:none!important}
- .nx-modal .nx-modal-header .nx-icon-button:hover svg{transform:none!important}
  .nx64-checkout-track>span{width:100%;opacity:.55}
 }
 
 /* Consistent SVG centering for other Nexora close/dismiss controls. */
-button.nx64-animated-close{display:grid!important;place-items:center!important;line-height:0!important;padding:0!important;transition:background .23s ease,border-color .23s ease,box-shadow .23s ease!important}
-button.nx64-animated-close .nx47-icon{width:17px;height:17px;display:block;grid-area:1/1;margin:0!important;transform-origin:center;transition:transform .3s cubic-bezier(.16,1,.3,1),color .24s ease}
-button.nx64-animated-close:hover{background:#eeeaff!important;box-shadow:0 3px 10px #5d45ca1a}
-button.nx64-animated-close:hover .nx47-icon{transform:rotate(90deg) scale(1.07);color:#654ed6}
-button.nx64-animated-close:focus-visible{outline:2px solid #6a4ee3;outline-offset:2px}
-@media(prefers-reduced-motion:reduce){button.nx64-animated-close .nx47-icon{transition:none!important}button.nx64-animated-close:hover .nx47-icon{transform:none!important}}
 
 /* ---- legacy layer 65.css : retained cascading behavior ---- */
 /* Phase 65 — modal readability and meaningful, accessible motion. */
@@ -298,8 +261,7 @@ button.nx64-animated-close:focus-visible{outline:2px solid #6a4ee3;outline-offse
 .nx-modal-order .nx65-order-overview .nx65-customer-details>span:last-child {
   display:block;overflow-wrap:anywhere;color:#6e7793;font-size:12px;line-height:1.55;
 }
-.nx-modal-order .nx65-order-overview .nx65-label,
-.nx-modal-order .nx65-order-overview .nx34-order-total small {
+.nx-modal-order .nx65-order-overview .nx65-label,.nx-modal-order .nx65-order-overview .nx34-order-total small {
   color:#73779a;letter-spacing:.08em;font-size:10px;font-weight:850;
 }
 .nx-modal-order .nx65-order-overview .nx65-total-details { display:grid;gap:7px;min-width:0;justify-items:end;text-align:right }
@@ -342,43 +304,12 @@ button.nx64-animated-close:focus-visible{outline:2px solid #6a4ee3;outline-offse
 .nx-modal-assignment .nx53-team-card {min-width:0;outline:0;box-shadow:none;overflow:visible}
 .nx-modal-assignment .nx53-team-card.is-selected {border-color:#7760de;background:#f7f5ff;box-shadow:inset 0 0 0 1px #7760de}
 .nx-modal-assignment .nx53-team-card:focus-within {outline:0}
-.nx-modal-assignment .nx53-team-card:has(input:focus-visible) {outline:2px solid #6b50df;outline-offset:2px}
 .nx-modal-assignment .nx53-team-identity {overflow:hidden}
 .nx-modal-assignment .nx53-team-meta {justify-items:end}
 .nx-modal-assignment .nx53-picker-footer {min-width:0;gap:10px;flex-wrap:wrap;padding-top:15px}
 .nx-modal-assignment .nx53-picker-footer>div {margin-left:auto;min-width:0}
 
 /* Close controls: expanding halo and gentle cross reveal, never rotating the X. */
-.nx-modal .nx-modal-header .nx65-close-control,
-button.nx65-close-control {
-  isolation:isolate;position:relative;overflow:hidden;
-  background:#f8f8fe!important;border:1px solid #e0e3ee!important;
-  border-radius:13px!important;color:#45516b!important;
-  display:grid!important;place-items:center!important;padding:0!important;
-  transition:background-color .25s ease,border-color .25s ease,box-shadow .25s ease,transform .25s ease!important;
-}
-.nx65-close-control::before {
-  content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;
-  background:radial-gradient(circle at center,#ded5ff 0%,#eee9ff 65%,transparent 70%);
-  opacity:0;transform:scale(.1);transition:transform .4s cubic-bezier(.16,1,.3,1),opacity .24s ease;
-}
-.nx-modal .nx-modal-header .nx65-close-control:hover,
-button.nx65-close-control:hover {
-  background:#f5f1ff!important;border-color:#b8a9fc!important;
-  box-shadow:0 4px 13px rgba(96,69,222,.12)!important;transform:translateY(-1px);
-}
-.nx65-close-control:hover::before {opacity:1;transform:scale(1.8)}
-.nx-modal .nx-modal-header .nx65-close-control svg,
-button.nx65-close-control .nx47-icon,
-button.nx65-close-control svg {
-  position:relative;z-index:1;transform:scale(1) rotate(0deg)!important;
-  transition:transform .26s cubic-bezier(.16,1,.3,1),color .23s ease!important;
-  pointer-events:none;transform-origin:center;
-}
-.nx-modal .nx-modal-header .nx65-close-control:hover svg,
-button.nx65-close-control:hover svg {transform:scale(.86) rotate(0deg)!important;color:#583aca!important}
-.nx65-close-control:active {transform:scale(.95)!important}
-.nx65-close-control:focus-visible {outline:2px solid #694ae9!important;outline-offset:3px!important}
 
 /* Skeletons are request-bound, never permanently present. */
 .product-skeleton.nx64-product-skeleton {min-height:370px;padding:13px;border:1px solid #e8e2fa;
@@ -422,10 +353,7 @@ button.nx65-close-control:hover svg {transform:scale(.86) rotate(0deg)!important
   .nx-modal-assignment .nx53-picker-footer button {flex:1}
 }
 @media (prefers-reduced-motion:reduce) {
-  .nx65-close-control,.nx65-close-control::before,.nx65-close-control svg,
-  .nx65-loading-row span::after,.nx65-checkout-steps li.is-active span,
-  .nx64-skeleton-shape::after {transition:none!important;animation:none!important}
-  .nx65-close-control:hover,.nx65-close-control:hover svg {transform:none!important}
+  .nx65-loading-row span::after,.nx65-checkout-steps li.is-active span,.nx64-skeleton-shape::after {transition:none!important;animation:none!important}
   .nx65-loading-row span::after,.nx64-skeleton-shape::after {opacity:0!important}
 }
 /* Restrained secondary interactions: responsive, no artificial delay for data. */
@@ -435,11 +363,8 @@ button.nx65-close-control:hover svg {transform:scale(.86) rotate(0deg)!important
 .nx-modal-assignment .nx53-team-card:not(.is-disabled):hover {background:#f8f5ff;transform:translateY(-1px)}
 .nx-modal-assignment .nx53-confirm:not(:disabled) {transition:background .2s ease,box-shadow .2s ease,transform .2s ease}
 .nx-modal-assignment .nx53-confirm:not(:disabled):hover {background:#4b36be;box-shadow:0 8px 15px -10px #5133c5;transform:translateY(-1px)}
-.nx-modal-order .nx-admin-order-card footer button:not(:disabled) {transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
-.nx-modal-order .nx-admin-order-card footer button:not(:disabled):hover {transform:translateY(-1px)}
 @media (prefers-reduced-motion:reduce) {
  .nx-modal-order,.nx-modal-assignment {animation:none!important}
- .nx-modal-assignment .nx53-team-card:hover,.nx-modal-assignment .nx53-confirm:hover,
- .nx-modal-order .nx-admin-order-card footer button:hover {transform:none!important;transition:none!important}
+ .nx-modal-assignment .nx53-team-card:hover,.nx-modal-assignment .nx53-confirm:hover,.nx-modal-order .nx-admin-order-card footer button:hover {transform:none;transition:none}
 }
 

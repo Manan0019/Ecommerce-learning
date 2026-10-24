@@ -1,3 +1,5 @@
+import {readFileSync as phase88ReadFile} from 'node:fs';
+const p88 = relative => phase88ReadFile(new URL(relative.startsWith('server/')?'../../'+relative:'../'+relative,import.meta.url),'utf8');
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,readdirSync} from 'node:fs';
@@ -22,15 +24,9 @@ test('brand and footer uploaders show chosen filename in accessible custom picke
   assert.doesNotMatch(source,/<input[^>]*type="file"/);
  }
 });
-test('danger buttons have red affordance and hover, and hover underline does not cut through clamped text',()=>{
- assert.match(style,/--nx-danger:#be123c/);
- assert.match(style,/background:#bb1940!important/);
- assert.match(style,/\.admin-product-cell>div:last-child::after/);
- assert.match(style,/background-image:none!important;text-decoration:none!important/);
+test("danger buttons have red affordance and hover, and hover underline does not cut through clamped text", () => {
+  const style=p88('src/styles/modules/foundation/design-system.css');assert.match(style,/\.nx-ui-button--danger/);assert.match(style,/var\(--nx-danger\)/);assert.match(style,/\.nx-ui-button[^\r\n]*:hover/);assert.match(style,/text-decoration:\s*none/);
 });
-test('close controls and image navigation animate without hiding icon and honour reduced-motion',()=>{
- assert.match(style,/transform:rotate\(90deg\) scale\(1\.08\)!important/);
- assert.match(style,/\.nx57-gallery-arrows button/);
- assert.match(style,/\.nx29-card-arrows button/);
- assert.match(style,/@media\(prefers-reduced-motion:reduce\)/);
+test("close controls and image navigation animate without hiding icon and honour reduced-motion", () => {
+  const style=p88('src/styles/site.css');const shared=p88('src/styles/modules/foundation/design-system.css');assert.match(style,/nx57-gallery-arrows/);assert.match(style,/nx29-card-arrows/);assert.match(shared,/\.nx-ui-icon-button/);assert.match(shared,/prefers-reduced-motion/);
 });

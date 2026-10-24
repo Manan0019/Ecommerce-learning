@@ -1,3 +1,4 @@
+import { Button, CountBadge } from "../ui/index";
 import UiIcon from "../common/UiIcon";
 import { useLayoutEffect, useRef } from "react";
 import { Link, NavLink } from "react-router-dom";
@@ -40,12 +41,12 @@ export default function AdminSidebar({ admin, isOpen, onClose, onLogout, stockAl
     <div className="nx64-sidebar-scroll" ref={scrollRef} onScroll={event => { rememberedAdminNavScroll = event.currentTarget.scrollTop; }}><nav className="admin-nav" aria-label="Admin navigation">
       <p>Workspace</p>
       {navigation.map((item) => <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}>
-        <span aria-hidden="true">{item.icon}</span>{item.label}{item.to === "/admin/inventory" && stockAlertCount > 0 && <span className="nx24-sidebar-count">{stockAlertCount}</span>}
+        <span aria-hidden="true">{item.icon}</span>{item.label}{item.to === "/admin/inventory" && stockAlertCount > 0 && <CountBadge className="nx24-sidebar-count">{stockAlertCount}</CountBadge>}
       </NavLink>)}
     </nav></div>
     <div className="admin-sidebar-footer">
       <Link to="/" onClick={onClose}><UiIcon name="store" size={17}/>View Storefront</Link>
-      <button type="button" onClick={onLogout}><UiIcon name="log-out" size={17}/>Logout</button>
+      <Button variant="secondary" type="button" onClick={onLogout}><UiIcon name="log-out" size={17}/>Logout</Button>
       <div className="admin-identity">
         <span>{initials}</span>
         <div><strong>{admin.fullName}</strong><small>{admin.email}</small></div>

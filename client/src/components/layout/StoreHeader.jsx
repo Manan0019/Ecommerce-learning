@@ -1,4 +1,5 @@
-import { SearchInput } from "../ui/index";
+import { Button, CountBadge, EntitySubtitle, EntityTitle, FormField, IconButton, SearchField } from "../ui/index";
+
 import { useEffect, useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import CategoryMiniArtwork from "../customer/CategoryMiniArtwork";
@@ -14,7 +15,6 @@ import { getProductSuggestions } from "../../services/productService";
 import { getCategories } from "../../services/categoryService";
 import {getStorefrontCopy} from "../../services/storefrontCopyService";
 
-function SearchIcon() { return <UiIcon name="search" size={21} />; }
 
 function HeartIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.8a5.6 5.6 0 0 0-7.9 0L12 5.7l-.9-.9a5.6 5.6 0 0 0-7.9 7.9L12 21l8.8-8.3a5.6 5.6 0 0 0 0-7.9Z" /></svg>;
@@ -134,7 +134,7 @@ export default function StoreHeader() {
         <BrandLogo showIcon={false} />
       </Link>
 
-      <button
+      <Button variant="plain"
         className="mobile-menu-button"
         type="button"
         aria-label="Toggle navigation"
@@ -143,7 +143,7 @@ export default function StoreHeader() {
         onClick={() => setMobileOpen((open) => !open)}
       >
         <span /><span /><span />
-      </button>
+      </Button>
 
       <div id="store-navigation" className={`nav-panel ${mobileOpen ? "is-open" : ""}`}>
         <nav className="store-nav" aria-label="Primary navigation">
@@ -151,10 +151,10 @@ export default function StoreHeader() {
         </nav>
 
         <form className="nav-search nx-nav-search" role="search" onSubmit={submitSearch} ref={searchRef} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setSearchFocused(false); }}>
-          <label className="sr-only" htmlFor="nav-search-input">Search products</label>
-          <SearchInput id="nav-search-input" placeholder="Search products, brands and collections" value={query}
+          <FormField className="sr-only" htmlFor="nav-search-input">Search products</FormField>
+          <SearchField id="nav-search-input" placeholder="Search products, brands and collections" value={query}
             onFocus={() => setSearchFocused(true)} onKeyDown={event => { if (event.key === "Escape") { setSearchFocused(false); event.currentTarget.blur(); } }} onChange={(event) => { setQuery(event.target.value); setSuggestionsLoading(event.target.value.trim().length >= 2); }} autoComplete="off" aria-autocomplete="list" aria-controls="nx-search-suggestions" aria-expanded={searchFocused && query.trim().length >= 2} />
-          <button type="submit" className="nx47-search-submit" aria-label="Search"><SearchIcon /></button>
+          <Button variant="primary" type="submit" className="nx-store-search-submit" aria-label="Search products" title="Search products"><UiIcon name="right" size={20}/></Button>
           {searchFocused && query.trim().length >= 2 && <div className="nx-search-suggestions" id="nx-search-suggestions" role="region" aria-label="Search suggestions">
             <div className="nx-search-suggestion-heading">Search suggestions</div>
             {suggestionsLoading && <p className="nx-search-empty">Finding matches…</p>}
@@ -162,13 +162,13 @@ export default function StoreHeader() {
               <span>Categories</span>{suggestions.categories.map(c => <Link onClick={chooseSuggestion} key={`c-${c.id}`} to={`/categories/${encodeURIComponent(c.slug)}`}><CategoryMiniArtwork category={categoryArtwork[c.slug] || c} className="nx49-search-category-icon"/><span className="nx47-search-category">{c.name}<small>Collection</small></span></Link>)}
             </div>}
             {!suggestionsLoading && suggestions.products.length > 0 && <div className="nx-search-group"><span>Products</span>
-              {suggestions.products.map(p => <Link key={`p-${p.cardKey || p.id}`} to={`/products/${p.id}${p.selectedVariantId ? `?variant=${encodeURIComponent(p.selectedVariantId)}` : ""}`} onClick={chooseSuggestion}>
+              {suggestions.products.map(p => <EntityTitle as={Link} key={`p-${p.cardKey || p.id}`} to={`/products/${p.id}${p.selectedVariantId ? `?variant=${encodeURIComponent(p.selectedVariantId)}` : ""}`} onClick={chooseSuggestion}>
                 {p.imageUrl ? <img src={apiAssetUrl(p.imageUrl)} alt="" /> : <span className="nx-search-placeholder"><UiIcon name="bag" size={18}/></span>}
-                <span className="nx-search-result-label">{p.name}<small>{p.brand || p.category}</small></span>
-              </Link>)}
+                <span className="nx-search-result-label">{p.name}<EntitySubtitle>{p.brand || p.category}</EntitySubtitle></span>
+              </EntityTitle>)}
             </div>}
             {!suggestionsLoading && !suggestions.products.length && !suggestions.categories.length && <p className="nx-search-empty">No direct matches. Try a different product or brand.</p>}
-            <button type="submit" className="nx-search-view-all"><span>View all results for “{query.trim()}”</span><span className="nx49-suggestion-action"><UiIcon name="chevron-right" size={16}/></span></button>
+            <Button variant="primary" type="submit" className="nx-search-view-all"><span>View all results for “{query.trim()}”</span><span className="nx49-suggestion-action"><UiIcon name="chevron-right" size={16}/></span></Button>
           </div>}
         </form>
       </div>
@@ -177,7 +177,7 @@ export default function StoreHeader() {
         {user?.role === "customer" && <NotificationBell />}
         {user?.role === "admin" && <Link className="admin-return-link" to="/admin/dashboard">Admin Dashboard</Link>}
         {user?.role === "delivery" && <Link className="admin-return-link" to="/delivery/dashboard">Delivery workspace</Link>}
-        {user?.role !== "delivery" && <Link className="nx69-header-compare" to="/compare" title="Compare products" aria-label={`Compare products (${compareCount} selected)`}><UiIcon name="compare" size={22}/>{compareCount > 0 && <span className="nx69-compare-count">{compareCount}</span>}</Link>}
+        {user?.role !== "delivery" && <Link className="nx69-header-compare" to="/compare" title="Compare products" aria-label={`Compare products (${compareCount} selected)`}><UiIcon name="compare" size={22}/>{compareCount > 0 && <CountBadge className="nx69-compare-count">{compareCount}</CountBadge>}</Link>}
         {user?.role !== "delivery" && <Link className="wishlist-header-link nx34-wishlist-icon" to="/wishlist" aria-label="View wishlist" title="Wishlist"><HeartIcon /></Link>}
         {user?.role !== "delivery" && <Link className="cart-link" to="/cart" aria-label={`Cart with ${itemCount} items`}>
           <CartIcon />
@@ -185,20 +185,20 @@ export default function StoreHeader() {
         </Link>}
 
         {user ? <div className="profile-menu" ref={profileRef}>
-          <button className="avatar-button" type="button" aria-label="Open account menu" title="Account"
+          <IconButton variant="secondary" className="avatar-button" type="button" aria-label="Open account menu" title="Account"
             aria-haspopup="menu" aria-expanded={profileOpen}
             onClick={() => setProfileOpen((open) => !open)}>
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M4.8 20c.35-4.25 3.1-6.35 7.2-6.35s6.85 2.1 7.2 6.35"/></svg>
-          </button>
+          </IconButton>
           {profileOpen && <div className="profile-dropdown" role="menu">
             <p>{user.fullName}</p>
             {user.role === "admin" ? <Link role="menuitem" to="/admin/dashboard" onClick={() => setProfileOpen(false)}>Back to Admin Dashboard</Link> : user.role === "delivery" ? <Link role="menuitem" to="/delivery/dashboard" onClick={() => setProfileOpen(false)}>Delivery workspace</Link> : <><Link role="menuitem" to="/dashboard" onClick={() => setProfileOpen(false)}>My Profile</Link><Link role="menuitem" to="/orders" onClick={() => setProfileOpen(false)}>My Orders</Link><Link role="menuitem" to="/addresses" onClick={() => setProfileOpen(false)}>Saved Addresses</Link></>}
             {user.role !== 'delivery' && <Link role="menuitem" to="/compare" onClick={() => setProfileOpen(false)}>Compare products ({compareCount})</Link>}
             {user.role !== 'delivery' && <Link role="menuitem" to="/wishlist" onClick={() => setProfileOpen(false)}>Wishlist</Link>}
-            <button role="menuitem" type="button" onClick={logout}>Logout</button>
+            <Button variant="secondary" role="menuitem" type="button" onClick={logout}>Logout</Button>
             {authError && <small role="alert">{authError}</small>}
           </div>}
-        </div> : <Link className="login-button" to="/login">Login</Link>}
+        </div> : <Button as={Link} variant="secondary" className="login-button" to="/login">Login</Button>}
       </div>
     </div>
   </header>;

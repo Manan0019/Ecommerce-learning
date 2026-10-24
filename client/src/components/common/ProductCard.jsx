@@ -1,3 +1,4 @@
+import { Button, EntityTitle } from "../ui/index";
 import { useEffect, useRef, useState } from "react";
 import StorefrontCardActions from "../customer/StorefrontCardActions";
 import UiIcon from "./UiIcon";
@@ -56,9 +57,9 @@ export default function ProductCard({ product, showQuickAdd = true }) {
   return <article className="product-card nx29-preview-card nx74-link-card"
     onPointerEnter={event => { if (event.pointerType === "mouse" || event.pointerType === "pen") startPreview(); }}
     onPointerLeave={() => { stopPreview(true); manuallyNavigated.current = false; }}>
-    <Link className="nx74-card-hit-area" to={detailUrl} aria-label={`Open ${product.name} details`} />
+    <Link  className="nx74-card-hit-area" to={detailUrl} aria-label={`Open ${product.name} details`} />
     <div className={`nx29-card-stage ${hasGallery ? "nx77-multiple-images" : "nx77-single-image"}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      <Link className="product-image-link" to={detailUrl} aria-label={`View ${product.name}`} onClick={event => { if (swiped.current) { event.preventDefault(); swiped.current = false; } }}>
+      <Link  className="product-image-link" to={detailUrl} aria-label={`View ${product.name}`} onClick={event => { if (swiped.current) { event.preventDefault(); swiped.current = false; } }}>
         {current ? <img key={current} className="nx29-card-image" src={apiAssetUrl(current)} alt={product.name} loading="lazy" onError={() => { stopPreview(); setFailedImages(prev => prev.includes(current) ? prev : [...prev, current]); setActive(0); }} />
           : <div className="missing-image">Image coming soon</div>}
         {product.stock === 0 && <span className="product-badge">Sold out</span>}
@@ -67,8 +68,8 @@ export default function ProductCard({ product, showQuickAdd = true }) {
       <StorefrontCardActions product={product} detailUrl={detailUrl} imageUrl={current || product.imageUrl} showQuickAdd={showQuickAdd} />
       {hasGallery && <>
         <div className="nx29-card-arrows" aria-label="Preview product images">
-          <button type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}><UiIcon name="chevron-left" size={17}/></button>
-          <button type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}><UiIcon name="chevron-right" size={17}/></button>
+          <Button variant="plain" type="button" onClick={() => choose(active - 1)} aria-label={`Previous image for ${product.name}`}><UiIcon name="chevron-left" size={17}/></Button>
+          <Button variant="plain" type="button" onClick={() => choose(active + 1)} aria-label={`Next image for ${product.name}`}><UiIcon name="chevron-right" size={17}/></Button>
         </div>
         <div className="nx56-card-preview-track" aria-hidden="true">
           <span className="nx56-card-preview-fill" style={{ width: `${(Math.min(active + 1, availableImages.length) / availableImages.length) * 100}%` }} />
@@ -79,7 +80,7 @@ export default function ProductCard({ product, showQuickAdd = true }) {
       <p className="product-category">{product.category}</p>
       {product.colorLabel && <p className="nx16-color-label">Color: {product.colorLabel}</p>}
       {(product.brand || product.model) && <p className="product-brand">{[product.brand, product.model].filter(Boolean).join(" · ")}</p>}
-      <h3><Link to={detailUrl}>{product.name}</Link></h3>
+      <EntityTitle as="h3" size="lg"><Link to={detailUrl}>{product.name}</Link></EntityTitle>
       <div className="product-meta">
         <p className="product-price nx66-product-price">{Number(product.mrp) > Number(product.price) && <><span className="detail-discount">−{Math.round((Number(product.mrp) - Number(product.price)) / Number(product.mrp) * 100)}%</span><s className="detail-mrp">{money(product.mrp)}</s></>}<strong className="nx66-selling-price">{money(product.price)}</strong></p>
         <span>{product.stock > 0 ? "Available" : "Out of stock"}</span>

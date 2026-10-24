@@ -1,4 +1,6 @@
-import { Select, SearchInput, Pagination, EmptyState, ClearFilters } from "../../components/ui/index";
+import usePagination from '../../hooks/usePagination';
+import { Button, ClearFilters, EmptyState, FormField, Pagination, SearchField, Select, TextField, Textarea } from "../../components/ui/index";
+
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -27,7 +29,7 @@ export default function DeliveryDashboard() {
   const [tab, setTab] = useState('all');
  const liveRevision=useRealtimeRevision(['delivery', 'orders', 'finance']);
   const [search, setSearch] = useState('');
-  const [page,setPage]=useState(1);
+  
   const [view,setView]=useState('table');
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,18 @@ export default function DeliveryDashboard() {
   const refresh = useCallback(async (signal) => {
     const response = await getMyAssignments(signal);
     if (!signal?.aborted) setAssignments(response.assignments || []);
-  }, [liveRevision]);
+  }, []);
+  // Socket invalidations must refresh the executive's assignments as well as the initial session load.
+  useEffect(() => {
+    if (!liveRevision) return;
+    const controller = new AbortController();
+    queueMicrotask(() => {
+      if (!controller.signal.aborted) refresh(controller.signal).catch(error => {
+        if (!controller.signal.aborted) setError(error.message || 'Could not refresh deliveries.');
+      });
+    });
+    return () => controller.abort();
+  }, [liveRevision, refresh]);
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([getDeliverySession(controller.signal),getMyAssignments(controller.signal)])
@@ -62,9 +75,7 @@ export default function DeliveryDashboard() {
     const q = search.trim().toLocaleLowerCase();
     return deliveryTabMatch(a, tab) && (!q || String(a.orderId).includes(q) || a.customerName?.toLocaleLowerCase().includes(q) || a.address?.city?.toLocaleLowerCase().includes(q));
   }).sort((a, b) => deliveryAttentionPriority(a) - deliveryAttentionPriority(b) || Number(b.orderId) - Number(a.orderId)), [assignments,tab,search]);
-  const perPage=10;
-  const pages=Math.max(1,Math.ceil(filtered.length/perPage));
-  const visible=filtered.slice((Math.min(page,pages)-1)*perPage,Math.min(page,pages)*perPage);
+  const {page,pages,items:visible,setPage}=usePagination(filtered,JSON.stringify([tab,search]));
   const current = assignments.find(a => String(a.orderId) === String(selected));
   const counts = useMemo(() => ({
     all:assignments.length,
@@ -146,9 +157,9 @@ export default function DeliveryDashboard() {
       </div>}
       {a.paymentMethod === 'cod' && <p className="nx52-cod-reminder">COD cash collection is recorded separately by the administrator. Marking delivery complete does not record a payment.</p>}
       {!a.pendingIssue&&a.deliveryStatus==='out_for_delivery'&&a.orderStatus==='shipped'&&<div className="nx58-code-handover"><span>Customer delivery confirmation is required. Code sent to <strong>{a.customerEmailMasked || 'registered email'}</strong>.</span>
-        <button type="button" disabled={!!busy} onClick={()=>resendHandoverCode(a)}>Resend code</button></div>}
-      {!a.pendingIssue&&a.deliveryStatus==='out_for_delivery'&&a.orderStatus==='shipped'&&<button type="button" className="nx54-report-action" disabled={!!busy} onClick={()=>{setError('');setIssueOrder(a);setIssueForm({...initialIssue});}}>Report delivery issue</button>}
-      {a.pendingIssue ? <p className="nx52-action-help">Delivery is paused until your administrator reviews this report.</p> : action ? <button className="nx52-action-primary" type="button" disabled={!!busy} onClick={()=>action.status==='delivered'?(setDeliveryOtp(''),setConfirmOrder(a)):update(a,action.status)}>{busy === String(a.orderId) ? 'Updating…' : action.status==='delivered' ? 'Verify OTP & deliver' : action.label}<UiIcon name="right" size={17}/></button>
+        <Button variant="secondary" type="button" disabled={!!busy} onClick={()=>resendHandoverCode(a)}>Resend code</Button></div>}
+      {!a.pendingIssue&&a.deliveryStatus==='out_for_delivery'&&a.orderStatus==='shipped'&&<Button variant="secondary" type="button" className="nx54-report-action" disabled={!!busy} onClick={()=>{setError('');setIssueOrder(a);setIssueForm({...initialIssue});}}>Report delivery issue</Button>}
+      {a.pendingIssue ? <p className="nx52-action-help">Delivery is paused until your administrator reviews this report.</p> : action ? <Button variant="primary" className="nx52-action-primary" type="button" disabled={!!busy} onClick={()=>action.status==='delivered'?(setDeliveryOtp(''),setConfirmOrder(a)):update(a,action.status)}>{busy === String(a.orderId) ? 'Updating…' : action.status==='delivered' ? 'Verify OTP & deliver' : action.label}<UiIcon name="right" size={17}/></Button>
         : <p className="nx52-action-help">{a.deliveryStatus === 'delivered' ? 'Delivery complete.' : 'Awaiting admin dispatch. Delivery actions unlock after dispatch.'}</p>}
     </>;
   }
@@ -156,11 +167,11 @@ export default function DeliveryDashboard() {
     <aside className="nx57-delivery-sidebar nx82-delivery-sidebar" aria-label="Delivery workspace navigation">
       <Link to="/delivery/dashboard" className="nx57-delivery-logo"><span>N</span><strong>Nexora<small>DELIVERY OPERATIONS</small></strong></Link>
       <p className="nx57-sidebar-label">WORKSPACE</p>
-      {[["all","Dashboard","layout-dashboard"],["active","In progress","truck"],["ready","Assigned orders","package"],["route","Out for delivery","truck"],["delivered","Delivered history","check-circle"]].map(([key,label,icon])=><button type="button" key={key} className={tab===key?'is-active':''} onClick={()=>{setTab(key);setSelected(null);setPage(1)}} aria-current={tab===key?'page':undefined}><UiIcon name={icon} size={17}/><span>{label}</span><b>{counts[key]}</b></button>)}
-      <div className="nx57-delivery-sidebar-foot"><button className="nx80-edit-profile" type="button" onClick={openProfile}><UiIcon name="edit" size={16}/> Edit profile</button><span>{me?.fullName||'Delivery executive'}</span><small>{me?.email||'Assigned deliveries only'}</small><button type="button" onClick={signOut}>Sign out <UiIcon name="right" size={16}/></button></div>
+      {[["all","Dashboard","layout-dashboard"],["active","In progress","truck"],["ready","Assigned orders","package"],["route","Out for delivery","truck"],["delivered","Delivered history","check-circle"]].map(([key,label,icon])=><Button variant="secondary" type="button" key={key} className={tab===key?'is-active':''} onClick={()=>{setTab(key);setSelected(null);setPage(1)}} aria-current={tab===key?'page':undefined}><UiIcon name={icon} size={17}/><span>{label}</span><b>{counts[key]}</b></Button>)}
+      <div className="nx57-delivery-sidebar-foot"><Button variant="secondary" className="nx80-edit-profile" type="button" onClick={openProfile}><UiIcon name="edit" size={16}/> Edit profile</Button><span>{me?.fullName||'Delivery executive'}</span><small>{me?.email||'Assigned deliveries only'}</small><Button variant="secondary" type="button" onClick={signOut}>Sign out <UiIcon name="right" size={16}/></Button></div>
     </aside>
     <header className="nx52-delivery-header"><Link to="/delivery/dashboard" className="nx52-delivery-brand"><span className="nx52-brand-mark">N</span><span><strong>Nexora</strong><small>DELIVERY OPERATIONS</small></span></Link>
-      <div className="nx52-delivery-account"><NotificationBell/><button type="button" className="nx80-header-profile" onClick={openProfile}><UiIcon name="edit" size={16}/> Edit profile</button><div className="nx52-delivery-user"><strong>{me?.fullName || 'Delivery executive'}</strong><small>{me?.email || 'Delivery workspace'}</small></div><button type="button" onClick={signOut}>Sign out</button></div></header>
+      <div className="nx52-delivery-account"><NotificationBell/><Button variant="secondary" type="button" className="nx80-header-profile" onClick={openProfile}><UiIcon name="edit" size={16}/> Edit profile</Button><div className="nx52-delivery-user"><strong>{me?.fullName || 'Delivery executive'}</strong><small>{me?.email || 'Delivery workspace'}</small></div><Button variant="secondary" type="button" onClick={signOut}>Sign out</Button></div></header>
     <main className="nx52-delivery-main nx82-delivery-main"><section className="nx82-delivery-hero" aria-label="Delivery command centre"><div className="nx82-delivery-hero-copy">
     <p className="nx82-kicker"><span className="nx82-online-dot"/> NEXORA · DELIVERY COMMAND CENTRE</p>
     <h1>{me ? `Good to see you, ${me.fullName?.trim().split(/\s+/)[0]||'partner'}.` : 'Your delivery workspace.'}</h1>
@@ -169,7 +180,7 @@ export default function DeliveryDashboard() {
    </div><div className="nx82-delivery-hero-progress"><span>DELIVERY COMPLETION</span><strong>{counts.all ? Math.round(counts.delivered/counts.all*100):0}%</strong>
      <div className="nx82-progress-track" role="progressbar" aria-valuenow={counts.all ? Math.round(counts.delivered/counts.all*100):0} aria-valuemin="0" aria-valuemax="100" aria-label="Overall assignment completion"><i style={{width:`${counts.all ? Math.round(counts.delivered/counts.all*100):0}%`}}/></div>
      <small>{counts.delivered} of {counts.all} assigned orders completed</small>
-     <button type="button" disabled={loading || !me} onClick={()=>{setError('');refresh().catch(e=>setError(e.message));}}><UiIcon name="refresh-cw" size={16}/> Refresh assignments</button>
+     <Button variant="secondary" type="button" disabled={loading || !me} onClick={()=>{setError('');refresh().catch(e=>setError(e.message));}}><UiIcon name="refresh-cw" size={16}/> Refresh assignments</Button>
    </div></section>
       {error && <div className="nx52-delivery-warning" role="alert">{error}{sessionProblem && <Link to="/delivery/login">Go to delivery sign in <UiIcon name="right" size={15}/></Link>}</div>}
       {notice && <div className="nx52-delivery-success" role="status">{notice}</div>}
@@ -185,35 +196,35 @@ export default function DeliveryDashboard() {
           <div className="nx82-earnings-wrapper"><div className="nx82-section-prelude"><div><p>PERSONAL PAY LEDGER</p><h2>Delivery earnings</h2></div><span>Pay confirmed only after verified handover</span></div><EarningsLedger /></div>
           <section className="nx74-delivery-queue-summary nx82-priority" aria-label="Delivery priorities">
             <div><span className="nx52-eyebrow">DELIVERY PRIORITIES</span><strong>{actionable.length ? `${actionable.length} order${actionable.length === 1 ? '' : 's'} ready for your action` : 'All actionable deliveries handled'}</strong><small>{actionable.length ? 'Open the next eligible assignment to begin or verify its delivery.' : 'New assignments will appear when your administrator dispatches them.'}</small></div>
-            {actionable.length > 0 && <button type="button" onClick={focusNextDelivery}><UiIcon name="package" size={17}/>Open next delivery</button>}
+            {actionable.length > 0 && <Button variant="secondary" type="button" onClick={focusNextDelivery}><UiIcon name="package" size={17}/>Open next delivery</Button>}
           </section>
-          <section className="nx52-delivery-work nx82-delivery-work"><div className="nx52-delivery-work-top"><div><p className="nx52-eyebrow">MY ROUTE</p><h2>My delivery queue</h2></div><label className="nx52-delivery-search"><UiIcon name="search" size={18}/><SearchInput value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search order, name or city"/></label></div>
-            <div className="nx77-delivery-view-controls"><button type="button" aria-pressed={view==='table'} onClick={()=>setView('table')}><UiIcon name="list" size={16}/> Table view</button><button type="button" aria-pressed={view==='cards'} onClick={()=>setView('cards')}><UiIcon name="layout-grid" size={16}/> Cards</button></div>
-            <div className="nx52-delivery-tabs" role="group" aria-label="Filter deliveries">{tabs.map(([key,label])=><button type="button" key={key} className={tab===key?'is-active':''} aria-pressed={tab===key} onClick={()=>{setTab(key);setPage(1);}}>{label}<span>{counts[key]}</span></button>)}</div>
-            <p className="nx74-delivery-results" role="status">Showing {filtered.length} of {assignments.length} assignments · Unfinished deliveries appear first</p><div className="nx52-delivery-content"><div className="nx52-delivery-list">{view==='table'&&<div className="nx77-delivery-mini-table" role="table" aria-label="Delivery assignments"><div role="row" className="nx77-delivery-mini-head"><span>Order</span><span>Customer</span><span>Status</span></div>{visible.map(a=><button type="button" role="row" key={a.orderId} className={String(selected || filtered[0]?.orderId)===String(a.orderId)?'is-active':''} onClick={()=>setSelected(a.orderId)}><span>#{a.orderId}<small>{money(a.total)}</small></span><span>{a.customerName}<small>{a.address?.city||'—'}</small></span><span>{statuses[a.deliveryStatus]||a.deliveryStatus}</span></button>)}</div>}{view==='cards'&&visible.map(a=><button type="button" key={a.orderId} className={`nx52-delivery-list-card${String(selected || filtered[0]?.orderId)===String(a.orderId)?' is-active':''}`} onClick={()=>setSelected(a.orderId)}>
+          <section className="nx52-delivery-work nx82-delivery-work"><div className="nx52-delivery-work-top"><div><p className="nx52-eyebrow">MY ROUTE</p><h2>My delivery queue</h2></div><SearchField value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search order, name or city"/><ClearFilters active={Boolean(search)||tab!=="all"} onClear={()=>{setSearch("");setTab("all");setPage(1);}}/></div>
+            <div className="nx77-delivery-view-controls"><Button variant="secondary" type="button" aria-pressed={view==='table'} onClick={()=>setView('table')}><UiIcon name="list" size={16}/> Table view</Button><Button variant="secondary" type="button" aria-pressed={view==='cards'} onClick={()=>setView('cards')}><UiIcon name="layout-grid" size={16}/> Cards</Button></div>
+            <div className="nx52-delivery-tabs" role="group" aria-label="Filter deliveries">{tabs.map(([key,label])=><Button variant="secondary" type="button" key={key} className={tab===key?'is-active':''} aria-pressed={tab===key} onClick={()=>{setTab(key);setPage(1);}}>{label}<span>{counts[key]}</span></Button>)}</div>
+            <p className="nx74-delivery-results" role="status">Showing {filtered.length} of {assignments.length} assignments · Unfinished deliveries appear first</p><div className="nx52-delivery-content"><div className="nx52-delivery-list">{view==='table'&&<div className="nx77-delivery-mini-table" role="table" aria-label="Delivery assignments"><div role="row" className="nx77-delivery-mini-head"><span>Order</span><span>Customer</span><span>Status</span></div>{visible.map(a=><Button variant="secondary" type="button" role="row" key={a.orderId} className={String(selected || filtered[0]?.orderId)===String(a.orderId)?'is-active':''} onClick={()=>setSelected(a.orderId)}><span>#{a.orderId}<small>{money(a.total)}</small></span><span>{a.customerName}<small>{a.address?.city||'—'}</small></span><span>{statuses[a.deliveryStatus]||a.deliveryStatus}</span></Button>)}</div>}{view==='cards'&&visible.map(a=><Button variant="plain" type="button" key={a.orderId} className={`nx52-delivery-list-card${String(selected || filtered[0]?.orderId)===String(a.orderId)?' is-active':''}`} onClick={()=>setSelected(a.orderId)}>
               <span><strong>Order #{a.orderId}</strong><small>{a.address?.city || 'Delivery'}</small></span><span className={`nx52-delivery-status is-${a.deliveryStatus}`}>{statuses[a.deliveryStatus] || a.deliveryStatus}</span><b>{a.customerName}</b><small>{money(a.total)} · {a.paymentMethod === 'cod' ? 'COD' : 'Prepaid'}</small>
-            </button>)}<Pagination page={page} pages={pages} total={filtered.length} pageSize={perPage} label="deliveries" onPageChange={setPage}/>{!filtered.length && <EmptyState icon="truck" title={assignments.length?"No matching deliveries":"No deliveries assigned"} description={assignments.length?"Change the filter to find a delivery.":"New assignments will appear here automatically."}/>}</div>
+            </Button>)}<Pagination page={page} pages={pages} total={filtered.length} label="deliveries" onPageChange={setPage}/>{!filtered.length && <EmptyState icon="truck" title={assignments.length?"No matching deliveries":"No deliveries assigned"} description={assignments.length?"Change the filter to find a delivery.":"New assignments will appear here automatically."}/>}</div>
             <aside className="nx52-delivery-detail" aria-label="Selected delivery details">{(current && visible.some(a=>String(a.orderId)===String(current.orderId)) ? current : visible[0]) ? details(current && visible.some(a=>String(a.orderId)===String(current.orderId)) ? current : visible[0]) : <div className="nx52-detail-empty">Select an assignment to view delivery details.</div>}</aside></div>
           </section>
         </>}
     </main>
-    {profile&&<Modal title="Edit your profile" subtitle="Keep your delivery contact information accurate." size="small" closeDisabled={profileBusy} onClose={()=>{if(!profileBusy)setProfile(null);}}><form className="nx46-create-form nx80-delivery-form" onSubmit={saveProfile} noValidate>{[['fullName','Full name'],['mobileNumber','Mobile number']].map(([field,label])=><label key={field} htmlFor={`nx80-profile-${field}`}><span>{label} <b className="nx80-required" aria-hidden="true">*</b></span><input id={`nx80-profile-${field}`} type={field==='mobileNumber'?'tel':'text'} inputMode={field==='mobileNumber'?'numeric':undefined} maxLength={field==='mobileNumber'?10:100} pattern={field==='mobileNumber'?'[0-9]{10}':undefined} required value={profile[field]} aria-invalid={Boolean(profileErrors[field])} aria-describedby={profileErrors[field]?`nx80-profile-${field}-error`:undefined} onBlur={()=>setProfileErrors(e=>({...e,[field]:deliveryFieldError(field,profile[field])}))} onChange={e=>{const value=field==='mobileNumber'?e.target.value.replace(/\D/g,'').slice(0,10):e.target.value;setProfile(v=>({...v,[field]:value}));if(profileErrors[field])setProfileErrors(prev=>({...prev,[field]:deliveryFieldError(field,value)}));}}/>{profileErrors[field]&&<small id={`nx80-profile-${field}-error`} className="nx80-field-error" role="alert">{profileErrors[field]}</small>}</label>)}<p>Sign-in email: <strong>{me?.email}</strong> (contact your administrator to change this)</p><div className="nx46-modal-actions"><button type="button" disabled={profileBusy} onClick={()=>setProfile(null)}>Cancel</button><button type="submit" disabled={profileBusy}>{profileBusy?'Saving…':'Save changes'}</button></div></form></Modal>}
+    {profile&&<Modal title="Edit your profile" subtitle="Keep your delivery contact information accurate." size="small" closeDisabled={profileBusy} onClose={()=>{if(!profileBusy)setProfile(null);}}><form className="nx46-create-form nx80-delivery-form" onSubmit={saveProfile} noValidate>{[['fullName','Full name'],['mobileNumber','Mobile number']].map(([field,label])=><FormField key={field} htmlFor={`nx80-profile-${field}`}><span>{label} <b className="nx80-required" aria-hidden="true">*</b></span><TextField id={`nx80-profile-${field}`} type={field==='mobileNumber'?'tel':'text'} inputMode={field==='mobileNumber'?'numeric':undefined} maxLength={field==='mobileNumber'?10:100} pattern={field==='mobileNumber'?'[0-9]{10}':undefined} required value={profile[field]} aria-invalid={Boolean(profileErrors[field])} aria-describedby={profileErrors[field]?`nx80-profile-${field}-error`:undefined} onBlur={()=>setProfileErrors(e=>({...e,[field]:deliveryFieldError(field,profile[field])}))} onChange={e=>{const value=field==='mobileNumber'?e.target.value.replace(/\D/g,'').slice(0,10):e.target.value;setProfile(v=>({...v,[field]:value}));if(profileErrors[field])setProfileErrors(prev=>({...prev,[field]:deliveryFieldError(field,value)}));}}/>{profileErrors[field]&&<small id={`nx80-profile-${field}-error`} className="nx80-field-error" role="alert">{profileErrors[field]}</small>}</FormField>)}<p>Sign-in email: <strong>{me?.email}</strong> (contact your administrator to change this)</p><div className="nx46-modal-actions"><Button variant="secondary" type="button" disabled={profileBusy} onClick={()=>setProfile(null)}>Cancel</Button><Button variant="primary" type="submit" disabled={profileBusy}>{profileBusy?'Saving…':'Save changes'}</Button></div></form></Modal>}
     {issueOrder && <div className="nx52-confirm-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setIssueOrder(null);}}>
       <form className="nx52-confirm-panel nx54-report-panel" role="dialog" aria-modal="true" aria-labelledby="nx54-report-title" onSubmit={submitIssue}>
         <span className="nx52-eyebrow">DELIVERY EXCEPTION</span><h2 id="nx54-report-title">Report issue · Order #{issueOrder.orderId}</h2>
         <p>Record what happened. This pauses completion until an administrator approves another delivery attempt; it does not cancel the order.</p>
-        <label>Issue type<Select value={issueForm.kind} disabled={!!busy} onChange={e=>setIssueForm(x=>({...x,kind:e.target.value,requestedDate:''}))}>
+        <FormField>Issue type<Select value={issueForm.kind} disabled={!!busy} onChange={e=>setIssueForm(x=>({...x,kind:e.target.value,requestedDate:''}))}>
           <option value="failed_attempt">Delivery attempt unsuccessful</option><option value="reschedule_requested">Request a new delivery date</option>
-        </Select></label>
-        {issueForm.kind==='reschedule_requested'&&<label>Proposed date (next 30 days)<input type="date" required disabled={!!busy}
+        </Select></FormField>
+        {issueForm.kind==='reschedule_requested'&&<FormField>Proposed date (next 30 days)<TextField type="date" required disabled={!!busy}
           min={new Date().toLocaleDateString('en-CA')} value={issueForm.requestedDate}
-          onChange={e=>setIssueForm(x=>({...x,requestedDate:e.target.value}))}/></label>}
-        <label>Reason / delivery notes<textarea minLength={10} maxLength={300} required rows={4} disabled={!!busy}
+          onChange={e=>setIssueForm(x=>({...x,requestedDate:e.target.value}))}/></FormField>}
+        <FormField>Reason / delivery notes<Textarea minLength={10} maxLength={300} required rows={4} disabled={!!busy}
           placeholder="E.g. customer unavailable after calling; please arrange another attempt."
-          value={issueForm.reason} onChange={e=>setIssueForm(x=>({...x,reason:e.target.value}))}/></label>
+          value={issueForm.reason} onChange={e=>setIssueForm(x=>({...x,reason:e.target.value}))}/></FormField>
         {error&&<p className="nx52-delivery-warning" role="alert">{error}</p>}
-        <div className="nx52-confirm-actions"><button type="button" disabled={!!busy} onClick={()=>setIssueOrder(null)}>Go back</button>
-          <button type="submit" disabled={!!busy||issueForm.reason.trim().length<10||issueForm.reason.trim().length>300||(issueForm.kind==='reschedule_requested'&&!issueForm.requestedDate)}>{busy?'Submitting…':'Send to admin'}</button></div>
+        <div className="nx52-confirm-actions"><Button variant="secondary" type="button" disabled={!!busy} onClick={()=>setIssueOrder(null)}>Go back</Button>
+          <Button variant="primary" type="submit" disabled={!!busy||issueForm.reason.trim().length<10||issueForm.reason.trim().length>300||(issueForm.kind==='reschedule_requested'&&!issueForm.requestedDate)}>{busy?'Submitting…':'Send to admin'}</Button></div>
       </form>
     </div>}
     {confirmOrder && <div className="nx52-confirm-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setConfirmOrder(null);}}>
@@ -221,12 +232,12 @@ export default function DeliveryDashboard() {
         <span className="nx52-eyebrow">SECURE HANDOVER</span>
         <h2 id="nx52-confirm-title">Verify delivery · Order #{confirmOrder.orderId}</h2>
         <p>Ask the recipient for the code sent to <strong>{confirmOrder.customerEmailMasked || 'their registered email'}</strong> only after handing over the parcel. Do not ask the customer to share it before delivery.</p>
-        <label>Six-digit customer OTP<input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required
-          value={deliveryOtp} onChange={e=>setDeliveryOtp(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="6-digit code" disabled={!!busy} /></label>
+        <FormField>Six-digit customer OTP<TextField type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required
+          value={deliveryOtp} onChange={e=>setDeliveryOtp(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="6-digit code" disabled={!!busy} /></FormField>
         {error&&<p className="nx52-delivery-warning" role="alert">{error}</p>}
-        <div className="nx52-confirm-actions"><button type="button" disabled={!!busy} onClick={()=>{setConfirmOrder(null);setDeliveryOtp('');}}>Go back</button>
-          <button type="button" disabled={!!busy} onClick={()=>resendHandoverCode(confirmOrder)}>Resend code</button>
-          <button type="submit" disabled={!!busy||!/^\d{6}$/.test(deliveryOtp)}>{busy?'Verifying…':'Verify & mark delivered'}</button></div>
+        <div className="nx52-confirm-actions"><Button variant="secondary" type="button" disabled={!!busy} onClick={()=>{setConfirmOrder(null);setDeliveryOtp('');}}>Go back</Button>
+          <Button variant="secondary" type="button" disabled={!!busy} onClick={()=>resendHandoverCode(confirmOrder)}>Resend code</Button>
+          <Button variant="primary" type="submit" disabled={!!busy||!/^\d{6}$/.test(deliveryOtp)}>{busy?'Verifying…':'Verify & mark delivered'}</Button></div>
       </form>
     </div>}
   </div>;

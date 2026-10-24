@@ -1,4 +1,5 @@
-import { SearchInput } from "../ui/index";
+import { Button, EntitySubtitle, EntityTitle, FormField, SearchField } from "../ui/index";
+
 import {useEffect,useState} from "react";
 import {searchPromotionProducts} from "../../services/bannerService";
 
@@ -20,19 +21,19 @@ export default function PromotionProductPicker({label,productId,productName,onSe
   return <div className="nx19-product-picker" onBlur={event=>{
     if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);
   }}>
-    <label htmlFor={`${label.replace(/\W+/g,"-")}-search`}>{label}</label>
+    <FormField htmlFor={`${label.replace(/\W+/g,"-")}-search`}>{label}</FormField>
     {productId&&<div className="nx19-selected-product"><strong>{productName||`Product #${productId}`}</strong>
-      <button type="button" onClick={()=>{onSelect("","");setQuery("");setOpen(true);}}>Change / Clear</button>
+      <Button variant="secondary" type="button" onClick={()=>{onSelect("","");setQuery("");setOpen(true);}}>Change / Clear</Button>
     </div>}
-    <SearchInput id={`${label.replace(/\W+/g,"-")}-search`} autoComplete="off"
+    <SearchField id={`${label.replace(/\W+/g,"-")}-search`} autoComplete="off"
       placeholder="Search products by name, brand or ID…" value={query}
       role="combobox" aria-expanded={open} aria-controls={`${label.replace(/\W+/g,"-")}-results`}
       onFocus={()=>setOpen(true)} onChange={event=>{setQuery(event.target.value);setOpen(true);}} />
     {open&&<div id={`${label.replace(/\W+/g,"-")}-results`} role="listbox" className="nx19-product-results">
-      {results.length===0?<p>{error||"No active products found."}</p>:results.map(item=><button type="button" role="option" aria-selected={String(item.id)===String(productId)}
+      {results.length===0?<p>{error||"No active products found."}</p>:results.map(item=><Button variant="secondary" type="button" role="option" aria-selected={String(item.id)===String(productId)}
         key={item.id} onClick={()=>{onSelect(item.id,item.name);setQuery("");setOpen(false);}}>
-        <strong>{item.name}</strong><small>{item.brand?`${item.brand} · `:""}{item.category} · ID {item.id}</small>
-      </button>)}
+        <EntityTitle>{item.name}</EntityTitle><EntitySubtitle>{item.brand?`${item.brand} · `:""}{item.category} · ID {item.id}</EntitySubtitle>
+      </Button>)}
     </div>}
     <small>Only published products in active categories are shown. The selection remains saved until changed.</small>
   </div>;

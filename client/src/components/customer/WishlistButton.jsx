@@ -1,3 +1,4 @@
+import { Button } from "../ui/index";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCurrentUser } from "../../services/authService";
@@ -52,21 +53,21 @@ export default function WishlistButton({ productId }) {
   }
   if (status === "login")
     return (
-      <Link className="button button-secondary" to="/login">
+      <Button as={Link} variant="secondary"  to="/login">
         ♡ Sign in to save
-      </Link>
+      </Button>
     );
   return (
     <span className="wishlist-action">
-      <button
-        className="button button-secondary"
+      <Button variant="secondary"
+        
         type="button"
         disabled={status !== "ready"}
         onClick={toggle}
         aria-pressed={saved}
       >
         {saved ? "♥ Saved to wishlist" : "♡ Save to wishlist"}
-      </button>
+      </Button>
       {error && <span role="alert">{error}</span>}
     </span>
   );

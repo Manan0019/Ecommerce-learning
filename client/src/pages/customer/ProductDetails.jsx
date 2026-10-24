@@ -1,3 +1,4 @@
+import { Button, FormField, TextField } from "../../components/ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { rememberProduct } from "../../services/recentlyViewed";
 import UiIcon from "../../components/common/UiIcon";
@@ -36,10 +37,8 @@ function ProductDetailsContent({ id,adminPreview=false }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedVariantId = searchParams.get("variant");
   const initialVariantRef = useRef(requestedVariantId);
-  useEffect(() => {
-    const tab = searchParams.get("edit");
-    if (adminPreview && ["details", "variants", "gallery"].includes(tab)) setEditTab(tab);
-  }, [adminPreview, searchParams]);
+  const requestedEditTab=searchParams.get("edit");
+  const activeEditTab=editTab || (adminPreview && ["details", "variants", "gallery"].includes(requestedEditTab) ? requestedEditTab : null);
   function closeEditor() {
     setEditTab(null);
     if (searchParams.has("edit")) {
@@ -95,8 +94,8 @@ function ProductDetailsContent({ id,adminPreview=false }) {
         <div className="nx50-preview-actions">
           <Link className="nx50-back-link" to={returnTo}><UiIcon name="left" size={16}/> Back</Link>
           {product?.isActive&&<Link className="nx50-live-link" to={`/products/${id}`}><UiIcon name="chevron-right" size={16}/> Storefront</Link>}
-          <button className="nx50-preview-edit" type="button" disabled={!product} onClick={()=>setEditTab("details")}>
-            <UiIcon name="edit" size={16}/> Edit product</button>
+          <Button variant="secondary" className="nx50-preview-edit" type="button" disabled={!product} onClick={()=>setEditTab("details")}>
+            <UiIcon name="edit" size={16}/> Edit product</Button>
         </div>
       </section>}
       <nav className="breadcrumbs" aria-label="Breadcrumb">
@@ -105,7 +104,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
         {product && <><span aria-hidden="true">/</span><span>{product.name}</span></>}
       </nav>
       {loading && <div className="detail-skeleton" aria-label="Loading product" />}
-      {error && <section className="nx33-detail-error" role="alert"><h1>We couldn’t load this product</h1><p>{error}</p><Link className="button button-primary" to="/products">Browse products</Link></section>}
+      {error && <section className="nx33-detail-error" role="alert"><h1>We couldn’t load this product</h1><p>{error}</p><Button as={Link} variant="primary"  to="/products">Browse products</Button></section>}
       {product && <article className="product-detail">
         <div className="product-detail-media">
           <ProductMediaGallery key={selectedVariant?.attributes?.color ?? selectedVariant?.attributes?.colour ?? variantId} product={product} variantId={selectedVariant?.id || null} variantAttributes={selectedVariant?.attributes||{}} items={media} />
@@ -132,25 +131,25 @@ function ProductDetailsContent({ id,adminPreview=false }) {
             }}/>
           {!adminPreview&&<><WishlistButton productId={product.id} />
           <div className="purchase-panel">
-            <label htmlFor="product-quantity">Quantity</label>
+            <FormField htmlFor="product-quantity">Quantity</FormField>
             <div className="purchase-row">
               <div className="quantity-picker">
-                <button type="button" aria-label="Decrease quantity" disabled={quantity <= 1}
-                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</button>
-                <input id="product-quantity" type="number" min="1" max={Math.min(99, effectiveStock)}
+                <Button variant="secondary" type="button" aria-label="Decrease quantity" disabled={quantity <= 1}
+                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</Button>
+                <TextField id="product-quantity" type="number" min="1" max={Math.min(99, effectiveStock)}
                   value={quantity} disabled={!canBuy}
                   onChange={(event) => {
                     const next = Number(event.target.value);
                     if (Number.isInteger(next) && next >= 1 && next <= Math.min(99, effectiveStock)) setQuantity(next);
                   }} />
-                <button type="button" aria-label="Increase quantity"
+                <Button variant="secondary" type="button" aria-label="Increase quantity"
                   disabled={effectiveStock === 0 || quantity >= Math.min(99, effectiveStock)}
-                  onClick={() => setQuantity((value) => Math.min(effectiveStock, 99, value + 1))}>+</button>
+                  onClick={() => setQuantity((value) => Math.min(effectiveStock, 99, value + 1))}>+</Button>
               </div>
-              <button className="button button-primary add-cart-button" type="button"
+              <Button variant="primary" className="add-cart-button" type="button"
                 disabled={!canBuy} onClick={addProduct}>
                 {!canBuy ? "Out of stock" : "Add to cart"}
-              </button>
+              </Button>
             </div>
             {added && <p className="added-message" role="status">Added to your cart. <Link to="/cart">View cart</Link></p>}
           </div>
@@ -178,7 +177,7 @@ function ProductDetailsContent({ id,adminPreview=false }) {
       </details>}
       {product && <ProductReviews productId={product.id} adminPreview={adminPreview} />}
       {product && <RelatedProducts productId={product.id} />}
-      {adminPreview&&editTab&&<AdminProductEditDialog productId={id} name={product?.name} initialTab={editTab}
+      {adminPreview&&activeEditTab&&<AdminProductEditDialog productId={id} name={product?.name} initialTab={activeEditTab}
         onClose={closeEditor} onSaved={()=>setPreviewVersion(version=>version+1)}/>}
   </CustomerLayout>;
 }

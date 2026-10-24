@@ -1,3 +1,4 @@
+import { Button, Card, Checkbox, EntitySubtitle, FormField, IconButton, TextField, Textarea } from "../ui/index";
 import { useEffect, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import Modal from "../common/Modal";
@@ -80,39 +81,39 @@ export default function ProductVariantsManager({ productId }) {
     setBusy(false);
   }
 
-  return <section className="admin-panel nx-variant-panel">
+  return <Card as="section" className="admin-panel nx-variant-panel">
     <div className="admin-panel-heading"><div><h2>SKUs & inventory</h2><p>Each configuration has independent pricing and stock.</p></div>
-      <button type="button" className="admin-primary-action" onClick={beginAdd}>+ Add a SKU</button></div>
+      <Button variant="primary" type="button"  onClick={beginAdd}>+ Add a SKU</Button></div>
     {message && <p role="status" className="admin-form-message">{message}</p>}
     {error && !modalOpen && <p role="alert" className="admin-alert">{error}</p>}
     {variants.length === 0 ? <div className="admin-empty">No saved SKUs yet. Add one manually or generate a collection below.</div> :
       <div className="nx-sku-list">
         <div className="nx-sku-head"><span>Configuration</span><span>Pricing</span><span>Inventory</span><span></span></div>
         {variants.map(v => <div className="nx-sku-row" key={v.id}>
-          <div><strong>{v.customTitle || v.sku}</strong><small>{v.customTitle ? `SKU: ${v.sku} · ` : ""}{Object.entries(v.attributes || {}).map(([k,value]) => `${k.replaceAll("_", " ")}: ${value}`).join(" · ") || "Default configuration"}</small></div>
+          <div><strong>{v.customTitle || v.sku}</strong><EntitySubtitle>{v.customTitle ? `SKU: ${v.sku} · ` : ""}{Object.entries(v.attributes || {}).map(([k,value]) => `${k.replaceAll("_", " ")}: ${value}`).join(" · ") || "Default configuration"}</EntitySubtitle></div>
           <div><strong>{money(v.price)}</strong><small>MRP {money(v.mrp ?? v.price)}</small></div>
           <div><strong>{v.stock} units</strong><small>{v.isActive ? (Number(v.stock) <= Number(v.lowStockThreshold ?? 5) ? `Low stock (≤ ${v.lowStockThreshold ?? 5})` : "Active") : "Inactive"}</small></div>
-          <button className="nx69-icon-action" type="button" title="Edit SKU" aria-label={`Edit SKU ${v.sku}`} onClick={() => beginEdit(v)}><UiIcon name="edit" size={18}/></button>
+          <IconButton variant="secondary"  type="button" title="Edit SKU" aria-label={`Edit SKU ${v.sku}`} onClick={() => beginEdit(v)}><UiIcon name="edit" size={18}/></IconButton>
         </div>)}
       </div>}
     <details className="nx-generator-details"><summary><span><strong>Generate multiple SKU combinations</strong><small>Colors × sizes × storage, and any other option groups</small></span><span>Expand <UiIcon name="chevron-down" size={17}/></span></summary>
       <DraftVariants variants={drafts} onChange={setDrafts} disabled={busy} existingVariants={variants} />
-      {drafts.length > 0 && <button type="button" className="admin-primary-action" disabled={busy} onClick={saveDrafts}>{busy ? "Saving…" : `Save ${drafts.length} generated SKU(s)`}</button>}
+      {drafts.length > 0 && <Button variant="primary" type="button"  disabled={busy} onClick={saveDrafts}>{busy ? "Saving…" : `Save ${drafts.length} generated SKU(s)`}</Button>}
     </details>
     {modalOpen && <Modal title={editing ? "Edit SKU" : "Add a SKU"} subtitle="Change this configuration without scrolling through other variants." size="medium"
       onClose={() => { if (!busy) { setModalOpen(false); setError(""); } }} closeDisabled={busy}>
       <form className="admin-form nx-sku-form" onSubmit={saveOne}>
-        <div className="admin-form-grid two-column"><label><span className="nx34-field-label">SKU <b className="nx34-required" aria-hidden="true">*</b></span><input required maxLength={80} value={form.sku} onChange={e => setForm(old => ({ ...old, sku: e.target.value }))}/></label>
-          <label><span className="nx34-field-label">Stock units <b className="nx34-required" aria-hidden="true">*</b></span><input type="number" min="0" step="1" required value={form.stock} onChange={e => setForm(old => ({ ...old, stock: e.target.value }))}/></label>
-          <label><span className="nx34-field-label">Low-stock alert at or below <b className="nx34-required" aria-hidden="true">*</b></span><input type="number" min="0" max="1000000" step="1" required value={form.lowStockThreshold} onChange={e => setForm(old => ({ ...old, lowStockThreshold: e.target.value }))}/></label></div>
-        <label>Customer-facing variant title (optional)<input maxLength={260} value={form.customTitle || ""} placeholder="MacBook Air M5 · 24 GB RAM / 512 GB SSD" onChange={e => setForm(old => ({...old, customTitle: e.target.value}))}/></label>
+        <div className="admin-form-grid two-column"><FormField><span className="nx34-field-label">SKU <b className="nx34-required" aria-hidden="true">*</b></span><TextField required maxLength={80} value={form.sku} onChange={e => setForm(old => ({ ...old, sku: e.target.value }))}/></FormField>
+          <FormField><span className="nx34-field-label">Stock units <b className="nx34-required" aria-hidden="true">*</b></span><TextField type="number" min="0" step="1" required value={form.stock} onChange={e => setForm(old => ({ ...old, stock: e.target.value }))}/></FormField>
+          <FormField><span className="nx34-field-label">Low-stock alert at or below <b className="nx34-required" aria-hidden="true">*</b></span><TextField type="number" min="0" max="1000000" step="1" required value={form.lowStockThreshold} onChange={e => setForm(old => ({ ...old, lowStockThreshold: e.target.value }))}/></FormField></div>
+        <FormField>Customer-facing variant title (optional)<TextField maxLength={260} value={form.customTitle || ""} placeholder="MacBook Air M5 · 24 GB RAM / 512 GB SSD" onChange={e => setForm(old => ({...old, customTitle: e.target.value}))}/></FormField>
         <VariantPriceFields row={form} disabled={busy} onFieldChange={(field,value) => setForm(old => updatePricingDraft(old, field, value))}/>
-        <label>Option values <small>One per line, like Color: Midnight</small><textarea rows={4} value={form.attributesText} onChange={e => setForm(old => ({ ...old, attributesText: e.target.value }))} placeholder={"Color: Midnight\nRAM: 16 GB\nStorage: 1 TB"}/></label>
-        <label className="nx-inline-checkbox"><input type="checkbox" checked={form.isActive} onChange={e => setForm(old => ({ ...old, isActive: e.target.checked }))}/> SKU active for customers</label>
+        <FormField>Option values <small>One per line, like Color: Midnight</small><Textarea rows={4} value={form.attributesText} onChange={e => setForm(old => ({ ...old, attributesText: e.target.value }))} placeholder={"Color: Midnight\nRAM: 16 GB\nStorage: 1 TB"}/></FormField>
+        <FormField inline className="nx-inline-checkbox"><Checkbox type="checkbox" checked={form.isActive} onChange={e => setForm(old => ({ ...old, isActive: e.target.checked }))}/> SKU active for customers</FormField>
         {error && <p className="admin-alert" role="alert">{error}</p>}
-        <div className="nx-sticky-actions"><button className="admin-primary-action" type="submit" disabled={busy}>{busy ? "Saving…" : "Save SKU"}</button>
-          <button type="button" className="admin-secondary-action" disabled={busy} onClick={() => setModalOpen(false)}>Cancel</button></div>
+        <div className="nx-sticky-actions"><Button variant="primary"  type="submit" disabled={busy}>{busy ? "Saving…" : "Save SKU"}</Button>
+          <Button variant="secondary" type="button"  disabled={busy} onClick={() => setModalOpen(false)}>Cancel</Button></div>
       </form>
     </Modal>}
-  </section>;
+  </Card>;
 }

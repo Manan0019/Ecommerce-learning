@@ -1,3 +1,4 @@
+import { Button } from "../ui/index";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAdmin } from "../../services/adminService";
@@ -85,12 +86,12 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
   if (!admin) return <div className="admin-loading" role="alert">{error || "Administrator session unavailable."}</div>;
 
   return <div className="admin-shell">
-    <button className="admin-mobile-toggle" type="button" aria-label="Toggle admin navigation"
+    <Button variant="plain" className="admin-mobile-toggle" type="button" aria-label="Toggle admin navigation"
       aria-expanded={sidebarOpen} aria-controls="admin-sidebar"
       onClick={() => setSidebarOpen((open) => !open)}>
       <span /><span /><span />
-    </button>
-    {sidebarOpen && <button className="admin-sidebar-backdrop" type="button" aria-label="Close navigation"
+    </Button>
+    {sidebarOpen && <Button variant="plain" className="admin-sidebar-backdrop" type="button" aria-label="Close navigation"
       onClick={() => setSidebarOpen(false)} />}
     <AdminSidebar admin={admin} isOpen={sidebarOpen}
       onClose={() => setSidebarOpen(false)} onLogout={logout} stockAlertCount={stockAlertCount} />

@@ -1,3 +1,5 @@
+import {readFileSync as phase88ReadFile} from 'node:fs';
+const p88 = relative => phase88ReadFile(new URL(relative.startsWith('server/')?'../../'+relative:'../'+relative,import.meta.url),'utf8');
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -18,14 +20,8 @@ test('hover underline is unified and never removes photo gallery arrows', () => 
   assert.match(read('components/common/ProductCard.jsx'),/nx29-card-arrows/);
   assert.match(css,/prefers-reduced-motion:reduce/);
 });
-test('admin customer search is backed by API query and stays read only', () => {
-  const p=read('pages/admin/AdminCustomers.jsx');
-  assert.match(p,/getCustomers\(controller\.signal, serverQuery\)/);
-  assert.match(p,/setTimeout\(\(\) => setServerQuery/);
-  assert.match(p,/Search name, email or ID/);
-  assert.match(p,/read-only records/);
-  assert.doesNotMatch(p,/admin-readonly-badge/); // Keep access read-only, remove distracting badge.
-  assert.match(read('services/adminService.js'),/params\.set\("q", query\.trim\(\)\)/);
+test("admin customer search is backed by API query and stays read only", () => {
+  const page=p88('src/pages/admin/AdminCustomers.jsx');const api=p88('src/services/adminService.js');assert.match(page,/getCustomers\(controller\.signal, serverQuery, page\)/);assert.match(page,/setServerQuery/);assert.match(page,/Search name, email or ID/);assert.doesNotMatch(page,/admin-readonly-badge/);assert.match(page,/SearchField/);assert.match(api,/params\.set\("q", query\.trim\(\)\)/);
 });
 test('delivered orders are ranked after active assignments without loosening permissions', () => {
   assert.ok(deliveryAttentionPriority({deliveryStatus:'out_for_delivery'}) < deliveryAttentionPriority({deliveryStatus:'assigned'}));

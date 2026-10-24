@@ -1,6 +1,8 @@
-import { SearchInput, Pagination, EmptyState, ClearFilters } from "../../components/ui/index";
+import usePagination from '../../hooks/usePagination';
+import { Button, ClearFilters, EmptyState, EntityTitle, Pagination, SearchField } from "../../components/ui/index";
+
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import OrderTimeline from "../../components/customer/OrderTimeline";
@@ -13,11 +15,11 @@ import {useCart} from "../../hooks/useCart";
 const money=x=>`₹${Number(x||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 function OrderProductPreview({item}){
  return <div className="nx59-order-preview-item">
-  <Link className="nx59-order-preview-image" to={`/products/${item.productId}`} aria-label={`View ${item.name}`}>
+  <Link  className="nx59-order-preview-image" to={`/products/${item.productId}`} aria-label={`View ${item.name}`}>
    {item.imageUrl?<img src={apiAssetUrl(item.imageUrl)} alt={item.name} loading="lazy" onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextElementSibling?.removeAttribute('hidden')}}/>:null}
    <span className="nx59-image-placeholder" hidden={Boolean(item.imageUrl)}><UiIcon name="package" size={26}/></span>
   </Link>
-  <div className="nx59-order-preview-copy"><Link to={`/products/${item.productId}`}>{item.name}</Link>
+  <div className="nx59-order-preview-copy"><EntityTitle as={Link} to={`/products/${item.productId}`}>{item.name}</EntityTitle>
     <span>{item.sku||'Standard'} · Qty {item.quantity}</span>
   </div>
   <strong className="nx59-order-preview-price">{money(item.lineTotal)}</strong>
@@ -32,7 +34,7 @@ export default function Orders(){
  const deepLinkedOrder=new URLSearchParams(location.search).get('order');
  const [expandedId,setExpandedId]=useState(deepLinkedOrder || location.state?.placedId || null);
  const [filter,setFilter]=useState("all"),[search,setSearch]=useState("");
- const [page,setPage]=useState(1);
+
  const [cancelOrder,setCancelOrder]=useState(null),[cancelBusy,setCancelBusy]=useState(false),[cancelError,setCancelError]=useState('');
  async function sendCancellation(reason){setCancelBusy(true);setCancelError('');try{
   await requestOrderCancellation(cancelOrder.id,reason);const updated=await getMyOrders();setOrders(updated.orders||[]);
@@ -77,16 +79,8 @@ export default function Orders(){
   }catch(e){setError(e.message)}finally{if(!opened)release()}
  }
  useEffect(()=>{const controller=new AbortController();getMyOrders(controller.signal).then(d=>setOrders(d.orders||[])).catch(e=>{if(isAuthenticationError(e))navigate("/login",{replace:true,state:{from:"/orders"}});else if(e.name!=="AbortError")setError(e.message);}).finally(()=>{if(!controller.signal.aborted)setLoading(false);});return()=>controller.abort();},[navigate,liveRevision]);
- useEffect(()=>{
-  if(!deepLinkedOrder || !/^[1-9]\d*$/.test(deepLinkedOrder))return;
-  setExpandedId(deepLinkedOrder);
-  if(orders.some(o=>String(o.id)===deepLinkedOrder)){
-   const orderIndex=orders.findIndex(o=>String(o.id)===deepLinkedOrder);
-   if(orderIndex>=0)setPage(Math.floor(orderIndex/10)+1);
-   requestAnimationFrame(()=>document.getElementById(`nx-order-${deepLinkedOrder}`)?.scrollIntoView({block:'start',behavior:'smooth'}));
-  }
- },[deepLinkedOrder,orders]);
- const visibleOrders=orders.filter(o=>{
+
+ const visibleOrders=useMemo(()=>orders.filter(o=>{
    const matchFilter=String(o.id)===String(deepLinkedOrder) || filter==='all'||
      (filter==='active' && !['cancelled','delivered','payment_expired'].includes(o.status) && o.paymentStatus!=='razorpay_expired')||
      (filter==='delivered' && o.status==='delivered')||
@@ -94,26 +88,35 @@ export default function Orders(){
      (filter==='payment' && o.paymentMethod==='Razorpay' && ['razorpay_pending','razorpay_review'].includes(o.paymentStatus));
    const needle=search.trim().toLocaleLowerCase();
    return matchFilter && (!needle||String(o.id).includes(needle)||o.items.some(i=>String(i.name||'').toLocaleLowerCase().includes(needle)||String(i.sku||'').toLocaleLowerCase().includes(needle)));
- });
- const totalPages=Math.max(1,Math.ceil(visibleOrders.length/10));
- const currentPage=Math.min(page,totalPages);
- const pagedOrders=visibleOrders.slice((currentPage-1)*10,currentPage*10);
+ }),[orders,filter,search,deepLinkedOrder]);
+ const {page:currentPage,pages:totalPages,items:pagedOrders,setPage}=usePagination(visibleOrders,JSON.stringify([filter,search]));
+ useEffect(()=>{
+  if(!deepLinkedOrder || !/^[1-9]\d*$/.test(deepLinkedOrder))return;
+  let scrollFrame=0;
+  const frame=requestAnimationFrame(()=>{
+   setExpandedId(deepLinkedOrder);
+   const orderIndex=visibleOrders.findIndex(o=>String(o.id)===deepLinkedOrder);
+   if(orderIndex>=0)setPage(Math.floor(orderIndex/10)+1);
+   scrollFrame=requestAnimationFrame(()=>document.getElementById(`nx-order-${deepLinkedOrder}`)?.scrollIntoView({block:'start',behavior:'smooth'}));
+  });
+  return()=>{cancelAnimationFrame(frame);cancelAnimationFrame(scrollFrame);};
+ },[deepLinkedOrder,orders,setPage,visibleOrders]);
  return <CustomerLayout mainClassName="nx-orders-page nx60-orders-page"><div className="nx-page-intro"><p className="eyebrow">Your orders</p><h1>Follow every order</h1><p>Follow COD and Razorpay orders from payment confirmation through delivery.</p></div>
  {location.state?.placedId&&<div className="nx-cod-message nx-cod-success" role="status">✓ Order #{location.state.placedId} {location.state.alreadyPlaced?"was already placed":"was placed successfully"}. {location.state.paidOnline?"Razorpay payment captured and verified.":"Pay on delivery."}</div>}
  {error&&<div className="nx-cod-message nx-cod-error" role="alert">{error}</div>}
  {success&&<div className="nx-cod-message nx-cod-success" role="status">{success}</div>}
- {!loading && orders.length>0 && <div className="nx60-orders-toolbar"><div className="nx60-order-filters" role="group" aria-label="Filter orders">{[['all','All orders'],['active','In progress'],['delivered','Delivered'],['payment','Needs payment'],['cancelled','Cancelled / expired']].map(([key,label])=><button type="button" key={key} className={filter===key?'is-active':''} aria-pressed={filter===key} onClick={()=>{setFilter(key);setPage(1);}}>{label}</button>)}</div><label className="nx60-order-search"><UiIcon name="search" size={18}/><SearchInput placeholder="Find order or product" aria-label="Find order or product" value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}}/></label><ClearFilters active={filter!=="all"||Boolean(search)} onClear={()=>{setFilter("all");setSearch("");setPage(1);}}/></div>}
- {loading?<p role="status">Loading orders…</p>:!orders.length?<EmptyState icon="bag" title="No orders yet" description="Once you order, tracking and receipts will appear here." action={<Link className="button button-primary" to="/products">Explore products</Link>}/>:!visibleOrders.length?<EmptyState icon="search" title="No matching orders" description="Try another status or search term."/>:<div className="nx-orders-list nx59-orders-list">{pagedOrders.map(o=><article id={`nx-order-${o.id}`} className="nx-order-card nx38-customer-order nx59-customer-order nx68-order-reflect" key={o.id}>
-   <div className="nx-order-heading nx59-order-heading"><div><small>ORDER #{o.id} · {new Date(o.placedAt).toLocaleDateString("en-IN")}</small><h2>{money(o.total)} <span className="nx38-item-count">· {o.items.length} item{o.items.length===1?"":"s"}</span></h2></div><div className="nx57-customer-status"><span className={`nx-status nx-status-${o.status}`}>{o.status.replaceAll('_',' ')}</span><button type="button" aria-expanded={String(expandedId)===String(o.id)} onClick={()=>setExpandedId(x=>String(x)===String(o.id)?null:o.id)}>{String(expandedId)===String(o.id)?'Hide details':'Track & manage'} <UiIcon name={String(expandedId)===String(o.id)?'chevron-down':'chevron-right'} size={15}/></button></div></div>
-   <div className="nx59-customer-order-preview">{o.items.slice(0,3).map((item,i)=><OrderProductPreview key={`${item.productId}-${item.variantId||'base'}-${i}`} item={item}/>)}{o.items.length>3&&<button type="button" className="nx59-more-items" onClick={()=>setExpandedId(o.id)}>+{o.items.length-3} more products <UiIcon name="chevron-right" size={16}/></button>}</div>
+ {!loading && orders.length>0 && <div className="nx60-orders-toolbar"><div className="nx60-order-filters" role="group" aria-label="Filter orders">{[['all','All orders'],['active','In progress'],['delivered','Delivered'],['payment','Needs payment'],['cancelled','Cancelled / expired']].map(([key,label])=><Button variant="secondary" type="button" key={key} className={filter===key?'is-active':''} aria-pressed={filter===key} onClick={()=>{setFilter(key);setPage(1);}}>{label}</Button>)}</div><SearchField placeholder="Find order or product" aria-label="Find order or product" value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}}/><ClearFilters active={filter!=="all"||Boolean(search)} onClear={()=>{setFilter("all");setSearch("");setPage(1);}}/></div>}
+ {loading?<p role="status">Loading orders…</p>:!orders.length?<EmptyState icon="bag" title="No orders yet" description="Once you order, tracking and receipts will appear here." action={<Button as={Link} variant="primary"  to="/products">Explore products</Button>}/>:!visibleOrders.length?<EmptyState icon="search" title="No matching orders" description="Try another status or search term."/>:<div className="nx-orders-list nx59-orders-list">{pagedOrders.map(o=><article id={`nx-order-${o.id}`} className="nx-order-card nx38-customer-order nx59-customer-order nx68-order-reflect" key={o.id}>
+   <div className="nx-order-heading nx59-order-heading"><div><small>ORDER #{o.id} · {new Date(o.placedAt).toLocaleDateString("en-IN")}</small><h2>{money(o.total)} <span className="nx38-item-count">· {o.items.length} item{o.items.length===1?"":"s"}</span></h2></div><div className="nx57-customer-status"><span className={`nx-status nx-status-${o.status}`}>{o.status.replaceAll('_',' ')}</span><Button variant="secondary" type="button" aria-expanded={String(expandedId)===String(o.id)} onClick={()=>setExpandedId(x=>String(x)===String(o.id)?null:o.id)}>{String(expandedId)===String(o.id)?'Hide details':'Track & manage'} <UiIcon name={String(expandedId)===String(o.id)?'chevron-down':'chevron-right'} size={15}/></Button></div></div>
+   <div className="nx59-customer-order-preview">{o.items.slice(0,3).map((item,i)=><OrderProductPreview key={`${item.productId}-${item.variantId||'base'}-${i}`} item={item}/>)}{o.items.length>3&&<Button variant="secondary" type="button" className="nx59-more-items" onClick={()=>setExpandedId(o.id)}>+{o.items.length-3} more products <UiIcon name="chevron-right" size={16}/></Button>}</div>
    <div className="nx59-order-quick-info"><span><UiIcon name="truck" size={17}/> {o.paymentMethod==='Razorpay'?'Online payment':'Cash on delivery'}</span><span>{o.paymentMethod==='Razorpay'?(o.refundStatus==='processed'?'Refund completed':o.refundStatus?'Refund under review':o.paymentStatus==='razorpay_paid'?'Payment verified':'Payment awaiting confirmation'):(o.paymentStatus==='cod_collected'?'Cash collected':'Pay on delivery')}</span></div>
    {String(expandedId)===String(o.id)&&<div className="nx57-customer-order-body"><OrderTimeline order={o}/>
    {o.paymentMethod==='Razorpay'&&o.paymentStatus==='razorpay_pending'&&<div className="nx42-order-payment-actions">
-    <button type="button" className="nx42-recheck-payment" disabled={Boolean(checkingId)} onClick={()=>checkPayment(o.id)}>{checkingId===o.id?'Checking with Razorpay…':'Check payment status'}</button>
-    <button type="button" className="nx42-recheck-payment" disabled={Boolean(checkingId)} onClick={()=>retryPayment(o)}>Retry payment securely</button>
+    <Button variant="secondary" type="button" className="nx42-recheck-payment" disabled={Boolean(checkingId)} onClick={()=>checkPayment(o.id)}>{checkingId===o.id?'Checking with Razorpay…':'Check payment status'}</Button>
+    <Button variant="secondary" type="button" className="nx42-recheck-payment" disabled={Boolean(checkingId)} onClick={()=>retryPayment(o)}>Retry payment securely</Button>
    </div>}
    {o.cancellationRequest&&<div className={`nx45-cancellation-status is-${o.cancellationRequest.status}`} role="status"><strong>Cancellation request: {o.cancellationRequest.status==='pending'?'Awaiting review':o.cancellationRequest.status==='approved'?'Approved':'Declined'}</strong><p>{o.cancellationRequest.status==='approved'&&o.paymentMethod==='Razorpay'&&o.refundStatus==='failed'?'Razorpay refund failed. Nexora must review it; your order has not been cancelled yet.':o.cancellationRequest.status==='approved'&&o.paymentMethod==='Razorpay'&&o.refundStatus!=='processed'?'Your refund is under verification. Order cancellation is finalized only after Razorpay confirms processing.':o.cancellationRequest.status==='pending'?'Your request is with the Nexora team. Fulfillment is paused while it is reviewed.':o.cancellationRequest.adminResponse||'Your cancellation request has been reviewed.'}</p>{o.cancellationRequest.status==='declined'&&o.cancellationRequest.adminResponse&&<small>Reason: {o.cancellationRequest.adminResponse}</small>}</div>}
-   {['placed','confirmed'].includes(o.status)&&!o.refundStatus&&!o.cancellationRequest&&((o.paymentMethod==='Razorpay'&&o.paymentStatus==='razorpay_paid')||(o.paymentMethod!=='Razorpay'&&o.paymentStatus==='cod_pending'))&&<div className="nx45-customer-actions"><button type="button" onClick={()=>{setCancelOrder(o);setCancelError('');}}>Request cancellation</button></div>}
+   {['placed','confirmed'].includes(o.status)&&!o.refundStatus&&!o.cancellationRequest&&((o.paymentMethod==='Razorpay'&&o.paymentStatus==='razorpay_paid')||(o.paymentMethod!=='Razorpay'&&o.paymentStatus==='cod_pending'))&&<div className="nx45-customer-actions"><Button variant="secondary" type="button" onClick={()=>{setCancelOrder(o);setCancelError('');}}>Request cancellation</Button></div>}
    <div className="nx25-order-breakdown nx38-order-breakdown"><span><span>Items</span><strong>{money(o.subtotal)}</strong></span><span><span>Shipping</span><strong>{money(o.shippingFee)}</strong></span>{Number(o.discountAmount)>0&&<span className="nx78-order-discount"><span>Coupon {o.couponCode||""}</span><strong>−{money(o.discountAmount)}</strong></span>}<span><span>{o.taxPricingMode==='exclusive'?'GST added':'GST included'}</span><strong>{money(o.taxTotal)}</strong></span><span><span>{o.paymentMethod==="Razorpay"?"Order total":"Amount due on delivery"}</span><strong>{money(o.total)}</strong></span></div>
    <div className="nx-order-footer"><span>{o.paymentMethod==='Razorpay'
     ? o.refundStatus==='processed'?'Full refund processed · order cancelled':o.refundStatus==='failed'?'Refund failed · store review required':o.refundStatus?'Full refund in progress · do not pay again':o.paymentStatus==='razorpay_paid'?'✓ Paid online (Razorpay)':o.paymentStatus==='razorpay_review'?'Payment requires manual review':o.paymentStatus==='razorpay_expired'?'Unpaid payment reservation expired':'Awaiting captured online payment · do not repay until checked'

@@ -1,3 +1,4 @@
+import { ClearFilters, Button } from "../ui/index";
 import { activeCatalogueFilters } from "../../services/activeFilters";
 
 export default function ActiveFilterChips({ params, facets, onRemove, onClear }) {
@@ -5,7 +6,7 @@ export default function ActiveFilterChips({ params, facets, onRemove, onClear })
   if (!chips.length) return null;
   return <div className="nx32-active-filters" aria-label="Active product filters">
     <span className="nx32-filter-label">Showing results for</span>
-    {chips.map((chip) => <button
+    {chips.map((chip) => <Button variant="secondary"
       key={`${chip.key}:${chip.value ?? ""}`}
       type="button"
       className="nx32-filter-pill"
@@ -13,7 +14,7 @@ export default function ActiveFilterChips({ params, facets, onRemove, onClear })
       aria-label={`Remove ${chip.label} filter`}
     >
       {chip.label}<span aria-hidden="true">×</span>
-    </button>)}
-    <button className="nx32-filter-clear" type="button" onClick={onClear}>Clear filters</button>
+    </Button>)}
+    <ClearFilters active onClear={onClear}/>
   </div>;
 }

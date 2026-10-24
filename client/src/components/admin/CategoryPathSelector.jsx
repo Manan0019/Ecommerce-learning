@@ -1,14 +1,9 @@
-import { Select } from "../ui/index";
+import { categoryTrail } from './categoryPathHelpers';
+import { FormField, Select } from "../ui/index";
+
 import {useMemo} from 'react';
 
 /** Cascading category picker. No API changes; stores the selected leaf's existing ID. */
-export function categoryTrail(categories, id) {
-  const byId=new Map(categories.map(c=>[String(c.id),c]));
-  const seen=new Set(); const trail=[];let current=byId.get(String(id));
-  while(current&&!seen.has(String(current.id))){trail.unshift(current);seen.add(String(current.id));current=byId.get(String(current.parentId));}
-  return trail;
-}
-export function categoryDepth(categories,id){return categoryTrail(categories,id).length;}
 const stepNames=['Main category','Subcategory','Third-level category','Fourth-level category'];
 const stepName = index => stepNames[index] || `Level ${index+1} category`;
 
@@ -28,11 +23,11 @@ export default function CategoryPathSelector({categories=[],value='',onChange,de
  }
  return <fieldset className="nx71-category-cascade" disabled={disabled} aria-label={label}>
    <legend>{label}{required&&<span aria-hidden="true" className="nx34-required"> *</span>}</legend>
-   <div className="nx71-cascade-steps">{steps.map(({i,choices})=><label key={i} htmlFor={`${idPrefix}-${i}`}><span>{i+1}. {stepName(i)}</span>
+   <div className="nx71-cascade-steps">{steps.map(({i,choices})=><FormField key={i} htmlFor={`${idPrefix}-${i}`}><span>{i+1}. {stepName(i)}</span>
     <Select id={`${idPrefix}-${i}`} value={String(trail[i]?.id||'')} onChange={e=>changeAt(i,e.target.value)} required={required&&depth!==null}>
      <option value="">{`Choose ${stepName(i).toLowerCase()}`}</option>
      {choices.map(c=><option key={c.id} value={String(c.id)}>{c.name}</option>)}
-    </Select></label>)}</div>
+    </Select></FormField>)}</div>
    {trail.length>0&&<p className="nx71-category-crumb" aria-live="polite">Selected path: <strong>{trail.map(c=>c.name).join(' / ')}</strong></p>}
    {depth!==null&&depth>0&&trail.length!==depth&&<p className="nx71-category-help" role="status">Choose all {depth} parent {depth===1?'category':'categories'} before saving.</p>}
  </fieldset>;

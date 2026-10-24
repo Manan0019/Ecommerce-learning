@@ -1,3 +1,4 @@
+import { Button } from "../../components/ui/index";
 import { useState } from "react";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 import { SITE_NAME, SITE_SUPPORT_EMAIL } from "../../config/site";
@@ -16,7 +17,7 @@ export default function Contact() {
     <div className="nx15-contact-layout">
       <section className="nx15-contact-main"><p className="eyebrow">Frequently asked questions</p><h2>Everything worth knowing.</h2>
         <div className="nx15-faq-list">{faqs.map((item,i) => <div key={item.question} className="nx15-faq-item">
-          <button type="button" aria-expanded={open === i} onClick={() => setOpen(open === i ? -1 : i)}><span>{item.question}</span><span aria-hidden="true">{open === i ? "−" : "+"}</span></button>
+          <Button variant="secondary" type="button" aria-expanded={open === i} onClick={() => setOpen(open === i ? -1 : i)}><span>{item.question}</span><span aria-hidden="true">{open === i ? "−" : "+"}</span></Button>
           {open === i && <p>{item.answer}</p>}
         </div>)}</div>
       </section>

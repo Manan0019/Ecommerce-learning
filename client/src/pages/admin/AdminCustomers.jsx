@@ -1,8 +1,8 @@
-import { SearchInput, DataTable, Pagination, EmptyState, ClearFilters } from "../../components/ui/index";
+import { Card, ClearFilters, DataTable, EmptyState, EntityTitle, Pagination, SearchField, TableBody, TableCell, TableContainer, TableHead, TableHeader, TableRow } from "../../components/ui/index";
+
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import UiIcon from "../../components/common/UiIcon";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { getCustomers } from "../../services/adminService";
 import { isAuthenticationError } from "../../services/apiClient";
@@ -25,14 +25,13 @@ export default function AdminCustomers() {
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
-    setError("");
+    queueMicrotask(()=>{if(!controller.signal.aborted){setLoading(true);setError("");}});
     async function loadCustomers() {
       try {
         const data = await getCustomers(controller.signal, serverQuery, page);
         if (!controller.signal.aborted) {
           setCustomers(Array.isArray(data.customers) ? data.customers : []);
-          setTotal(Number(data.total ?? data.customers?.length ?? 0));
+          setTotal(Number(data.total ?? data.customers?.length ?? 0));setPage(current=>Math.min(current,Math.max(1,Math.ceil(Number(data.total??data.customers?.length??0)/10))));
         }
       } catch (requestError) {
         if (isAuthenticationError(requestError)) {
@@ -52,30 +51,28 @@ export default function AdminCustomers() {
   const pages = Math.max(1, Math.ceil(total / 10));
 
   return <AdminLayout title="Customers" subtitle="Registered customer accounts are available here as read-only records.">
-    <section className="admin-panel">
+    <Card as="section" className="admin-panel">
       <div className="admin-panel-heading">
         <div><h2>Customer directory</h2><p>Search registered accounts by name, email or ID.</p></div>
       </div>
       <div className="nx74-customer-tools">
-        <label className="nx74-customer-search"><UiIcon name="search" size={19}/><span className="nx74-sr-only">Search customers by name, email or ID</span>
-          <SearchInput value={search} placeholder="Search name, email or ID" onChange={event => setSearch(event.target.value)} />
-        </label>
+        <SearchField value={search} placeholder="Search name, email or ID" onChange={event => setSearch(event.target.value)} />
         <span className="nx74-search-count" role="status">{loading ? "Loading customers…" : `${visibleCustomers.length} shown · ${total} matches`}</span>
         {<ClearFilters active={Boolean(search)} label="Clear customer search" onClear={()=>setSearch("")}/>} 
       </div>
       {error && <p className="admin-alert" role="alert">{error}</p>}
-      {loading ? <div className="admin-empty">Loading customers…</div> : <div className="admin-table-wrap">
+      {loading ? <div className="admin-empty">Loading customers…</div> : <TableContainer className="admin-table-wrap">
         <DataTable className="admin-table">
-          <thead><tr><th>ID</th><th>Customer</th><th>Email</th><th>Registered</th></tr></thead>
-          <tbody>{visibleCustomers.length === 0 ? <tr><td colSpan={4}><EmptyState icon="users" title="No customers found" description="New customer accounts will appear here."/></td></tr> : visibleCustomers.map((customer) => <tr key={customer.id}>
-            <td className="admin-muted">#{customer.id}</td>
-            <td><strong>{customer.fullName}</strong></td>
-            <td>{customer.email}</td>
-            <td>{new Date(customer.createdAt).toLocaleDateString()}</td>
-          </tr>)}</tbody>
+          <TableHead><TableRow><TableHeader>ID</TableHeader><TableHeader>Customer</TableHeader><TableHeader>Email</TableHeader><TableHeader>Registered</TableHeader></TableRow></TableHead>
+          <TableBody>{visibleCustomers.length === 0 ? <TableRow><TableCell colSpan={4}><EmptyState icon="users" title={search?"No matching customers":"No customers yet"} description={search?"Try a different name, email or ID.":"New customer accounts will appear here."}/></TableCell></TableRow> : visibleCustomers.map((customer) => <TableRow key={customer.id}>
+            <TableCell className="admin-muted">#{customer.id}</TableCell>
+            <TableCell><EntityTitle>{customer.fullName}</EntityTitle></TableCell>
+            <TableCell>{customer.email}</TableCell>
+            <TableCell>{new Date(customer.createdAt).toLocaleDateString()}</TableCell>
+          </TableRow>)}</TableBody>
         </DataTable>
-      </div>}
+      </TableContainer>}
       <Pagination page={page} pages={pages} total={total} pageSize={10} label="customers" onPageChange={setPage}/>
-    </section>
+    </Card>
   </AdminLayout>;
 }

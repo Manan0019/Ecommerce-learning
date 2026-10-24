@@ -19,7 +19,7 @@ test('shared editor popup keeps original product editor and tabs',()=>{
 test('admin preview gives product edit control and does not add private products to recent browsing',()=>{
  const p=src('../src/pages/customer/ProductDetails.jsx');
  assert.match(p,/onClick=\{\(\)=>setEditTab\("details"\)\}/);
- assert.match(p,/adminPreview&&editTab&&<AdminProductEditDialog/);
+ assert.match(p,/adminPreview&&activeEditTab&&<AdminProductEditDialog/);
  assert.match(p,/if \(!adminPreview\) rememberProduct\(data.product\)/);
  assert.match(p,/\{!adminPreview&&<>\<WishlistButton/);
  assert.match(p,/setPreviewVersion\(old => old \+ 1\)/);

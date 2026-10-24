@@ -1,4 +1,5 @@
-import { Select } from "../ui/index";
+import { Button, Card, Checkbox, FormField, IconButton, Select, TextField } from "../ui/index";
+
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "../common/Modal";
@@ -186,52 +187,52 @@ export default function ProductMediaManager({ productId, initialFeatured = false
     return <div className="nx15-scope-editor">
       <div className="nx15-scope-choices" role="group" aria-label="Media visibility">
         {[["shared", "All variants", "Shared for every configuration"], ["option", "Matching option", "For a color, size or other option"], ["variant", "One SKU", "Specific purchasable configuration"]].map(([mode, title, detail]) =>
-          <label key={mode} className={value.mode === mode ? "nx15-scope-choice selected" : "nx15-scope-choice"}>
-            <input type="radio" name={onChange === setUploadScope ? "upload-scope" : "edit-scope"} checked={value.mode === mode}
+          <FormField inline key={mode} className={value.mode === mode ? "nx15-scope-choice selected" : "nx15-scope-choice"}>
+            <Checkbox type="radio" name={onChange === setUploadScope ? "upload-scope" : "edit-scope"} checked={value.mode === mode}
               onChange={() => onChange({ ...blankScope, mode })} />
             <span><strong>{title}</strong><small>{detail}</small></span>
-          </label>)}
+          </FormField>)}
       </div>
-      {value.mode === "option" && <label className="nx15-select-label">Select an option and value
+      {value.mode === "option" && <FormField className="nx15-select-label">Select an option and value
         <Select value={value.optionValue} onChange={e => onChange(s => ({ ...s, optionValue: e.target.value }))}>
           <option value="">Select, e.g. Color: Midnight</option>{optionValues.map(o => <option value={o.id} key={o.id}>{o.key.replaceAll("_"," ")}: {o.value}</option>)}
-        </Select></label>}
-      {value.mode === "variant" && <label className="nx15-select-label">Select an exact SKU
+        </Select></FormField>}
+      {value.mode === "variant" && <FormField className="nx15-select-label">Select an exact SKU
         <Select value={value.variantId} onChange={e => onChange(s => ({ ...s, variantId: e.target.value }))}>
           <option value="">Choose SKU</option>{variants.map(v => <option key={v.id} value={v.id}>{v.sku} · {Object.values(v.attributes || {}).join(" / ")}</option>)}
-        </Select></label>}
+        </Select></FormField>}
       {variants.length === 0 && value.mode !== "shared" && <p className="nx-upload-tip">First create product SKUs, then assign media to a color/option or exact variant.</p>}
     </div>;
   }
 
-  return <section className="admin-panel nx-media-manager nx15-media-manager">
+  return <Card as="section" className="admin-panel nx-media-manager nx15-media-manager">
     <div className="admin-panel-heading nx15-media-heading">
       <div><p className="eyebrow">Product presentation</p><h2>Media studio</h2><p>Upload together, assign visibility once, and drag cards into the right order.</p></div>
-      <button type="button" className="admin-primary-action" disabled={busy || media.length >= MAX_ITEMS}
-        onClick={() => { setUploadOpen(true); setError(""); }}>+ Upload media</button>
+      <Button variant="primary" type="button"  disabled={busy || media.length >= MAX_ITEMS}
+        onClick={() => { setUploadOpen(true); setError(""); }}>+ Upload media</Button>
     </div>
     <div className="nx15-media-topline">
-      <label className="nx-inline-checkbox"><input type="checkbox" checked={featured} disabled={busy} onChange={e => void toggleFeatured(e.target.checked)}/> Featured on homepage</label>
+      <FormField inline className="nx-inline-checkbox"><Checkbox type="checkbox" checked={featured} disabled={busy} onChange={e => void toggleFeatured(e.target.checked)}/> Featured on homepage</FormField>
       {featured && <p className="nx24-featured-help">Featured order is managed on <Link to="/admin/featured">Featured Products</Link>. Drag to arrange products there.</p>}
       <span>{media.length} of {MAX_ITEMS} media slots used</span>
-      <button type="button" className="nx-text-action" disabled={busy} onClick={() => refreshVariants().catch(e => setError(e.message))}>Refresh SKUs</button>
+      <Button variant="ghost" type="button" className="nx-text-action" disabled={busy} onClick={() => refreshVariants().catch(e => setError(e.message))}>Refresh SKUs</Button>
     </div>
     <div className="nx15-media-help"><strong>Set visibility first, then choose Card cover for the image customers should see in category/search tiles.</strong><span aria-hidden="true">·</span><strong>Visibility:</strong> <span>Shared = everyone</span><span>Option = e.g. all Midnight colors</span><span>SKU = one precise combination</span></div>
     <p className="nx15-media-hint"><strong>One sequence for all variants.</strong> Select several cards below, then drag any selected card to move the group together. You can still position single items, and Shared/Color/SKU visibility is preserved.</p>
     {media.length > 0 && <div className="nx22-media-selection-toolbar">
       <strong>{selectedMedia.length} selected</strong>
-      <button type="button" disabled={busy} onClick={() => setSelectedMedia(media.map(item => String(item.id)))}>Select all</button>
-      <button type="button" disabled={busy || !selectedMedia.length} onClick={() => setSelectedMedia([])}>Clear selection</button>
-      <button type="button" disabled={busy || !selectedMedia.length} onClick={() => void persistOrder(moveSelectedMedia(media, selectedMedia, null, "first"))}>Move to beginning</button>
-      <button type="button" disabled={busy || !selectedMedia.length} onClick={() => void persistOrder(moveSelectedMedia(media, selectedMedia, null, "last"))}>Move to end</button>
+      <Button variant="secondary" type="button" disabled={busy} onClick={() => setSelectedMedia(media.map(item => String(item.id)))}>Select all</Button>
+      <Button variant="secondary" type="button" disabled={busy || !selectedMedia.length} onClick={() => setSelectedMedia([])}>Clear selection</Button>
+      <Button variant="secondary" type="button" disabled={busy || !selectedMedia.length} onClick={() => void persistOrder(moveSelectedMedia(media, selectedMedia, null, "first"))}>Move to beginning</Button>
+      <Button variant="secondary" type="button" disabled={busy || !selectedMedia.length} onClick={() => void persistOrder(moveSelectedMedia(media, selectedMedia, null, "last"))}>Move to end</Button>
     </div>}
     <div className="nx16-sequence-preview">
-      <label>Preview customer gallery
+      <FormField>Preview customer gallery
         <Select value={previewOption} onChange={e => setPreviewOption(e.target.value)}>
           <option value="">Shared images only</option>
           {optionValues.filter(o => /^(color|colour)$/i.test(o.key)).map(o => <option key={o.id} value={o.id}>{o.key}: {o.value}</option>)}
         </Select>
-      </label>
+      </FormField>
       <div className="nx16-preview-strip" aria-label="Gallery sequence preview">
         {media.filter(item => {
           if (item.variantId) return false;
@@ -254,7 +255,7 @@ export default function ProductMediaManager({ productId, initialFeatured = false
         onDragOver={e => { e.preventDefault(); if (!busy) { e.dataTransfer.dropEffect = "move"; setDragOver(index); } }}
         onDrop={e => onDrop(e, index)} onDragLeave={() => setDragOver(null)} onDragEnd={() => { dragSource.current = null; setDragging(null); setDragOver(null); }}
         className={`nx-media-card nx15-sort-card${selectedMedia.includes(String(item.id)) ? " is-selected" : ""}${dragOver === index ? " is-drop-target" : ""}${dragging === index ? " is-dragging" : ""}`}>
-        <label className="nx22-select-media"><input type="checkbox" checked={selectedMedia.includes(String(item.id))} disabled={busy} onChange={event => toggleSelection(item.id, event.target.checked)} /> Select</label>
+        <FormField inline className="nx22-select-media"><Checkbox type="checkbox" checked={selectedMedia.includes(String(item.id))} disabled={busy} onChange={event => toggleSelection(item.id, event.target.checked)} /> Select</FormField>
         <div className="nx-media-preview">
           {item.type === "image" ? <img src={apiAssetUrl(item.url)} alt={`Gallery image ${index + 1}`} loading="lazy" draggable={false} /> : item.type === "video" ? <video src={apiAssetUrl(item.url)} muted preload="metadata" playsInline />
             : <div className="nx-youtube-placeholder"><span>▶</span>YouTube video</div>}
@@ -264,16 +265,16 @@ export default function ProductMediaManager({ productId, initialFeatured = false
           <span className="nx15-drag-handle" aria-hidden="true">⠿ Drag {selectedMedia.includes(String(item.id)) && selectedMedia.length > 1 ? `${selectedMedia.length} items` : ""}</span>
         </div>
         <div className="nx-media-info"><span>{item.type === "image" ? "Image" : item.type === "video" ? "Local video" : "YouTube"}</span><strong>{scopeLabel(item)}</strong></div>
-        <label className="nx15-position-control">Position
+        <FormField className="nx15-position-control">Position
           <Select aria-label={`Position for gallery item ${index + 1}`} disabled={busy} value={index}
             onChange={e => void saveReorder(index, Number(e.target.value))}>
             {media.map((_, pos) => <option value={pos} key={pos}>{pos + 1}</option>)}
-          </Select></label>
+          </Select></FormField>
         <div className="nx15-card-actions">
-          <button type="button" disabled={busy} onClick={() => { setAssignment(item); setAssignmentScope(initialScope(item)); setError(""); }}>Visibility</button>
-          {item.type === "image" && <button type="button" disabled={busy || item.url === coverUrl} onClick={() => void setCover(item)}>Main cover</button>}
-          {item.type === "image" && (item.optionKey || item.variantId) && <button type="button" disabled={busy || item.isCardCover} onClick={() => void setCardCover(item)}>Color/SKU card cover</button>}
-          <button type="button" className="nx69-icon-action nx69-icon-danger" title="Remove media" aria-label="Remove media" disabled={busy} onClick={() => { setRemoval(item); setError(""); }}><UiIcon name="trash" size={18}/></button>
+          <Button variant="secondary" type="button" disabled={busy} onClick={() => { setAssignment(item); setAssignmentScope(initialScope(item)); setError(""); }}>Visibility</Button>
+          {item.type === "image" && <Button variant="secondary" type="button" disabled={busy || item.url === coverUrl} onClick={() => void setCover(item)}>Main cover</Button>}
+          {item.type === "image" && (item.optionKey || item.variantId) && <Button variant="secondary" type="button" disabled={busy || item.isCardCover} onClick={() => void setCardCover(item)}>Color/SKU card cover</Button>}
+          <IconButton variant="danger" type="button"  title="Remove media" aria-label="Remove media" disabled={busy} onClick={() => { setRemoval(item); setError(""); }}><UiIcon name="trash" size={18}/></IconButton>
         </div>
       </article>)}
     </div>
@@ -281,33 +282,33 @@ export default function ProductMediaManager({ productId, initialFeatured = false
     {uploadOpen && <Modal title="Upload product media" subtitle="Multiple images at once; assign shared, option-specific or SKU-specific visibility." size="medium" closeDisabled={busy} onClose={() => { setUploadOpen(false); setError(""); }}>
       <form className="nx15-upload-form" onSubmit={upload}>
         <div className="nx-filter-pills" aria-label="Media type">{[["image", "Images"],["video", "Video file"],["youtube", "YouTube URL"]].map(([value,label]) =>
-          <button type="button" key={value} aria-pressed={uploadType===value} className={uploadType===value?"is-active":""}
-            onClick={() => { setUploadType(value); setFiles([]); setVideoUrl(""); }}>{label}</button>)}</div>
-        {uploadType === "image" && <label>Select JPG, PNG or WebP images (12 MB each)
-          <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={e => setFiles(Array.from(e.target.files || []))} /></label>}
-        {uploadType === "video" && <label>MP4 or WebM video (25 MB maximum)
-          <input type="file" accept="video/mp4,video/webm" onChange={e => setFiles(Array.from(e.target.files || []).slice(0, 1))} /></label>}
-        {uploadType === "youtube" && <label>Video URL
-          <input type="url" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="https://youtube.com/watch?v=…" /></label>}
+          <Button variant="secondary" type="button" key={value} aria-pressed={uploadType===value} className={uploadType===value?"is-active":""}
+            onClick={() => { setUploadType(value); setFiles([]); setVideoUrl(""); }}>{label}</Button>)}</div>
+        {uploadType === "image" && <FormField>Select JPG, PNG or WebP images (12 MB each)
+          <TextField type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={e => setFiles(Array.from(e.target.files || []))} /></FormField>}
+        {uploadType === "video" && <FormField>MP4 or WebM video (25 MB maximum)
+          <TextField type="file" accept="video/mp4,video/webm" onChange={e => setFiles(Array.from(e.target.files || []).slice(0, 1))} /></FormField>}
+        {uploadType === "youtube" && <FormField>Video URL
+          <TextField type="url" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="https://youtube.com/watch?v=…" /></FormField>}
         {uploadType !== "youtube" && files.length > 0 && <p className="nx15-file-count">{files.length} file{files.length===1?"":"s"} selected · {MAX_ITEMS - media.length} available slots</p>}
         <h3>Who should see these files?</h3>{scopePicker(uploadScope, setUploadScope)}
         {uploadProgress && <p role="status" className="nx15-file-count">{uploadProgress}</p>}
         {error && <p className="admin-alert" role="alert">{error}</p>}
-        <div className="nx-sticky-actions"><button type="submit" className="admin-primary-action" disabled={busy}>{busy ? "Uploading…" : "Upload and assign"}</button>
-          <button type="button" className="admin-secondary-action" disabled={busy} onClick={() => setUploadOpen(false)}>Cancel</button></div>
+        <div className="nx-sticky-actions"><Button variant="primary" type="submit"  disabled={busy}>{busy ? "Uploading…" : "Upload and assign"}</Button>
+          <Button variant="secondary" type="button"  disabled={busy} onClick={() => setUploadOpen(false)}>Cancel</Button></div>
       </form>
     </Modal>}
     {assignment && <Modal title="Change media visibility" subtitle="Applies to this gallery item only." size="medium" closeDisabled={busy} onClose={() => { setAssignment(null); setError(""); }}>
       {scopePicker(assignmentScope, setAssignmentScope)}
       {error && <p className="admin-alert" role="alert">{error}</p>}
-      <div className="nx-sticky-actions"><button className="admin-primary-action" type="button" disabled={busy} onClick={() => void setVisibility()}>Save visibility</button>
-        <button className="admin-secondary-action" type="button" disabled={busy} onClick={() => setAssignment(null)}>Cancel</button></div>
+      <div className="nx-sticky-actions"><Button variant="primary"  type="button" disabled={busy} onClick={() => void setVisibility()}>Save visibility</Button>
+        <Button variant="secondary"  type="button" disabled={busy} onClick={() => setAssignment(null)}>Cancel</Button></div>
     </Modal>}
     {removal && <Modal title="Remove gallery entry?" subtitle="This removes its database reference, not the stored file." size="small" closeDisabled={busy} onClose={() => setRemoval(null)}>
       <p>Make sure it is not the active cover image. Local files are retained to prevent deleting shared assets accidentally.</p>
       {error && <p className="admin-alert" role="alert">{error}</p>}
-      <div className="nx-sticky-actions"><button className="admin-danger-action" type="button" disabled={busy} onClick={() => void deleteItem()}>Remove entry</button>
-        <button className="admin-secondary-action" type="button" disabled={busy} onClick={() => setRemoval(null)}>Cancel</button></div>
+      <div className="nx-sticky-actions"><Button variant="danger"  type="button" disabled={busy} onClick={() => void deleteItem()}>Remove entry</Button>
+        <Button variant="secondary"  type="button" disabled={busy} onClick={() => setRemoval(null)}>Cancel</Button></div>
     </Modal>}
-  </section>;
+  </Card>;
 }

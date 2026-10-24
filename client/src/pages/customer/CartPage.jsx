@@ -1,3 +1,4 @@
+import { EmptyState, EntityTitle, Button, IconButton } from "../../components/ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
@@ -37,10 +38,7 @@ export default function CartPage() {
     <header className="page-hero compact-hero"><p className="eyebrow">Your selection</p><h1>Shopping cart</h1></header>
     {loading && <p role="status" className="loading-message">Checking live product prices and stock…</p>}
     {error && <p role="alert" className="store-alert">{error} Please try refreshing the page.</p>}
-    {!loading && !error && items.length === 0 && <div className="store-empty empty-cart">
-      <h2>Your cart is waiting</h2><p>Explore the collection and add something you love.</p>
-      <Link className="button button-primary" to="/products">Start shopping</Link>
-    </div>}
+    {!loading && !error && items.length === 0 && <EmptyState icon="bag" title="Your cart is waiting" description="Explore the collection and add something you love." action={<Button as={Link} variant="primary" to="/products">Start shopping</Button>}/>}
     {!loading && !error && quote && items.length > 0 && <div className="cart-layout">
       <section className="cart-items" aria-label="Cart items">
         {quote.items.map(item => <article className="cart-item" key={`${item.productId}:${item.variantId ?? ""}`}>
@@ -48,7 +46,7 @@ export default function CartPage() {
             ? <img src={apiAssetUrl(item.imageUrl)} alt={item.name || "Product"} />
             : <span>No image</span>}</div>
           <div className="cart-item-copy">
-            <h2>{item.name || "Unavailable product"}</h2>
+            <EntityTitle as="h2" size="lg">{item.name || "Unavailable product"}</EntityTitle>
             {item.sku && <p className="stock-copy">SKU: {item.sku}</p>}
             {item.variantId && <p className="stock-copy">{Object.entries(item.attributes || {}).map(([k,v]) => `${k}: ${v}`).join(" · ")}</p>}
             {item.unitPrice && <p>₹{item.unitPrice} each</p>}
@@ -56,14 +54,14 @@ export default function CartPage() {
             {item.availableStock !== undefined && <p className="stock-copy">{item.availableStock} available</p>}
             <div className="cart-item-actions">
               <div className="quantity-picker compact-picker">
-                <button type="button" aria-label={`Decrease ${item.name || "item"} quantity`}
-                  onClick={() => item.quantity === 1 ? removeFromCart(item.productId,item.variantId) : updateQuantity(item.productId,item.quantity - 1,item.variantId)}>−</button>
+                <Button variant="secondary" type="button" aria-label={`Decrease ${item.name || "item"} quantity`}
+                  onClick={() => item.quantity === 1 ? removeFromCart(item.productId,item.variantId) : updateQuantity(item.productId,item.quantity - 1,item.variantId)}>−</Button>
                 <span aria-live="polite">{item.quantity}</span>
-                <button type="button" aria-label={`Increase ${item.name || "item"} quantity`}
+                <Button variant="secondary" type="button" aria-label={`Increase ${item.name || "item"} quantity`}
                   disabled={!item.available || item.quantity >= 99 || item.quantity >= item.availableStock}
-                  onClick={() => updateQuantity(item.productId,item.quantity + 1,item.variantId)}>+</button>
+                  onClick={() => updateQuantity(item.productId,item.quantity + 1,item.variantId)}>+</Button>
               </div>
-              <button type="button" className="remove-button nx69-icon-action nx69-icon-danger" title="Remove from cart" aria-label={`Remove ${item.name} from cart`} onClick={() => removeFromCart(item.productId,item.variantId)}><UiIcon name="trash" size={18}/></button>
+              <IconButton variant="danger" type="button" className="remove-button" title="Remove from cart" aria-label={`Remove ${item.name} from cart`} onClick={() => removeFromCart(item.productId,item.variantId)}><UiIcon name="trash" size={18}/></IconButton>
               {!item.available && item.productId && <Link className="text-link" to={`/products/${item.productId}`}>Review product options</Link>}
             </div>
           </div>
@@ -77,8 +75,8 @@ export default function CartPage() {
         {quote.unavailableCount > 0 && <p role="alert" className="cart-warning">{quote.unavailableCount} unavailable line(s) are excluded from the available-items total. Remove or update them.</p>}
         <div><span>Shipping</span><span>Calculated at checkout</span></div>
         <p className="stock-copy">Your final shipping and GST are calculated at checkout. Choose Cash on Delivery or Razorpay after reviewing the total.</p>
-        <Link className={`button button-primary nx-checkout-cta ${!quote.valid ? "nx-link-disabled" : ""}`} aria-disabled={!quote.valid} tabIndex={quote.valid ? 0 : -1} onClick={e => {if(!quote.valid)e.preventDefault()}} to="/checkout">Continue to checkout</Link>
-        <button className="clear-cart-button" type="button" onClick={clearCart}>Clear cart</button>
+        <Button as={Link} variant="primary" className={`button button-primary nx-checkout-cta ${!quote.valid ? "nx-link-disabled" : ""}`} aria-disabled={!quote.valid} tabIndex={quote.valid ? 0 : -1} onClick={e => {if(!quote.valid)e.preventDefault()}} to="/checkout">Continue to checkout</Button>
+        <Button variant="secondary" className="clear-cart-button" type="button" onClick={clearCart}>Clear cart</Button>
         <Link className="text-link" to="/products"><UiIcon name="left" size={17}/> Continue shopping</Link>
       </aside>
     </div>}

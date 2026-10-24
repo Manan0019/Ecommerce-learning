@@ -1,3 +1,4 @@
+import { Button } from "../../components/ui/index";
 import { Link } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
 
@@ -9,8 +10,8 @@ export default function NotFound() {
       <h1>This page has moved or doesn't exist</h1>
       <p>Browse our collections or head back to the homepage.</p>
       <div className="nx33-not-found-actions">
-        <Link className="button button-primary" to="/products">Explore products</Link>
-        <Link className="button" to="/">Back to home</Link>
+        <Button as={Link} variant="primary"  to="/products">Explore products</Button>
+        <Button as={Link} variant="secondary"  to="/">Back to home</Button>
       </div>
     </section>
   </CustomerLayout>;

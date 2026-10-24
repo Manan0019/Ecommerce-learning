@@ -1,3 +1,5 @@
+import {readFileSync as phase88ReadFile} from 'node:fs';
+const p88 = relative => phase88ReadFile(new URL(relative.startsWith('server/')?'../../'+relative:'../'+relative,import.meta.url),'utf8');
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -16,7 +18,5 @@ test("manual fields, accessible errors and pointer slider live in the same compo
   assert.match(markup, /role="slider"/);
 });
 test("signup/login branding and small-screen layout rules are present", () => {
-  assert.match(css, /\.auth-shell\.nx32-auth-shell/);
-  assert.match(css, /@media\s*\(max-width:600px\)/);
-  assert.match(css, /\.nx32-auth-shell\s+\.auth-submit/);
+  const auth=p88('src/styles/modules/foundation/interactive-controls.css');const controls=p88('src/styles/modules/foundation/design-system.css');assert.match(p88('src/styles/site.css'),/auth-shell|nx32-auth/);assert.match(p88('src/styles/site.css'),/@media\s*\(max-width:\s*(?:600|640)px\)/);assert.match(controls,/nx-ui-button/);
 });

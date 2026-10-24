@@ -1,3 +1,4 @@
+import { Button, Checkbox, FormField, IconButton, Textarea } from "../ui/index";
 import UiIcon from "../common/UiIcon";
 import { useEffect, useRef, useState } from "react";
 
@@ -69,21 +70,21 @@ export default function OrderActionDialog({ dialog, busy, error, refundConfig, o
       <form onSubmit={submit}>
         <header className="nx44-dialog-head">
           <div><span className="nx44-dialog-kicker">{action.eyebrow}</span><h2 id="nx44-dialog-heading">{action.heading}</h2></div>
-          <button ref={!needsReason ? initialRef : undefined} type="button" className="nx44-dialog-close nx64-animated-close nx65-close-control" aria-label="Close dialog" onClick={onClose} disabled={busy}><UiIcon name="x" size={17}/></button>
+          <IconButton variant="secondary" ref={!needsReason ? initialRef : undefined} type="button" className="nx44-dialog-close" aria-label="Close dialog" onClick={onClose} disabled={busy}><UiIcon name="x" size={17}/></IconButton>
         </header>
         <div className="nx44-dialog-body">
           <div className="nx44-order-summary"><span>Order #{dialog.order.id}</span><strong>{money(dialog.order.total)}</strong></div>
           <p id="nx44-dialog-detail">{action.detail}</p>
           {needsReason && <>
-            <label className="nx44-refund-label" htmlFor="nx44-refund-reason">{isRefund ? "Reason for full refund" : "Reason for declining"} <span>*</span></label>
-            <textarea ref={initialRef} id="nx44-refund-reason" minLength={10} maxLength={200} required rows={4} value={reason} onChange={event => setReason(event.target.value)} placeholder={isRefund ? "Explain why this order needs a full refund…" : "Explain the decision to the customer…"} disabled={busy || disabledConfig} />
+            <FormField className="nx44-refund-label" htmlFor="nx44-refund-reason">{isRefund ? "Reason for full refund" : "Reason for declining"} <span>*</span></FormField>
+            <Textarea ref={initialRef} id="nx44-refund-reason" minLength={10} maxLength={200} required rows={4} value={reason} onChange={event => setReason(event.target.value)} placeholder={isRefund ? "Explain why this order needs a full refund…" : "Explain the decision to the customer…"} disabled={busy || disabledConfig} />
             <div className="nx44-reason-meta"><small>10–200 characters</small><small>{normalizedReason.length}/200</small></div>
-            {isRefund && <label className="nx44-refund-ack"><input type="checkbox" checked={acknowledged} onChange={event => setAcknowledged(event.target.checked)} disabled={busy || disabledConfig}/><span>I understand this requests a full payment refund and blocks fulfillment. The action cannot be reversed once accepted.</span></label>}
+            {isRefund && <FormField inline className="nx44-refund-ack"><Checkbox type="checkbox" checked={acknowledged} onChange={event => setAcknowledged(event.target.checked)} disabled={busy || disabledConfig}/><span>I understand this requests a full payment refund and blocks fulfillment. The action cannot be reversed once accepted.</span></FormField>}
             {disabledConfig && <div className="nx44-config-warning" role="status"><strong>Refunds are disabled on the server.</strong><p>{configMessages[refundConfig.reason] || "Check Razorpay refund configuration and restart Express."}</p></div>}
           </>}
           {error && <div className="nx44-dialog-error" role="alert">{error}</div>}
         </div>
-        <footer className="nx44-dialog-actions"><button type="button" className="nx44-dialog-cancel" onClick={onClose} disabled={busy}>Keep order</button><button type="submit" className={`nx44-dialog-submit is-${action.tone}`} disabled={!canSubmit}>{busy ? "Processing…" : action.submit}</button></footer>
+        <footer className="nx44-dialog-actions"><Button variant="secondary" type="button" className="nx44-dialog-cancel" onClick={onClose} disabled={busy}>Keep order</Button><Button variant="primary" type="submit" className={`nx44-dialog-submit is-${action.tone}`} disabled={!canSubmit}>{busy ? "Processing…" : action.submit}</Button></footer>
       </form>
     </section>
   </div>;

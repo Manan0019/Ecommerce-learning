@@ -1,13 +1,11 @@
+import {readFileSync as phase88ReadFile} from 'node:fs';
+const p88 = relative => phase88ReadFile(new URL(relative.startsWith('server/')?'../../'+relative:'../'+relative,import.meta.url),'utf8');
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const read = rel => fs.readFileSync(new URL(`../src/${rel}`,import.meta.url),'utf8');
-test('modal close buttons use centered SVGs and consistent hover motion',()=>{
- const modal=read('components/common/Modal.jsx'),css=read('styles/site.css');
- assert.match(modal,/aria-label="Close dialog"[^>]*>[\s\S]*?<UiIcon name="x" size=\{18\}/);
- assert.match(css,/\.nx-modal \.nx-modal-header \.nx-icon-button svg/);
- assert.match(css,/rotate\(90deg\)/);
- assert.match(css,/prefers-reduced-motion:reduce/);
+test("modal close buttons use centered SVGs and consistent hover motion", () => {
+  const modal=p88('src/components/common/Modal.jsx');const s=p88('src/styles/modules/foundation/design-system.css');assert.match(modal,/IconButton/);assert.match(modal,/aria-label="Close dialog"/);assert.match(s,/\.nx-ui-icon-button/);assert.match(s,/prefers-reduced-motion/);
 });
 test('checkout animation is driven by live payment/order callbacks not a fake countdown',()=>{
  const component=read('components/customer/CheckoutProcessStatus.jsx');

@@ -1,0 +1,55 @@
+import assert from 'node:assert/strict';
+import {mkdirSync,writeFileSync} from 'node:fs';
+import {browserSession} from './browser-session.mjs';
+const browser=await browserSession();
+const {send,evaluate,until}=browser;
+const errors=[];browser.on('Runtime.exceptionThrown',e=>errors.push(e.exceptionDetails.exception?.description||e.exceptionDetails.text));
+try {
+  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
+  await send('Page.navigate',{url:'http://127.0.0.1:5175/tests/ui-system.html'});
+  await until('document.querySelectorAll(".nx-ui-search-field").length===4');
+  assert.equal(await evaluate('document.querySelectorAll(".nx-ui-clear-filters").length'),0);
+  const controls=await evaluate(`Array.from(document.querySelectorAll('[data-workspace]')).map(el=>{const input=el.querySelector('input'),select=el.querySelector('select'),icon=el.querySelector('.nx-ui-search-field > svg');return {height:select.getBoundingClientRect().height,font:getComputedStyle(select).fontSize,radius:getComputedStyle(select).borderRadius,overlap:icon.getBoundingClientRect().right>input.getBoundingClientRect().left,icons:el.querySelectorAll('.nx-ui-search-field > svg').length}})`);
+  assert.ok(controls.every(c=>c.height===44&&c.font==='14px'&&c.radius==='12px'&&!c.overlap&&c.icons===1),JSON.stringify(controls));
+  await evaluate('document.documentElement.style.setProperty("--nx-control-height","52px")');
+  assert.deepEqual(await evaluate('Array.from(document.querySelectorAll("select")).map(el=>el.getBoundingClientRect().height)'),[52,52,52,52]);
+  await evaluate('document.documentElement.style.removeProperty("--nx-control-height")');
+  await evaluate(`(()=>{const el=document.querySelector('input[type=search]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(el,'Product 2');el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  await until('document.querySelector(".nx-ui-pagination-status").textContent.includes("of 5 records")');
+  assert.equal(await evaluate('document.querySelectorAll(".nx-ui-clear-filters").length'),4);
+  await evaluate('document.querySelector(".nx-ui-search-clear").click()');
+  await until('document.querySelector(".nx-ui-pagination-status").textContent.includes("of 23 records")');
+  assert.equal(await evaluate('document.querySelector("input[type=search]").value'),'');
+  await evaluate(`document.querySelector('[aria-label="Next page"]').click()`);
+  await until('document.querySelector(".nx-ui-pagination-status").textContent.includes("11–20")');
+  await evaluate('document.querySelector("[data-testid=live-refresh]").click()');
+  assert.match(await evaluate('document.querySelector(".nx-ui-pagination-status").textContent'),/Page 2/);
+  await evaluate(`document.querySelector('[aria-label="Next page"]').click()`);
+  await until('document.querySelector(".nx-ui-pagination-status").textContent.includes("21–23")');
+  await evaluate('document.querySelector("[data-testid=shrink]").click()');
+  await until('document.querySelector(".nx-ui-pagination-status").textContent.includes("Page 2 of 2")');
+  await evaluate('document.querySelector("[data-testid=grow]").click()');
+  await until('document.querySelector(".nx-ui-pagination-status").textContent.includes("Page 2 of 3")');
+  await evaluate('document.querySelector("[data-workspace] button.nx-ui-button--primary").focus();document.activeElement.click()');
+  await until('document.querySelector("[role=dialog]")');
+  assert.equal(await evaluate('document.activeElement.getAttribute("aria-label")'),'Close dialog');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector("[role=dialog] select")).height'),'44px');
+  await evaluate('document.querySelector("[role=dialog] form").requestSubmit()');
+  await until('document.querySelector("output").textContent==="Draft product"');
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+  await until('!document.querySelector("[role=dialog]")');
+  assert.equal(await evaluate('document.activeElement.textContent'),'Edit product');
+  mkdirSync('.ui-artifacts',{recursive:true});
+  for(const width of [1440,768,390]){
+    await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});
+    await new Promise(r=>setTimeout(r,150));
+    assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth'),`Page overflow at ${width}`);
+    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    writeFileSync(`.ui-artifacts/controls-${width}.png`,Buffer.from(shot.data,'base64'));
+  }
+  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+  assert.ok(await evaluate('parseFloat(getComputedStyle(document.querySelector(".nx-ui-button--primary")).transitionDuration)<=0.00001'));
+  await send('Emulation.setEmulatedMedia',{features:[]});
+  assert.deepEqual(errors,[]);
+  console.log('Passed browser integration: shared tokens in four workspaces; search/clear; native forms; modal focus; pagination filtering/live refresh/clamping; 1440/768/390px; reduced motion.');
+} finally {browser.close();}

@@ -1,4 +1,5 @@
-import { SearchInput } from "../ui/index";
+import { Button, EntityTitle, SearchField } from "../ui/index";
+
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import UiIcon from '../common/UiIcon';
 import { categoryPaths } from '../../services/categoryHierarchy';
@@ -54,33 +55,33 @@ export default function PromotionCategorySelect({ categories = [], value = '', o
   }
   return <div className="nx47-category-select nx52-category-select" ref={root} onKeyDown={onKeyDown}>
     <span className="nx47-category-label">{label}{required && <b aria-label="required"> *</b>}</span>
-    <button type="button" aria-expanded={open} aria-controls={listId} className={`nx47-category-trigger${open?' is-open':''}`} onClick={toggle}>
+    <Button variant="secondary" type="button" aria-expanded={open} aria-controls={listId} className={`nx47-category-trigger${open?' is-open':''}`} onClick={toggle}>
       <span>{selected ? selected.path.split(' → ').join(' / ') : 'Browse or search categories'}</span><UiIcon name="chevron-down" size={18}/>
-    </button>
+    </Button>
     {open && <div className="nx47-category-popover nx52-category-popover" id={listId}>
-      <div className="nx47-category-search"><UiIcon name="search" size={18}/><SearchInput ref={search} aria-label="Search categories and subcategories" value={term}
-        placeholder="Search all categories…" onChange={e=>setTerm(e.target.value)} autoComplete="off" /></div>
+      <SearchField ref={search} aria-label="Search categories and subcategories" value={term}
+        placeholder="Search all categories…" onChange={e=>setTerm(e.target.value)} autoComplete="off" />
       {!term.trim() && <div className="nx52-category-breadcrumbs" aria-label="Category location">
-        <button type="button" onClick={()=>navigate('')}>All departments</button>
-        {ancestors.map(item=><span key={item.id}><UiIcon name="chevron-right" size={13}/><button type="button" onClick={()=>navigate(String(item.id))}>{item.name}</button></span>)}
+        <Button variant="secondary" type="button" onClick={()=>navigate('')}>All departments</Button>
+        {ancestors.map(item=><span key={item.id}><UiIcon name="chevron-right" size={13}/><Button variant="secondary" type="button" onClick={()=>navigate(String(item.id))}>{item.name}</Button></span>)}
       </div>}
-      {!term.trim() && parent && <button type="button" className="nx52-category-choose-current" onClick={()=>choose(parent)}>
+      {!term.trim() && parent && <Button variant="secondary" type="button" className="nx52-category-choose-current" onClick={()=>choose(parent)}>
         <span><strong>Use {parent.name}</strong><small>Select this category, or browse its subcategories below</small></span><UiIcon name="check" size={18}/>
-      </button>}
+      </Button>}
       <div className="nx52-category-list-heading"><span>{term.trim() ? `Search matches (${matches.length})` : parent ? 'Subcategories' : 'Main categories'}</span><small>{!term.trim() && `${siblings.length} available`}</small></div>
       <div className="nx47-category-list nx52-category-list" role="group" aria-label={label}>
         {activeItems.length ? activeItems.map(item => {
           const hasChildren = (children.get(String(item.id)) || []).length > 0;
           return <div key={item.id} className={`nx52-category-row${String(value)===String(item.id)?' is-selected':''}`}>
-            <button type="button" className="nx52-category-pick" onClick={()=>choose(item)} aria-label={`Select ${item.path}`}>
+            <Button variant="plain" type="button" className="nx52-category-pick" onClick={()=>choose(item)} aria-label={`Select ${item.path}`}>
               <span className="nx52-category-mark">{String(item.name).slice(0,1).toUpperCase()}</span>
-              <span className="nx47-category-option-content"><strong>{item.name}</strong><small>{term.trim() ? item.path.split(' → ').slice(0,-1).join(' / ') || 'Main category' : hasChildren ? `${children.get(String(item.id)).length} subcategories` : 'Select this category'}</small></span>
-              {String(value)===String(item.id)&&<UiIcon name="check" size={16}/>}</button>
-            {hasChildren && <button type="button" className="nx52-category-drill" onClick={()=>navigate(String(item.id))} aria-label={`Browse subcategories of ${item.name}`}><UiIcon name="chevron-right" size={19}/></button>}
+              <span className="nx47-category-option-content"><EntityTitle>{item.name}</EntityTitle><small>{term.trim() ? item.path.split(' → ').slice(0,-1).join(' / ') || 'Main category' : hasChildren ? `${children.get(String(item.id)).length} subcategories` : 'Select this category'}</small></span>
+              {String(value)===String(item.id)&&<UiIcon name="check" size={16}/>}</Button>
+            {hasChildren && <Button variant="plain" type="button" className="nx52-category-drill" onClick={()=>navigate(String(item.id))} aria-label={`Browse subcategories of ${item.name}`}><UiIcon name="chevron-right" size={19}/></Button>}
           </div>;
         }) : <p className="nx47-category-empty">{term ? 'No categories match your search.' : 'No subcategories. You can select the current category above.'}</p>}
       </div>
-      <div className="nx52-category-bottom"><span>Choose a row to select it · Use the chevron to explore deeper</span><button type="button" onClick={()=>setOpen(false)}>Close</button></div>
+      <div className="nx52-category-bottom"><span>Choose a row to select it · Use the chevron to explore deeper</span><Button variant="secondary" type="button" onClick={()=>setOpen(false)}>Close</Button></div>
     </div>}
   </div>;
 }

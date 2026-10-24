@@ -1,4 +1,5 @@
-import { EmptyState } from "../ui/index";
+import { Button, CountBadge, EmptyState, IconButton } from "../ui/index";
+
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import UiIcon from "./UiIcon";
 import {notificationDestination,notificationKind} from '../../services/notificationTarget';
@@ -17,12 +18,12 @@ export default function NotificationBell(){
   catch(e){if(e.name!=='AbortError')setError('Could not refresh notifications.');}
  },[]);
  useEffect(()=>{
-  refresh();const tick=window.setInterval(()=>{if(document.visibilityState!=='hidden')refresh();},30000);
+  let mounted=true;queueMicrotask(()=>{if(mounted)refresh();});const tick=window.setInterval(()=>{if(document.visibilityState!=='hidden')refresh();},30000);
   const focus=()=>refresh();window.addEventListener('focus',focus);
   const updated=()=>refresh();window.addEventListener('nexora:orders-updated',updated);
   const sessionChanged=()=>{setOpen(false);setEntries([]);setUnread(0);controller.current?.abort();refresh();};
   window.addEventListener('nexora:auth-changed',sessionChanged);
-  return()=>{clearInterval(tick);controller.current?.abort();window.removeEventListener('focus',focus);window.removeEventListener('nexora:orders-updated',updated);window.removeEventListener('nexora:auth-changed',sessionChanged);};
+  return()=>{mounted=false;clearInterval(tick);controller.current?.abort();window.removeEventListener('focus',focus);window.removeEventListener('nexora:orders-updated',updated);window.removeEventListener('nexora:auth-changed',sessionChanged);};
  },[refresh,liveRevision]);
  async function visit(item){
   try{if(!item.read_at){await markNotificationRead(item.id);setEntries(old=>old.map(n=>n.id===item.id?{...n,read_at:new Date().toISOString()}:n));setUnread(n=>Math.max(0,n-1));}}
@@ -41,14 +42,14 @@ export default function NotificationBell(){
    finally{setMarkingAll(false);}
  }
  return <div className="nx46-bell-wrap">
-  <button type="button" className="nx46-bell" aria-label={`Notifications: ${unread} unread`} aria-expanded={open} onClick={()=>{setOpen(v=>!v);refresh();}}>
+  <Button variant="secondary" type="button" className="nx46-bell" aria-label={`Notifications: ${unread} unread`} aria-expanded={open} onClick={()=>{setOpen(v=>!v);refresh();}}>
    <svg aria-hidden="true" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
-   {unread>0&&<span className="nx46-bell-count">{unread>99?'99+':unread}</span>}
-  </button>
+   {unread>0&&<CountBadge className="nx46-bell-count">{unread>99?'99+':unread}</CountBadge>}
+  </Button>
   {open&&<div className="nx46-notification-panel" role="region" aria-label="Recent notifications">
-   <div className="nx46-notification-title"><strong>Notifications</strong><div className="nx70-bell-header-actions">{unread>0&&<button type="button" className="nx70-mark-all" disabled={markingAll} onClick={markAll}>{markingAll ? 'Saving…' : 'Mark all read'}</button>}<button type="button" onClick={()=>setOpen(false)} aria-label="Close notifications" className="nx64-animated-close nx65-close-control"><UiIcon name="x" size={16}/></button></div></div>
+   <div className="nx46-notification-title"><strong>Notifications</strong><div className="nx70-bell-header-actions">{unread>0&&<Button variant="secondary" type="button" className="nx70-mark-all" disabled={markingAll} onClick={markAll}>{markingAll ? 'Saving…' : 'Mark all read'}</Button>}<IconButton variant="secondary" type="button" onClick={()=>setOpen(false)} aria-label="Close notifications" ><UiIcon name="x" size={16}/></IconButton></div></div>
    {error&&<p className="nx46-error" role="alert">{error}</p>}
-   {!entries.length?<EmptyState icon="check-circle" title="All caught up" description="New notifications will appear here."/>:<div className="nx46-notification-list">{entries.map(n=><button type="button" key={n.id} className={`${n.read_at?'is-read':'unread'} nx73-notification-${notificationKind(n.kind)}`} onClick={()=>visit(n)}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.created_at).toLocaleString('en-IN')}</small></button>)}</div>}
+   {!entries.length?<EmptyState icon="check-circle" title="All caught up" description="New notifications will appear here."/>:<div className="nx46-notification-list">{entries.map(n=><Button variant="plain" type="button" key={n.id} className={`${n.read_at?'is-read':'unread'} nx73-notification-${notificationKind(n.kind)}`} onClick={()=>visit(n)}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.created_at).toLocaleString('en-IN')}</small></Button>)}</div>}
   </div>}
  </div>;
 }
