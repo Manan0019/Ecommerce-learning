@@ -7,11 +7,13 @@ import {
 import { requireAdmin } from "../middleware/authMiddleware.js";
 import { listFeaturedAdmin, searchFeaturedCandidates, reorderFeatured, setFeaturedMembership } from "../controllers/featuredController.js";
 import { getLowStock } from "../controllers/inventoryAlertsController.js";
+import {getAnalyticsOverview} from "../controllers/analyticsController.js";
 
 const router = Router();
 
 router.use(requireAdmin);
 router.get("/summary", getSummary);
+router.get("/analytics/overview",getAnalyticsOverview);
 router.get("/featured", listFeaturedAdmin);
 router.get("/featured/candidates", searchFeaturedCandidates);
 router.put("/featured/order", reorderFeatured);

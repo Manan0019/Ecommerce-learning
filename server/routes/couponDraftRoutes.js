@@ -44,7 +44,7 @@ router.get('/targets',async(req,res)=>{
  return res.json({targets:rows,type});
  }catch(e){console.error('Coupon targets',e);return res.status(503).json({message:'Could not load coupon targets.'});}
 });
-router.get('/',async(_req,res)=>{try{const {rows}=await pool.query(`SELECT c.*, (SELECT COUNT(*) FROM coupon_redemptions r WHERE r.code=c.code)::int AS used_count FROM coupon_drafts c ORDER BY c.created_at DESC LIMIT 200`);res.json({coupons:rows.map(present)});}catch(e){console.error(e);res.status(503).json({message:'Coupons unavailable. Run migrations through 039.'});}});
+router.get('/',async(_req,res)=>{try{const {rows}=await pool.query(`SELECT c.*, (SELECT COUNT(*) FROM coupon_redemptions r WHERE r.code=c.code)::int AS used_count FROM coupon_drafts c ORDER BY c.created_at DESC LIMIT 200`);res.json({coupons:rows.map(present)});}catch(e){console.error(e);res.status(503).json({message:'Coupons are temporarily unavailable.'});}});
 async function targetsExist(db,c){
  const {productIds,categoryIds,excludedProductIds}=c.eligibility;
  const wantedProducts=[...new Set([...productIds,...excludedProductIds])];

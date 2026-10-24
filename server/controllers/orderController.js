@@ -11,10 +11,11 @@ import { canChangeOrderStatus, canConfirmCodCollection, validateDispatch, makeOr
 
 import { canRequestCancellation } from "../services/cancellationRules.js";
 import { notifyAdmins, notifyUser } from '../services/notificationService.js';
+import {queueOrderEmail} from '../services/customerEmailOutbox.js';
 
 const statementError = (res, error, label) => {
   console.error(label, error);
-  if (error.code === "42P01" || error.code === "42703") return res.status(503).json({ message: "COD database migrations through 022 may be missing. Please review and apply them." });
+  if (error.code === "42P01" || error.code === "42703") return res.status(503).json({ message: "Order processing is temporarily unavailable." });
   if (error.code === "23503") return res.status(409).json({ message: "Product or SKU is no longer available." });
   if (error.code === "40P01" || error.code === "40001") return res.status(409).json({ message: "Stock changed while ordering. Check your cart and retry." });
   return res.status(500).json({ message: "Could not complete the requested order operation." });
@@ -112,6 +113,7 @@ export async function placeCodOrder(req,res){
       VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13)`,[order.id,line.productId,line.variantId,line.name,line.sku,JSON.stringify(line.attributes),line.imageUrl,line.quantity,fromPaise(line.unitPrice),fromPaise(line.lineTotal),line.gstPercent,amounts.itemTaxes[i],fromPaise(coupon.allocations[i])]);
     await deductStock(db,line);
   }
+  await queueOrderEmail(db,order.id,'order_placed');
   await notifyAdmins(db,{key:`order:${order.id}:placed`,kind:'order',title:'New COD order',message:`New Cash on Delivery order #${order.id} was placed.`,path:'/admin/orders'});
   await db.query('COMMIT');open=false;return res.status(201).json({order:serializeOrder(order),alreadyPlaced:false});
  }catch(e){if(open)await db.query('ROLLBACK').catch(()=>{});return statementError(res,e,'Place COD order:');}
@@ -150,9 +152,25 @@ export async function myOrders(req,res){
  catch(e){return statementError(res,e,"Customer orders:");}
 }
 export async function adminOrders(req,res){
- try {const r=await pool.query(`SELECT o.*,u.full_name AS customer_name,u.email AS customer_email FROM cod_orders o JOIN users u ON u.id=o.customer_id
- ORDER BY o.placed_at DESC,o.id DESC LIMIT 200`);const ids=r.rows.map(x=>x.id);const [items,events,cancellations]=await Promise.all([loadItems(pool,ids),loadEvents(pool,ids),loadCancellationRequests(pool,ids)]);return res.json({orders:r.rows.map(x=>({...serializeOrder(x),cancellationRequest:cancellations.get(String(x.id))??null,items:items.get(String(x.id))??[],events:events.get(String(x.id))??[]}))});}
- catch(e){return statementError(res,e,"Admin orders:");}
+ const page=Math.min(100000,Math.max(1,Number.parseInt(req.query.page,10)||1));
+ const limit=Math.min(100,Math.max(1,Number.parseInt(req.query.limit,10)||50));
+ const status=String(req.query.status||'all');
+ const allowed=new Set(['all','active','payments','archive','cancellation_requested','placed','confirmed','processing','shipped','delivered','cancelled','payment_pending','payment_review','payment_expired','refund_pending','refund_review']);
+ if(!allowed.has(status))return res.status(400).json({message:'Invalid order status filter.'});
+ const search=String(req.query.search||'').trim().slice(0,100);
+ const sort=req.query.sort==='oldest'?'ASC':'DESC';
+ const condition=status==='all'?'TRUE':status==='active'?"o.status IN ('placed','confirmed','processing','shipped')":status==='payments'?"o.status IN ('payment_pending','payment_review','refund_pending','refund_review','payment_expired')":status==='archive'?"o.status IN ('delivered','cancelled','payment_expired')":status==='cancellation_requested'?"EXISTS (SELECT 1 FROM order_cancellation_requests x WHERE x.order_id=o.id AND x.status='pending')":'o.status=$1';
+ const params=status==='all'||['active','payments','archive','cancellation_requested'].includes(status)?[]:[status];
+ let where=condition;
+ if(search){params.push(`%${search}%`);where+=` AND (o.id::text ILIKE $${params.length} OR u.full_name ILIKE $${params.length} OR u.email ILIKE $${params.length})`;}
+ try {
+  const count=await pool.query(`SELECT COUNT(*)::int AS total FROM cod_orders o JOIN users u ON u.id=o.customer_id WHERE ${where}`,params);
+  const total=count.rows[0].total;
+  const paged=[...params,limit,(page-1)*limit];
+  const r=await pool.query(`SELECT o.*,u.full_name AS customer_name,u.email AS customer_email FROM cod_orders o JOIN users u ON u.id=o.customer_id WHERE ${where} ORDER BY o.placed_at ${sort},o.id ${sort} LIMIT $${paged.length-1} OFFSET $${paged.length}`,paged);
+  const ids=r.rows.map(x=>x.id);const [items,events,cancellations]=await Promise.all([loadItems(pool,ids),loadEvents(pool,ids),loadCancellationRequests(pool,ids)]);
+  return res.json({orders:r.rows.map(x=>({...serializeOrder(x),cancellationRequest:cancellations.get(String(x.id))??null,items:items.get(String(x.id))??[],events:events.get(String(x.id))??[]})),pagination:{page,limit,total,pages:Math.max(1,Math.ceil(total/limit))}});
+ }catch(e){return statementError(res,e,'Admin orders:');}
 }
 export async function changeCodOrderStatus(req,res){
  const id=req.params.id;const status=req.body?.status;
@@ -209,6 +227,7 @@ export async function changeCodOrderStatus(req,res){
   }
   await db.query('INSERT INTO cod_order_events(order_id,event_type,actor_user_id) VALUES($1,$2,$3)',[id,status,req.user.id]);
   if(status==='delivered')await db.query("UPDATE delivery_assignments SET status='delivered',delivered_at=COALESCE(delivered_at,NOW()),updated_at=NOW() WHERE order_id=$1",[id]);
+  if(status==='shipped'||status==='delivered'||status==='cancelled')await queueOrderEmail(db,id,status==='shipped'?'order_shipped':status==='delivered'?'order_delivered':'order_cancelled');
   await notifyUser(db,order.customer_id,{key:`order:${id}:status:${status}`,kind:'order',title:'Order status updated',message:`Your order #${id} is now ${status}.`,path:'/orders'});
   await db.query("COMMIT");open=false;return res.json({order:serializeOrder(changed.rows[0])});
  }catch(e){if(open)await db.query("ROLLBACK").catch(()=>{});return statementError(res,e,"Update COD order:");}

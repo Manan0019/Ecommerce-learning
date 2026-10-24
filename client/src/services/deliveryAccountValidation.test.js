@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {deliveryFieldError,validateDeliveryForm} from './deliveryAccountValidation.js';
 test('delivery account fields produce independent errors',()=>{
  const e=validateDeliveryForm({fullName:'A',email:'bad',mobileNumber:'12345678901',password:'short'});
- assert.deepEqual(Object.keys(e).sort(),['email','fullName','mobileNumber','password']);
+ assert.deepEqual(Object.keys(e).sort(),['email','fullName','mobileNumber','password','payRate']);
 });
 test('phone must be exactly ten digits, no extra characters',()=>{
  assert.equal(deliveryFieldError('mobileNumber','9876543210'),'');

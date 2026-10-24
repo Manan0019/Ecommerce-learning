@@ -3,6 +3,7 @@ import { validOrderId } from '../services/codOrderRules.js';
 import { refundWritesEnabled, refundConfiguration, eligibleForFullRefund, totalPaise, refundMatchesOrder, isRefundStatus } from '../services/refundRules.js';
 import { createGatewayRefund, fetchGatewayRefunds, fetchGatewayPayment, validGatewayIdentifier } from '../services/razorpayService.js';
 import { notifyAdmins,notifyUser } from '../services/notificationService.js';
+import {queueOrderEmail} from '../services/customerEmailOutbox.js';
 
 function publicRefund(order) {
   return {id:String(order.id),status:order.status,paymentStatus:order.payment_status,
@@ -11,7 +12,7 @@ function publicRefund(order) {
 async function rollback(db){ await db.query('ROLLBACK').catch(()=>{}); }
 function respondError(res,error){
   console.error('Razorpay refund:',error);
-  if(['42P01','42703','23514'].includes(error.code))return res.status(503).json({message:'Refund migration 026 must be applied and checked.'});
+  if(['42P01','42703','23514'].includes(error.code))return res.status(503).json({message:'Refunds are temporarily unavailable.'});
   if(error.code==='NX_RAZORPAY_API'||error.name==='AbortError')return res.status(503).json({message:'Razorpay did not confirm the refund request. Check refund status; never submit another new refund.'});
   return res.status(500).json({message:'Refund status is uncertain. Reconcile before taking another action.'});
 }
@@ -39,6 +40,7 @@ export async function applyGatewayRefund(db,order,refund,actorId=null){
       razorpay_refund_id=$2,refund_processed_at=NOW(),refund_checked_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *`,[order.id,refund.id]);
     await db.query("UPDATE coupon_redemptions SET status='released',updated_at=NOW() WHERE order_id=$1 AND status='consumed'",[order.id]);
     await addEvent(db,order.id,actorId,'refund_processed','Razorpay full refund processed; order cancelled and stock restored once.');
+    await queueOrderEmail(db,order.id,'refund_processed');
     await notifyAdmins(db,{key:`refund:${order.id}:processed`,kind:'refund',title:'Refund processed',message:`Refund for order #${order.id} is processed; inventory restored.`,path:'/admin/orders'});
     await notifyUser(db,order.customer_id,{key:`refund:${order.id}:processed`,kind:'refund',title:'Your refund was processed',message:`Razorpay confirms your full refund for order #${order.id}.`,path:'/orders'});
     return {order:changed.rows[0],processed:true};
@@ -75,7 +77,7 @@ export async function requestFullRefund(req,res){
   if(!validOrderId(id)||typeof reason!=='string'||reason.trim().length<10||reason.trim().length>200)
     return res.status(400).json({message:'Enter a refund reason of 10–200 characters.'});
   if(!refundWritesEnabled())return res.status(403).json({
-    message:'Refund initiation is disabled on the server. For test refunds, set RAZORPAY_REFUNDS_ENABLED=true and RAZORPAY_MODE=test in server/.env, then restart the backend. Live refunds require separate explicit authorization.',
+    message:'Refund initiation is currently disabled. Please contact store support.',
     code:'NX_REFUNDS_DISABLED',
     configuration:refundConfiguration(),
   });

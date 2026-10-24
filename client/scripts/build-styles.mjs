@@ -26,6 +26,9 @@ const modules = [
   "modules/foundation/interactive-controls.css",
   "modules/admin/delivery-and-profile-polish.css",
   "modules/admin/delivery-finance-and-unsaved.css",
+  "modules/commerce/launch-policies.css",
+  "modules/admin/delivery-operations-revamp.css",
+  "modules/admin/analytics-dashboard.css",
   "modules/customer/product-reviews.css"
 ];
 const filename=path.join(root,'site.css');

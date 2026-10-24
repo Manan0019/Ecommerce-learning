@@ -16,7 +16,7 @@ const labels={confirmed:"Confirm order",processing:"Mark preparing",delivered:"M
 export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, onOrdersChanged }){
  const routeLocation=useLocation(),routeNavigate=useNavigate();
  const linkedOrderId=!embeddedOrderId ? new URLSearchParams(routeLocation.search).get('order') : null;
- const [orders,setOrders]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(""),[busy,setBusy]=useState(""),[filter,setFilter]=useState("all"),[search,setSearch]=useState("");
+ const [orders,setOrders]=useState([]),[serverPagination,setServerPagination]=useState({total:0,pages:1,page:1}),[loading,setLoading]=useState(true),[error,setError]=useState(""),[busy,setBusy]=useState(""),[filter,setFilter]=useState("all"),[search,setSearch]=useState("");
  const [dispatchId,setDispatchId]=useState(null),[partner,setPartner]=useState(""),[tracking,setTracking]=useState("");
  const [dialog,setDialog]=useState(null),[dialogError,setDialogError]=useState(""),[notice,setNotice]=useState("");
  const [refundConfig,setRefundConfig]=useState(null);
@@ -50,17 +50,11 @@ export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, o
  useEffect(()=>{const c=new AbortController();getRazorpayRefundConfig(c.signal).then(setRefundConfig).catch(()=>{});return()=>c.abort();},[]);
  const openDialog=(type,order,status)=>{setDialog({type,order,status});setDialogError("");setError("");setNotice("");};
  const closeDialog=()=>{if(!busy){setDialog(null);setDialogError("");}};
- useEffect(()=>{const c=new AbortController();getAdminOrders(c.signal).then(async d=>{
-  if(c.signal.aborted)return;
-  const initial=d.orders||[];setOrders(initial);
-  // A legacy refund webhook may have carried receipt:null. When admin opens
-  // Orders, reconcile at most two pending refunds against the provider API.
-  // No refund request is created here: reconciliation is read-only at Razorpay.
-  const pending=initial.filter(o=>o.paymentMethod==='Razorpay'&&o.refundStatus&&o.refundStatus!=='processed').slice(0,2);
-  if(pending.length){await Promise.allSettled(pending.map(o=>reconcileRazorpayRefund(o.id)));
-    if(!c.signal.aborted){try{const fresh=await getAdminOrders(c.signal);setOrders(fresh.orders||[]);}catch{/* Preserve loaded orders */}}}
- }).catch(e=>{if(e.name!=="AbortError")setError(e.message)}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort();},[]);
- async function refreshOrders(){const result=await getAdminOrders();setOrders(result.orders||[]);onOrdersChanged?.();}
+ useEffect(()=>{const c=new AbortController(); const timeout=setTimeout(()=>{
+  setLoading(true);getAdminOrders(c.signal,{page:orderPage,limit:25,status:filter,search,sort:orderSort}).then(d=>{if(!c.signal.aborted){setOrders(d.orders||[]);setServerPagination(d.pagination||{total:0,pages:1,page:1});}})
+  .catch(e=>{if(e.name!=="AbortError")setError(e.message);}).finally(()=>{if(!c.signal.aborted)setLoading(false);});
+ },250);return()=>{clearTimeout(timeout);c.abort();};},[orderPage,filter,search,orderSort]);
+ async function refreshOrders(){const result=await getAdminOrders(undefined,{page:orderPage,limit:25,status:filter,search,sort:orderSort});setOrders(result.orders||[]);setServerPagination(result.pagination||{total:0,pages:1,page:1});onOrdersChanged?.();}
  async function setStatus(order,status){
   if(status==="cancelled"&&order.paymentMethod==="Razorpay"){setError("Paid Razorpay orders cannot be cancelled here until their refund is reconciled.");return;}
   if(status==="shipped"&&!partner.trim()){setError("Enter a delivery partner before dispatching the order.");return;}
@@ -109,13 +103,13 @@ export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, o
  const totals=useMemo(()=>({placed:orders.filter(o=>o.status==="placed").length,progress:orders.filter(o=>["confirmed","processing","shipped"].includes(o.status)).length,delivered:orders.filter(o=>o.status==="delivered").length,orderValue:orders.filter(o=>!['cancelled','payment_pending','payment_expired','payment_review','refund_pending','refund_review'].includes(o.status)).reduce((a,o)=>a+Number(o.total),0)}),[orders]);
  const pendingCancellationCount=orders.filter(o=>o.cancellationRequest?.status==="pending").length;
  const visible=orders.filter(o=>(filter==="all" || (filter==="active" ? ['placed','confirmed','processing','shipped'].includes(o.status) : filter==="payments" ? ['payment_pending','payment_review','refund_pending','refund_review','payment_expired'].includes(o.status) : filter==="archive" ? ['delivered','cancelled','payment_expired'].includes(o.status) : filter==="cancellation_requested" ? o.cancellationRequest?.status==="pending" : filter===o.status)) && `${o.id} ${o.customerName} ${o.customerEmail}`.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>orderSort==='oldest'?new Date(a.placedAt)-new Date(b.placedAt):new Date(b.placedAt)-new Date(a.placedAt));
- const perPage=25;const pages=Math.max(1,Math.ceil(visible.length/perPage));const currentPage=Math.min(orderPage,pages);const pageOrders=visible.slice((currentPage-1)*perPage,currentPage*perPage);
+ const perPage=25;const pages=serverPagination.pages||1;const currentPage=Math.min(orderPage,pages);const pageOrders=visible;
  return <>{!embeddedOrderId && <AdminLayout title="Orders & fulfillment" subtitle="Track COD and Razorpay payments, then process verified orders for dispatch and delivery.">
  {error&&<div className="admin-alert" role="alert">{error}</div>}
  {notice&&<div className="nx44-admin-notice" role="status">{notice}<button type="button" onClick={()=>setNotice("")} className="nx64-animated-close nx65-close-control" aria-label="Dismiss message"><UiIcon name="x" size={15}/></button></div>}
- {refundConfig?.enabled===false&&<div className="nx44-admin-refund-status" role="status"><strong>Razorpay refunds disabled.</strong> {refundConfig.reason==='refund_opt_in_missing'?'Add RAZORPAY_REFUNDS_ENABLED=true to server/.env, keep RAZORPAY_MODE=test, and restart Express.':refundConfig.reason==='razorpay_unconfigured'?'Check test Razorpay API settings in server/.env.':'Refund access needs separate authorization in Live Mode.'}</div>}
+ {refundConfig?.enabled===false&&<div className="nx44-admin-refund-status" role="status"><strong>Razorpay refunds disabled.</strong> {refundConfig.reason==='refund_opt_in_missing'?'Refund processing is unavailable. Contact your store administrator.':refundConfig.reason==='razorpay_unconfigured'?'Online refund configuration needs administrator attention.':'Refund access needs separate authorization in Live Mode.'}</div>}
  {pendingCancellationCount>0&&<button className="nx45-review-shortcut" type="button" onClick={()=>setFilter('cancellation_requested')}>Cancellation requests awaiting review <strong>{pendingCancellationCount}</strong><span>View requests <UiIcon name="right" size={17}/></span></button>}
- <div className="nx-admin-summary nx-cod-admin-stats"><div><small>Orders loaded</small><strong>{orders.length}</strong></div><div><small>Awaiting review</small><strong>{totals.placed}</strong></div><div><small>In progress</small><strong>{totals.progress}</strong></div><div><small>Delivered</small><strong>{totals.delivered}</strong></div></div>
+ <div className="nx-admin-summary nx-cod-admin-stats"><div><small>Matching orders</small><strong>{serverPagination.total}</strong></div><div><small>Placed on page</small><strong>{totals.placed}</strong></div><div><small>In progress · page</small><strong>{totals.progress}</strong></div><div><small>Delivered · page</small><strong>{totals.delivered}</strong></div></div>
  <section className="admin-panel nx-admin-orders-panel"><div className="admin-panel-heading"><div><h2>Order queue</h2><p>COD and Razorpay orders. Online payment must be captured before fulfillment; COD collection is recorded manually.</p><small>Non-cancelled order value: {money(totals.orderValue)}</small></div></div>
  <div className="nx-cod-toolbar"><label className="nx69-search"><span className="sr-only">Search orders</span><UiIcon name="search" size={18}/><input value={search} onChange={e=>{setSearch(e.target.value);setOrderPage(1);}} placeholder="Search by order, customer or email" type="search"/></label><label>Status <select value={filter} onChange={e=>{setFilter(e.target.value);setOrderPage(1);setSelectedOrderId(null);}}>{["all","active","payments","archive","cancellation_requested","placed","confirmed","processing","shipped","delivered","cancelled","payment_pending","payment_review","payment_expired","refund_pending","refund_review"].map(s=><option value={s} key={s}>{s==="cancellation_requested"?"Cancellation requests":s==="active"?"Active fulfillment":s==="payments"?"Payment issues":s==="archive"?"Delivered / cancelled":s[0].toUpperCase()+s.slice(1)}</option>)}</select></label><label>Order <select value={orderSort} onChange={e=>{setOrderSort(e.target.value);setOrderPage(1);}}><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label></div>
  {loading?<div role="status" aria-live="polite" className="nx65-order-loading"><span className="sr-only">Loading orders…</span>{Array.from({length:5},(_,i)=><div className="nx65-loading-row" aria-hidden="true" key={i}><span/><span/><span/><span/></div>)}</div>:!visible.length?<p className="nx-cod-padding">No orders match this view.</p>:<div className="nx57-order-workspace">
@@ -126,7 +120,7 @@ export default function AdminOrders({ embeddedOrderId = null, onEmbeddedClose, o
      <td className="nx57-order-amount">{money(o.total)}</td><td><span className={`nx-status nx-status-${o.status}`}>{o.status.replaceAll('_',' ')}</span></td>
      <td><button type="button" className="nx57-open-order" onClick={()=>setSelectedOrderId(o.id)} aria-label={`Manage order ${o.id}`}>View & manage</button></td>
    </tr>)}</tbody></table></div>
-   <div className="nx57-order-pagination"><span>Showing {(currentPage-1)*perPage+1}–{Math.min(visible.length,currentPage*perPage)} of {visible.length} orders</span><div><button type="button" disabled={currentPage<=1} onClick={()=>{setOrderPage(currentPage-1);setSelectedOrderId(null);}}>Previous</button><span>Page {currentPage} / {pages}</span><button type="button" disabled={currentPage>=pages} onClick={()=>{setOrderPage(currentPage+1);setSelectedOrderId(null);}}>Next</button></div></div>
+   <div className="nx57-order-pagination"><span>Showing {(currentPage-1)*perPage+1}–{Math.min(serverPagination.total,currentPage*perPage)} of {serverPagination.total} orders</span><div><button type="button" disabled={currentPage<=1} onClick={()=>{setOrderPage(currentPage-1);setSelectedOrderId(null);}}>Previous</button><span>Page {currentPage} / {pages}</span><button type="button" disabled={currentPage>=pages} onClick={()=>{setOrderPage(currentPage+1);setSelectedOrderId(null);}}>Next</button></div></div>
    <p className="nx57-orders-hint">Open an order to manage fulfillment, payment, delivery and refunds without leaving this list.</p>
  </div>}
  </section>

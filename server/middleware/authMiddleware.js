@@ -9,7 +9,7 @@ export async function requireAuthenticated(req, res, next) {
     }
 
     const result = await pool.query(
-      `SELECT id, full_name, email, mobile_number, profile_image_url, role
+      `SELECT id, full_name, email, mobile_number, profile_image_url, role, password_changed_at
        FROM users
        WHERE id = $1`,
       [req.session.userId]
@@ -23,6 +23,9 @@ export async function requireAuthenticated(req, res, next) {
       });
     }
 
+    if(user.password_changed_at && (!req.session.authTime || Number(req.session.authTime)<new Date(user.password_changed_at).getTime())) {
+      return res.status(401).json({message:'Your password was changed. Please sign in again.'});
+    }
     req.user = user;
 
     next();

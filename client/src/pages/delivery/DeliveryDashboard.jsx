@@ -149,8 +149,8 @@ export default function DeliveryDashboard() {
         : <p className="nx52-action-help">{a.deliveryStatus === 'delivered' ? 'Delivery complete.' : 'Awaiting admin dispatch. Delivery actions unlock after dispatch.'}</p>}
     </>;
   }
-  return <div className="nx52-delivery-shell nx57-delivery-shell">
-    <aside className="nx57-delivery-sidebar" aria-label="Delivery workspace navigation">
+  return <div className="nx52-delivery-shell nx57-delivery-shell nx82-delivery-shell">
+    <aside className="nx57-delivery-sidebar nx82-delivery-sidebar" aria-label="Delivery workspace navigation">
       <Link to="/delivery/dashboard" className="nx57-delivery-logo"><span>N</span><strong>Nexora<small>DELIVERY OPERATIONS</small></strong></Link>
       <p className="nx57-sidebar-label">WORKSPACE</p>
       {[["all","Dashboard","layout-dashboard"],["active","In progress","truck"],["ready","Assigned orders","package"],["route","Out for delivery","truck"],["delivered","Delivered history","check-circle"]].map(([key,label,icon])=><button type="button" key={key} className={tab===key?'is-active':''} onClick={()=>{setTab(key);setSelected(null);setPage(1)}} aria-current={tab===key?'page':undefined}><UiIcon name={icon} size={17}/><span>{label}</span><b>{counts[key]}</b></button>)}
@@ -158,24 +158,33 @@ export default function DeliveryDashboard() {
     </aside>
     <header className="nx52-delivery-header"><Link to="/delivery/dashboard" className="nx52-delivery-brand"><span className="nx52-brand-mark">N</span><span><strong>Nexora</strong><small>DELIVERY OPERATIONS</small></span></Link>
       <div className="nx52-delivery-account"><NotificationBell/><button type="button" className="nx80-header-profile" onClick={openProfile}><UiIcon name="edit" size={16}/> Edit profile</button><div className="nx52-delivery-user"><strong>{me?.fullName || 'Delivery executive'}</strong><small>{me?.email || 'Delivery workspace'}</small></div><button type="button" onClick={signOut}>Sign out</button></div></header>
-    <main className="nx52-delivery-main"><div className="nx52-delivery-welcome"><div><p className="nx52-eyebrow">NEXORA · DELIVERY DESK</p><h1>Your delivery workspace</h1><span>Prioritize pending handovers, contact recipients and update delivery progress securely.</span></div><button type="button" disabled={loading || !me} onClick={()=>{setError('');refresh().catch(e=>setError(e.message));}}><UiIcon name="right" size={16}/> Refresh</button></div>
+    <main className="nx52-delivery-main nx82-delivery-main"><section className="nx82-delivery-hero" aria-label="Delivery command centre"><div className="nx82-delivery-hero-copy">
+    <p className="nx82-kicker"><span className="nx82-online-dot"/> NEXORA · DELIVERY COMMAND CENTRE</p>
+    <h1>{me ? `Good to see you, ${me.fullName?.trim().split(/\s+/)[0]||'partner'}.` : 'Your delivery workspace.'}</h1>
+    <p>One place for every handover, live assignment, customer contact and earning record. Finish each order with verified delivery.</p>
+    <div className="nx82-hero-chips"><span><UiIcon name="package" size={15}/> {counts.ready} ready to start</span><span><UiIcon name="truck" size={15}/> {counts.route} on the road</span><span><UiIcon name="check-circle" size={15}/> {counts.delivered} completed</span></div>
+   </div><div className="nx82-delivery-hero-progress"><span>DELIVERY COMPLETION</span><strong>{counts.all ? Math.round(counts.delivered/counts.all*100):0}%</strong>
+     <div className="nx82-progress-track" role="progressbar" aria-valuenow={counts.all ? Math.round(counts.delivered/counts.all*100):0} aria-valuemin="0" aria-valuemax="100" aria-label="Overall assignment completion"><i style={{width:`${counts.all ? Math.round(counts.delivered/counts.all*100):0}%`}}/></div>
+     <small>{counts.delivered} of {counts.all} assigned orders completed</small>
+     <button type="button" disabled={loading || !me} onClick={()=>{setError('');refresh().catch(e=>setError(e.message));}}><UiIcon name="refresh-cw" size={16}/> Refresh assignments</button>
+   </div></section>
       {error && <div className="nx52-delivery-warning" role="alert">{error}{sessionProblem && <Link to="/delivery/login">Go to delivery sign in <UiIcon name="right" size={15}/></Link>}</div>}
       {notice && <div className="nx52-delivery-success" role="status">{notice}</div>}
       {loading ? <div className="nx52-delivery-loading" role="status">Checking your delivery account and loading assignments…</div>
         : me && <>
-          <section className="nx52-delivery-stats" aria-label="Delivery overview">
+          <section className="nx52-delivery-stats nx82-delivery-stats" aria-label="Delivery overview">
             <article><span>Assigned to you</span><strong>{counts.all}</strong><small>Across all statuses</small></article>
             <article><span>Ready to deliver</span><strong>{counts.ready}</strong><small>Awaiting dispatch or pickup</small></article>
             <article><span>On the way</span><strong>{counts.route}</strong><small>Active deliveries</small></article>
             <article><span>Completed</span><strong>{counts.delivered}</strong><small>Delivered orders</small></article>
             <article><span>Rate for new deliveries</span><strong>{money(me?.payRate)}</strong><small>Locked when assigned</small></article>
           </section>
-          <EarningsLedger />
-          <section className="nx74-delivery-queue-summary" aria-label="Delivery priorities">
+          <div className="nx82-earnings-wrapper"><div className="nx82-section-prelude"><div><p>PERSONAL PAY LEDGER</p><h2>Delivery earnings</h2></div><span>Pay confirmed only after verified handover</span></div><EarningsLedger /></div>
+          <section className="nx74-delivery-queue-summary nx82-priority" aria-label="Delivery priorities">
             <div><span className="nx52-eyebrow">DELIVERY PRIORITIES</span><strong>{actionable.length ? `${actionable.length} order${actionable.length === 1 ? '' : 's'} ready for your action` : 'All actionable deliveries handled'}</strong><small>{actionable.length ? 'Open the next eligible assignment to begin or verify its delivery.' : 'New assignments will appear when your administrator dispatches them.'}</small></div>
             {actionable.length > 0 && <button type="button" onClick={focusNextDelivery}><UiIcon name="package" size={17}/>Open next delivery</button>}
           </section>
-          <section className="nx52-delivery-work"><div className="nx52-delivery-work-top"><div><p className="nx52-eyebrow">MY ROUTE</p><h2>Assignments</h2></div><label className="nx52-delivery-search"><UiIcon name="search" size={18}/><input type="search" value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search order, name or city"/></label></div>
+          <section className="nx52-delivery-work nx82-delivery-work"><div className="nx52-delivery-work-top"><div><p className="nx52-eyebrow">MY ROUTE</p><h2>My delivery queue</h2></div><label className="nx52-delivery-search"><UiIcon name="search" size={18}/><input type="search" value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search order, name or city"/></label></div>
             <div className="nx77-delivery-view-controls"><button type="button" aria-pressed={view==='table'} onClick={()=>setView('table')}><UiIcon name="list" size={16}/> Table view</button><button type="button" aria-pressed={view==='cards'} onClick={()=>setView('cards')}><UiIcon name="layout-grid" size={16}/> Cards</button></div>
             <div className="nx52-delivery-tabs" role="group" aria-label="Filter deliveries">{tabs.map(([key,label])=><button type="button" key={key} className={tab===key?'is-active':''} aria-pressed={tab===key} onClick={()=>{setTab(key);setPage(1);}}>{label}<span>{counts[key]}</span></button>)}</div>
             <p className="nx74-delivery-results" role="status">Showing {filtered.length} of {assignments.length} assignments · Unfinished deliveries appear first</p><div className="nx52-delivery-content"><div className="nx52-delivery-list">{view==='table'&&<div className="nx77-delivery-mini-table" role="table" aria-label="Delivery assignments"><div role="row" className="nx77-delivery-mini-head"><span>Order</span><span>Customer</span><span>Status</span></div>{visible.map(a=><button type="button" role="row" key={a.orderId} className={String(selected || filtered[0]?.orderId)===String(a.orderId)?'is-active':''} onClick={()=>setSelected(a.orderId)}><span>#{a.orderId}<small>{money(a.total)}</small></span><span>{a.customerName}<small>{a.address?.city||'—'}</small></span><span>{statuses[a.deliveryStatus]||a.deliveryStatus}</span></button>)}</div>}{view==='cards'&&visible.map(a=><button type="button" key={a.orderId} className={`nx52-delivery-list-card${String(selected || filtered[0]?.orderId)===String(a.orderId)?' is-active':''}`} onClick={()=>setSelected(a.orderId)}>

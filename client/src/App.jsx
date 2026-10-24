@@ -20,6 +20,7 @@ import EditProduct from "./pages/admin/EditProduct";
 import CustomerLogin from "./pages/auth/CustomerLogin";
 import CustomerSignup from "./pages/auth/CustomerSignup";
 import VerifyOTP from "./pages/auth/VerifyOTP";
+import PasswordRecovery from "./pages/auth/PasswordRecovery";
 import CartPage from "./pages/customer/CartPage";
 import Checkout from "./pages/customer/Checkout";
 import Addresses from "./pages/customer/Addresses";
@@ -30,6 +31,7 @@ import AdminFeatured from "./pages/admin/AdminFeatured";
 import AdminInventory from "./pages/admin/AdminInventory";
 import AdminDelivery from './pages/admin/AdminDelivery';
 import AdminFinance from './pages/admin/AdminFinance';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
 import DeliveryDashboard from './pages/delivery/DeliveryDashboard';
 import DeliveryLogin from './pages/delivery/DeliveryLogin';
 import Wishlist from "./pages/customer/Wishlist";
@@ -42,6 +44,8 @@ import ProductDetails from "./pages/customer/ProductDetails";
 import ProductList from "./pages/customer/ProductList";
 import About from "./pages/public/About";
 import Contact from "./pages/public/Contact";
+import StorePolicy from "./pages/public/StorePolicy";
+import NewsletterPreferences from "./pages/public/NewsletterPreferences";
 import NotFound from "./pages/public/NotFound";
 import Categories from "./pages/customer/Categories";
 
@@ -95,6 +99,8 @@ const appRouter=createBrowserRouter(createRoutesFromElements(<Route element={<><
     <Route path="/signup" element={<CustomerSignup />} />
     <Route path="/verify-otp" element={<VerifyOTP />} />
     <Route path="/login" element={<CustomerLogin />} />
+    <Route path="/forgot-password" element={<PasswordRecovery />} />
+    <Route path="/reset-password" element={<PasswordRecovery reset />} />
     <Route path="/dashboard" element={<CustomerDashboard />} />
     <Route path="/admin/login" element={<AdminLogin />} />
     <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -112,7 +118,7 @@ const appRouter=createBrowserRouter(createRoutesFromElements(<Route element={<><
     <Route path="/admin/products/:id/preview" element={<ProductDetails adminPreview />} />
     <Route path="/admin/featured" element={<AdminFeatured />} />
     <Route path="/admin/inventory" element={<AdminInventory />} />
-    <Route path="/admin/analytics" element={<AdminComingSoon title="Analytics" />} />
+    <Route path="/admin/analytics" element={<AdminAnalytics />} />
     <Route path="/admin/settings" element={<AdminCheckoutSettings />} />
     <Route path="/admin/branding" element={<AdminBranding />} />
     <Route path="/admin/footer" element={<AdminFooter />} />
@@ -132,6 +138,12 @@ const appRouter=createBrowserRouter(createRoutesFromElements(<Route element={<><
     <Route path="/admin/reviews" element={<AdminReviews />} />
     <Route path="/about" element={<About />} />
     <Route path="/contact" element={<Contact />} />
+    <Route path="/terms" element={<StorePolicy kind="terms" />} />
+    <Route path="/privacy" element={<StorePolicy kind="privacy" />} />
+    <Route path="/returns-refunds" element={<StorePolicy kind="refunds" />} />
+    <Route path="/shipping-policy" element={<StorePolicy kind="shipping" />} />
+    <Route path="/newsletter/confirm" element={<NewsletterPreferences />} />
+    <Route path="/newsletter/unsubscribe" element={<NewsletterPreferences action="unsubscribe" />} />
     <Route path="*" element={<NotFound />} />
   </Route>));
 export default function App() {

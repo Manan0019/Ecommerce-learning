@@ -80,6 +80,7 @@ export default function CustomerLogin() {
         </button>
       </form>
 
+      <p className="auth-switch"><Link to="/forgot-password">Forgot password?</Link></p>
       <p className="auth-switch">New here? <Link to="/signup">Create an account</Link></p>
       <p className="auth-switch">Delivery team? <Link to="/delivery/login">Open delivery sign in</Link></p>
       <p className="nx32-security-line">Your password is never displayed publicly.</p>

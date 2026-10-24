@@ -1,5 +1,7 @@
 /** Consistent inline SVG arrows and navigation symbols. No external icon dependency. */
 const shapes = {
+  'refresh-cw': <><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.2 9A8 8 0 0 1 19 7l1 5M4 12l1 5a8 8 0 0 0 13.8-2"/></>,
+  'bar-chart': <><path d="M4 20V10h4v10M10 20V4h4v16M16 20v-7h4v7"/></>,
   right: <path d="M4.5 12h15m-6-6 6 6-6 6" />,
   left: <path d="M19.5 12h-15m6-6-6 6 6 6" />,
   'up-right': <path d="M6.5 17.5 17.5 6.5M8 6.5h9.5V16" />,

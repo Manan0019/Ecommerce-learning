@@ -35,7 +35,7 @@ test('backend route and health check are included, and API HTML 404 is explained
  assert.match(routes,/admin.post\('\/staff'/);
  assert.match(routes,/to_regclass\('public.delivery_staff_profiles'\)/);
  assert.match(index,/app.use\("\/api\/admin\/delivery",adminDeliveryRoutes\)/);
- assert.match(read('../src/services/apiClient.js'),/API endpoint not found on the running Express server/);
+ assert.match(read('../src/services/apiClient.js'),/This feature is temporarily unavailable/);
 });
 test('unified stylesheet is imported once and retains later cascade rules',()=>{
  const main=read('../src/main.jsx');

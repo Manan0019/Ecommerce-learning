@@ -21,7 +21,7 @@ export default function StoreFooter(){
      <div className="nx34-footer-about"><Link className="brand footer-brand" to="/"><BrandLogo showIcon={false}/></Link><p>{SITE_TAGLINE}</p><span>Explore thoughtfully. Shop confidently.</span></div>
      <nav aria-label="Explore Nexora" className="nx34-footer-nav"><strong>DISCOVER</strong><Link to="/products">All products</Link><Link to="/categories">Collections</Link><Link to="/wishlist">Saved favourites</Link><Link to="/compare">Compare products</Link></nav>
      <nav aria-label="Your account" className="nx34-footer-nav"><strong>YOUR SPACE</strong><Link to="/dashboard">Your account</Link><Link to="/orders">Orders</Link><Link to="/addresses">Addresses</Link></nav>
-     <nav aria-label="About and contact" className="nx34-footer-nav"><strong>THE DETAILS</strong><Link to="/about">Our story</Link><Link to="/contact">Contact</Link><Link to="/faq">FAQs</Link></nav>
+     <nav aria-label="About and contact" className="nx34-footer-nav"><strong>THE DETAILS</strong><Link to="/about">Our story</Link><Link to="/contact">Contact</Link><Link to="/faq">FAQs</Link><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link><Link to="/returns-refunds">Returns & refunds</Link><Link to="/shipping-policy">Shipping policy</Link></nav>
    </div>
    <div className="nx34-footer-bottom"><span>© {new Date().getFullYear()} {SITE_NAME}. All rights reserved.</span><span>MADE FOR THE CURIOUS <span aria-hidden="true">✦</span></span></div>
  </footer>;

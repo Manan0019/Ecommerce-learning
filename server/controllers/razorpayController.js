@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { attachOrderImages } from '../services/orderImages.js';
 import { processRefundWebhook } from './razorpayRefundController.js';
 import { notifyAdmins } from '../services/notificationService.js';
+import {queueOrderEmail} from '../services/customerEmailOutbox.js';
 import pool from '../config/db.js';
 import { fromPaise, validateCartItems } from '../services/cartPricing.js';
 import { calculateCheckout } from '../services/checkoutPricing.js';
@@ -23,7 +24,7 @@ const rollback = async db => { await db.query('ROLLBACK').catch(()=>{}); };
 const fail = (res,e,scope) => {
   console.error(scope,e);
   if (['40001','40P01','23505','NX_STOCK_CHANGED'].includes(e.code))return res.status(409).json({message:'Stock or payment changed. Refresh and try again.',requiresCartReview:true});
-  if (['42P01','42703'].includes(e.code))return res.status(503).json({message:'Payment database migration 025 is required.'});
+  if (['42P01','42703'].includes(e.code))return res.status(503).json({message:'Payment processing is temporarily unavailable.'});
   if (e.code==='NX_RAZORPAY_API' || e.name==='AbortError')return res.status(503).json({message:'Razorpay is temporarily unavailable. Check your order status before retrying.'});
   return res.status(500).json({message:'Payment operation could not be completed. Check your order status.'});
 };
@@ -38,13 +39,13 @@ async function addressFor(db, user, body) {
   const error=validateAddress(body?.address);
   return error?{error}:{address:normalizeAddress(body.address)};
 }
-async function quoteLines(db,items,policy) {
+async function quoteLines(db,items,policy,lock=true) {
   const productIds=[...new Set(items.map(x=>x.productId))];
   const variants=[...new Set(items.map(x=>x.variantId).filter(Boolean))];
   const [p,v,required]=await Promise.all([
     db.query(`SELECT p.id,p.name,p.price,p.stock,p.image_url,p.is_active,p.gst_percent,p.category_id,p.show_sale_badge,c.is_active AS category_active
-       FROM products p JOIN categories c ON c.id=p.category_id WHERE p.id=ANY($1::bigint[]) ORDER BY p.id FOR UPDATE OF p`,[productIds]),
-    variants.length?db.query('SELECT id,product_id,sku,attributes,price,stock,is_active FROM product_variants WHERE id=ANY($1::bigint[]) ORDER BY id FOR UPDATE',[variants]):Promise.resolve({rows:[]}),
+       FROM products p JOIN categories c ON c.id=p.category_id WHERE p.id=ANY($1::bigint[]) ORDER BY p.id ${lock?'FOR UPDATE OF p':''}`,[productIds]),
+    variants.length?db.query(`SELECT id,product_id,sku,attributes,price,stock,is_active FROM product_variants WHERE id=ANY($1::bigint[]) ORDER BY id ${lock?'FOR UPDATE':''}`,[variants]):Promise.resolve({rows:[]}),
     db.query('SELECT DISTINCT product_id FROM product_variants WHERE product_id=ANY($1::bigint[])',[productIds]),
   ]);
   const pm=new Map(p.rows.map(x=>[String(x.id),x]));const vm=new Map(v.rows.map(x=>[String(x.id),x]));
@@ -81,6 +82,42 @@ export async function initiateRazorpayOrder(req,res) {
   if (paymentMethod!=='razorpay' || !validRequestKey(requestKey))return res.status(400).json({message:'Invalid payment request.'});
   const quoteError=acceptedQuoteError(req.body?.acceptedQuote);
   if (quoteError)return res.status(400).json({message:quoteError});
+  const requestedDigest=intentDigest(items,req.body);
+  try {
+    const existing=await pool.query('SELECT * FROM cod_orders WHERE customer_id=$1 AND request_key=$2',[req.user.id,requestKey]);
+    if(existing.rows.length){
+      const order=existing.rows[0];
+      if(order.payment_method!=='razorpay'||order.request_digest!==requestedDigest)return res.status(409).json({message:'Request key already used for a different checkout.'});
+      if(order.payment_status==='razorpay_paid')return res.json({alreadyPaid:true,order:paymentJson(order)});
+      if(order.payment_status==='razorpay_pending'&&order.razorpay_order_id)return res.json({payment:paymentCheckout(order),alreadyInitiated:true});
+      return res.status(409).json({message:'Payment requires review. Please contact support.'});
+    }
+    const pending=await pool.query("SELECT * FROM cod_orders WHERE customer_id=$1 AND request_digest=$2 AND payment_status='razorpay_pending' ORDER BY id DESC LIMIT 1",[req.user.id,requestedDigest]);
+    if(pending.rows.length){
+      const order=pending.rows[0];
+      if(String(req.body.acceptedQuote.total)!==String(order.grand_total))return res.status(409).json({message:'A pending payment has an earlier quote. Review Orders before proceeding.'});
+      return res.json({payment:paymentCheckout(order),alreadyInitiated:true});
+    }
+  }catch(err){return fail(res,err,'Payment idempotency check:');}
+  // PREPARE OUTSIDE A DB TRANSACTION: the gateway is a network service. A
+  // fresh authoritative, locking re-quote is performed in the short commit TX.
+  // An unused gateway order can exist after a race, but no stock/coupon is lost.
+  let gateway;
+  try {
+    const address=await addressFor(pool,req.user.id,req.body);
+    if(address.error)return res.status(400).json({message:address.error});
+    const settings=await pool.query('SELECT * FROM store_checkout_settings WHERE id=1');
+    if(!settings.rows.length)return res.status(503).json({message:'Checkout temporarily unavailable.'});
+    const found=await quoteLines(pool,items,settings.rows[0],false);
+    if(found.error)return res.status(409).json({message:found.error,requiresCartReview:true});
+    const coupon=await quoteLiveCoupon(pool,couponCode,req.user.id,found.lines);
+    if(coupon.error)return res.status(422).json({message:coupon.error});
+    const amounts=calculateCheckout(found.lines,address.address.state,settings.rows[0],coupon);
+    if(amounts._total<=0n||amounts._total>999999999999n)return res.status(400).json({message:'Invalid payment amount.'});
+    if(!quoteMatchesAccepted(amounts,req.body.acceptedQuote))return res.status(409).json({message:'Checkout amount changed. Review the new quote before paying.',requiresEstimateReview:true,latestEstimate:quoteSummary(amounts)});
+    gateway=await createGatewayOrder({amount:Number(amounts._total),currency:'INR',receipt:`nx_${requestKey.replaceAll('-','').slice(0,32)}`,partial_payment:false});
+    if(!validGatewayIdentifier(gateway.id,'order')||gateway.amount!==Number(amounts._total)||gateway.currency!=='INR')throw Object.assign(new Error('Gateway response mismatch'),{code:'NX_RAZORPAY_API'});
+  } catch(err){return fail(res,err,'Payment preflight:');}
   const digest=intentDigest(items,req.body);const db=await pool.connect();let begun=false;
   try {
     await db.query('BEGIN');begun=true;
@@ -127,11 +164,12 @@ export async function initiateRazorpayOrder(req,res) {
       await rollback(db);begun=false;
       return res.status(409).json({message:'Checkout amount changed. Review the new quote before paying.',requiresEstimateReview:true,latestEstimate:quoteSummary(amounts)});
     }
-    // Gateway order created while inventory row locks are held. DB transaction either
-    // commits BOTH pending order+stock reservation or nothing is payable to shopper.
-    const gateway=await createGatewayOrder({amount:Number(amounts._total),currency:'INR',
-      receipt:`nx_${requestKey.replaceAll('-','').slice(0,32)}`,partial_payment:false});
-    if(!validGatewayIdentifier(gateway.id,'order')||gateway.amount!==Number(amounts._total)||gateway.currency!=='INR')throw new Error('Razorpay order response mismatch');
+    // Never wait for Razorpay with product locks held. The gateway was prepared
+    // before BEGIN; this authoritative quote checks race conditions again.
+    if(!gateway){await rollback(db);begun=false;return res.status(409).json({message:'An earlier checkout is being processed. Refresh your orders and retry.'});}
+    if(gateway.amount!==Number(amounts._total)){
+      await rollback(db);begun=false;return res.status(409).json({message:'Checkout changed while processing. Please review and retry.',requiresEstimateReview:true,latestEstimate:quoteSummary(amounts)});
+    }
     const r=await db.query(`INSERT INTO cod_orders(customer_id,request_key,request_digest,status,payment_method,payment_status,
       subtotal,shipping_fee,grand_total,address_snapshot,tax_total,taxable_value,cgst,sgst,igst,razorpay_order_id,tax_pricing_mode,coupon_code,discount_amount)
       VALUES($1,$2,$3,'payment_pending','razorpay','razorpay_pending',$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
@@ -170,6 +208,7 @@ async function applyCapturedPayment(db,order,payment,actorId=null){
   await db.query("UPDATE coupon_redemptions SET status='consumed',updated_at=NOW() WHERE order_id=$1 AND status='reserved'",[order.id]);
   await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'payment_verified',$2,$3)",
     [order.id,actorId,'Razorpay captured payment verified.']);
+  await queueOrderEmail(db,order.id,'payment_verified');
   await notifyAdmins(db,{key:`order:${order.id}:paid`,kind:'order',title:'New paid order',message:`Razorpay payment for order #${order.id} verified. Ready for fulfillment.`,path:'/admin/orders'});
   return {order:changed.rows[0],paid:true};
 }
@@ -281,37 +320,41 @@ export async function razorpayWebhook(req,res){
     await db.query('COMMIT');begun=false;return res.json({received:true});
   }catch(e){if(begun)await rollback(db);return fail(res,e,'Razorpay webhook:');}finally{db.release();}
 }
+// Shared by the admin endpoint and the periodic, fail-closed sweeper.
+// Provider lookups happen BEFORE a short inventory/coupon release transaction.
+export async function expirePendingReservation(id,actorId=null){
+  if(!validOrderId(id))return {status:400,message:'Invalid order ID.'};
+  const found=await pool.query('SELECT * FROM cod_orders WHERE id=$1',[id]);
+  const order=found.rows[0];
+  if(!order)return {status:404,message:'Order not found.'};
+  if(order.payment_method!=='razorpay'||order.status!=='payment_pending'||order.payment_status!=='razorpay_pending')return {status:409,message:'Only pending online payments can be expired.'};
+  if(Date.now()-new Date(order.placed_at).getTime()<60*60*1000)return {status:409,message:'Payment hold has not reached its expiry window.'};
+  const [gateway,payments]=await Promise.all([fetchGatewayOrder(order.razorpay_order_id),fetchGatewayOrderPayments(order.razorpay_order_id)]);
+  if(gateway.id!==order.razorpay_order_id||gateway.status==='paid'||!Array.isArray(payments.items)||
+    payments.items.some(payment=>['authorized','captured','refunded'].includes(payment.status)))
+    return {status:409,message:'Gateway reports payment activity. No stock was released; manual reconciliation required.'};
+  const db=await pool.connect();let begun=false;
+  try {
+    await db.query('BEGIN');begun=true;
+    const locked=await db.query('SELECT * FROM cod_orders WHERE id=$1 FOR UPDATE',[id]);
+    if(locked.rows[0]?.payment_status!=='razorpay_pending'||locked.rows[0]?.status!=='payment_pending'){
+      await rollback(db);begun=false;return {status:409,message:'Payment changed during reconciliation.'};
+    }
+    const lines=await db.query('SELECT product_id,variant_id,quantity FROM cod_order_items WHERE order_id=$1 ORDER BY id',[id]);
+    for(const line of lines.rows){
+      if(line.variant_id)await db.query('UPDATE product_variants SET stock=stock+$1,updated_at=NOW() WHERE id=$2',[line.quantity,line.variant_id]);
+      else await db.query('UPDATE products SET stock=stock+$1 WHERE id=$2',[line.quantity,line.product_id]);
+    }
+    await db.query("UPDATE coupon_redemptions SET status='released',updated_at=now() WHERE order_id=$1 AND status='reserved'",[id]);
+    const updated=await db.query("UPDATE cod_orders SET status='payment_expired',payment_status='razorpay_expired',updated_at=NOW() WHERE id=$1 RETURNING *",[id]);
+    await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'payment_expired',$2,$3)",
+      [id,actorId,actorId?'Administrator expired unpaid reservation after gateway verification.':'Automatic reconciliation released an unpaid reservation after provider verification.']);
+    await db.query('COMMIT');begun=false;
+    return {status:200,order:paymentJson(updated.rows[0])};
+  } catch(err){if(begun)await rollback(db);throw err;}finally{db.release();}
+}
 export async function expirePendingOnlineOrder(req,res){
-  const id=req.params.id;if(!validOrderId(id))return res.status(400).json({message:'Invalid order ID.'});
-  // Never free stock purely because a user closed a popup or a payment failed.
-  // Allow explicit ADMIN reconciliation after 60 min, checking gateway payments first.
-  let order;
-  try{
-    const found=await pool.query('SELECT * FROM cod_orders WHERE id=$1',[id]);order=found.rows[0];
-    if(!order)return res.status(404).json({message:'Order not found.'});
-    if(order.payment_method!=='razorpay'||order.status!=='payment_pending'||order.payment_status!=='razorpay_pending')return res.status(409).json({message:'Only pending online payments can be expired.'});
-    if(Date.now()-new Date(order.placed_at).getTime()<60*60*1000)return res.status(409).json({message:'Wait at least 60 minutes before checking and expiring this payment.'});
-    const [gateway,payments]=await Promise.all([fetchGatewayOrder(order.razorpay_order_id),fetchGatewayOrderPayments(order.razorpay_order_id)]);
-    if(gateway.id!==order.razorpay_order_id||gateway.status==='paid'||!Array.isArray(payments.items)||
-      payments.items.some(p=>['authorized','captured','refunded'].includes(p.status)))
-      return res.status(409).json({message:'Razorpay shows payment activity requiring review. No stock has been released.'});
-    const db=await pool.connect();let begun=false;
-    try{
-      await db.query('BEGIN');begun=true;
-      const locked=await db.query('SELECT * FROM cod_orders WHERE id=$1 FOR UPDATE',[id]);
-      if(locked.rows[0]?.payment_status!=='razorpay_pending'||locked.rows[0]?.status!=='payment_pending'){
-        await rollback(db);begun=false;return res.status(409).json({message:'Payment status changed during reconciliation.'});
-      }
-      const lines=await db.query('SELECT product_id,variant_id,quantity FROM cod_order_items WHERE order_id=$1 ORDER BY id',[id]);
-      for(const line of lines.rows){
-        if(line.variant_id)await db.query('UPDATE product_variants SET stock=stock+$1,updated_at=NOW() WHERE id=$2',[line.quantity,line.variant_id]);
-        else await db.query('UPDATE products SET stock=stock+$1 WHERE id=$2',[line.quantity,line.product_id]);
-      }
-      await db.query("UPDATE coupon_redemptions SET status='released',updated_at=now() WHERE order_id=$1 AND status='reserved'",[id]);
-      const r=await db.query("UPDATE cod_orders SET status='payment_expired',payment_status='razorpay_expired',updated_at=NOW() WHERE id=$1 RETURNING *",[id]);
-      await db.query("INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes) VALUES($1,'payment_expired',$2,$3)",
-        [id,req.user.id,'Administrator expired unpaid reservation after checking Razorpay. Late capture requires manual refund review.']);
-      await db.query('COMMIT');begun=false;return res.json({order:paymentJson(r.rows[0])});
-    }catch(e){if(begun)await rollback(db);return fail(res,e,'Expire pending order:');}finally{db.release();}
-  }catch(e){return fail(res,e,'Reconcile pending order:');}
+ try {const result=await expirePendingReservation(req.params.id,req.user.id);
+   return res.status(result.status).json(result.order?{order:result.order}:{message:result.message});}
+ catch(err){return fail(res,err,'Expire pending payment:');}
 }

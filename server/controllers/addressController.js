@@ -5,7 +5,7 @@ const validId = v => /^[1-9]\d*$/.test(String(v));
 const mapAddress = r => ({id:String(r.id),label:r.label,fullName:r.full_name,phone:r.phone,addressLine1:r.address_line1,addressLine2:r.address_line2,city:r.city,state:r.state,pincode:r.pincode,isDefault:r.is_default});
 export async function listAddresses(req,res){
   try { const r=await pool.query('SELECT * FROM customer_addresses WHERE customer_id=$1 ORDER BY is_default DESC,id DESC',[req.user.id]);return res.json({addresses:r.rows.map(mapAddress)}); }
-  catch(e){console.error('List addresses',e);return res.status(500).json({message:'Could not load addresses. Check migration 017.'});}
+  catch(e){console.error('List addresses',e);return res.status(500).json({message:'Could not load saved addresses.'});}
 }
 export async function saveAddress(req,res){
   const body=req.body||{};

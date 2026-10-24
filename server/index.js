@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pool from "./config/db.js";
 import { sessionMiddleware } from "./config/session.js";
+import {unsafeRequestOrigin} from "./middleware/unsafeRequestOrigin.js";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
@@ -25,6 +26,8 @@ import {publicStorefrontCopyRoutes,adminStorefrontCopyRoutes} from "./routes/sto
 import razorpayRoutes from "./routes/razorpayRoutes.js";
 import engagementRoutes from "./routes/engagementRoutes.js";
 import { razorpayWebhook } from "./controllers/razorpayController.js";
+import {startPaymentSweeper} from "./services/paymentReservationSweeper.js";
+import {startCustomerEmailOutbox} from "./services/customerEmailOutbox.js";
 
 import {admin as adminDeliveryRoutes,delivery as deliveryRoutes,notificationRoutes} from './routes/deliveryRoutes.js';
 
@@ -39,8 +42,9 @@ app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
 app.post("/api/payments/razorpay/webhook", express.raw({type:"application/json",limit:"256kb"}), razorpayWebhook);
 app.use(express.json({ limit: "100kb" }));
 app.use(sessionMiddleware);
+app.use(unsafeRequestOrigin);
 app.get("/", (_req, res) => res.json({ message: "Ecommerce API is running." }));
-app.get("/api/db-test", async (_req, res) => {
+if(process.env.ENABLE_ADMIN_DB_TEST === "1") app.get("/api/db-test", requireAdmin, async (_req, res) => {
   try {
     const { rows } = await pool.query("SELECT NOW() AS database_time");
     res.json({ success: true, databaseTime: rows[0].database_time });
@@ -97,6 +101,8 @@ async function start() {
   try {
     await pool.query("SELECT 1");
     app.listen(PORT, () => console.log(`Express running at http://localhost:${PORT}`));
+    startPaymentSweeper();
+    startCustomerEmailOutbox();
   } catch (error) {
     console.error("Cannot start Express (database unavailable):", error);
     process.exitCode = 1;

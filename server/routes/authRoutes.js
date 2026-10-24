@@ -5,7 +5,7 @@ import rateLimit from "express-rate-limit";
 import multer from "multer";
 
 import pool from "../config/db.js";
-import { sendOtpEmail } from "../config/mailer.js";
+import { sendOtpEmail,sendPasswordResetEmail } from "../config/mailer.js";
 
 import { requireAuthenticated, requireCustomer } from "../middleware/authMiddleware.js";
 import { deliveryAccessDecision } from "../services/deliverySessionRules.js";
@@ -367,6 +367,45 @@ const loginLimiter = rateLimit({
   }
 });
 
+// Generic responses prevent account enumeration. Tokens are SHA-256 digests in DB,
+// single-use and short-lived. Resetting a password invalidates older sessions.
+const resetLimiter=rateLimit({windowMs:15*60*1000,limit:5,standardHeaders:'draft-8',legacyHeaders:false,
+  skip:()=>process.env.NODE_ENV==='test',message:{message:'Please try again later.'}});
+const RESET_MESSAGE='If this email belongs to a customer account, a reset link will be sent shortly.';
+router.post('/forgot-password',resetLimiter,async(req,res)=>{
+  const email=typeof req.body?.email==='string'?req.body.email.trim().toLowerCase():'';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254)return res.status(400).json({message:'Enter a valid email address.'});
+  try {
+    const r=await pool.query("SELECT id,email FROM users WHERE lower(email)=$1 AND role='customer' LIMIT 1",[email]);
+    if(r.rows.length){
+      const account=r.rows[0];const token=crypto.randomBytes(32).toString('hex');
+      const digest=crypto.createHash('sha256').update(token).digest('hex');
+      await pool.query('DELETE FROM password_reset_tokens WHERE user_id=$1',[account.id]);
+      await pool.query("INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES($1,$2,NOW()+INTERVAL '20 minutes')",[account.id,digest]);
+      const origin=process.env.CLIENT_ORIGIN||'http://localhost:5173';
+      try{await sendPasswordResetEmail(account.email,`${origin}/reset-password?token=${token}`);}
+      catch(err){console.error('Reset email delivery failed',err);await pool.query('DELETE FROM password_reset_tokens WHERE token_hash=$1',[digest]).catch(()=>{});}
+    }
+    return res.json({message:RESET_MESSAGE});
+  }catch(err){console.error('Request reset failed',err);return res.status(503).json({message:'Password recovery is temporarily unavailable.'});}
+});
+router.post('/reset-password',resetLimiter,async(req,res)=>{
+  const token=req.body?.token,password=req.body?.password,confirm=req.body?.confirmPassword;
+  if(typeof token!=='string'||!/^[a-f0-9]{64}$/.test(token)||!validPassword(password)||password!==confirm){return res.status(400).json({message:'Enter a valid reset link and matching password of at least 12 characters.'});}
+  const digest=crypto.createHash('sha256').update(token).digest('hex');
+  const db=await pool.connect();let open=false;
+  try{
+    const hash=await bcrypt.hash(password,12);
+    await db.query('BEGIN');open=true;
+    const r=await db.query("SELECT id,user_id FROM password_reset_tokens WHERE token_hash=$1 AND used_at IS NULL AND expires_at>NOW() FOR UPDATE",[digest]);
+    if(!r.rows.length){await db.query('ROLLBACK');open=false;return res.status(400).json({message:'This reset link is expired or has already been used.'});}
+    await db.query("UPDATE users SET password_hash=$1,password_changed_at=NOW() WHERE id=$2 AND role='customer'",[hash,r.rows[0].user_id]);
+    await db.query('DELETE FROM password_reset_tokens WHERE user_id=$1',[r.rows[0].user_id]);
+    await db.query('COMMIT');open=false;return res.json({message:'Your password is updated. Sign in with your new password.'});
+  }catch(err){if(open)await db.query('ROLLBACK').catch(()=>{});console.error('Password reset',err);return res.status(503).json({message:'Password reset is unavailable. Please try again.'});}
+  finally{db.release();}
+});
+
 // Retain the old API URL as an alias of the unified handler.
 router.post(["/login", "/admin/login"], loginLimiter, async (req, res) => {
   try {
@@ -435,6 +474,7 @@ router.post(["/login", "/admin/login"], loginLimiter, async (req, res) => {
 
       req.session.userId = String(user.id);
       req.session.role = user.role;
+      req.session.authTime = Date.now();
 
       req.session.save((saveError) => {
         if (saveError) {

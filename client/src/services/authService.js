@@ -43,6 +43,12 @@ export function updateCustomerPassword(passwords) {
   });
 }
 
+export function requestPasswordReset(email) {
+ return apiRequest('/api/auth/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+}
+export function resetPassword(payload) {
+ return apiRequest('/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+}
 export function logout() {
   return apiRequest("/api/auth/logout", { method: "POST", credentials: "include" });
 }

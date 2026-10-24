@@ -19,7 +19,7 @@ export async function getBranding(_req, res) {
     });
   } catch (error) {
     console.error("Read branding:", error);
-    return res.status(503).json({ message: "Branding unavailable. Apply migrations 018 and 019." });
+    return res.status(503).json({ message: "Store branding is temporarily unavailable." });
   }
 }
 
@@ -45,7 +45,7 @@ async function writeAsset(req, res, purpose) {
     await client.query("ROLLBACK").catch(() => {});
     await removeLogoFile(saved.fullPath);
     console.error("Save branding:", error);
-    return res.status(500).json({ message: "Cannot update branding. Confirm migrations 018 and 019." });
+    return res.status(500).json({ message: "Could not update store branding." });
   } finally { client.release(); }
   // Keep old assets after replacement: other tabs may still be using them.
   // A separate, backup-aware cleanup can delete unreferenced images later.

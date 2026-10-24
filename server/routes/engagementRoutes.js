@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import {randomBytes} from 'node:crypto';
+import {randomBytes,createHash} from 'node:crypto';
+import {sendNewsletterVerificationEmail} from '../config/mailer.js';
 import pool from '../config/db.js';
 import {requireAdmin,requireCustomer} from '../middleware/authMiddleware.js';
 import {normalizeNewsletterEmail,validateReview} from '../services/storefrontEngagementRules.js';
@@ -18,12 +19,29 @@ function throttle(req,res,next) {
 }
 router.post('/newsletter',throttle,async(req,res)=>{
   const email=normalizeNewsletterEmail(req.body?.email);
-  if(!email || req.body?.consent!==true)return res.status(400).json({message:'Enter a valid email and agree to receive newsletters.'});
+  if(!email||req.body?.consent!==true)return res.status(400).json({message:'Enter a valid email and agree to receive newsletters.'});
+  const token=randomBytes(32).toString('hex');const digest=createHash('sha256').update(token).digest('hex');
   try {
-    await pool.query(`INSERT INTO newsletter_subscribers(email,unsubscribe_token) VALUES($1,$2)
-      ON CONFLICT(email) DO UPDATE SET is_subscribed=TRUE,consented_at=now(),unsubscribed_at=NULL`,[email,randomBytes(24).toString('hex')]);
-    return res.json({message:'You are subscribed. We will email you only when newsletters become available.'});
+    await pool.query(`INSERT INTO newsletter_subscribers(email,unsubscribe_token,is_subscribed,confirmation_token_hash,confirmation_expires_at)
+      VALUES($1,$2,FALSE,$3,NOW()+INTERVAL '24 hours')
+      ON CONFLICT(email) DO UPDATE SET confirmation_token_hash=EXCLUDED.confirmation_token_hash,
+      confirmation_expires_at=EXCLUDED.confirmation_expires_at,
+      is_subscribed=CASE WHEN newsletter_subscribers.confirmed_at IS NOT NULL AND newsletter_subscribers.is_subscribed=TRUE THEN TRUE ELSE FALSE END`,
+      [email,randomBytes(24).toString('hex'),digest]);
+    try{await sendNewsletterVerificationEmail(email,`${process.env.CLIENT_ORIGIN||'http://localhost:5173'}/newsletter/confirm?token=${token}`);}
+    catch(error){console.error('Newsletter verification email failure',error);await pool.query('UPDATE newsletter_subscribers SET confirmation_token_hash=NULL,confirmation_expires_at=NULL WHERE email=$1 AND confirmation_token_hash=$2',[email,digest]).catch(()=>{});}
+    return res.json({message:'If the address can receive email, we will send a confirmation link. Check your inbox.'});
   }catch(e){console.error('newsletter signup',e);return res.status(503).json({message:'Newsletter signup is temporarily unavailable.'});}
+});
+router.post('/newsletter/confirm',throttle,async(req,res)=>{
+  const token=req.body?.token;
+  if(typeof token!=='string'||!/^[a-f0-9]{64}$/.test(token))return res.status(400).json({message:'Invalid confirmation link.'});
+  const digest=createHash('sha256').update(token).digest('hex');
+  try{
+    const r=await pool.query(`UPDATE newsletter_subscribers SET is_subscribed=TRUE,confirmed_at=NOW(),consented_at=NOW(),unsubscribed_at=NULL,
+      confirmation_token_hash=NULL,confirmation_expires_at=NULL WHERE confirmation_token_hash=$1 AND confirmation_expires_at>NOW() RETURNING id`,[digest]);
+    return res.status(r.rows.length?200:410).json({message:r.rows.length?'Subscription confirmed. Welcome to Nexora updates.':'This confirmation link has expired. Request another one.'});
+  }catch(e){console.error('newsletter confirm',e);return res.status(503).json({message:'Could not confirm subscription.'});}
 });
 router.post('/newsletter/unsubscribe',throttle,async(req,res)=>{
   const token=req.body?.token;

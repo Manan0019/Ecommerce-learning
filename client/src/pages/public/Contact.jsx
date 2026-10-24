@@ -22,7 +22,7 @@ export default function Contact() {
       </section>
       <aside className="nx15-contact-aside"><span className="nx15-contact-icon" aria-hidden="true">✉</span><h2>Store information</h2>
         <p>For order updates, start with My Orders. Our contact details will be published here when support opens.</p>
-        <div><small>Support email (not yet monitored)</small><strong>{SITE_SUPPORT_EMAIL}</strong></div>
+        <div><small>Customer support</small><strong>{SITE_SUPPORT_EMAIL ? <a href={`mailto:${SITE_SUPPORT_EMAIL}`}>{SITE_SUPPORT_EMAIL}</a> : "Support details pending publication"}</strong></div>
         <div><small>Location</small><strong>India</strong></div>
         <div><small>Available services</small><strong>Shopping & order tracking</strong></div>
         

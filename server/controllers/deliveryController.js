@@ -4,6 +4,7 @@ import {otpEnabled,issueDeliveryCode,verifyDeliveryCode,maskedEmail,otpRequestAl
 import pool from '../config/db.js';
 import { eligibleForAssignment,canUpdateDelivery,canReportDeliveryIssue,validateDeliveryIssue,validId,validateBulkDeliveryAssignment } from '../services/deliveryRules.js';
 import { notifyAdmins, notifyUser } from '../services/notificationService.js';
+import {queueOrderEmail} from '../services/customerEmailOutbox.js';
 import {validateNewDeliveryAccount,validateDeliveryProfile} from '../services/deliveryStaffValidation.js';
 import {parseDeliveryRate,rupees} from '../services/deliveryFinanceRules.js';
 
@@ -276,6 +277,7 @@ export async function confirmDeliveryWithOtp(req,res){
   await db.query(`UPDATE cod_orders SET status='delivered',delivered_at=NOW(),updated_at=NOW() WHERE id=$1`,[orderId]);
   await db.query(`INSERT INTO cod_order_events(order_id,event_type,actor_user_id,notes)
      VALUES($1,'delivered',$2,'Customer email delivery code verified at handover.')`,[orderId,req.user.id]);
+  await queueOrderEmail(db,orderId,'order_delivered');
   await notifyAdmins(db,{key:`delivery:${orderId}:delivered`,kind:'delivery',title:'Order delivered',message:`Order #${orderId} confirmed by delivery OTP.`,path:'/admin/orders'});
   await notifyUser(db,order.customer_id,{key:`order:${orderId}:delivery:delivered`,kind:'delivery',title:'Order delivered',message:`Delivery confirmed for order #${orderId}.`,path:'/orders'});
   await db.query('COMMIT');open=false;return res.json({ok:true,delivered:true});
