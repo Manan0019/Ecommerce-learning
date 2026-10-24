@@ -1,3 +1,4 @@
+import { Select, DataTable, Pagination, EmptyState, ClearFilters, SearchInput } from "../ui/index";
 import { useEffect, useMemo, useState } from 'react';
 import UiIcon from '../common/UiIcon';
 
@@ -41,31 +42,32 @@ export default function DeliveryTeamTable({ staff, busy, loading, onEdit, onTogg
     <div className="nx86-staff-toolbar">
       <label className="nx77-search-field nx86-staff-search">
         <UiIcon name="search" size={17} />
-        <input aria-label="Search delivery executives" type="search" placeholder="Search name, email, mobile or ID" value={query} onChange={resetPage(setQuery)} />
+        <SearchInput aria-label="Search delivery executives" placeholder="Search name, email, mobile or ID" value={query} onChange={resetPage(setQuery)} />
       </label>
       <label className="nx86-staff-select">Status
-        <select aria-label="Filter delivery executives by status" value={status} onChange={resetPage(setStatus)}>
+        <Select aria-label="Filter delivery executives by status" value={status} onChange={resetPage(setStatus)}>
           <option value="all">All statuses</option><option value="active">Active</option><option value="disabled">Disabled</option>
-        </select>
+        </Select>
       </label>
       <label className="nx86-staff-select">Sort by
-        <select aria-label="Sort delivery executives" value={sort} onChange={resetPage(setSort)}>
+        <Select aria-label="Sort delivery executives" value={sort} onChange={resetPage(setSort)}>
           <option value="name">Name A–Z</option><option value="name-desc">Name Z–A</option>
           <option value="open">Most open deliveries</option><option value="rate">Highest pay rate</option>
-        </select>
+        </Select>
       </label>
       <label className="nx86-staff-select nx86-staff-per-page">Rows
-        <select aria-label="Delivery executives per page" value={pageSize} onChange={event => {setPageSize(Number(event.target.value)); setPage(1);}}>
+        <Select aria-label="Delivery executives per page" value={pageSize} onChange={event => {setPageSize(Number(event.target.value)); setPage(1);}}>
           <option value={10}>10</option><option value={20}>20</option><option value={50}>50</option>
-        </select>
+        </Select>
       </label>
+      <ClearFilters active={Boolean(query)||status!=="all"||sort!=="name"} label="Clear executive filters" onClear={()=>{setQuery("");setStatus("all");setSort("name");setPage(1);}}/>
     </div>
     <div className="nx86-staff-count" role="status" aria-live="polite">
       {loading ? 'Loading executives…' : `${filtered.length} of ${staff.length} executives`}
     </div>
-    {loading ? <p className="nx86-staff-empty">Loading delivery accounts…</p> : !staff.length ? <p className="nx86-staff-empty">No delivery accounts yet. Use Add delivery person to create your first executive.</p>
-      : !filtered.length ? <div className="nx86-staff-empty">No executives match these filters. <button type="button" onClick={() => {setQuery('');setStatus('all');setSort('name');setPage(1);}}>Clear filters</button></div>
-      : <div className="nx46-table-wrap nx86-staff-table-wrap"><table className="nx46-table nx86-staff-table">
+    {loading ? <p className="nx86-staff-empty">Loading delivery accounts…</p> : !staff.length ? <EmptyState icon="users" title="No delivery executives yet" description="Use Add delivery person to create the first account."/>
+      : !filtered.length ? <EmptyState icon="search" title="No matching executives" description="Clear your search or choose another status."/>
+      : <div className="nx46-table-wrap nx86-staff-table-wrap"><DataTable className="nx46-table nx86-staff-table">
         <thead><tr><th scope="col">Executive</th><th scope="col">Contact</th><th scope="col">Pay / delivery</th><th scope="col">Open deliveries</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
         <tbody>{visible.map(member => <tr key={member.id}>
           <td><strong className="nx86-staff-name">{member.fullName}</strong><small className="nx86-staff-meta">ID #{member.id}</small></td>
@@ -79,17 +81,7 @@ export default function DeliveryTeamTable({ staff, busy, loading, onEdit, onTogg
             <button type="button" className="nx80-icon-btn nx80-icon-danger" title={Number(member.totalAssignments || 0) > 0 ? 'Delivery history exists — disable instead' : 'Delete unused executive'} aria-label={`Delete ${member.fullName}`} disabled={busy || Number(member.totalAssignments || 0) > 0} onClick={() => onDelete(member)}><UiIcon name="trash" size={18}/></button>
           </div></td>
         </tr>)}</tbody>
-      </table></div>}
-    {!loading && filtered.length > 0 && <nav className="nx86-staff-pagination" aria-label="Delivery executives pagination">
-      <span>Showing <strong>{firstIndex + 1}–{Math.min(firstIndex + pageSize, filtered.length)}</strong> of <strong>{filtered.length}</strong></span>
-      <div className="nx86-page-buttons">
-        <button type="button" disabled={currentPage === 1} aria-label="First page" onClick={() => setPage(1)}><UiIcon name="chevron-left" size={16}/><UiIcon name="chevron-left" size={16}/></button>
-        <button type="button" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</button>
-        {pageNumbers(currentPage,totalPages).map(number => <button key={number} type="button" className={number === currentPage ? 'is-current' : ''} aria-current={number === currentPage ? 'page' : undefined} aria-label={`Page ${number}`} onClick={() => setPage(number)}>{number}</button>)}
-        <button type="button" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>Next</button>
-        <button type="button" disabled={currentPage === totalPages} aria-label="Last page" onClick={() => setPage(totalPages)}><UiIcon name="chevron-right" size={16}/><UiIcon name="chevron-right" size={16}/></button>
-      </div>
-      <span className="nx86-page-total">Page {currentPage} of {totalPages}</span>
-    </nav>}
+      </DataTable></div>}
+    {!loading && filtered.length > 0 && <Pagination page={currentPage} pages={totalPages} total={filtered.length} pageSize={pageSize} label="executives" onPageChange={setPage}/>} 
   </div>;
 }

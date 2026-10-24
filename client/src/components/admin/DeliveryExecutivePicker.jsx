@@ -1,3 +1,4 @@
+import { SearchInput } from "../ui/index";
 import {useMemo, useState} from 'react';
 import Modal from '../common/Modal';
 import UiIcon from '../common/UiIcon';
@@ -26,7 +27,7 @@ export default function DeliveryExecutivePicker({order, current, staff, assignme
       {error && <p className="admin-alert" role="alert">{error}</p>}
       <label className="nx53-staff-search" htmlFor="nx53-staff-filter">
         <UiIcon name="search" size={19}/>
-        <input id="nx53-staff-filter" type="search" autoComplete="off" placeholder="Search by name, mobile or email" value={search} onChange={e => setSearch(e.target.value)}/>
+        <SearchInput id="nx53-staff-filter" autoComplete="off" placeholder="Search by name, mobile or email" value={search} onChange={e => setSearch(e.target.value)}/>
       </label>
       <div className="nx53-team-list" role="radiogroup" aria-label="Available delivery executives">
         {filtered.length === 0 ? <p className="nx53-team-empty">{team.length === 0 ? 'No delivery executives yet. Create an active delivery account first.' : 'No executives match your search.'}</p> :

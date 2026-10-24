@@ -26,6 +26,8 @@ export async function getCustomers(req, res) {
     // The directory is admin-only. Parameterized substring search prevents SQL wildcard
     // surprises and covers customers older than the first 100 recent accounts.
     const search = String(req.query.q || '').trim().slice(0, 100);
+    const page = Math.max(1, Math.min(100000, Number.parseInt(req.query.page, 10) || 1));
+    const pageSize = 10;
     const where = `role = 'customer' AND (
       $1 = '' OR POSITION(LOWER($1) IN LOWER(full_name)) > 0
       OR POSITION(LOWER($1) IN LOWER(email)) > 0
@@ -33,11 +35,12 @@ export async function getCustomers(req, res) {
     )`;
     const [result, count] = await Promise.all([
       pool.query(`SELECT id, full_name, email, created_at FROM users
-        WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT 100`, [search]),
+        WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT $2 OFFSET $3`, [search,pageSize,(page-1)*pageSize]),
       pool.query(`SELECT COUNT(*)::int AS total FROM users WHERE ${where}`, [search])
     ]);
     return res.json({
       total: count.rows[0]?.total || 0,
+      page, pageSize, pages:Math.ceil((count.rows[0]?.total||0)/pageSize),
       customers: result.rows.map((customer) => ({
         id: String(customer.id),
         fullName: customer.full_name,

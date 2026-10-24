@@ -1,3 +1,4 @@
+import { Select } from "../../components/ui/index";
 import FileUploadField from "../../components/admin/FileUploadField";
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -216,7 +217,7 @@ export default function AddProduct() {
           <ol className="media-manager-list">
             {queuedMedia.map((item, index) => <li className="media-manager-item" key={item.key}>
               <span><strong>{index + 2}. {item.type === "image" ? "Image" : "YouTube video"}</strong> · {item.type === "image" ? item.file.name : item.url}<small> · Shared (you can change this after saving)</small></span>
-              <label className="nx15-position-control">Position <select disabled={loading} value={index} onChange={e => moveQueued(index, Number(e.target.value))}>{queuedMedia.map((_, i) => <option value={i} key={i}>{i+1}</option>)}</select></label>
+              <label className="nx15-position-control">Position <Select disabled={loading} value={index} onChange={e => moveQueued(index, Number(e.target.value))}>{queuedMedia.map((_, i) => <option value={i} key={i}>{i+1}</option>)}</Select></label>
               <button type="button" disabled={loading} onClick={() => setQueuedMedia((previous) => previous.filter((candidate) => candidate.key !== item.key))}>Remove</button>
             </li>)}
           </ol>

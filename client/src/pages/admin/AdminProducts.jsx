@@ -1,3 +1,4 @@
+import { Select, SearchInput, DataTable, Pagination, ClearFilters, EmptyState } from "../../components/ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -48,7 +49,7 @@ export default function AdminProducts() {
   const visible=products;
   const categories=facets.categories||[];
   const brands=facets.brands||[];
-  const pages=Math.max(1,Math.ceil(total/20));
+  const pages=Math.max(1,Math.ceil(total/10));
   function openProductPreview(event, product) {
     // Links and controls in the row already have independent actions.
     if (event.type === "click" && event.target.closest("a, button, input, select, textarea")) return;
@@ -97,22 +98,22 @@ export default function AdminProducts() {
     <section className="admin-panel nx-products-panel">
       <div className="admin-panel-heading"><div><h2>All products</h2><p>Click any product to preview it. The Edit button opens its editor here.</p></div></div>
       <div className="nx-table-toolbar">
-        <label className="admin-search nx69-search"><span className="sr-only">Search catalogue</span><UiIcon name="search" size={19}/><input type="search" value={query} onChange={e => {setQuery(e.target.value);setPage(1);}} placeholder="Search products…" /></label>
+        <label className="admin-search nx69-search"><span className="sr-only">Search catalogue</span><UiIcon name="search" size={19}/><SearchInput value={query} onChange={e => {setQuery(e.target.value);setPage(1);}} placeholder="Search products…" /></label>
         <div className="nx-filter-pills" aria-label="Product status filter">
           {[ ["all", "All"], ["active", "Active"], ["inactive", "Inactive"] ].map(([value,label]) => <button type="button" key={value} aria-pressed={filter === value} className={filter === value ? "is-active" : ""} onClick={() => {setFilter(value);setPage(1);}}>{label}</button>)}
         </div>
       </div>
       <div className="nx69-product-filters" aria-label="Catalogue filters">
-        <label><UiIcon name="filter" size={17}/><span className="sr-only">Category</span><select aria-label="Filter by category" value={categoryFilter} onChange={e=>{setCategoryFilter(e.target.value);setPage(1);}}><option value="all">All categories</option>{categories.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
-        <label><span className="sr-only">Brand</span><select aria-label="Filter by brand" value={brandFilter} onChange={e=>{setBrandFilter(e.target.value);setPage(1);}}><option value="all">All brands</option>{brands.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
-        <label><span className="sr-only">Stock</span><select aria-label="Filter by stock" value={stockFilter} onChange={e=>{setStockFilter(e.target.value);setPage(1);}}><option value="all">All stock levels</option><option value="out">Out of stock</option><option value="low">Low stock (1–5)</option><option value="healthy">Above 5 in stock</option></select></label>
-        <button type="button" className="nx69-filter-reset nx84-admin-reset" onClick={()=>{setQuery('');setFilter('all');setCategoryFilter('all');setBrandFilter('all');setStockFilter('all');setPage(1);setSort('newest');}}><UiIcon name="refresh-cw" size={15}/><span className="nx84-reset-label">Reset filters</span></button>
-        <label className="nx71-products-sort">Sort <select value={sort} aria-label="Sort products" onChange={e=>{setSort(e.target.value);setPage(1);}}><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="name">Name A–Z</option><option value="stock">Lowest stock</option></select></label><span className="nx69-filter-total" role="status">{total} matching products</span>
+        <label><UiIcon name="filter" size={17}/><span className="sr-only">Category</span><Select aria-label="Filter by category" value={categoryFilter} onChange={e=>{setCategoryFilter(e.target.value);setPage(1);}}><option value="all">All categories</option>{categories.map(v=><option key={v} value={v}>{v}</option>)}</Select></label>
+        <label><span className="sr-only">Brand</span><Select aria-label="Filter by brand" value={brandFilter} onChange={e=>{setBrandFilter(e.target.value);setPage(1);}}><option value="all">All brands</option>{brands.map(v=><option key={v} value={v}>{v}</option>)}</Select></label>
+        <label><span className="sr-only">Stock</span><Select aria-label="Filter by stock" value={stockFilter} onChange={e=>{setStockFilter(e.target.value);setPage(1);}}><option value="all">All stock levels</option><option value="out">Out of stock</option><option value="low">Low stock (1–5)</option><option value="healthy">Above 5 in stock</option></Select></label>
+        <ClearFilters active={Boolean(query)||filter!=='all'||categoryFilter!=='all'||brandFilter!=='all'||stockFilter!=='all'||sort!=='newest'} label="Clear product filters" onClear={()=>{setQuery('');setFilter('all');setCategoryFilter('all');setBrandFilter('all');setStockFilter('all');setPage(1);setSort('newest');}}/>
+        <label className="nx71-products-sort">Sort <Select value={sort} aria-label="Sort products" onChange={e=>{setSort(e.target.value);setPage(1);}}><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="name">Name A–Z</option><option value="stock">Lowest stock</option></Select></label><span className="nx69-filter-total" role="status">{total} matching products</span>
       </div>
       {loading ? <div className="admin-empty">Loading your catalogue…</div> : <div className="admin-table-wrap">
-        <table className="admin-table admin-product-table">
+        <DataTable className="admin-table admin-product-table">
           <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Manage</th></tr></thead>
-          <tbody>{visible.length === 0 ? <tr><td colSpan={6}>No products match your search.</td></tr> : visible.map(product => <tr key={product.id} className="nx50-product-row" tabIndex={0}
+          <tbody>{visible.length === 0 ? <tr><td colSpan={6}><EmptyState title="No products found" description="Try another search or clear your filters."/></td></tr> : visible.map(product => <tr key={product.id} className="nx50-product-row" tabIndex={0}
             aria-label={`Preview ${product.name}. Use the Edit button to edit without navigating.`}
             onClick={event => openProductPreview(event, product)}
             onKeyDown={event => openProductPreview(event, product)}>
@@ -127,9 +128,9 @@ export default function AdminProducts() {
               <button className="nx69-icon-action nx69-icon-danger" title="Delete product" aria-label={`Delete ${product.name}`} type="button" disabled={busyId === product.id} onClick={() => { setDeleteTarget(product); setDeleteConfirmation(""); setError(""); }}><UiIcon name="trash" size={17}/></button>
             </div></td>
           </tr>)}</tbody>
-        </table>
+        </DataTable>
       </div>}
-      <div className="nx71-product-pagination" aria-label="Catalogue pagination"><span>Showing {total===0?0:(page-1)*20+1}–{Math.min(total,page*20)} of {total} products · Page {page} of {pages}</span><div><button type="button" disabled={page<=1||loading} onClick={()=>setPage(p=>p-1)}>Previous</button><button type="button" disabled={page>=pages||loading} onClick={()=>setPage(p=>p+1)}>Next</button></div></div>
+      <Pagination page={page} pages={pages} total={total} pageSize={10} label="products" onPageChange={setPage}/>
     </section>
     {editor && <AdminProductEditDialog productId={editor.id} name={editor.name}
       onClose={() => { setEditor(null); refresh(); }}

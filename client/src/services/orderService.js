@@ -3,7 +3,7 @@ const sessionOptions = { credentials: "include" };
 export function estimateCodOrder(payload,signal){return apiRequest("/api/orders/estimate",{...sessionOptions,signal,method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});}
 export function createCodOrder(payload) { return apiRequest("/api/orders/cod", { ...sessionOptions, method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); }
 export function getMyOrders(signal) { return apiRequest("/api/orders/mine", { ...sessionOptions, signal }); }
-export function getAdminOrders(signal,options={}) { const query=new URLSearchParams({page:String(options.page||1),limit:String(options.limit||25),status:options.status||"all",search:options.search||"",sort:options.sort||"newest"});return apiRequest(`/api/admin/orders?${query}`, { ...sessionOptions, signal }); }
+export function getAdminOrders(signal,options={}) { const query=new URLSearchParams({page:String(options.page||1),limit:String(options.limit||10),status:options.status||"all",search:options.search||"",sort:options.sort||"newest"});return apiRequest(`/api/admin/orders?${query}`, { ...sessionOptions, signal }); }
 export function getCodSummary(signal) { return apiRequest("/api/admin/orders/summary", { ...sessionOptions, signal }); }
 export function updateCodStatus(id,status,details={}) { return apiRequest(`/api/admin/orders/${id}/status`, { ...sessionOptions, method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status,...details }) }); }
 

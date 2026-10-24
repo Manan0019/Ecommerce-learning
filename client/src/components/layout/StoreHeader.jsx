@@ -1,3 +1,4 @@
+import { SearchInput } from "../ui/index";
 import { useEffect, useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import CategoryMiniArtwork from "../customer/CategoryMiniArtwork";
@@ -151,7 +152,7 @@ export default function StoreHeader() {
 
         <form className="nav-search nx-nav-search" role="search" onSubmit={submitSearch} ref={searchRef} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setSearchFocused(false); }}>
           <label className="sr-only" htmlFor="nav-search-input">Search products</label>
-          <input id="nav-search-input" type="search" placeholder="Search products, brands and collections" value={query}
+          <SearchInput id="nav-search-input" placeholder="Search products, brands and collections" value={query}
             onFocus={() => setSearchFocused(true)} onKeyDown={event => { if (event.key === "Escape") { setSearchFocused(false); event.currentTarget.blur(); } }} onChange={(event) => { setQuery(event.target.value); setSuggestionsLoading(event.target.value.trim().length >= 2); }} autoComplete="off" aria-autocomplete="list" aria-controls="nx-search-suggestions" aria-expanded={searchFocused && query.trim().length >= 2} />
           <button type="submit" className="nx47-search-submit" aria-label="Search"><SearchIcon /></button>
           {searchFocused && query.trim().length >= 2 && <div className="nx-search-suggestions" id="nx-search-suggestions" role="region" aria-label="Search suggestions">

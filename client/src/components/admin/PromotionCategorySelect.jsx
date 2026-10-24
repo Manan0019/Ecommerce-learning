@@ -1,3 +1,4 @@
+import { SearchInput } from "../ui/index";
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import UiIcon from '../common/UiIcon';
 import { categoryPaths } from '../../services/categoryHierarchy';
@@ -57,7 +58,7 @@ export default function PromotionCategorySelect({ categories = [], value = '', o
       <span>{selected ? selected.path.split(' → ').join(' / ') : 'Browse or search categories'}</span><UiIcon name="chevron-down" size={18}/>
     </button>
     {open && <div className="nx47-category-popover nx52-category-popover" id={listId}>
-      <div className="nx47-category-search"><UiIcon name="search" size={18}/><input ref={search} type="search" aria-label="Search categories and subcategories" value={term}
+      <div className="nx47-category-search"><UiIcon name="search" size={18}/><SearchInput ref={search} aria-label="Search categories and subcategories" value={term}
         placeholder="Search all categories…" onChange={e=>setTerm(e.target.value)} autoComplete="off" /></div>
       {!term.trim() && <div className="nx52-category-breadcrumbs" aria-label="Category location">
         <button type="button" onClick={()=>navigate('')}>All departments</button>

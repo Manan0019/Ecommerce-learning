@@ -38,7 +38,7 @@ export async function searchFeaturedCandidates(req,res) {
   const q = String(req.query.q || '').trim();
   const category = req.query.category === 'all' || req.query.category === undefined ? null : String(req.query.category);
   const page = Math.max(1,Math.min(10000,Number.parseInt(req.query.page,10)||1));
-  const limit=20;
+  const limit=10;
   if(q.length>100 || (category!==null&&!/^[1-9]\d*$/.test(category))) return res.status(400).json({message:'Invalid catalogue filter.'});
   try {
     const where=`FROM products p JOIN categories c ON c.id=p.category_id

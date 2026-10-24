@@ -1,3 +1,4 @@
+import { Select, SearchInput, DataTable, Pagination, ClearFilters, EmptyState } from "../../components/ui/index";
 import FileUploadField from "../../components/admin/FileUploadField";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +32,7 @@ export default function AdminCategories() {
   const [categories, setCategories] = useState([]);
   const [query, setQuery] = useState("");
   const [layout,setLayout]=useState('table');
+  const [page,setPage]=useState(1);
   const [levelFilter,setLevelFilter]=useState('all');
   const [statusFilter,setStatusFilter]=useState('all');
   const [name, setName] = useState("");
@@ -78,6 +80,9 @@ export default function AdminCategories() {
         && (statusFilter==='all'||(statusFilter==='active'?category.isActive:!category.isActive));
     });
   }, [categories, query,levelFilter,statusFilter]);
+  const categoryPages=Math.max(1,Math.ceil(filteredCategories.length/10));
+  const currentPage=Math.min(page,categoryPages);
+  const pagedCategories=filteredCategories.slice((currentPage-1)*10,currentPage*10);
   const parentChoices = useMemo(()=>categories.filter(candidate=>{
     if(String(candidate.id)===String(editing?.id))return false;
     if(!editing)return true;
@@ -278,21 +283,22 @@ export default function AdminCategories() {
           <div><h2>Category directory</h2><p>Browse departments and nested categories. Select a category to edit its name, placement or images.</p></div>
         </div>
         <div className="nx69-category-toolbar">
-          <label className="admin-search nx69-search"><span className="sr-only">Search categories</span><UiIcon name="search" size={18}/><input type="search" placeholder="Search categories or paths" value={query} onChange={event=>setQuery(event.target.value)}/></label>
-          <select aria-label="Filter by category level" value={levelFilter} onChange={e=>setLevelFilter(e.target.value)}><option value="all">All levels</option><option value="root">Main categories</option><option value="nested">Subcategories</option></select>
-          <select aria-label="Filter by category status" value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+          <label className="admin-search nx69-search"><span className="sr-only">Search categories</span><UiIcon name="search" size={18}/><SearchInput placeholder="Search categories or paths" value={query} onChange={event=>{setQuery(event.target.value);setPage(1);}}/></label>
+          <Select aria-label="Filter by category level" value={levelFilter} onChange={e=>{setLevelFilter(e.target.value);setPage(1);}}><option value="all">All levels</option><option value="root">Main categories</option><option value="nested">Subcategories</option></Select>
+          <Select aria-label="Filter by category status" value={statusFilter} onChange={e=>{setStatusFilter(e.target.value);setPage(1);}}><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></Select>
+          <ClearFilters active={Boolean(query)||levelFilter!=="all"||statusFilter!=="all"} onClear={()=>{setQuery("");setLevelFilter("all");setStatusFilter("all");setPage(1);}}/>
           <div className="nx69-view-switch" aria-label="Directory layout"><button type="button" aria-label="Table view" aria-pressed={layout==='table'} onClick={()=>setLayout('table')}><UiIcon name="grid" size={17}/><span>Table</span></button><button type="button" aria-label="Card view" aria-pressed={layout==='cards'} onClick={()=>setLayout('cards')}><UiIcon name="images" size={17}/><span>Cards</span></button></div>
         </div>
         {loading ? <div className="admin-empty">Loading categories…</div>
-          : categories.length === 0 ? <div className="admin-empty">No categories yet. Create the first category.</div>
-          : filteredCategories.length === 0 ? <div className="admin-empty">No categories match “{query}”.</div>
-          : layout==='table' ? <div className="admin-table-wrap nx69-category-table-wrap"><table className="admin-table nx69-category-table"><thead><tr><th>Category / path</th><th>Level</th><th>Products</th><th>Status</th><th>Manage</th></tr></thead><tbody>{filteredCategories.map(category=><tr key={category.id}>
+          : categories.length === 0 ? <EmptyState title="No categories yet" description="Create the first category to organize your store."/>
+          : filteredCategories.length === 0 ? <EmptyState icon="search" title="No matching categories" description="Try changing the search or filters."/>
+          : layout==='table' ? <div className="admin-table-wrap nx69-category-table-wrap"><DataTable className="admin-table nx69-category-table"><thead><tr><th>Category / path</th><th>Level</th><th>Products</th><th>Status</th><th>Manage</th></tr></thead><tbody>{pagedCategories.map(category=><tr key={category.id}>
              <td><div className="nx69-category-name-cell">{category.imageUrl?<img src={apiAssetUrl(category.imageUrl)} alt=""/>:<span className="nx69-category-initial">{category.name.slice(0,1)}</span>}<span><strong>{category.name}</strong><small>{categoryPath(category,categories)}</small></span></div></td>
              <td>{category.parentId?'Subcategory':'Main category'}</td><td>{category.productCount}</td><td><span className={`admin-status ${category.isActive?'is-active':'is-inactive'}`}>{category.isActive?'Active':'Inactive'}</span></td>
              <td><div className="admin-row-actions nx69-row-actions"><button className="nx69-icon-action" type="button" onClick={()=>beginEdit(category)} aria-label={`Edit ${category.name}`} title="Edit category"><UiIcon name="edit" size={17}/></button><button className="nx69-icon-action" type="button" disabled={busyId===category.id} onClick={()=>changeStatus(category)} aria-label={`${category.isActive?'Deactivate':'Activate'} ${category.name}`} title={category.isActive?'Deactivate':'Activate'}><UiIcon name={category.isActive?'ban':'check'} size={17}/></button><button className="nx69-icon-action nx69-icon-danger" type="button" disabled={busyId===category.id} onClick={()=>{setDeleting(category);setDeleteName('');setError('');setMessage('');}} aria-label={`Delete ${category.name}`} title="Delete category"><UiIcon name="trash" size={17}/></button></div></td>
-            </tr>)}</tbody></table></div>
+            </tr>)}</tbody></DataTable></div>
           : <div className="admin-category-grid">
-            {filteredCategories.map((category) => <article className="admin-category-card" key={category.id}>
+            {pagedCategories.map((category) => <article className="admin-category-card" key={category.id}>
               <div className="admin-category-image">
                 {category.imageUrl
                   ? <img src={apiAssetUrl(category.imageUrl)} alt="" />
@@ -311,7 +317,8 @@ export default function AdminCategories() {
               </div>
             </article>)}
           </div>}
-      </section>
+      <Pagination page={currentPage} pages={categoryPages} total={filteredCategories.length} label="categories" onPageChange={setPage}/>
+        </section>
     </div>
   </AdminLayout>;
 }

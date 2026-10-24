@@ -1,3 +1,4 @@
+import { Select } from "../ui/index";
 function SpecificationInput({ field, value, onChange, disabled }) {
   const id = `specification-${field.key}`;
   if (field.type === "boolean") {
@@ -10,22 +11,22 @@ function SpecificationInput({ field, value, onChange, disabled }) {
 
   if (field.type === "multiSelect") {
     return <label htmlFor={id}>{field.label}{field.unit ? ` (${field.unit})` : ""}
-      <select id={id} multiple value={Array.isArray(value) ? value : []} disabled={disabled}
+      <Select id={id} multiple value={Array.isArray(value) ? value : []} disabled={disabled}
         onChange={(event) => onChange(field.key,
           [...event.target.selectedOptions].map((option) => option.value))}>
         {field.options.map((option) => <option value={option} key={option}>{option}</option>)}
-      </select>
+      </Select>
       <small>Hold Ctrl or Command to select multiple values.</small>
     </label>;
   }
 
   if (field.type === "select") {
     return <label htmlFor={id}>{field.label}
-      <select id={id} value={value ?? ""} disabled={disabled}
+      <Select id={id} value={value ?? ""} disabled={disabled}
         onChange={(event) => onChange(field.key, event.target.value)}>
         <option value="">Select {field.label.toLowerCase()}</option>
         {field.options.map((option) => <option value={option} key={option}>{option}</option>)}
-      </select>
+      </Select>
     </label>;
   }
 

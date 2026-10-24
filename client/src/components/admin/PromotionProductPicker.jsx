@@ -1,3 +1,4 @@
+import { SearchInput } from "../ui/index";
 import {useEffect,useState} from "react";
 import {searchPromotionProducts} from "../../services/bannerService";
 
@@ -23,7 +24,7 @@ export default function PromotionProductPicker({label,productId,productName,onSe
     {productId&&<div className="nx19-selected-product"><strong>{productName||`Product #${productId}`}</strong>
       <button type="button" onClick={()=>{onSelect("","");setQuery("");setOpen(true);}}>Change / Clear</button>
     </div>}
-    <input id={`${label.replace(/\W+/g,"-")}-search`} type="search" autoComplete="off"
+    <SearchInput id={`${label.replace(/\W+/g,"-")}-search`} autoComplete="off"
       placeholder="Search products by name, brand or ID…" value={query}
       role="combobox" aria-expanded={open} aria-controls={`${label.replace(/\W+/g,"-")}-results`}
       onFocus={()=>setOpen(true)} onChange={event=>{setQuery(event.target.value);setOpen(true);}} />

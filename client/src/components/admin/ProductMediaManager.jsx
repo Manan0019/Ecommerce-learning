@@ -1,3 +1,4 @@
+import { Select } from "../ui/index";
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "../common/Modal";
@@ -192,13 +193,13 @@ export default function ProductMediaManager({ productId, initialFeatured = false
           </label>)}
       </div>
       {value.mode === "option" && <label className="nx15-select-label">Select an option and value
-        <select value={value.optionValue} onChange={e => onChange(s => ({ ...s, optionValue: e.target.value }))}>
+        <Select value={value.optionValue} onChange={e => onChange(s => ({ ...s, optionValue: e.target.value }))}>
           <option value="">Select, e.g. Color: Midnight</option>{optionValues.map(o => <option value={o.id} key={o.id}>{o.key.replaceAll("_"," ")}: {o.value}</option>)}
-        </select></label>}
+        </Select></label>}
       {value.mode === "variant" && <label className="nx15-select-label">Select an exact SKU
-        <select value={value.variantId} onChange={e => onChange(s => ({ ...s, variantId: e.target.value }))}>
+        <Select value={value.variantId} onChange={e => onChange(s => ({ ...s, variantId: e.target.value }))}>
           <option value="">Choose SKU</option>{variants.map(v => <option key={v.id} value={v.id}>{v.sku} · {Object.values(v.attributes || {}).join(" / ")}</option>)}
-        </select></label>}
+        </Select></label>}
       {variants.length === 0 && value.mode !== "shared" && <p className="nx-upload-tip">First create product SKUs, then assign media to a color/option or exact variant.</p>}
     </div>;
   }
@@ -226,10 +227,10 @@ export default function ProductMediaManager({ productId, initialFeatured = false
     </div>}
     <div className="nx16-sequence-preview">
       <label>Preview customer gallery
-        <select value={previewOption} onChange={e => setPreviewOption(e.target.value)}>
+        <Select value={previewOption} onChange={e => setPreviewOption(e.target.value)}>
           <option value="">Shared images only</option>
           {optionValues.filter(o => /^(color|colour)$/i.test(o.key)).map(o => <option key={o.id} value={o.id}>{o.key}: {o.value}</option>)}
-        </select>
+        </Select>
       </label>
       <div className="nx16-preview-strip" aria-label="Gallery sequence preview">
         {media.filter(item => {
@@ -264,10 +265,10 @@ export default function ProductMediaManager({ productId, initialFeatured = false
         </div>
         <div className="nx-media-info"><span>{item.type === "image" ? "Image" : item.type === "video" ? "Local video" : "YouTube"}</span><strong>{scopeLabel(item)}</strong></div>
         <label className="nx15-position-control">Position
-          <select aria-label={`Position for gallery item ${index + 1}`} disabled={busy} value={index}
+          <Select aria-label={`Position for gallery item ${index + 1}`} disabled={busy} value={index}
             onChange={e => void saveReorder(index, Number(e.target.value))}>
             {media.map((_, pos) => <option value={pos} key={pos}>{pos + 1}</option>)}
-          </select></label>
+          </Select></label>
         <div className="nx15-card-actions">
           <button type="button" disabled={busy} onClick={() => { setAssignment(item); setAssignmentScope(initialScope(item)); setError(""); }}>Visibility</button>
           {item.type === "image" && <button type="button" disabled={busy || item.url === coverUrl} onClick={() => void setCover(item)}>Main cover</button>}

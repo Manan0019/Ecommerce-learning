@@ -30,7 +30,8 @@ const modules = [
   "modules/admin/delivery-operations-revamp.css",
   "modules/admin/analytics-dashboard.css",
   "modules/admin/delivery-team-table.css",
-  "modules/customer/product-reviews.css"
+  "modules/customer/product-reviews.css",
+  "modules/foundation/design-system.css"
 ];
 const filename=path.join(root,'site.css');
 async function generate({check=false}={}){

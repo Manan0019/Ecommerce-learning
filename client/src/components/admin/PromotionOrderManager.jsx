@@ -1,3 +1,4 @@
+import { Select } from "../ui/index";
 import { useState } from "react";
 import UiIcon from "../common/UiIcon";
 import { apiAssetUrl } from "../../services/apiClient";
@@ -41,8 +42,8 @@ export default function PromotionOrderManager({ items, onSaved }) {
         <span className="nx39-rank" aria-label={`Position ${i+1}`}>{i+1}</span>
         <img src={apiAssetUrl(item.imageUrl)} alt="" loading="lazy"/>
         <div className="nx39-order-copy"><strong>{item.title}</strong><span>{item.position.replaceAll("_"," ")} · {item.isActive?"Enabled":"Hidden"}</span></div>
-        <label className="nx39-select-position"><span>Position</span><select aria-label={`Position of ${item.title}`} value={i} disabled={busy}
-          onChange={e=>change(i,Number(e.target.value))}>{ids.map((_,j)=><option key={j} value={j}>{j+1}</option>)}</select></label>
+        <label className="nx39-select-position"><span>Position</span><Select aria-label={`Position of ${item.title}`} value={i} disabled={busy}
+          onChange={e=>change(i,Number(e.target.value))}>{ids.map((_,j)=><option key={j} value={j}>{j+1}</option>)}</Select></label>
         <div className="nx39-order-movers"><button type="button" aria-label={`Move ${item.title} up`} disabled={busy||i===0} onClick={()=>change(i,i-1)}><UiIcon name="up" size={17}/></button>
           <button type="button" aria-label={`Move ${item.title} down`} disabled={busy||i===ids.length-1} onClick={()=>change(i,i+1)}><UiIcon name="down" size={17}/></button></div>
       </li>;

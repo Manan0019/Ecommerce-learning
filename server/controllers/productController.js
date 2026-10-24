@@ -116,7 +116,7 @@ export async function listAdminProducts(req, res) {
           AND ($2='all' OR category_name=$2) AND ($3='all' OR brand=$3)
           AND ($4='all' OR ($4='active' AND is_active) OR ($4='inactive' AND NOT is_active))
           AND ($5='all' OR ($5='out' AND display_stock<=0) OR ($5='low' AND display_stock BETWEEN 1 AND 5) OR ($5='healthy' AND display_stock>5))`;
-      const params=[q,category,brand,status,stock];const limit=20;
+      const params=[q,category,brand,status,stock];const limit=10;
       const [rows,count,facets,summary]=await Promise.all([
         pool.query(`${dataset} ORDER BY ${allowedSort[sort]} LIMIT $6 OFFSET $7`,[...params,limit,(page-1)*limit]),
         pool.query(`SELECT COUNT(*)::integer AS count FROM (${dataset}) matched`,params),

@@ -1,3 +1,4 @@
+import { EmptyState } from "../ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import UiIcon from "./UiIcon";
 import {notificationDestination,notificationKind} from '../../services/notificationTarget';
@@ -47,7 +48,7 @@ export default function NotificationBell(){
   {open&&<div className="nx46-notification-panel" role="region" aria-label="Recent notifications">
    <div className="nx46-notification-title"><strong>Notifications</strong><div className="nx70-bell-header-actions">{unread>0&&<button type="button" className="nx70-mark-all" disabled={markingAll} onClick={markAll}>{markingAll ? 'Saving…' : 'Mark all read'}</button>}<button type="button" onClick={()=>setOpen(false)} aria-label="Close notifications" className="nx64-animated-close nx65-close-control"><UiIcon name="x" size={16}/></button></div></div>
    {error&&<p className="nx46-error" role="alert">{error}</p>}
-   {!entries.length?<p className="nx46-notification-empty">No notifications yet. New orders and assignments will appear here.</p>:<div className="nx46-notification-list">{entries.map(n=><button type="button" key={n.id} className={`${n.read_at?'is-read':'unread'} nx73-notification-${notificationKind(n.kind)}`} onClick={()=>visit(n)}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.created_at).toLocaleString('en-IN')}</small></button>)}</div>}
+   {!entries.length?<EmptyState icon="check-circle" title="All caught up" description="New notifications will appear here."/>:<div className="nx46-notification-list">{entries.map(n=><button type="button" key={n.id} className={`${n.read_at?'is-read':'unread'} nx73-notification-${notificationKind(n.kind)}`} onClick={()=>visit(n)}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.created_at).toLocaleString('en-IN')}</small></button>)}</div>}
   </div>}
  </div>;
 }

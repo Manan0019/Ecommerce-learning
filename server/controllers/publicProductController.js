@@ -103,7 +103,7 @@ export async function listProducts(req, res) {
     const categoryValue = queryString(req.query.category, 100);
     const sort = queryString(req.query.sort, 30) || (q ? "relevance" : "newest");
     const page = positiveInteger(req.query.page, 1, 10_000);
-    const limit = positiveInteger(req.query.limit, 12, 48);
+    const limit = positiveInteger(req.query.limit, 10, 48);
     const minPrice = priceValue(req.query.minPrice);
     const maxPrice = priceValue(req.query.maxPrice);
     const inStock = req.query.inStock === "true";

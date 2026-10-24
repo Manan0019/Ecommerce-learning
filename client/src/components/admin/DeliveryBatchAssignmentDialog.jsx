@@ -1,3 +1,4 @@
+import { SearchInput } from "../ui/index";
 import {useMemo,useState} from 'react';
 import Modal from '../common/Modal';
 import UiIcon from '../common/UiIcon';
@@ -15,7 +16,7 @@ export default function DeliveryBatchAssignmentDialog({orders,staff,assignments,
    <div className="nx55-batch-summary"><strong>{orders.length} selected orders</strong><span>Assignments will be saved together. If one order is no longer eligible, none will be assigned.</span></div>
    <div className="nx55-order-chips" aria-label="Orders in assignment batch">{orders.map(o=><span key={o.id}>#{o.id} · {o.customerName||'Customer'}{o.address?.city?` · ${o.address.city}`:''}</span>)}</div>
    {error&&<p className="admin-alert" role="alert">{error}</p>}
-   <label className="nx55-batch-search"><UiIcon name="search" size={17}/><input type="search" placeholder="Search delivery team by name, email or phone" value={search} onChange={e=>setSearch(e.target.value)}/></label>
+   <label className="nx55-batch-search"><UiIcon name="search" size={17}/><SearchInput placeholder="Search delivery team by name, email or phone" value={search} onChange={e=>setSearch(e.target.value)}/></label>
    <div className="nx55-team-list" role="radiogroup" aria-label="Choose executive for selected orders">
     {visible.length===0?<p>No delivery executives match your search.</p>:visible.map(person=><label key={person.id} className={`nx55-team-option${selectedId===String(person.id)?' is-selected':''}${!person.isActive?' is-disabled':''}`}>
      <input type="radio" name="batch-executive" checked={selectedId===String(person.id)} onChange={()=>setSelectedId(String(person.id))} disabled={!person.isActive||busy}/>

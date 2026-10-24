@@ -1,3 +1,4 @@
+import { EmptyState } from "../../components/ui/index";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CustomerLayout from "../../components/layout/CustomerLayout";
@@ -37,7 +38,7 @@ export default function Wishlist() {
   {loading && <p>Loading wishlist…</p>}
   {message && <p role="alert" className="store-alert">{message}</p>}
   {!loading && mode !== "customer" && <p>Sign in with a customer account to save products across visits. {mode === "guest" && <Link to="/login">Sign in</Link>}{mode === "admin" && <Link to="/admin/dashboard">Return to admin</Link>}</p>}
-  {!loading && mode === "customer" && products.length === 0 && <p>No saved products yet. <Link to="/products">Browse products</Link></p>}
+  {!loading && mode === "customer" && products.length === 0 && <EmptyState icon="heart" title="Your wishlist is empty" description="Tap the heart on a product to save it for later." action={<Link className="button button-primary" to="/products">Browse products</Link>}/>}
   <div className="wishlist-grid">{products.map((p) => <article key={p.id} className="wishlist-card">
    <Link to={`/products/${p.id}`}>{p.imageUrl && <img alt={p.name} src={apiAssetUrl(p.imageUrl)} loading="lazy"/>}<h2>{p.name}</h2></Link>
    <p>{p.category} · ₹{Number(p.price).toFixed(2)}</p>

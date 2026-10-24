@@ -1,3 +1,4 @@
+import { Select, Pagination } from "../../components/ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import ProductLoadingSkeleton from "../../components/common/ProductLoadingSkeleton";
 import { useEffect, useState } from "react";
@@ -30,7 +31,7 @@ export default function ProductList() {
   const [category, setCategory] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 12,
+    limit: 10,
     total: 0,
     pages: 0,
   });
@@ -58,6 +59,7 @@ export default function ProductList() {
         const params = new URLSearchParams(queryString);
         if (selectedCategory) params.set("category", selectedCategory);
         params.set("includePriceBounds", "true");
+        params.set("limit", "10");
         // A premium catalogue starts with one representative card per parent product.
         // Shoppers can explicitly switch to color or configuration browsing.
         if (!params.has("view")) params.set("view", "products");
@@ -68,7 +70,7 @@ export default function ProductList() {
           setPriceBounds(data.priceBounds || null);
           setCategory(data.category || null);
           setPagination(
-            data.pagination || { page: 1, limit: 12, total: 0, pages: 0 },
+            data.pagination || { page: 1, limit: 10, total: 0, pages: 0 },
           );
         }
       } catch (requestError) {
@@ -191,13 +193,13 @@ export default function ProductList() {
         </p>
         <label className="nx17-view-control">
           Show
-          <select value={searchParams.get("view") || "products"} onChange={e => updateParams(next=>next.set("view",e.target.value))}>
+          <Select value={searchParams.get("view") || "products"} onChange={e => updateParams(next=>next.set("view",e.target.value))}>
             <option value="products">One per product</option><option value="colors">By color</option><option value="variants">All configurations</option>
-          </select>
+          </Select>
         </label>
         <label>
           Sort by
-          <select
+          <Select
             value={
               searchParams.get("sort") ||
               (searchParams.get("q") ? "relevance" : "newest")
@@ -211,7 +213,7 @@ export default function ProductList() {
             <option value="price_asc">Price: low to high</option>
             <option value="price_desc">Price: high to low</option>
             <option value="name">Name</option>
-          </select>
+          </Select>
         </label>
       </div>
 
@@ -275,25 +277,7 @@ export default function ProductList() {
             </div>
           )}
           {!loading && !error && pagination.pages > 1 && (
-            <nav className="pagination" aria-label="Product pages">
-              <button
-                type="button"
-                disabled={pagination.page <= 1}
-                onClick={() => changePage(pagination.page - 1)}
-              >
-                Previous
-              </button>
-              <span>
-                Page {pagination.page} of {pagination.pages}
-              </span>
-              <button
-                type="button"
-                disabled={pagination.page >= pagination.pages}
-                onClick={() => changePage(pagination.page + 1)}
-              >
-                Next
-              </button>
-            </nav>
+            <Pagination page={pagination.page} pages={pagination.pages} total={pagination.total} pageSize={10} label="products" onPageChange={changePage}/>
           )}
         </section>
       </div>

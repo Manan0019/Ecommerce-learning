@@ -14,12 +14,14 @@ export default function CartProvider({ children }) {
   // be persisted under the new account's key during a session switch.
   const [cart, setCart] = useState({ key: GUEST_KEY, items: [] });
   const [ready, setReady] = useState(false);
+  const [switching, setSwitching] = useState(false);
   useEffect(() => {
     let alive = true;
     let generation = 0;
     async function syncSession() {
       const id = ++generation;
-      setReady(false);
+      // Only the initial load may suspend the router; after login, preserve navigation.
+      setSwitching(true);
       let user = null;
       try { user = (await getCurrentUser()).user; }
       catch { /* Unauthenticated is a guest cart, never another customer's cart. */ }
@@ -27,6 +29,7 @@ export default function CartProvider({ children }) {
       const key = cartStorageKey(user);
       setCart({key, items: key === 'nexora_cart_v2_staff_empty' ? [] : readCart(key)});
       setReady(true);
+      setSwitching(false);
     }
     syncSession();
     window.addEventListener('nexora:auth-changed', syncSession);
@@ -38,15 +41,15 @@ export default function CartProvider({ children }) {
     return () => {alive=false;generation++;window.removeEventListener('nexora:auth-changed',syncSession);window.removeEventListener('storage',onStorage);};
   }, []);
   useEffect(() => {
-    if (ready && cart.key !== 'nexora_cart_v2_staff_empty') {
+    if (ready && !switching && cart.key !== 'nexora_cart_v2_staff_empty') {
       localStorage.setItem(cart.key, JSON.stringify(cart.items));
     }
-  }, [cart, ready]);
-  function change(fn) { setCart(previous => ({...previous, items: fn(previous.items)})); }
+  }, [cart, ready, switching]);
+  function change(fn) { if (switching) return; setCart(previous => ({...previous, items: fn(previous.items)})); }
   function addToCart(id, quantity=1, variantId=null) {
     id=String(id);variantId=variantId==null?null:String(variantId);
     if (!/^[1-9]\d*$/.test(id) || (variantId && !/^[1-9]\d*$/.test(variantId)) ||
-        !Number.isInteger(quantity) || quantity < 1 || !ready || cart.key === 'nexora_cart_v2_staff_empty') return;
+        !Number.isInteger(quantity) || quantity < 1 || (!ready || switching) || cart.key === 'nexora_cart_v2_staff_empty') return;
     change(previous => {
       const same = item => item.productId===id && (item.variantId||null)===variantId;
       if (previous.some(same)) return previous.map(item=>same(item)?{...item,quantity:Math.min(99,item.quantity+quantity)}:item);
@@ -62,5 +65,5 @@ export default function CartProvider({ children }) {
   }
   function clearCart(){change(()=>[]);}
   if(!ready)return <div className="nx73-cart-bootstrap" role="status">Loading your storefront…</div>;
-  return <CartContext.Provider value={{items:cart.items,itemCount:cart.items.reduce((sum,item)=>sum+item.quantity,0),addToCart,updateQuantity,removeFromCart,clearCart}}>{children}</CartContext.Provider>;
+  return <CartContext.Provider value={{items:switching?[]:cart.items,itemCount:switching?0:cart.items.reduce((sum,item)=>sum+item.quantity,0),addToCart,updateQuantity,removeFromCart,clearCart}}>{children}</CartContext.Provider>;
 }

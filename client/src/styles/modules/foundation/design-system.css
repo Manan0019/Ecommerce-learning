@@ -1,0 +1,57 @@
+/* NEXORA DESIGN SYSTEM. Tokens and primitives are maintained here, not per page. */
+:root{--nx-control-height:42px;--nx-control-radius:12px;--nx-control-font:14px;--nx-control-weight:650;
+ --nx-control-border:#ddd8f0;--nx-accent:#6147d8;--nx-ink:#172039;--nx-muted:#6c7690;
+ --nx-ease:cubic-bezier(.2,.75,.25,1);--nx-motion:.2s;--nx-table-padding:14px;--nx-table-radius:16px}
+:where(.admin-shell,.storefront,.auth-shell,.nx57-delivery-shell) :is(.nx-ui-select,.nx-ui-search-input){font-family:inherit!important;font-size:var(--nx-control-font)!important;font-weight:var(--nx-control-weight)!important;letter-spacing:normal!important;line-height:1.4!important;min-height:var(--nx-control-height);border-radius:var(--nx-control-radius);}
+:where(.admin-shell,.storefront,.auth-shell,.nx57-delivery-shell) .nx-ui-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236147d8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 12px center!important;padding-right:38px!important;border-color:var(--nx-control-border);transition:border-color var(--nx-motion),box-shadow var(--nx-motion),background-color var(--nx-motion)}
+:where(.admin-shell,.storefront,.auth-shell,.nx57-delivery-shell) .nx-ui-select:focus-visible{outline:2px solid #8871e8;outline-offset:2px;border-color:var(--nx-accent)}
+:where(.admin-shell,.storefront,.auth-shell,.nx57-delivery-shell) .nx-ui-search-input{background-image:none!important;box-shadow:none!important;outline-offset:2px;min-width:0;width:100%;padding-inline:12px;color:var(--nx-ink)}
+:where(.admin-shell,.storefront,.auth-shell,.nx57-delivery-shell) :is(.nx-ui-search-input::placeholder){font-weight:450!important;letter-spacing:normal!important;color:#8994aa!important}
+.nx-ui-search-field{display:flex;align-items:center;gap:10px;border:1px solid var(--nx-control-border);border-radius:var(--nx-control-radius);background:#fff;padding:0 13px;min-width:0;transition:border-color var(--nx-motion),box-shadow var(--nx-motion)}
+.nx-ui-search-field:focus-within{border-color:var(--nx-accent);box-shadow:0 0 0 3px #664ce01d}.nx-ui-search-field>.nx-ui-search-input{border:0!important;box-shadow:none!important;background:none!important;min-height:var(--nx-control-height)}
+.nx-ui-icon-button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:var(--nx-control-height);height:var(--nx-control-height);min-width:var(--nx-control-height);padding:0!important;border:1px solid var(--nx-control-border);border-radius:var(--nx-control-radius);background:#faf9ff;color:var(--nx-accent);cursor:pointer;transition:background var(--nx-motion) var(--nx-ease),color var(--nx-motion),transform var(--nx-motion) var(--nx-ease),box-shadow var(--nx-motion)}
+.nx-ui-icon-button>svg{display:block;flex:0 0 auto;margin:auto!important;transform:none!important}
+.nx-ui-icon-button:hover:not(:disabled){transform:translateY(-2px);background:var(--nx-accent);color:white;box-shadow:0 7px 17px #6044d52b}
+.nx-ui-clear-filters{border-color:#efd7e4;color:#be2b56;background:#fff5f7}.nx-ui-clear-filters:hover:not(:disabled){background:#bf2855}
+.nx-ui-pagination{display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 0;margin:0}
+.nx-ui-pagination>button{display:grid;place-items:center;flex:0 0 auto;width:42px;height:42px;min-width:42px;padding:0;border-radius:12px;border:1px solid var(--nx-control-border);background:white;color:var(--nx-accent);transition:background var(--nx-motion),color var(--nx-motion),transform var(--nx-motion),box-shadow var(--nx-motion)}
+.nx-ui-pagination>button:hover:not(:disabled){transform:translateY(-2px);background:var(--nx-accent);color:white;box-shadow:0 6px 15px #6d4fde24}
+.nx-ui-pagination>button:disabled{opacity:.38;cursor:not-allowed}.nx-ui-pagination-status{text-align:center;min-width:134px;font-size:13px;font-weight:650;color:#353451}.nx-ui-pagination-status b{color:var(--nx-accent)}.nx-ui-pagination-status small{display:block;font-size:11px;font-weight:500;color:var(--nx-muted);margin-top:3px}
+.nx-ui-table{width:100%;border-collapse:collapse;font-family:inherit;font-size:13px;font-weight:500;line-height:1.5;font-variant-numeric:tabular-nums}
+.nx-ui-table thead th{font-family:inherit!important;font-size:11px!important;font-weight:750!important;letter-spacing:.055em!important;text-transform:uppercase;color:#727d94;vertical-align:middle;padding:var(--nx-table-padding) 12px;text-align:left}
+.nx-ui-table tbody td{font-family:inherit!important;font-size:14px!important;line-height:1.5!important;vertical-align:middle;padding:var(--nx-table-padding) 12px}
+.nx-ui-table tbody td :is(strong,b,.nx46-product-title){font-family:inherit;font-weight:750;font-size:inherit;line-height:1.45}
+.nx-ui-table tbody tr{transition:background var(--nx-motion)}.nx-ui-table tbody tr:hover{background:#f9f8ff}
+.nx-ui-table tbody td :is(.nx-ui-select,.nx-ui-icon-button){min-height:var(--nx-control-height);height:var(--nx-control-height)}
+.nx-ui-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:34px 20px;text-align:center;border:1px dashed #ded9f4;background:linear-gradient(145deg,#fcfbff,#f7f8ff);border-radius:16px;color:var(--nx-ink);min-height:168px}
+.nx-ui-empty-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:16px;color:#6b54d8;background:#ece7ff}.nx-ui-empty strong{font-size:15px;font-weight:800}.nx-ui-empty p{margin:0;color:var(--nx-muted);font-size:13px;max-width:440px}
+/* Shared motion. Respect reduced-motion accessibility settings. */
+:where(.admin-shell,.storefront,.auth-shell,.nx57-delivery-shell) :is(button:not(:disabled),a[href]){transition-property:background-color,color,border-color,box-shadow,transform,opacity;transition-duration:var(--nx-motion);transition-timing-function:var(--nx-ease)}
+/* Rounded iOS-style unread counters rather than large red capsules. */
+:where(.admin-shell,.storefront,.nx57-delivery-shell) .nx46-bell-count{position:absolute;top:-5px;right:-5px;transform:none!important;min-width:17px!important;width:auto;max-width:30px;height:17px!important;padding:0 3px!important;border-radius:999px!important;display:grid;place-items:center;font:750 9px/1 Inter,system-ui,sans-serif!important;letter-spacing:-.02em;border:2px solid white!important;white-space:nowrap}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) .nx46-bell-count:not(:empty){aspect-ratio:auto}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) .nx46-bell-count:is(:not(:empty)){border-radius:50px!important}
+.admin-shell .nx24-sidebar-count{display:grid!important;place-items:center;min-width:20px!important;height:20px!important;padding:0 4px!important;border-radius:50px!important;font:750 10px/1 inherit!important}
+:where(.admin-shell,.storefront) .nx-ui-table :is(.nx24-jump select,.nx-ui-select){max-width:100%}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) :is(.nx69-icon-action,.nx80-icon-btn){display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;padding:0;vertical-align:middle}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) :is(.nx69-icon-action,.nx80-icon-btn)>svg{display:block;flex-shrink:0;margin:auto}
+@media (max-width:600px){.nx-ui-pagination{justify-content:center}.nx-ui-pagination-status{min-width:118px}}
+@media (prefers-reduced-motion:reduce){.nx-ui-pagination *, .nx-ui-icon-button, .nx-ui-table tbody tr, .nx-ui-select,.nx-ui-search-field{transition:none!important;animation:none!important}}
+
+/* Cards and table product titles use a single type scale. */
+:root{--nx-list-title-size:14px;--nx-list-title-weight:750;--nx-list-caption-size:12px}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) :is(.admin-category-card h3,.nx71-featured-card>strong,.nx52-delivery-list-card strong,.nx46-product-title,.nx86-staff-name,.admin-category-name,.nx69-category-name-cell strong){font:var(--nx-list-title-weight) var(--nx-list-title-size)/1.45 Inter,ui-sans-serif,system-ui,sans-serif!important;letter-spacing:0!important}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) :is(.admin-category-card p,.nx71-featured-card small,.nx52-delivery-list-card small,.admin-category-name-cell small){font-size:var(--nx-list-caption-size)!important;font-weight:450!important;line-height:1.5!important}
+/* Uniform stock and action row controls, regardless of which page rendered them. */
+:where(.admin-shell,.storefront,.nx57-delivery-shell) :is(.nx69-row-actions,.admin-row-actions,.nx80-executive-actions,.nx86-staff-actions){display:flex;align-items:center;gap:8px}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) .nx24-jump{display:flex;align-items:center;gap:9px}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) .nx24-jump .nx-ui-select{min-width:75px;min-height:42px;height:42px}
+
+/* Search fields have precisely one leading SVG. Native search clear controls remain accessible. */
+:where(.admin-shell,.storefront,.nx57-delivery-shell) :is(.nx77-search-field,.nx71-search-field,.nx86-staff-search,.nx69-search,.nx74-customer-search,.nx52-delivery-search,.nx60-order-search,.nx-nav-search):has(> .nx-ui-search-input){display:flex;align-items:center;gap:10px;min-width:0}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) :is(.nx77-search-field,.nx71-search-field,.nx86-staff-search,.nx69-search,.nx74-customer-search,.nx52-delivery-search,.nx60-order-search):has(> .nx-ui-search-input)>svg{flex:0 0 18px;position:static;margin:0!important}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) :is(.nx77-search-field,.nx71-search-field,.nx86-staff-search,.nx69-search,.nx74-customer-search,.nx52-delivery-search,.nx60-order-search):has(> .nx-ui-search-input) .nx-ui-search-input{flex:1 1 auto;min-width:0;background-image:none!important;padding-left:5px!important}
+
+/* Compact circular, numeric notifications everywhere. */
+:where(.admin-shell,.storefront,.nx57-delivery-shell) .nx46-bell-count{width:20px!important;min-width:20px!important;max-width:20px!important;height:20px!important;min-height:20px!important;padding:0!important;border-radius:50%!important;font:800 8px/1 Inter,system-ui,sans-serif!important;}
+:where(.admin-shell,.storefront,.nx57-delivery-shell) .nx46-bell-count:not(:empty){aspect-ratio:1!important}

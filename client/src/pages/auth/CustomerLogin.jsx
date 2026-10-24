@@ -23,6 +23,7 @@ export default function CustomerLogin() {
 
   async function handleLogin(event) {
     event.preventDefault();
+    if (loading) return;
 
     setLoading(true);
     setFeedback(null);

@@ -1,3 +1,4 @@
+import { Select, SearchInput, Pagination, EmptyState, ClearFilters } from "../../components/ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -61,7 +62,7 @@ export default function DeliveryDashboard() {
     const q = search.trim().toLocaleLowerCase();
     return deliveryTabMatch(a, tab) && (!q || String(a.orderId).includes(q) || a.customerName?.toLocaleLowerCase().includes(q) || a.address?.city?.toLocaleLowerCase().includes(q));
   }).sort((a, b) => deliveryAttentionPriority(a) - deliveryAttentionPriority(b) || Number(b.orderId) - Number(a.orderId)), [assignments,tab,search]);
-  const perPage=12;
+  const perPage=10;
   const pages=Math.max(1,Math.ceil(filtered.length/perPage));
   const visible=filtered.slice((Math.min(page,pages)-1)*perPage,Math.min(page,pages)*perPage);
   const current = assignments.find(a => String(a.orderId) === String(selected));
@@ -186,12 +187,12 @@ export default function DeliveryDashboard() {
             <div><span className="nx52-eyebrow">DELIVERY PRIORITIES</span><strong>{actionable.length ? `${actionable.length} order${actionable.length === 1 ? '' : 's'} ready for your action` : 'All actionable deliveries handled'}</strong><small>{actionable.length ? 'Open the next eligible assignment to begin or verify its delivery.' : 'New assignments will appear when your administrator dispatches them.'}</small></div>
             {actionable.length > 0 && <button type="button" onClick={focusNextDelivery}><UiIcon name="package" size={17}/>Open next delivery</button>}
           </section>
-          <section className="nx52-delivery-work nx82-delivery-work"><div className="nx52-delivery-work-top"><div><p className="nx52-eyebrow">MY ROUTE</p><h2>My delivery queue</h2></div><label className="nx52-delivery-search"><UiIcon name="search" size={18}/><input type="search" value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search order, name or city"/></label></div>
+          <section className="nx52-delivery-work nx82-delivery-work"><div className="nx52-delivery-work-top"><div><p className="nx52-eyebrow">MY ROUTE</p><h2>My delivery queue</h2></div><label className="nx52-delivery-search"><UiIcon name="search" size={18}/><SearchInput value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search order, name or city"/></label></div>
             <div className="nx77-delivery-view-controls"><button type="button" aria-pressed={view==='table'} onClick={()=>setView('table')}><UiIcon name="list" size={16}/> Table view</button><button type="button" aria-pressed={view==='cards'} onClick={()=>setView('cards')}><UiIcon name="layout-grid" size={16}/> Cards</button></div>
             <div className="nx52-delivery-tabs" role="group" aria-label="Filter deliveries">{tabs.map(([key,label])=><button type="button" key={key} className={tab===key?'is-active':''} aria-pressed={tab===key} onClick={()=>{setTab(key);setPage(1);}}>{label}<span>{counts[key]}</span></button>)}</div>
             <p className="nx74-delivery-results" role="status">Showing {filtered.length} of {assignments.length} assignments · Unfinished deliveries appear first</p><div className="nx52-delivery-content"><div className="nx52-delivery-list">{view==='table'&&<div className="nx77-delivery-mini-table" role="table" aria-label="Delivery assignments"><div role="row" className="nx77-delivery-mini-head"><span>Order</span><span>Customer</span><span>Status</span></div>{visible.map(a=><button type="button" role="row" key={a.orderId} className={String(selected || filtered[0]?.orderId)===String(a.orderId)?'is-active':''} onClick={()=>setSelected(a.orderId)}><span>#{a.orderId}<small>{money(a.total)}</small></span><span>{a.customerName}<small>{a.address?.city||'—'}</small></span><span>{statuses[a.deliveryStatus]||a.deliveryStatus}</span></button>)}</div>}{view==='cards'&&visible.map(a=><button type="button" key={a.orderId} className={`nx52-delivery-list-card${String(selected || filtered[0]?.orderId)===String(a.orderId)?' is-active':''}`} onClick={()=>setSelected(a.orderId)}>
               <span><strong>Order #{a.orderId}</strong><small>{a.address?.city || 'Delivery'}</small></span><span className={`nx52-delivery-status is-${a.deliveryStatus}`}>{statuses[a.deliveryStatus] || a.deliveryStatus}</span><b>{a.customerName}</b><small>{money(a.total)} · {a.paymentMethod === 'cod' ? 'COD' : 'Prepaid'}</small>
-            </button>)}<div className="nx77-pagination"><span>{visible.length} shown · page {Math.min(page,pages)}/{pages}</span><button type="button" disabled={page<=1} onClick={()=>setPage(p=>p-1)}>Previous</button><button type="button" disabled={page>=pages} onClick={()=>setPage(p=>p+1)}>Next</button></div>{!filtered.length && <div className="nx52-delivery-empty">{assignments.length?'No deliveries match this filter.':'No deliveries assigned yet. Your administrator can assign eligible orders in Delivery Executives.'}</div>}</div>
+            </button>)}<Pagination page={page} pages={pages} total={filtered.length} pageSize={perPage} label="deliveries" onPageChange={setPage}/>{!filtered.length && <EmptyState icon="truck" title={assignments.length?"No matching deliveries":"No deliveries assigned"} description={assignments.length?"Change the filter to find a delivery.":"New assignments will appear here automatically."}/>}</div>
             <aside className="nx52-delivery-detail" aria-label="Selected delivery details">{(current && visible.some(a=>String(a.orderId)===String(current.orderId)) ? current : visible[0]) ? details(current && visible.some(a=>String(a.orderId)===String(current.orderId)) ? current : visible[0]) : <div className="nx52-detail-empty">Select an assignment to view delivery details.</div>}</aside></div>
           </section>
         </>}
@@ -201,9 +202,9 @@ export default function DeliveryDashboard() {
       <form className="nx52-confirm-panel nx54-report-panel" role="dialog" aria-modal="true" aria-labelledby="nx54-report-title" onSubmit={submitIssue}>
         <span className="nx52-eyebrow">DELIVERY EXCEPTION</span><h2 id="nx54-report-title">Report issue · Order #{issueOrder.orderId}</h2>
         <p>Record what happened. This pauses completion until an administrator approves another delivery attempt; it does not cancel the order.</p>
-        <label>Issue type<select value={issueForm.kind} disabled={!!busy} onChange={e=>setIssueForm(x=>({...x,kind:e.target.value,requestedDate:''}))}>
+        <label>Issue type<Select value={issueForm.kind} disabled={!!busy} onChange={e=>setIssueForm(x=>({...x,kind:e.target.value,requestedDate:''}))}>
           <option value="failed_attempt">Delivery attempt unsuccessful</option><option value="reschedule_requested">Request a new delivery date</option>
-        </select></label>
+        </Select></label>
         {issueForm.kind==='reschedule_requested'&&<label>Proposed date (next 30 days)<input type="date" required disabled={!!busy}
           min={new Date().toLocaleDateString('en-CA')} value={issueForm.requestedDate}
           onChange={e=>setIssueForm(x=>({...x,requestedDate:e.target.value}))}/></label>}
