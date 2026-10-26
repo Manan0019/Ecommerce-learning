@@ -549,3 +549,17 @@
   .storefront .catalogue-results-bar .nx-catalogue-result-count {flex-basis: 100%;padding: 0;}
   .storefront .catalogue-results-bar > .nx-ui-field {flex: 1 1 145px;max-width: none;}
 }
+
+/* Ticker removal must remain red; the generic arrow hover must never paint a delete action purple. */
+.admin-shell .nx62-ticker-row > .nx-ui-icon-button.nx-ui-button--danger:hover:not(:disabled),
+.admin-shell .nx62-ticker-row > .nx-ui-icon-button.nx-ui-button--danger:focus-visible {
+ --nx-button-bg:#ffe2e8;--nx-button-border:#e99daf;--nx-button-ink:#ab123d;
+ background:var(--nx-button-bg);border-color:var(--nx-button-border);color:var(--nx-button-ink);
+ box-shadow:0 0 0 3px #fdb7c733;filter:none;
+}
+
+/* Semantic destructive controls in the footer never use the legacy purple arrow hover. */
+.admin-shell .nx62-ticker-row > .nx-ui-button--danger:not(:disabled):is(:hover,:focus-visible) {
+  --nx-button-bg:#be123c;--nx-button-border:#be123c;--nx-button-ink:#fff;
+  background:#be123c;color:#fff;border-color:#be123c;filter:none;box-shadow:0 0 0 3px #fa71853d;
+}

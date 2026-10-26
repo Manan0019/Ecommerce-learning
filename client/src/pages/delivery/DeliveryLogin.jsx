@@ -31,6 +31,7 @@ export default function DeliveryLogin() {
         return;
       }
       await getDeliverySession();
+      window.dispatchEvent(new Event('nexora:changes-saved'));
       navigate('/delivery/dashboard', { replace: true });
     } catch (e) {
       setError(e.status === 404

@@ -110,20 +110,20 @@
 /* Arrows use the same responsive halo and centred icon rhythm as modal close buttons. */
 :is(.storefront,.admin-shell,.nx-modal) :is(
  .nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,
- .nx64-quick-image-nav button,.nx62-ticker-row button,.nx29-image-dialog-close
+ .nx64-quick-image-nav button,.nx29-image-dialog-close
  ) {transform-origin:center;transition:opacity .22s,background .25s,color .25s,box-shadow .27s,filter .27s!important}
 :is(.storefront,.admin-shell,.nx-modal) :is(
  .nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,
- .nx64-quick-image-nav button,.nx62-ticker-row button
+ .nx64-quick-image-nav button
  ):not(:disabled):is(:hover,:focus-visible){background:#5b43d5!important;color:white!important;
  box-shadow:0 0 0 5px rgba(96,67,223,.13),0 9px 22px var(--nx-accent-glow)!important;filter:saturate(1.13)}
 :is(.storefront,.admin-shell,.nx-modal) :is(
  .nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,
- .nx64-quick-image-nav button,.nx62-ticker-row button
+ .nx64-quick-image-nav button
  ) svg{display:block!important;margin:auto!important;transition:transform .3s cubic-bezier(.2,.8,.2,1)!important;transform:none!important}
 :is(.storefront,.admin-shell,.nx-modal) :is(
  .nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,
- .nx64-quick-image-nav button,.nx62-ticker-row button
+ .nx64-quick-image-nav button
  ):is(:hover,:focus-visible) svg{transform:scale(1.2)!important}
 /* Remove browser-native browse/file labels even for legacy fields not using FileUploadField. */
 .admin-shell input[type=file]:not(.nx71-file-drop input),.nx-modal input[type=file]:not(.nx71-file-drop input){
@@ -145,7 +145,7 @@
 .admin-shell .nx69-icon-action{vertical-align:middle;align-items:center;justify-items:center}
 .admin-shell .nx69-icon-action svg{margin:auto;display:block;transform-origin:center}
 @media(prefers-reduced-motion:reduce){
- .admin-shell .admin-product-table .admin-product-cell>div:last-child::after,.admin-shell .nx69-icon-action,.admin-shell button[aria-label^="Delete "],.admin-shell button[aria-label^="Remove "],:is(.storefront,.admin-shell,.nx-modal) :is(.nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,.nx64-quick-image-nav button,.nx62-ticker-row button) svg{
+ .admin-shell .admin-product-table .admin-product-cell>div:last-child::after,.admin-shell .nx69-icon-action,.admin-shell button[aria-label^="Delete "],.admin-shell button[aria-label^="Remove "],:is(.storefront,.admin-shell,.nx-modal) :is(.nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,.nx64-quick-image-nav button) svg{
  transition:none!important;transform:none!important;filter:none!important}
 }
 

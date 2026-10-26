@@ -16,7 +16,7 @@ const SearchField = forwardRef(function SearchField({ label, value, defaultValue
     input.dispatchEvent(new Event('input', { bubbles: true }));
     setLocalValue('');
     onClear?.();
-    input.focus();
+    input.focus({ preventScroll: true });
   }
   return <span className={`nx-ui-search-field nx-ui-size--${size} ${className}`.trim()} data-disabled={disabled || undefined}>
     <UiIcon name="search"/>

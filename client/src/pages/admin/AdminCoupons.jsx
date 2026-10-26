@@ -39,7 +39,12 @@ export default function AdminCoupons(){
  async function remove(code){setBusy(true);setError('');try{await apiRequest('/api/admin/coupons/'+encodeURIComponent(code),{method:'DELETE',credentials:'include'});await refresh();setMessage('Coupon removed.');if(code===editing)reset();}catch(e){setError(e.message);}finally{setBusy(false);}}
  return <AdminLayout title="Coupon management" subtitle="Configure, test and publish offers with server-verified checkout discounts.">
  <Card as="section" className="admin-panel nx62-coupon-editor nx63-coupon-editor">
- <p className="nx62-coupon-warning"><strong>{redemptionReady?'Coupon checkout integration enabled.':'Coupon checkout integration is not enabled on this server.'}</strong> New coupons start inactive. Verify your tax, COD, Razorpay and refund flows in staging, then publish only tested codes. Previously placed orders retain their saved totals.</p>
+ <p className={redemptionReady ? 'nx62-coupon-ready' : 'nx62-coupon-warning'} role="status">
+  <strong>{redemptionReady ? 'Coupons are available at checkout.' : 'Coupon checkout is currently paused.'}</strong>{' '}
+  {redemptionReady
+    ? 'Create a coupon, preview its discount, and publish it to make the code redeemable. Existing order totals remain unchanged.'
+    : 'The checkout logic is installed, but the server feature switch is off. After checking the coupon migration and a test checkout, set COUPON_REDEMPTION_ENABLED=true in the server environment and restart the backend. You can then publish tested codes here.'}
+ </p>
  {error&&<p role="alert" className="nx62-editor-error">{error}</p>}{message&&<p role="status" className="nx62-editor-success">{message}</p>}
  <form onSubmit={submit} className="nx62-coupon-form"><h2>{editing?'Edit coupon '+editing:'Create a targeted coupon'}</h2>
  <FormField>Coupon code<TextField required value={form.code} disabled={Boolean(editing)} maxLength={24} placeholder="WELCOME10" onChange={e=>update('code',e.target.value.toUpperCase())}/></FormField>

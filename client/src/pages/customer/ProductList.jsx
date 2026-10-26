@@ -5,6 +5,7 @@ import ProductLoadingSkeleton from "../../components/common/ProductLoadingSkelet
 import { useEffect, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { beginFilterScrollPreservation } from "../../services/filterScrollProtection";
 import ProductCard from "../../components/common/ProductCard";
 import CategoryArtwork from "../../components/customer/CategoryArtwork";
 import CategoryMiniArtwork from "../../components/customer/CategoryMiniArtwork";
@@ -89,10 +90,11 @@ export default function ProductList() {
   }, [queryString, selectedCategory,liveRevision,setSearchParams]);
 
   function updateParams(change) {
+    beginFilterScrollPreservation();
     const next = new URLSearchParams(searchParams);
     change(next);
     next.delete("page");
-    setSearchParams(next);
+    setSearchParams(next, { preventScrollReset: true });
   }
 
   const activeCategory = categories.find(item => item.slug === selectedCategory);
@@ -107,6 +109,7 @@ export default function ProductList() {
   const parentCategory = ancestors.length ? ancestors[ancestors.length - 1] : null;
 
   function chooseCategory(slug) {
+    beginFilterScrollPreservation();
     const next = new URLSearchParams();
     if (searchQuery) next.set("q", searchQuery);
     const sort = searchParams.get("sort");
@@ -115,17 +118,18 @@ export default function ProductList() {
     if (view) next.set("view", view);
     if (slug) next.set("category", slug);
     else next.delete("category");
-    navigate(`/products${next.size ? `?${next.toString()}` : ""}`);
+    navigate(`/products${next.size ? `?${next.toString()}` : ""}`, { state: { preserveScroll: true }, preventScrollReset: true });
   }
 
   function changeFilter(key, values) {
+    beginFilterScrollPreservation();
     if (!key) {
       const preserved = new URLSearchParams();
       for (const name of ["q", "category", "sort", "view"]) {
         const value = searchParams.get(name);
         if (value) preserved.set(name, value);
       }
-      setSearchParams(preserved);
+      setSearchParams(preserved, { preventScrollReset: true });
       return;
     }
     updateParams((next) => {
@@ -137,7 +141,7 @@ export default function ProductList() {
   function changePage(page) {
     const next = new URLSearchParams(searchParams);
     next.set("page", String(page));
-    setSearchParams(next);
+    setSearchParams(next, { preventScrollReset: true });
     document.querySelector('.catalogue-results-bar')?.scrollIntoView({behavior:'smooth',block:'start'});
   }
 
@@ -225,8 +229,8 @@ export default function ProductList() {
       <ActiveFilterChips
         params={searchParams}
         facets={facets}
-        onRemove={(chip) => setSearchParams(removeCatalogueFilter(searchParams, chip))}
-        onClear={() => routeCategory ? navigate("/products") : setSearchParams(new URLSearchParams())}
+        onRemove={(chip) => { beginFilterScrollPreservation(); setSearchParams(removeCatalogueFilter(searchParams, chip), { preventScrollReset: true }); }}
+        onClear={() => routeCategory ? navigate("/products", { state: { preserveScroll: true }, preventScrollReset: true }) : setSearchParams(new URLSearchParams(), { replace: true, preventScrollReset: true })}
       />
 
       <div className="catalogue-layout">

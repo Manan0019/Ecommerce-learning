@@ -7108,20 +7108,20 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 /* Arrows use the same responsive halo and centred icon rhythm as modal close buttons. */
 :is(.storefront,.admin-shell,.nx-modal) :is(
  .nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,
- .nx64-quick-image-nav button,.nx62-ticker-row button,.nx29-image-dialog-close
+ .nx64-quick-image-nav button,.nx29-image-dialog-close
  ) {transform-origin:center;transition:opacity .22s,background .25s,color .25s,box-shadow .27s,filter .27s!important}
 :is(.storefront,.admin-shell,.nx-modal) :is(
  .nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,
- .nx64-quick-image-nav button,.nx62-ticker-row button
+ .nx64-quick-image-nav button
  ):not(:disabled):is(:hover,:focus-visible){background:#5b43d5!important;color:white!important;
  box-shadow:0 0 0 5px rgba(96,67,223,.13),0 9px 22px var(--nx-accent-glow)!important;filter:saturate(1.13)}
 :is(.storefront,.admin-shell,.nx-modal) :is(
  .nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,
- .nx64-quick-image-nav button,.nx62-ticker-row button
+ .nx64-quick-image-nav button
  ) svg{display:block!important;margin:auto!important;transition:transform .3s cubic-bezier(.2,.8,.2,1)!important;transform:none!important}
 :is(.storefront,.admin-shell,.nx-modal) :is(
  .nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,
- .nx64-quick-image-nav button,.nx62-ticker-row button
+ .nx64-quick-image-nav button
  ):is(:hover,:focus-visible) svg{transform:scale(1.2)!important}
 /* Remove browser-native browse/file labels even for legacy fields not using FileUploadField. */
 .admin-shell input[type=file]:not(.nx71-file-drop input),.nx-modal input[type=file]:not(.nx71-file-drop input){
@@ -7143,7 +7143,7 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .admin-shell .nx69-icon-action{vertical-align:middle;align-items:center;justify-items:center}
 .admin-shell .nx69-icon-action svg{margin:auto;display:block;transform-origin:center}
 @media(prefers-reduced-motion:reduce){
- .admin-shell .admin-product-table .admin-product-cell>div:last-child::after,.admin-shell .nx69-icon-action,.admin-shell button[aria-label^="Delete "],.admin-shell button[aria-label^="Remove "],:is(.storefront,.admin-shell,.nx-modal) :is(.nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,.nx64-quick-image-nav button,.nx62-ticker-row button) svg{
+ .admin-shell .admin-product-table .admin-product-cell>div:last-child::after,.admin-shell .nx69-icon-action,.admin-shell button[aria-label^="Delete "],.admin-shell button[aria-label^="Remove "],:is(.storefront,.admin-shell,.nx-modal) :is(.nx57-gallery-arrows button,.nx57-thumbnail-scroll,.nx29-card-arrows button,.nx64-quick-image-nav button) svg{
  transition:none!important;transform:none!important;filter:none!important}
 }
 
@@ -8159,9 +8159,40 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .nx-ui-empty p { max-width: 440px; margin: 0; font: var(--nx-body-weight) var(--nx-body-font)/1.5 var(--nx-font-family); color: var(--nx-muted); }
 .nx-ui-card { padding: var(--nx-card-padding); border: 1px solid var(--nx-control-border); border-radius: var(--nx-card-radius); background: var(--nx-surface); box-shadow: 0 4px 18px #1b164706; }
 .nx-ui-card--subtle { background: var(--nx-surface-subtle); }
-.nx-ui-field .auth-password-control { display: flex; align-items: center; gap: var(--nx-icon-gap); }
-.auth-password-control > .nx-ui-input { padding-right: var(--nx-control-padding); }
-.auth-password-control > .nx-ui-button { position: static; transform: none; }
+/* Shared password control for customer, administrator and delivery sign-in. */
+.nx-ui-field .auth-password-control { position: relative; display: block; width: 100%; min-width: 0; }
+.auth-password-control > .nx-ui-input { width: 100%; padding-inline-end: 58px; }
+.auth-password-control > button.auth-password-toggle {
+  position: absolute; inset-inline-end: 6px; top: 50%;
+  transform: translateY(-50%); display: grid; place-items: center;
+  width: 42px; height: 42px; min-width: 42px; min-height: 42px;
+  border: 1px solid transparent; border-radius: 11px;
+  background: transparent; color: #5a46c0; padding: 0; margin: 0;
+  cursor: pointer; box-shadow: none; overflow: hidden;
+  transition: background-color var(--nx-motion-fast) var(--nx-ease),
+    border-color var(--nx-motion-fast) var(--nx-ease), color var(--nx-motion-fast) var(--nx-ease),
+    box-shadow var(--nx-motion-fast) var(--nx-ease);
+}
+.auth-password-control > button.auth-password-toggle:is(:hover,:focus-visible) {
+  background: #f1ecff; border-color: #ddd5ff; color: #442ec5;
+}
+.auth-password-control > button.auth-password-toggle:focus-visible {
+  outline: 2px solid var(--nx-accent); outline-offset: 1px;
+}
+.auth-password-toggle .auth-password-icon {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  transition: opacity var(--nx-motion) var(--nx-ease),
+    transform var(--nx-motion) var(--nx-ease);
+}
+.auth-password-toggle .auth-password-icon--show { opacity: 1; transform: scale(1) rotate(0); }
+.auth-password-toggle .auth-password-icon--hide { opacity: 0; transform: scale(.7) rotate(-12deg); }
+.auth-password-toggle[data-visible="true"] .auth-password-icon--show { opacity: 0; transform: scale(.7) rotate(12deg); }
+.auth-password-toggle[data-visible="true"] .auth-password-icon--hide { opacity: 1; transform: scale(1) rotate(0); }
+.auth-password-toggle:is(:hover,:focus-visible) .auth-password-icon { filter: drop-shadow(0 1px 2px #8d74df44); }
+@media (prefers-reduced-motion: reduce) {
+  .auth-password-toggle, .auth-password-toggle .auth-password-icon { transition: none !important; }
+}
+
 .nx24-jump { display: flex; align-items: center; gap: var(--nx-icon-gap); }
 .nx24-jump .nx-ui-select { min-width: 76px; }
 .nx-ui-table .nx-ui-actions { min-width: 0; }
@@ -8808,4 +8839,18 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 @media (max-width: 600px) {
   .storefront .catalogue-results-bar .nx-catalogue-result-count {flex-basis: 100%;padding: 0;}
   .storefront .catalogue-results-bar > .nx-ui-field {flex: 1 1 145px;max-width: none;}
+}
+
+/* Ticker removal must remain red; the generic arrow hover must never paint a delete action purple. */
+.admin-shell .nx62-ticker-row > .nx-ui-icon-button.nx-ui-button--danger:hover:not(:disabled),
+.admin-shell .nx62-ticker-row > .nx-ui-icon-button.nx-ui-button--danger:focus-visible {
+ --nx-button-bg:#ffe2e8;--nx-button-border:#e99daf;--nx-button-ink:#ab123d;
+ background:var(--nx-button-bg);border-color:var(--nx-button-border);color:var(--nx-button-ink);
+ box-shadow:0 0 0 3px #fdb7c733;filter:none;
+}
+
+/* Semantic destructive controls in the footer never use the legacy purple arrow hover. */
+.admin-shell .nx62-ticker-row > .nx-ui-button--danger:not(:disabled):is(:hover,:focus-visible) {
+  --nx-button-bg:#be123c;--nx-button-border:#be123c;--nx-button-ink:#fff;
+  background:#be123c;color:#fff;border-color:#be123c;filter:none;box-shadow:0 0 0 3px #fa71853d;
 }

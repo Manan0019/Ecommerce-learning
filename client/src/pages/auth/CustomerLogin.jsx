@@ -33,6 +33,7 @@ export default function CustomerLogin() {
     try {
       const data = await login({ email: email.trim(), password });
 
+      window.dispatchEvent(new Event("nexora:changes-saved"));
       const returnTo = ["/checkout", "/orders", "/addresses", "/wishlist"].includes(location.state?.from) ? location.state.from : "/";
       if (data.user.role === "delivery") {
         // Do not show a successful sign-in unless the cookie and delivery role
