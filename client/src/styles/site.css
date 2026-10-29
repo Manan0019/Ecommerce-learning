@@ -2396,6 +2396,23 @@ img {
   font-size: 0.72rem;
   line-height: 1.55;
 }
+.filter-options-list {
+  display: grid;
+  gap: 10px;
+}
+.filter-more-toggle {
+  justify-self: start;
+  padding: 0;
+  min-height: 0;
+  color: var(--nx-accent, #5d44d6);
+  font-size: 0.74rem;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+.filter-more-toggle:is(:hover,:focus-visible) {
+  color: #4631b4;
+}
 .pagination {
   margin-top: 42px;
   display: flex;
@@ -6988,6 +7005,30 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .admin-shell .nx46-welcome-actions a:is(:hover,:focus-visible){transform:translateY(-2px);box-shadow:0 10px 25px #150c423e}
 .admin-shell .nx69-sale-action.nx70-sale-off{text-decoration:none;color:#6c627d;background:#f4f2f8}
 .admin-shell .nx69-sale-action.nx70-sale-off span{text-decoration:none}
+.admin-shell .nx91-sale-toggle {min-width:52px;font-size:.74rem;font-weight:850;letter-spacing:.03em;}
+.admin-shell .nx91-sale-toggle > span[aria-hidden="true"] {display:inline-block;line-height:1;}
+.admin-shell .nx91-sale-toggle.is-active,
+.admin-shell .nx91-sale-toggle[aria-pressed="true"] {
+  --nx-button-bg: linear-gradient(135deg,#6d4cf1 0%,#ff5f8b 100%);
+  --nx-button-border: #8a67ff;
+  --nx-button-ink: #fff;
+  box-shadow: 0 10px 24px rgba(109,76,241,.22), 0 0 0 1px rgba(255,255,255,.2) inset;
+  position: relative;
+  overflow: hidden;
+}
+.admin-shell .nx91-sale-toggle.is-active::after,
+.admin-shell .nx91-sale-toggle[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg,transparent 12%,rgba(255,255,255,.28) 36%,transparent 58%);
+  transform: translateX(-120%);
+  animation: nx91-sale-shimmer 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.admin-shell .nx91-sale-toggle:not(.is-active):is(:hover,:focus-visible) { --nx-button-bg:#f4f1ff; --nx-button-border:#cfc4f8; --nx-button-ink:#5b43ca; }
+@keyframes nx91-sale-shimmer { 0%,20% { transform: translateX(-120%); } 55%,100% { transform: translateX(140%); } }
+@media (prefers-reduced-motion: reduce) { .admin-shell .nx91-sale-toggle.is-active::after,.admin-shell .nx91-sale-toggle[aria-pressed="true"]::after { animation: none; } }
 /* The dashboard alert card retains consistent columns for every SKU length. */
 .admin-shell .nx71-inventory-health{width:100%;min-width:0}
 .admin-shell .nx71-inventory-health a{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;min-width:0;padding:13px 0}
@@ -8143,9 +8184,37 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .nx-ui-empty p { max-width: 440px; margin: 0; font: var(--nx-body-weight) var(--nx-body-font)/1.5 var(--nx-font-family); color: var(--nx-muted); }
 .nx-ui-card { padding: var(--nx-card-padding); border: 1px solid var(--nx-control-border); border-radius: var(--nx-card-radius); background: var(--nx-surface); box-shadow: 0 4px 18px #1b164706; }
 .nx-ui-card--subtle { background: var(--nx-surface-subtle); }
-.nx-ui-field .auth-password-control { display: flex; align-items: center; gap: var(--nx-icon-gap); }
-.auth-password-control > .nx-ui-input { padding-right: var(--nx-control-padding); }
-.auth-password-control > .nx-ui-button { position: static; transform: none; }
+.nx-ui-field .auth-password-control { position: relative; display: flex; align-items: center; width: 100%; }
+.auth-password-control > .nx-ui-input { width: 100%; padding-right: 56px; }
+.auth-password-toggle {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #5a42cb;
+  cursor: pointer;
+  transition: background var(--nx-motion) var(--nx-ease), color var(--nx-motion) var(--nx-ease), box-shadow var(--nx-motion) var(--nx-ease);
+}
+.auth-password-toggle:is(:hover,:focus-visible) { background: #f2eeff; color: #4633b8; }
+.auth-password-toggle:focus-visible { outline: 2px solid #b9a9ff; outline-offset: 2px; }
+.auth-password-icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition: opacity var(--nx-motion) var(--nx-ease), transform var(--nx-motion) var(--nx-ease);
+}
+.auth-password-icon--hide { opacity: 0; transform: scale(.86); }
+.auth-password-toggle[data-visible='true'] .auth-password-icon--show { opacity: 0; transform: scale(.86); }
+.auth-password-toggle[data-visible='true'] .auth-password-icon--hide { opacity: 1; transform: scale(1); }
 .nx24-jump { display: flex; align-items: center; gap: var(--nx-icon-gap); }
 .nx24-jump .nx-ui-select { min-width: 76px; }
 .nx-ui-table .nx-ui-actions { min-width: 0; }
@@ -8291,155 +8360,6 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .nx-ui-multiselect .nx-ui-multi-footer .nx-ui-button:not(.nx-ui-button--plain) {min-height:var(--nx-control-height-sm);padding:6px 16px;}
 @media (prefers-reduced-motion:reduce) {
   .nx-ui-multi-option,.nx-ui-multi-chevron {transition:none;}
-}
-
-
-/* Shared PasswordField: a single visibility icon, reliably centred inside its input.
-   Keep this unlayered, after common field styles, so old auth page rules cannot
-   reintroduce the native square button or overlap the label/input. */
-.nx-ui-field .auth-password-control {
-  display: block;
-  position: relative;
-  width: 100%;
-  min-width: 0;
-}
-.nx-ui-field .auth-password-control > input.nx-ui-input {
-  display: block;
-  width: 100%;
-  padding-inline-end: 58px;
-}
-.nx-ui-field .auth-password-control > button.auth-password-toggle {
-  box-sizing: border-box;
-  display: inline-grid;
-  place-items: center;
-  position: absolute;
-  top: 50%;
-  right: 7px;
-  transform: translateY(-50%);
-  margin: 0;
-  padding: 0;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-  border: 1px solid transparent;
-  border-radius: 11px;
-  background: transparent;
-  color: var(--nx-accent, #6048d8);
-  cursor: pointer;
-  line-height: 1;
-  box-shadow: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: background-color var(--nx-motion-fast, 180ms) var(--nx-ease, ease),
-              color var(--nx-motion-fast, 180ms) var(--nx-ease, ease),
-              border-color var(--nx-motion-fast, 180ms) var(--nx-ease, ease);
-}
-.nx-ui-field .auth-password-control > button.auth-password-toggle:is(:hover, :focus-visible) {
-  background: #f1edff;
-  border-color: #e3dbfb;
-  color: #4e36ba;
-}
-.nx-ui-field .auth-password-control > button.auth-password-toggle:focus-visible {
-  outline: 2px solid var(--nx-accent, #6048d8);
-  outline-offset: 1px;
-}
-.auth-password-toggle .auth-password-glyph {
-  display: inline-grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  transform: rotate(0deg) scale(1);
-  transition: transform var(--nx-motion-fast, 180ms) var(--nx-ease, ease);
-}
-.auth-password-toggle .auth-password-glyph svg {
-  display: block;
-  width: 20px;
-  height: 20px;
-  flex: none;
-}
-.auth-password-toggle[data-visible="true"] .auth-password-glyph {
-  transform: rotate(-10deg) scale(1.06);
-}
-.auth-password-toggle:is(:hover, :focus-visible) .auth-password-glyph {
-  transform: scale(1.13);
-}
-.auth-password-toggle[data-visible="true"]:is(:hover, :focus-visible) .auth-password-glyph {
-  transform: rotate(-10deg) scale(1.13);
-}
-@media (prefers-reduced-motion: reduce) {
-  .auth-password-toggle,
-  .auth-password-toggle .auth-password-glyph {
-    transition: none !important;
-  }
-}
-
-/* Shared storefront quantity control: a single, seamless segmented surface. */
-.nx-ui-quantity-stepper {
-  display: inline-grid; grid-template-columns: 42px minmax(46px, auto) 42px;
-  align-items: stretch; width: max-content; min-width: 0; height: 46px;
-  border: 1px solid var(--nx-control-border); border-radius: var(--nx-control-radius);
-  background: var(--nx-surface); color: var(--nx-ink); overflow: hidden;
-  transition: border-color var(--nx-motion) var(--nx-ease), box-shadow var(--nx-motion) var(--nx-ease);
-}
-.nx-ui-quantity-stepper:focus-within { border-color: var(--nx-accent); box-shadow: var(--nx-focus-ring); }
-.nx-ui-quantity-stepper > button.nx-ui-quantity-action {
-  position: static; display: grid; place-items: center; width: 42px; height: 100%; min-width: 0; min-height: 0;
-  margin: 0; padding: 0; border: 0; border-radius: 0; outline-offset: -3px;
-  background: var(--nx-surface-subtle); color: var(--nx-accent); box-shadow: none;
-  cursor: pointer; line-height: 1; font: 600 20px/1 var(--nx-font-family);
-  transition: background-color var(--nx-motion) var(--nx-ease), color var(--nx-motion) var(--nx-ease);
-}
-.nx-ui-quantity-stepper > button.nx-ui-quantity-action:not(:disabled):hover { background: #eee9ff; color: #4630bd; }
-.nx-ui-quantity-stepper > button.nx-ui-quantity-action:disabled { color: var(--nx-muted); opacity: .5; cursor: not-allowed; }
-.nx-ui-quantity-stepper > button.nx-ui-quantity-action:focus-visible { outline: 2px solid var(--nx-accent); }
-.nx-ui-quantity-stepper > .nx-ui-quantity-value {
-  display: grid; place-items: center; align-self: stretch; justify-self: stretch;
-  width: 52px; min-width: 46px; height: 100%; min-height: 0; margin: 0; padding: 0 4px;
-  border: 0; border-inline: 1px solid var(--nx-control-border); border-radius: 0;
-  background: #fff; text-align: center; color: var(--nx-ink);
-  box-shadow: none; font: 600 var(--nx-control-font)/1.2 var(--nx-font-family);
-  font-variant-numeric: tabular-nums;
-}
-.nx-ui-quantity-stepper > input.nx-ui-quantity-input:focus-visible { outline: 0; box-shadow: none; border-color: var(--nx-control-border); }
-.nx-ui-quantity-stepper input::-webkit-outer-spin-button,.nx-ui-quantity-stepper input::-webkit-inner-spin-button { appearance: none; margin: 0; }
-.nx-ui-quantity-stepper input[type='number'] { appearance: textfield; -moz-appearance: textfield; }
-.nx-ui-quantity-stepper--compact { height: 40px; grid-template-columns: 36px minmax(38px, auto) 36px; }
-.nx-ui-quantity-stepper--compact > button.nx-ui-quantity-action { width: 36px; }
-.nx-ui-quantity-stepper--compact > .nx-ui-quantity-value { width: 42px; min-width: 38px; }
-
-/* Reusable inline currency field: one border around the prefix AND amount. */
-.nx-ui-currency-control { display: flex; align-items: center; width: 100%; min-width: 0; height: var(--nx-control-height);
-  border: 1px solid var(--nx-control-border); border-radius: var(--nx-control-radius); background: #fff;
-  transition: border-color var(--nx-motion) var(--nx-ease), box-shadow var(--nx-motion) var(--nx-ease); }
-.nx-ui-currency-control:focus-within { border-color: var(--nx-accent); box-shadow: var(--nx-focus-ring); }
-.nx-ui-currency-symbol { display: grid; place-items: center; flex: 0 0 27px; height: 100%;
-  padding: 0; background: var(--nx-surface-subtle); border-radius: var(--nx-control-radius) 0 0 var(--nx-control-radius);
-  border-right: 1px solid var(--nx-control-border); color: var(--nx-accent); font: 600 var(--nx-helper-font)/1 var(--nx-font-family); }
-.nx-ui-currency-control > input.nx-ui-input, .nx-ui-currency-control > input.nx-ui-input:focus,
-.nx-ui-currency-control > input.nx-ui-input:focus-visible {
-  flex: 1 1 0; display: block; width: 100%; min-width: 0; height: 100%; min-height: 0;
-  padding: 0 7px; margin: 0; border: 0; border-radius: 0 var(--nx-control-radius) var(--nx-control-radius) 0;
-  outline: none; box-shadow: none; background: transparent;
-  font: 500 clamp(11px, 1vw, var(--nx-control-font))/1.3 var(--nx-font-family);
-  font-variant-numeric: tabular-nums; }
-.nx-ui-currency-control.is-invalid { border-color: var(--nx-danger); }
-.nx-ui-currency-control.is-invalid:focus-within { box-shadow: 0 0 0 3px rgb(190 36 65 / 12%); }
-
-/* Password icon stays inside the field regardless of inherited auth layout rules. */
-.nx-ui-field > .nx-ui-password-field { display: block; position: relative; isolation: isolate; width: 100%; min-width: 0; }
-.nx-ui-field > .nx-ui-password-field > input.nx-ui-input { width: 100%; padding-inline-end: 56px; }
-.nx-ui-field > .nx-ui-password-field > button.auth-password-toggle {
-  position: absolute; inset-block-start: 5px; inset-inline-end: 6px; top: 5px; right: 6px;
-  transform: none; width: 40px; height: calc(100% - 10px); min-width: 40px; min-height: 0;
-  padding: 0; margin: 0; display: grid; place-items: center; border: 0; border-radius: 9px;
-  background: transparent; color: var(--nx-accent); box-shadow: none; z-index: 1;
-}
-.nx-ui-field > .nx-ui-password-field > button.auth-password-toggle:hover { background: var(--nx-surface-subtle); }
-.nx-ui-field > .nx-ui-password-field > button.auth-password-toggle:focus-visible { outline: 2px solid var(--nx-accent); outline-offset: -2px; }
-.nx-ui-field > .nx-ui-password-field > button.auth-password-toggle .auth-password-glyph { display: grid; place-items: center; width: 22px; height: 22px; }
-.nx-ui-field > .nx-ui-password-field > button.auth-password-toggle svg { display: block; width: 20px; height: 20px; }
-@media (prefers-reduced-motion: reduce) {
-  .nx-ui-quantity-stepper, .nx-ui-quantity-stepper > button.nx-ui-quantity-action, .nx-ui-currency-control { transition: none; }
 }
 
 /* Phase 88 correction: placement and semantic treatments only.
@@ -9256,30 +9176,3 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .nx90-faq-list details>p{margin:0;padding:0 18px 18px}
 @media(max-width:640px){.nx90-guide-editor-body{padding:14px}.nx90-guide-editor>summary,.nx90-guide-block{padding:16px}.nx90-model-input{align-items:stretch}.nx90-model-input>button{width:100%}}
 @media(prefers-reduced-motion:reduce){.nx90-guide-editor>summary svg,.nx90-faq-list summary svg{transition:none}}
-
-/* Phase 91: Wishlist notification preferences and read-only alert history. */
-.nx91-alerts{margin:30px 0 10px;padding:24px;border:1px solid var(--nx-border,#e2ddf5);background:var(--nx-surface,#fff);border-radius:20px;box-shadow:0 12px 32px rgba(33,27,80,.04)}
-.nx91-alerts-heading h2{display:flex;align-items:center;gap:10px;margin:0 0 7px;font-size:1.35rem;color:var(--nx-ink,#141b38)}
-.nx91-alerts-heading p{color:var(--nx-muted,#67718e);margin:0 0 20px;font-size:.94rem}
-.nx91-alert-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.nx91-alert-option{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid #e4dff4;border-radius:13px;cursor:pointer;transition:border-color var(--nx-motion-fast,180ms) ease,background var(--nx-motion-fast,180ms) ease}
-.nx91-alert-option:hover{border-color:#a995ed;background:#f9f7ff}
-.nx91-alert-option strong,.nx91-alert-option small{display:block}
-.nx91-alert-option strong{font-size:.9rem;color:#222449}.nx91-alert-option small{margin-top:4px;font-size:.78rem;color:#63708d;line-height:1.45}
-.nx91-alert-option .nx-ui-choice{flex:none;accent-color:#6246df;width:18px;height:18px}
-.nx91-alert-history{margin-top:24px;border-top:1px solid #eae7f5;padding-top:18px}
-.nx91-alert-history h3{font-size:1.05rem;margin:0 0 12px;color:#181b3a}
-.nx91-alert-list{display:grid;gap:8px}
-.nx91-alert-item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #ece8f7;border-radius:13px;color:inherit;text-decoration:none;transition:background var(--nx-motion-fast,180ms) ease,border-color var(--nx-motion-fast,180ms) ease}
-.nx91-alert-item:hover,.nx91-alert-item:focus-visible{background:#f8f5ff;border-color:#b7a7f5}
-.nx91-alert-item img,.nx91-alert-placeholder{width:54px;height:54px;flex:none;object-fit:contain;border-radius:10px;background:#f7f5fc}
-.nx91-alert-placeholder{display:grid;place-items:center;color:#6246df}
-.nx91-alert-detail{display:grid;gap:3px;min-width:0;flex:1}
-.nx91-alert-detail strong{font-size:.92rem}.nx91-alert-detail span{color:#515c78;font-size:.85rem;overflow-wrap:anywhere}.nx91-alert-detail small,.nx91-alert-footnote{color:#7b8297;font-size:.76rem}
-.nx91-alert-footnote{margin:12px 0 0}
-@media(max-width:850px){.nx91-alert-options{grid-template-columns:1fr}}
-@media(max-width:520px){.nx91-alerts{padding:16px}.nx91-alert-item img,.nx91-alert-placeholder{width:44px;height:44px}}
-@media(prefers-reduced-motion:reduce){.nx91-alert-option,.nx91-alert-item{transition:none}}
-
-.nx91-wishlist-sale{display:inline-block;margin-left:6px;padding:3px 7px;border-radius:16px;background:#f1eafd;color:#563bc4;font-size:.75rem;font-weight:700}
-.nx91-wishlist-stock{color:#435571;font-size:.84rem;margin:5px 0 12px}

@@ -6,6 +6,30 @@
 .admin-shell .nx46-welcome-actions a:is(:hover,:focus-visible){transform:translateY(-2px);box-shadow:0 10px 25px #150c423e}
 .admin-shell .nx69-sale-action.nx70-sale-off{text-decoration:none;color:#6c627d;background:#f4f2f8}
 .admin-shell .nx69-sale-action.nx70-sale-off span{text-decoration:none}
+.admin-shell .nx91-sale-toggle {min-width:52px;font-size:.74rem;font-weight:850;letter-spacing:.03em;}
+.admin-shell .nx91-sale-toggle > span[aria-hidden="true"] {display:inline-block;line-height:1;}
+.admin-shell .nx91-sale-toggle.is-active,
+.admin-shell .nx91-sale-toggle[aria-pressed="true"] {
+  --nx-button-bg: linear-gradient(135deg,#6d4cf1 0%,#ff5f8b 100%);
+  --nx-button-border: #8a67ff;
+  --nx-button-ink: #fff;
+  box-shadow: 0 10px 24px rgba(109,76,241,.22), 0 0 0 1px rgba(255,255,255,.2) inset;
+  position: relative;
+  overflow: hidden;
+}
+.admin-shell .nx91-sale-toggle.is-active::after,
+.admin-shell .nx91-sale-toggle[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg,transparent 12%,rgba(255,255,255,.28) 36%,transparent 58%);
+  transform: translateX(-120%);
+  animation: nx91-sale-shimmer 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.admin-shell .nx91-sale-toggle:not(.is-active):is(:hover,:focus-visible) { --nx-button-bg:#f4f1ff; --nx-button-border:#cfc4f8; --nx-button-ink:#5b43ca; }
+@keyframes nx91-sale-shimmer { 0%,20% { transform: translateX(-120%); } 55%,100% { transform: translateX(140%); } }
+@media (prefers-reduced-motion: reduce) { .admin-shell .nx91-sale-toggle.is-active::after,.admin-shell .nx91-sale-toggle[aria-pressed="true"]::after { animation: none; } }
 /* The dashboard alert card retains consistent columns for every SKU length. */
 .admin-shell .nx71-inventory-health{width:100%;min-width:0}
 .admin-shell .nx71-inventory-health a{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;min-width:0;padding:13px 0}

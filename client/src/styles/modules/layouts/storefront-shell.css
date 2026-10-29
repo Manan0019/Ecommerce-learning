@@ -907,6 +907,23 @@
   font-size: 0.72rem;
   line-height: 1.55;
 }
+.filter-options-list {
+  display: grid;
+  gap: 10px;
+}
+.filter-more-toggle {
+  justify-self: start;
+  padding: 0;
+  min-height: 0;
+  color: var(--nx-accent, #5d44d6);
+  font-size: 0.74rem;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+.filter-more-toggle:is(:hover,:focus-visible) {
+  color: #4631b4;
+}
 .pagination {
   margin-top: 42px;
   display: flex;

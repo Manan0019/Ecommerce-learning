@@ -35,6 +35,7 @@ function ProductFiltersContent({
   disabled,
 }) {
   const [open, setOpen] = useState(false);
+  const [expandedFacets, setExpandedFacets] = useState({});
 
   function toggleValue(key, value, checked) {
     const selected = new Set(selectedValues(params, key));
@@ -94,30 +95,57 @@ function ProductFiltersContent({
             onPriceChange={onPriceChange}
           />
         </fieldset>
-        {facets.map((facet) => (
-          <fieldset className="filter-group" key={facet.key}>
-            <legend>
-              {facet.label}
-              {facet.unit ? ` (${facet.unit})` : ""}
-            </legend>
-            {facet.options.map((option) => (
-              <FormField inline className="filter-option" key={option.value}>
-                <Checkbox
-                  type="checkbox"
-                  disabled={disabled}
-                  checked={selectedValues(params, facet.key).includes(
-                    option.value,
-                  )}
-                  onChange={(event) =>
-                    toggleValue(facet.key, option.value, event.target.checked)
+        {facets.map((facet) => {
+          const options = Array.isArray(facet.options) ? facet.options : [];
+          const collapsedCount = 8;
+          const canCollapse = options.length > collapsedCount;
+          const expanded = Boolean(expandedFacets[facet.key]);
+          const visibleOptions = canCollapse && !expanded ? options.slice(0, collapsedCount) : options;
+          const hiddenCount = Math.max(0, options.length - visibleOptions.length);
+
+          return (
+            <fieldset className={`filter-group${canCollapse ? " is-collapsible" : ""}`} key={facet.key}>
+              <legend>
+                {facet.label}
+                {facet.unit ? ` (${facet.unit})` : ""}
+              </legend>
+              <div className="filter-options-list">
+                {visibleOptions.map((option) => (
+                  <FormField inline className="filter-option" key={option.value}>
+                    <Checkbox
+                      type="checkbox"
+                      disabled={disabled}
+                      checked={selectedValues(params, facet.key).includes(
+                        option.value,
+                      )}
+                      onChange={(event) =>
+                        toggleValue(facet.key, option.value, event.target.checked)
+                      }
+                    />
+                    <span>{option.label}</span>
+                    <small>{option.count}</small>
+                  </FormField>
+                ))}
+              </div>
+              {canCollapse && (
+                <Button
+                  variant="plain"
+                  type="button"
+                  className="filter-more-toggle"
+                  aria-expanded={expanded}
+                  onClick={() =>
+                    setExpandedFacets((current) => ({
+                      ...current,
+                      [facet.key]: !expanded,
+                    }))
                   }
-                />
-                <span>{option.label}</span>
-                <small>{option.count}</small>
-              </FormField>
-            ))}
-          </fieldset>
-        ))}
+                >
+                  {expanded ? "Show fewer" : `Show ${hiddenCount} more`}
+                </Button>
+              )}
+            </fieldset>
+          );
+        })}
         {facets.length === 0 && (
           <p className="filter-help">
             Choose a category to see specification filters from available
