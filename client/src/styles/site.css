@@ -8521,6 +8521,78 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
   .catalogue-filters .nx-ui-facet-toggle.nx-ui-button > svg { transition: none; }
 }
 
+/* All Nexora icon-only modal actions share precise optical centering. */
+.nx-ui-close-button.nx-ui-button {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  line-height: 1;
+  border-radius: 999px;
+}
+.nx-ui-close-button.nx-ui-button > svg,
+.nx-ui-close-button.nx-ui-button > .nx47-icon {
+  display: block;
+  position: static;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin: 0;
+  padding: 0;
+  transform: none;
+  place-self: center;
+}
+/* Only enlarged-image dialogs use the dark overlay variant. */
+.nx29-image-dialog .nx-ui-close-button--overlay {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+  z-index: 3;
+  border: 1px solid transparent;
+  background: #211955;
+  color: #fff;
+}
+.nx29-image-dialog .nx-ui-close-button--overlay:hover:not(:disabled),
+.nx29-image-dialog .nx-ui-close-button--overlay:focus-visible {
+  background: var(--nx-accent);
+  color: #fff;
+}
+.nx29-image-dialog .nx-ui-close-button--overlay:focus-visible {
+  outline: 2px solid var(--nx-accent);
+  outline-offset: 3px;
+}
+/* Detail-page layout only; both actions use shared Button and IconButton. */
+.nx-detail-product-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-block: 12px;
+}
+.nx-detail-product-actions .wishlist-action { margin: 0; }
+.nx-detail-product-actions .nx-ui-button { min-height: var(--nx-control-height); }
+.nx-detail-compare-action {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+}
+.nx-detail-compare-link,
+.nx-detail-compare-feedback a { color: var(--nx-accent); font-weight: 700; font-size: var(--nx-helper-font); text-underline-offset: 3px; }
+.nx-detail-compare-feedback { color: var(--nx-muted); font-size: var(--nx-helper-font); }
+.nx-detail-compare-action .nx-ui-button > .nx47-icon { display: block; flex: 0 0 18px; }
+@media (max-width: 480px) {
+  .nx-detail-product-actions { align-items: stretch; }
+  .nx-detail-compare-action { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nx-ui-close-button.nx-ui-button { transition: none; }
+}
+
 /* Phase 88 correction: placement and semantic treatments only.
    Included AFTER the shared design system by build-styles.mjs. Standard control
    sizing, fonts, focus and animation still come from the shared UI components. */

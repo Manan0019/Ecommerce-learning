@@ -563,3 +563,35 @@
   --nx-button-bg:#be123c;--nx-button-border:#be123c;--nx-button-ink:#fff;
   background:#be123c;color:#fff;border-color:#be123c;filter:none;box-shadow:0 0 0 3px #fa71853d;
 }
+
+
+/* Active product SALE toggle: red means visible on storefront, neutral means off.
+   Scoped to the shared admin product action so other button variants stay unchanged. */
+.admin-shell .nx91-sale-toggle.nx-ui-button:not(.nx-ui-button--plain) {
+  --nx-button-bg: #f7f6fa;
+  --nx-button-border: #dedbe8;
+  --nx-button-ink: #77718a;
+  font-weight: 850;
+  letter-spacing: .025em;
+}
+.admin-shell .nx91-sale-toggle.nx-ui-button[aria-pressed="true"]:not(.nx-ui-button--plain) {
+  --nx-button-bg: #ca1645;
+  --nx-button-border: #ca1645;
+  --nx-button-ink: #fff;
+  background: var(--nx-button-bg);
+  border-color: var(--nx-button-border);
+  color: var(--nx-button-ink);
+  box-shadow: 0 5px 16px rgba(202, 22, 69, .23);
+}
+.admin-shell .nx91-sale-toggle.nx-ui-button[aria-pressed="true"]:is(:hover,:focus-visible):not(:disabled):not(.nx-ui-button--plain) {
+  --nx-button-bg: #ac0c37;
+  --nx-button-border: #ac0c37;
+  background: var(--nx-button-bg);
+  color: #fff;
+  border-color: var(--nx-button-border);
+  box-shadow: 0 8px 19px rgba(172, 12, 55, .29);
+  filter: none;
+}
+.admin-shell .nx91-sale-toggle.nx-ui-button[aria-pressed="true"]:focus-visible {
+  outline-color: #ca1645;
+}
