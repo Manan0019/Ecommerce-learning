@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import pool from '../config/db.js';
+import { wishlistOnSaleSql } from '../services/wishlistSaleState.js';
 import { requireCustomer } from '../middleware/authMiddleware.js';
 const router=Router();
 router.use(requireCustomer);
@@ -11,7 +12,7 @@ router.get('/',async(req,res)=>{
     CASE WHEN COALESCE(v.variant_count,0)>0 THEN COALESCE(v.min_in_stock_price,v.min_active_price,p.price) ELSE p.price END AS price,
     p.image_url AS "imageUrl",p.stock,c.name AS category,w.created_at AS "savedAt",
     CASE WHEN COALESCE(v.variant_count,0)>0 THEN COALESCE(v.in_stock,FALSE) ELSE p.stock>0 END AS available,
-    (p.show_sale_badge OR p.mrp>p.price OR COALESCE(v.has_discount,FALSE)) AS "onSale"
+    ${wishlistOnSaleSql} AS "onSale"
     FROM customer_wishlist w JOIN products p ON p.id=w.product_id
     JOIN categories c ON c.id=p.category_id
     LEFT JOIN LATERAL(SELECT COUNT(*)::integer AS variant_count,
@@ -66,7 +67,7 @@ router.put('/:id',async(req,res)=>{
     SELECT $1,p.id,
       CASE WHEN COALESCE(v.variant_count,0)>0 THEN COALESCE(v.min_in_stock_price,v.min_active_price,p.price) ELSE p.price END,
       CASE WHEN COALESCE(v.variant_count,0)>0 THEN COALESCE(v.in_stock,FALSE) ELSE p.stock>0 END,
-      (p.show_sale_badge OR p.mrp>p.price OR COALESCE(v.has_discount,FALSE))
+      ${wishlistOnSaleSql}
     FROM products p JOIN categories c ON c.id=p.category_id
     LEFT JOIN LATERAL(SELECT COUNT(*)::integer AS variant_count,
       BOOL_OR(is_active AND stock>0) AS in_stock,

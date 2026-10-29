@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../../components/common/savedFormState.js";
 import { Button, Card } from "../../components/ui/index";
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
@@ -58,6 +59,7 @@ export default function AdminBranding() {
       if (kind === "icon") await uploadBrandLogo(icon.file);
       else await uploadBrandFavicon(favicon.file);
       await refreshBranding();
+      markChangesSaved();
       if (kind === "icon") icon.clear();
       else favicon.clear();
       setNotice(kind === "icon"
@@ -76,6 +78,7 @@ export default function AdminBranding() {
       if (kind === "icon") await resetBrandLogo();
       else await resetBrandFavicon();
       await refreshBranding();
+      markChangesSaved();
       if (kind === "icon") icon.clear(); else favicon.clear();
       setNotice(kind === "icon" ? "Default N symbol restored." : "Favicon now follows your store symbol.");
     } catch (failure) { setError(failure.message); }

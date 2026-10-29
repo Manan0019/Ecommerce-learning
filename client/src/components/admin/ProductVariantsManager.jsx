@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../common/savedFormState.js";
 import { Button, Card, Checkbox, EntitySubtitle, FormField, IconButton, TextField, Textarea } from "../ui/index";
 import { useEffect, useState } from "react";
 import UiIcon from "../common/UiIcon";
@@ -60,7 +61,7 @@ export default function ProductVariantsManager({ productId }) {
       const body = { sku: data.sku, customTitle: data.customTitle || "", attributes: data.attributes, mrp: data.mrp, price: data.price, stock: Number(data.stock), lowStockThreshold:Number(data.lowStockThreshold ?? 5), isActive: data.isActive };
       if (editing) await updateVariant(productId, editing, body);
       else await createVariant(productId, body);
-      await refresh(); setModalOpen(false); setEditing(null); setForm(newForm());
+      await refresh(); markChangesSaved(); setModalOpen(false); setEditing(null); setForm(newForm());
       setMessage("SKU saved successfully.");
     } catch (err) { setError(err.message); }
     finally { setBusy(false); }
@@ -77,6 +78,7 @@ export default function ProductVariantsManager({ productId }) {
     }
     setDrafts(failed);
     try { await refresh(); } catch (err) { setError(err.message); }
+    if (!failed.length) markChangesSaved();
     setMessage(failed.length ? `${checked.length - failed.length} saved, ${failed.length} failed. Review the remaining drafts.` : `${checked.length} SKU(s) created successfully.`);
     setBusy(false);
   }

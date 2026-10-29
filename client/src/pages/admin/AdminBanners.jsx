@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../../components/common/savedFormState.js";
 import usePagination from '../../hooks/usePagination';
 import { ClearFilters, Pagination, Button, Checkbox, EmptyState, FormField, IconActionGroup, IconButton, SearchField, Select, TextField } from "../../components/ui/index";
 
@@ -104,11 +105,11 @@ export default function AdminBanners(){
       data.append("productId",productPlacement(draft.position)?draft.productId:"");
       data.append("linkUrl",linkUrl);
       if(draft.image)data.append("image",draft.image);
-      await saveBanner(editing?.id,data);await reload();setOpened(false);setNotice("Promotion saved successfully.");
+      await saveBanner(editing?.id,data);markChangesSaved();await reload();setOpened(false);setNotice("Promotion saved successfully.");
     }catch(err){setError(err.message)}finally{setBusy(false)}
   }
   async function toggle(item){setBusy(true);setError("");try{await setBannerActive(item.id,!item.isActive);await reload()}catch(e){setError(e.message)}finally{setBusy(false)}}
-  async function saveDisplay(){setSavingDisplay(true);setError("");try{await setPromotionDisplayCount(homeCount,homeAutoplay,homeRotateSeconds);await reload();setNotice("Homepage layout saved.");}catch(e){setError(e.message);}finally{setSavingDisplay(false);}}
+  async function saveDisplay(){setSavingDisplay(true);setError("");try{await setPromotionDisplayCount(homeCount,homeAutoplay,homeRotateSeconds);markChangesSaved();await reload();setNotice("Homepage layout saved.");}catch(e){setError(e.message);}finally{setSavingDisplay(false);}}
   const live=items.filter(item=>bannerStatus(item)==="Live");
   const upcoming=items.filter(item=>bannerStatus(item)==="Scheduled");
   const filteredPromotions=items.filter(item=>(!promotionSearch||`${item.title} ${item.subtitle||''} ${placementLabel(item)}`.toLowerCase().includes(promotionSearch.toLowerCase()))&&(promotionFilter==='all'||(promotionFilter==='disabled'?bannerStatus(item)!=='Live':bannerStatus(item).toLowerCase()===promotionFilter)));

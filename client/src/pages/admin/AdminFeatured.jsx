@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../../components/common/savedFormState.js";
 import usePagination from '../../hooks/usePagination';
 import { EntityCell, Button, Card, ClearFilters, DataTable, EmptyState, EntitySubtitle, EntityTitle, FormField, IconButton, Pagination, SearchField, Select, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/index";
 
@@ -20,7 +21,7 @@ export default function AdminFeatured(){
  const featuredPager=usePagination(items.map((item,index)=>({item,index})));
  const totalPages=Math.max(1,Math.ceil(total/10));
  function move(from,to){if(from===null||from===to||to<0||to>=items.length)return;setItems(old=>{const next=[...old];const [item]=next.splice(from,1);next.splice(to,0,item);return next;});setDirty(true);}
- async function save(){setSaving(true);setError('');setNotice('');try{await reorderFeaturedAdmin(items.map(x=>x.id));await load();setNotice('Featured display order saved.');}catch(e){setError(e.message);}finally{setSaving(false);}}
+ async function save(){setSaving(true);setError('');setNotice('');try{await reorderFeaturedAdmin(items.map(x=>x.id));await load();markChangesSaved();setNotice('Featured display order saved.');}catch(e){setError(e.message);}finally{setSaving(false);}}
  async function change(productId,enabled){if(dirty){setError('Save or discard your pending order changes first.');return;}
   setSaving(true);setError('');setNotice('');try{await setFeaturedAdmin(productId,enabled);await load();setPage(1);setRevision(x=>x+1);setNotice(enabled?'Added to featured products.':'Removed from featured products — available again below, without refreshing.');}catch(e){setError(e.message);}finally{setSaving(false);}}
  return <AdminLayout title="Featured Products" subtitle="Organise featured products and search the catalogue without reloading." actions={<Button as={Link} variant="secondary"  to="/admin/products">Products</Button>}>

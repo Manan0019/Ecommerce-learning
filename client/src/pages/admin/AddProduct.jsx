@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../../components/common/savedFormState.js";
 import { Button, Card, Checkbox, FormField, Select, TextField, Textarea } from "../../components/ui/index";
 
 import FileUploadField from "../../components/admin/FileUploadField";
@@ -109,6 +110,7 @@ export default function AddProduct() {
       const result = await createProduct(formData);
       const created = result.product;
       setCreatedProduct(created);
+      markChangesSaved();
       const failures = [];
       const unsaved = [];
       for (const draft of validVariants) {

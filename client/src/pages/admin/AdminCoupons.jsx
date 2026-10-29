@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../../components/common/savedFormState.js";
 import usePagination from '../../hooks/usePagination';
 import { Pagination, ClearFilters, Button, Card, Checkbox, EmptyState, EntitySubtitle, FormField, IconActionGroup, IconButton, SearchField, Select, TextField } from "../../components/ui/index";
 
@@ -28,7 +29,7 @@ export default function AdminCoupons(){
  async function submit(e){e.preventDefault();setBusy(true);setError('');setMessage('');try{
  const payload={...form,startsAt:form.startsAt?new Date(form.startsAt).toISOString():null,expiresAt:form.expiresAt?new Date(form.expiresAt).toISOString():null};
  const r=await apiRequest(editing?'/api/admin/coupons/'+encodeURIComponent(editing):'/api/admin/coupons',{method:editing?'PUT':'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
- setMessage(r.message);reset();await refresh();
+ setMessage(r.message);markChangesSaved();reset();await refresh();
  }catch(e){setError(e.message);}finally{setBusy(false);}}
  async function previewDraft(){setSimBusy(true);setSimulation(null);setError('');try{
   const payload={...form,startsAt:form.startsAt?new Date(form.startsAt).toISOString():null,expiresAt:form.expiresAt?new Date(form.expiresAt).toISOString():null};

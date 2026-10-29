@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../common/savedFormState.js";
 import { Button, Card, Checkbox, FormField, TextField, Textarea, Tabs, Tab } from "../ui/index";
 import FileUploadField from "./FileUploadField";
 import { useEffect, useRef, useState } from "react";
@@ -82,6 +83,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
     setSaving(true); setError(""); setMessage("");
     try {
       await updateProduct(productId, { ...form, stock: Number(form.stock), specifications, buyingGuide });
+      markChangesSaved();
       setMessage("Product details saved. You can continue with SKUs or gallery in the tabs above.");
       onSaved?.();
     } catch (failure) {

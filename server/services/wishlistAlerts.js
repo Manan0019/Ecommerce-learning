@@ -2,6 +2,7 @@ import pool from '../config/db.js';
 import { notifyUser } from './notificationService.js';
 import { broadcastUser } from './realtime.js';
 import { wishlistTransitions } from './wishlistAlertRules.js';
+import { wishlistOnSaleSql } from './wishlistSaleState.js';
 
 // Product-level alerts (not SKU-specific): any sellable active variant counts as available.
 // Do not use product.stock when SKUs exist, because the stored parent stock can be stale.
@@ -12,7 +13,7 @@ export const wishlistStateSelect = `
       AND p.is_active AND c.is_active AS available,
     CASE WHEN COALESCE(v.variant_count,0)>0 THEN COALESCE(v.min_in_stock_price,v.min_active_price,p.price)
       ELSE p.price END AS current_price,
-    (p.show_sale_badge OR p.mrp>p.price OR COALESCE(v.has_discount,FALSE))
+    ${wishlistOnSaleSql}
       AND p.is_active AND c.is_active AS on_sale,
     COALESCE(pref.back_in_stock,TRUE) AS back_in_stock,
     COALESCE(pref.price_drop,TRUE) AS price_drop,

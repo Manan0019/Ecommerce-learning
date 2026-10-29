@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../../components/common/savedFormState.js";
 import { Button, Card, FormField, TextField, Textarea } from "../../components/ui/index";
 import {useEffect,useState} from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
@@ -11,7 +12,7 @@ const groups=[
 export default function AdminStorefrontCopy(){
  const [copy,setCopy]=useState(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
  useEffect(()=>{getAdminStorefrontCopy().then(result=>setCopy(result.copy)).catch(e=>setError(e.message));},[]);
- async function save(e){e.preventDefault();setBusy(true);setError('');setMessage('');try{const result=await saveStorefrontCopy(copy);setCopy(result.copy);setMessage('Saved. Refresh the storefront to see your text.');}catch(e){setError(e.message);}finally{setBusy(false);}}
+ async function save(e){e.preventDefault();setBusy(true);setError('');setMessage('');try{const result=await saveStorefrontCopy(copy);setCopy(result.copy);markChangesSaved();setMessage('Saved. Refresh the storefront to see your text.');}catch(e){setError(e.message);}finally{setBusy(false);}}
  return <AdminLayout title="Storefront wording" subtitle="Edit the announcement bar, homepage section headings and the bottom editorial card.">
  <Card as="section" className="admin-panel nx63-store-copy">
  {error&&<p role="alert" className="nx62-editor-error">{error}</p>}{message&&<p role="status" className="nx62-editor-success">{message}</p>}

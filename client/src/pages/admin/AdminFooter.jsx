@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../../components/common/savedFormState.js";
 import { Button, Card, FormField, IconButton, TextField } from "../../components/ui/index";
 import {useEffect,useState} from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
@@ -11,10 +12,10 @@ export default function AdminFooter(){
  useEffect(()=>{getAdminFooter().then(d=>setForm(d.footer||DEFAULT)).catch(e=>setError(e.message));},[]);
  const update=(key,value)=>setForm(f=>({...f,[key]:value}));
  async function save(e){e.preventDefault();setBusy(true);setError('');setMessage('');
-  try{const d=await saveFooterContent({headlinePrimary:form.headlinePrimary,headlineAccent:form.headlineAccent,tickerItems:form.tickerItems});setForm(d.footer);setMessage('Footer updated. Reload storefront to see changes.');}
+  try{const d=await saveFooterContent({headlinePrimary:form.headlinePrimary,headlineAccent:form.headlineAccent,tickerItems:form.tickerItems});setForm(d.footer);markChangesSaved();setMessage('Footer updated. Reload storefront to see changes.');}
   catch(e){setError(e.message);}finally{setBusy(false);}}
  async function picture(file){if(!file)return;setBusy(true);setError('');setMessage('');
-  try{const d=await uploadFooterArtwork(file);setForm(d.footer);setMessage('Footer image updated.');}
+  try{const d=await uploadFooterArtwork(file);setForm(d.footer);markChangesSaved();setMessage('Footer image updated.');}
   catch(e){setError(e.message);}finally{setBusy(false);}}
  async function remove(){setBusy(true);setError('');try{const d=await removeFooterArtwork();setForm(d.footer);setMessage('Footer image removed.');}catch(e){setError(e.message);}finally{setBusy(false);}}
  return <AdminLayout title="Footer & moving banner" subtitle="Edit the message, scrolling text and optional artwork. These changes appear across the storefront.">

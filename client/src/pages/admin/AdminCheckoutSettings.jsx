@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../../components/common/savedFormState.js";
 import { Button, Card, Checkbox, FormField, Select, TextField } from "../../components/ui/index";
 
 import {useEffect,useState} from 'react';
@@ -21,7 +22,7 @@ export default function AdminCheckoutSettings(){
  const thresholdApplied=freeAt>0&&Number.isFinite(sample)&&sample>=freeAt;
  const previewFee=Number.isFinite(sample)&&sample>=0&&destination&&origin?(thresholdApplied?0:Number(within?form.shipping_fee_in_state:form.shipping_fee_other_state)):null;
  useEffect(()=>{const ctrl=new AbortController();apiRequest('/api/admin/checkout-settings',{credentials:'include',signal:ctrl.signal}).then(r=>{if(!ctrl.signal.aborted)setForm(r.settings)}).catch(e=>{if(!ctrl.signal.aborted)setError(e.message)});return ()=>ctrl.abort()},[]);
- async function save(event){event.preventDefault();if(!canonicalIndianState(form?.origin_state)){setError('Choose a valid Indian dispatch state from the suggestions.');return;}setBusy(true);setError('');setMessage('');try{const r=await apiRequest('/api/admin/checkout-settings',{credentials:'include',method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)});setForm(r.settings);setMessage('Shipping and tax settings saved. New COD and Razorpay quotes use this policy.')}catch(e){setError(e.message)}finally{setBusy(false)}}
+ async function save(event){event.preventDefault();if(!canonicalIndianState(form?.origin_state)){setError('Choose a valid Indian dispatch state from the suggestions.');return;}setBusy(true);setError('');setMessage('');try{const r=await apiRequest('/api/admin/checkout-settings',{credentials:'include',method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)});setForm(r.settings);markChangesSaved();setMessage('Shipping and tax settings saved. New COD and Razorpay quotes use this policy.')}catch(e){setError(e.message)}finally{setBusy(false)}}
  return <AdminLayout title="Shipping & Tax Settings" subtitle="Manage shipping and tax configuration for COD and Razorpay orders.">
  <Card as="section" className="admin-panel nx25-settings"><p className="nx25-warning"><strong>Before going live:</strong> Confirm GST rates and shipping treatment with your accountant. Validate serviceable PIN codes and your courier process. Existing Razorpay transactions and previous orders are never repriced.</p>
  {error&&<p role="alert" className="nx-cod-message nx-cod-error">{error}</p>}

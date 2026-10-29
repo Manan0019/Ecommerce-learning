@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../common/savedFormState.js";
 import { Button, FormField, IconButton, Select } from "../ui/index";
 
 import { useState } from "react";
@@ -22,6 +23,7 @@ export default function PromotionOrderManager({ items, onSaved }) {
     try{
       await reorderPromotions(ids,sourceIds);
       await onSaved();
+      markChangesSaved();
       setPendingIds(null);
       setMessage("Saved. Homepage and category promotions will follow this order.");
     }catch(err){setMessage(err.message||"Unable to save promotion order. Refresh and try again.");}

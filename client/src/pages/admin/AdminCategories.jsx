@@ -1,3 +1,4 @@
+import { markChangesSaved } from "../../components/common/savedFormState.js";
 import usePagination from '../../hooks/usePagination';
 import { EntityCell, Button, Card, Checkbox, ClearFilters, DataTable, EmptyState, EntityTitle, FormField, IconActionGroup, IconButton, Pagination, SearchField, FilterToolbarActions, Select, StatusBadge, TableBody, TableCell, TableContainer, TableHead, TableHeader, TableRow, TextField } from "../../components/ui/index";
 
@@ -149,6 +150,7 @@ export default function AdminCategories() {
         return next.sort((left, right) => left.name.localeCompare(right.name));
       });
       setMessage(data.message);
+      markChangesSaved();
       resetForm();
     } catch (requestError) {
       if (isAuthenticationError(requestError)) {
