@@ -1,5 +1,6 @@
 import { Button, Checkbox, FormField, Select } from "../ui/index";
 import { useState } from "react";
+import UiIcon from "../common/UiIcon";
 import PriceRangeSlider from "./PriceRangeSlider";
 
 function selectedValues(params, key) {
@@ -129,10 +130,12 @@ function ProductFiltersContent({
               </div>
               {canCollapse && (
                 <Button
-                  variant="plain"
+                  variant="secondary"
+                  size="sm"
                   type="button"
-                  className="filter-more-toggle"
+                  className="nx-ui-facet-toggle"
                   aria-expanded={expanded}
+                  aria-label={expanded ? `Show fewer ${facet.label} options` : `Show ${hiddenCount} more ${facet.label} options`}
                   onClick={() =>
                     setExpandedFacets((current) => ({
                       ...current,
@@ -140,7 +143,8 @@ function ProductFiltersContent({
                     }))
                   }
                 >
-                  {expanded ? "Show fewer" : `Show ${hiddenCount} more`}
+                  <span>{expanded ? "Show fewer" : `Show ${hiddenCount} more`}</span>
+                  <UiIcon name="chevron-down" size={16} />
                 </Button>
               )}
             </fieldset>
