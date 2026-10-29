@@ -40,7 +40,7 @@ export default function AdminDelivery(){
    return Promise.all([getDeliveryStaff(controller.signal),getAdminAssignments(controller.signal),getAdminOrders(controller.signal)]);
   }).then(data=>{if(active&&data){const [s,a,o]=data;setStaff(s.staff||[]);setAssignments(a.assignments||[]);setOrders(o.orders||[]);}})
    .catch(e=>{if(!active||e.name==='AbortError')return;
-    const message=e.status===404?'The running backend does not have the delivery API. Merge Phase 51 server files, apply migration 028, and restart the server on port 4000.':e.message;
+    const message=e.status===404?'The running backend does not have the delivery API. Check the Nexora backend URL and restart the API server.':e.message;
     setServiceError(message);setServiceReady(false);
    }).finally(()=>{if(active)setLoading(false);});
   return()=>{active=false;controller.abort();};},[liveRevision]);

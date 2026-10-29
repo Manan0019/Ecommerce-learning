@@ -6,6 +6,13 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   server: {
+    // Development-only API, media, and Socket.IO proxy. Vite's HMR uses its own path.
+    // If a client .env sets VITE_API_URL or VITE_SOCKET_URL, update those URLs too.
+    proxy: {
+      '/api': { target: 'http://127.0.0.1:4001', changeOrigin: true },
+      '/uploads': { target: 'http://127.0.0.1:4001', changeOrigin: true },
+      '/socket.io': { target: 'http://127.0.0.1:4001', changeOrigin: true, ws: true },
+    },
     watch: {
       ignored: ['**/.ui-browser/**', '**/.ui-artifacts/**'],
     },

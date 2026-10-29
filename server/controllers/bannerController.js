@@ -1,5 +1,6 @@
 import { validBannerDestination, validBannerPlacement } from "../services/bannerTargeting.js";
 import { parseBannerVisualMode } from "../services/bannerVisualMode.js";
+import { parsePromotionTextStyle } from "../services/promotionTextStyle.js";
 import { normalizePromotionOrder, parsePromotionSchedule, homeBannerCount, homeRotationSeconds, homeAutoplaySetting } from "../services/promotionPlanning.js";
 import pool from "../config/db.js";
 import { saveCatalogImage, removeCatalogImage } from "../services/catalogImageService.js";
@@ -11,6 +12,7 @@ const join = `LEFT JOIN categories c ON c.id=b.category_id
 const fields = "b.*, c.name AS category_name, p.name AS product_name";
 const map = r => ({
   id: String(r.id), title:r.title, subtitle:r.subtitle||"", imageUrl:r.image_url, linkUrl:r.link_url,
+  textStyle:r.text_style ?? null,
   position:r.position, categoryId:r.category_id == null? null:String(r.category_id),
   categoryName:r.category_name||null, productId:r.product_id == null? null:String(r.product_id),
   productName:r.product_name||null, sortOrder:r.sort_order, showText:r.show_text !== false, isActive:r.is_active,
@@ -26,12 +28,13 @@ function validate(body) {
   const linkUrl=typeof body?.linkUrl==="string"?body.linkUrl.trim():"/products";
   const sortOrder=Number(body?.sortOrder??0);
   const showText=parseBannerVisualMode(body?.showText);
+  const textStyle=parsePromotionTextStyle(body?.textStyle);
   const schedule=parsePromotionSchedule(body?.startsAt, body?.endsAt);
-  if(showText === null || !schedule)return null;
+  if(showText === null || textStyle === undefined || !schedule)return null;
   if(!title||title.length>150||subtitle.length>300||
      !validBannerPlacement(position,categoryId,productId)||!validBannerDestination(linkUrl)||
      !Number.isInteger(sortOrder)||sortOrder<0||sortOrder>10000)return null;
-  return {title,subtitle,position,categoryId,productId,linkUrl,sortOrder,showText,...schedule};
+  return {title,subtitle,position,categoryId,productId,linkUrl,sortOrder,showText,textStyle,...schedule};
 }
 async function validateTargets(values) {
   if(values.categoryId){
@@ -113,11 +116,11 @@ export async function createBanner(req,res){
       await client.query("BEGIN");
       await client.query("LOCK TABLE promotion_banners IN SHARE ROW EXCLUSIVE MODE");
       ({rows}=await client.query(`INSERT INTO promotion_banners
-        (title,subtitle,image_url,link_url,position,category_id,product_id,sort_order,show_text,starts_at,ends_at)
+        (title,subtitle,image_url,link_url,position,category_id,product_id,sort_order,show_text,starts_at,ends_at,text_style)
         VALUES($1,$2,$3,$4,$5,$6,$7,
-          (SELECT COALESCE(MAX(sort_order),0)+1 FROM promotion_banners),$8,$9,$10) RETURNING *`,
+          (SELECT COALESCE(MAX(sort_order),0)+1 FROM promotion_banners),$8,$9,$10,$11::jsonb) RETURNING *`,
         [values.title,values.subtitle,saved.url,values.linkUrl,values.position,
-         values.categoryId,values.productId,values.showText,values.startsAt,values.endsAt]));
+         values.categoryId,values.productId,values.showText,values.startsAt,values.endsAt,values.textStyle?JSON.stringify(values.textStyle):null]));
       await client.query("COMMIT");
     } catch (error) { await client.query("ROLLBACK");throw error; }
     finally {client.release();}
@@ -135,9 +138,11 @@ export async function updateBanner(req,res){
     if(req.file)saved=await saveCatalogImage(req.file,"banners");
     const {rows}=await pool.query(`UPDATE promotion_banners SET
       title=$1,subtitle=$2,image_url=COALESCE($3,image_url),link_url=$4,position=$5,
-      category_id=$6,product_id=$7,show_text=$8,starts_at=$9,ends_at=$10,updated_at=NOW()
+      category_id=$6,product_id=$7,show_text=$8,starts_at=$9,ends_at=$10,
+      text_style=CASE WHEN $13::boolean THEN $12::jsonb ELSE text_style END,updated_at=NOW()
       WHERE id=$11 RETURNING *`,
-      [values.title,values.subtitle,saved?.url||null,values.linkUrl,values.position,values.categoryId,values.productId,values.showText,values.startsAt,values.endsAt,req.params.id]);
+      [values.title,values.subtitle,saved?.url||null,values.linkUrl,values.position,values.categoryId,values.productId,values.showText,values.startsAt,values.endsAt,req.params.id,values.textStyle?JSON.stringify(values.textStyle):null,
+       Object.prototype.hasOwnProperty.call(req.body??{},"textStyle")]);
     if(!rows.length){await removeCatalogImage(saved);return res.status(404).json({message:"Banner not found."});}
     res.json({banner:map(rows[0])});
   }catch(err){await removeCatalogImage(saved);if(err.code==='23503')return res.status(400).json({message:"Promotion target not found."});console.error(err);res.status(500).json({message:"Unable to update banner."});}

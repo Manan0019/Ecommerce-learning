@@ -12,12 +12,13 @@ import {apiAssetUrl} from "../../services/apiClient";
 import {getAdminCategories} from "../../services/categoryService";
 import {getAdminBanners,saveBanner,setBannerActive,setPromotionDisplayCount} from "../../services/bannerService";
 import PromotionOrderManager from "../../components/admin/PromotionOrderManager";
+import PromotionTextStyleEditor from "../../components/admin/PromotionTextStyleEditor";
 import {bannerStatus,toLocalDateTime,toUtcDateTime} from "../../services/promotionSchedule";
 import {categoryPaths} from "../../services/categoryHierarchy";
 
 const blank=()=>({title:"",subtitle:"",position:"home",categoryId:"",productId:"",productName:"",
   destinationType:"shop",destinationCategoryId:"",destinationProductId:"",destinationProductName:"",
-  customLink:"/products",showText:true,startsAt:"",endsAt:"",image:null});
+  customLink:"/products",showText:true,textStyle:null,startsAt:"",endsAt:"",image:null});
 const categoryPlacement=position=>["category","both"].includes(position);
 const productPlacement=position=>["product","home_product"].includes(position);
 function parseDestination(url,categories){
@@ -69,7 +70,7 @@ export default function AdminBanners(){
   function edit(item){
     setEditing(item);setDraft({...blank(),title:item?.title||"",subtitle:item?.subtitle||"",
       position:item?.position||"home",categoryId:item?.categoryId||"",productId:item?.productId||"",
-      productName:item?.productName||"",showText:item?.showText!==false,
+      productName:item?.productName||"",showText:item?.showText!==false,textStyle:item?.textStyle||null,
       startsAt:toLocalDateTime(item?.startsAt),endsAt:toLocalDateTime(item?.endsAt),...parseDestination(item?.linkUrl,paths)});
     setError("");setNotice("");setOpened(true);
   }
@@ -98,6 +99,7 @@ export default function AdminBanners(){
       for(const key of ["title","subtitle","position"])data.append(key,draft[key]);
       data.append("startsAt",startsAt||"");data.append("endsAt",endsAt||"");
       data.append("showText",String(draft.showText));
+      data.append("textStyle",JSON.stringify(draft.textStyle));
       data.append("categoryId",categoryPlacement(draft.position)?draft.categoryId:"");
       data.append("productId",productPlacement(draft.position)?draft.productId:"");
       data.append("linkUrl",linkUrl);
@@ -144,17 +146,20 @@ export default function AdminBanners(){
       <p><strong>#{i+1}</strong> · {placementLabel(item)} · {item.showText===false?"Image only":"Text overlay"}</p>
       <p className="nx19-banner-destination">Redirects to: <code>{item.linkUrl}</code></p>
       {(item.startsAt||item.endsAt)&&<p className="nx39-schedule-caption">{item.startsAt?`From ${new Date(item.startsAt).toLocaleString()}`:"Immediately"} / {item.endsAt?new Date(item.endsAt).toLocaleString():"No end date"}</p>}
-      <IconActionGroup className="nx17-banner-actions"><IconButton variant="secondary"  type="button" onClick={()=>edit(item)} aria-label={`Edit ${item.title}`} title="Edit promotion"><UiIcon name="edit" size={18}/></IconButton>
+      <IconActionGroup className="nx17-banner-actions"><IconButton variant="secondary" type="button" icon="edit" iconSize={18} onClick={()=>edit(item)} aria-label={`Edit promotion: ${item.title}`} title={`Edit ${item.title}`}/>
         <IconButton variant={item.isActive?"danger":"success"} type="button" disabled={busy} onClick={()=>toggle(item)} aria-label={`${item.isActive?'Disable':'Enable'} ${item.title}`} title={item.isActive?'Disable promotion':'Enable promotion'}><UiIcon name={item.isActive?'ban':'check'} size={18}/></IconButton></IconActionGroup></div>
     </article>)}{items.length>0&&!filteredPromotions.length&&<EmptyState icon="search" title="No matching promotions" description="Clear your search or choose a different status."/>}{!items.length&&<EmptyState icon="images" title="No promotions yet" description="Create your first banner to showcase a collection."/>}</section>
     <Pagination {...promotionPager} label="promotions" onPageChange={promotionPager.setPage}/>
-    {opened&&<Modal title={editing?"Edit promotion":"New promotion"} size="medium" onClose={()=>!busy&&setOpened(false)} closeDisabled={busy}>
+    {opened&&<Modal title={editing?"Edit promotion":"New promotion"} size="large" onClose={()=>!busy&&setOpened(false)} closeDisabled={busy}>
       <form className="admin-form nx17-banner-form" onSubmit={submit}>
         <FormField><span className="nx34-field-label">Headline <b className="nx34-required" aria-hidden="true">*</b></span><TextField required maxLength={150} value={draft.title} onChange={e=>setDraft(p=>({...p,title:e.target.value}))}/></FormField>
         <FormField>Subtitle<TextField maxLength={300} value={draft.subtitle} onChange={e=>setDraft(p=>({...p,subtitle:e.target.value}))}/></FormField>
         <div className="nx35-banner-visual-mode"><FormField inline className="nx35-banner-check"><Checkbox type="checkbox" checked={!draft.showText} onChange={e=>setDraft(p=>({...p,showText:!e.target.checked}))}/><span><strong>Use original banner design (image only)</strong><small>Hide all overlaid text and remove the dark gradient. The image displays at full brightness.</small></span></FormField>
-          <p>For banners containing their own wording, enable image-only mode. The headline is still required internally to identify the promotion in Admin.</p></div>
-        <fieldset className="nx19-section"><legend>1. Where should it appear?</legend>
+          <p>For images with text already embedded, use image-only mode. To add or customize a text overlay, turn image-only mode off. All promotion settings are saved together using Save promotion.</p></div>
+        <PromotionTextStyleEditor draft={draft} originalImageUrl={editing?.imageUrl}
+          onEnableOverlay={()=>setDraft(p=>({...p,showText:true}))}
+          onChange={textStyle=>setDraft(p=>({...p,textStyle,showText:textStyle?true:p.showText}))}/>
+        <fieldset className="nx19-section"><legend>2. Where should it appear?</legend>
           <FormField>Banner placement<Select value={draft.position} onChange={e=>setDraft(p=>({...p,position:e.target.value,categoryId:"",productId:"",productName:""}))}>
             <option value="home">Homepage only</option>
             <option value="category">Selected category / subcategory</option>
@@ -167,7 +172,7 @@ export default function AdminBanners(){
           {productPlacement(draft.position)&&<PromotionProductPicker label="Choose display product" productId={draft.productId} productName={draft.productName}
             onSelect={(id,name)=>setDraft(p=>({...p,productId:id,productName:name}))}/>}
         </fieldset>
-        <fieldset className="nx19-section"><legend>2. Where should clicking it go?</legend>
+        <fieldset className="nx19-section"><legend>3. Where should clicking it go?</legend>
           <FormField>Redirect destination<Select value={draft.destinationType} onChange={e=>setDraft(p=>({...p,destinationType:e.target.value}))}>
             <option value="product">A specific product</option><option value="category">A category or subcategory</option>
             <option value="shop">All products (Shop)</option><option value="home">Homepage</option>
@@ -182,7 +187,7 @@ export default function AdminBanners(){
             <small>Internal paths start with /; external destinations must use HTTPS. Unsafe links are rejected.</small></FormField>}
           <p className="nx19-url-preview">Click destination: <code>{destination()||"Select a destination"}</code></p>
         </fieldset>
-        <fieldset className="nx39-schedule-fields"><legend>3. Promotion schedule (optional)</legend>
+        <fieldset className="nx39-schedule-fields"><legend>4. Promotion schedule (optional)</legend>
           <p>Use your local date and time. Empty fields mean no time limit. The promotion must also be enabled.</p>
           <div className="nx39-schedule-grid"><FormField>Start date &amp; time<TextField type="datetime-local" value={draft.startsAt}
             onChange={e=>setDraft(p=>({...p,startsAt:e.target.value}))}/></FormField>

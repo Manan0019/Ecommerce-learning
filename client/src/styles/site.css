@@ -135,7 +135,7 @@ img {
 .nx59-image-placeholder{display:grid;place-items:center;color:#a092dd}
 .nx59-image-placeholder[hidden]{display:none}
 .nx59-order-preview-copy{display:flex;flex:1;flex-direction:column;gap:7px;min-width:0}
-.nx59-order-preview-copy a{font-size:13px;font-weight:800;color:#1c2846;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;line-height:1.45}
+.nx59-order-preview-copy a{font-size:13px;font-weight:800;color:#1c2846;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;line-height:1.45}
 .nx59-order-preview-copy a:hover{color:#5b48c8}
 .nx59-order-preview-copy span{font-size:11px;color:#7d8399;overflow-wrap:anywhere}
 .nx59-order-preview-price{font-size:12px;color:#293350;align-self:flex-end;white-space:nowrap}
@@ -3948,7 +3948,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .nx17-subcategory-shelf a:hover { border-color:#5b55d6; background:#fafaff; }
 .nx17-subcategory-shelf a>span { display:grid; place-items:center; height:90px; background:#f4f6fb; border-radius:8px; }
 .nx17-subcategory-shelf img { width:100%; height:100%; object-fit:contain; }
-.product-card h3 { display:-webkit-box;line-clamp:2;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+.product-card h3 { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
 
 /* ---- legacy layer 18.css : retained cascading behavior ---- */
 /* Phase 18: searchable category selection and compact navigation. */
@@ -5083,7 +5083,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .storefront .nx37-promotion-copy{z-index:2;position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:clamp(16px,3vw,42px);color:#fff;max-width:90%}
 .storefront .nx37-promotion-copy strong{font-size:clamp(1.25rem,2.6vw,2.85rem);line-height:1.1;letter-spacing:-.04em;color:#fff}
 .storefront .nx37-promotion-card:not(.is-primary) .nx37-promotion-copy strong{font-size:clamp(1.1rem,1.6vw,1.75rem)}
-.storefront .nx37-promotion-copy span{font-size:.85rem;line-height:1.45;color:#f1edff;display:-webkit-box;line-clamp:2;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.storefront .nx37-promotion-copy span{font-size:.85rem;line-height:1.45;color:#f1edff;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .storefront .nx37-promotion-copy em{font-size:.76rem;font-style:normal;font-weight:800;color:#fff}
 .storefront .nx37-promotion-dots{display:flex;justify-content:center;gap:7px;padding:15px 0 0}
 .storefront .nx37-promotion-dots button{height:8px;width:8px;background:#c8c4df;border:0;border-radius:999px;transition:width .2s}
@@ -5170,7 +5170,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .storefront .nx37-recent-image img{max-width:100%;max-height:100%;object-fit:contain}
 .storefront .nx37-recent-copy{display:flex;flex-direction:column;gap:6px;padding:2px 5px 5px}
 .storefront .nx37-recent-copy small{color:#6555ba;font-size:.64rem;text-transform:uppercase;font-weight:850}
-.storefront .nx37-recent-copy strong{font-size:.9rem;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.storefront .nx37-recent-copy strong{font-size:.9rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .storefront .nx37-recent-copy em{font-size:.74rem;color:#5941c8;font-weight:800;font-style:normal}
 .storefront .nx37-recent-note{font-size:.71rem;color:#74809a;margin:0}
 @media(max-width:1050px){.storefront .nx37-category-grid,.storefront .nx16-category-grid:has(.nx37-category-card){grid-template-columns:repeat(2,minmax(0,1fr))}.storefront .nx37-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -5864,7 +5864,7 @@ a .nx47-icon,button .nx47-icon {pointer-events:none}
 
 /* Clean media counter replaces squashed oval dots, arrows center visually in circles. */
 .storefront .nx29-card-arrows button,.storefront .nx29-detail-controls button {padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;aspect-ratio:1/1;border-radius:50%!important}
-.storefront .nx29-card-arrows button .nx47-icon,.storefront .nx29-detail-controls button .nx47-icon {display:block!important;flex:0 0 auto!important;margin:0!important;transform:none!important}
+.storefront .nx29-card-arrows button .nx47-icon,.storefront .nx29-detail-controls button .nx47-icon {display:block!important;flex:0 0 auto!important;vertical-align:middle!important;margin:0!important;transform:none!important}
 .storefront .nx29-card-arrows button {width:36px!important;height:36px!important;box-shadow:0 5px 16px #261e531a}
 .storefront .nx29-card-arrows button:hover .nx47-icon {transform:none!important}
 .storefront .nx29-detail-controls {align-items:center;gap:8px}
@@ -5882,7 +5882,7 @@ a .nx47-icon,button .nx47-icon {pointer-events:none}
 .storefront .nx48-recent-card:hover .nx48-recent-image img {transform:scale(1.035)}
 .storefront .nx48-recent-copy {position:static!important;inset:auto!important;transform:none!important;display:flex!important;flex-direction:column;align-items:stretch;flex:1;gap:7px;min-width:0;padding:14px 17px 18px!important;color:#192543!important;background:#fff!important}
 .storefront .nx48-recent-copy small {display:block;color:#654bc7;font-weight:850;text-transform:uppercase;letter-spacing:.055em;font-size:.64rem;line-height:1.35;overflow-wrap:anywhere}
-.storefront .nx48-recent-copy strong {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;font-size:.89rem;font-weight:760;line-height:1.42;color:#192543;min-height:2.7em}
+.storefront .nx48-recent-copy strong {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:.89rem;font-weight:760;line-height:1.42;color:#192543;min-height:2.7em}
 .storefront .nx48-recent-cta {margin-top:auto;padding-top:9px;display:inline-flex;gap:5px;align-items:center;color:#5a43c7;font-size:.77rem;font-weight:800}
 .storefront .nx48-recent-cta .nx47-icon {margin-left:2px}
 .storefront .nx48-recent-section {padding-top:clamp(26px,4vw,52px)!important;padding-bottom:clamp(20px,3vw,40px)!important}
@@ -5950,7 +5950,7 @@ a .nx47-icon,button .nx47-icon {pointer-events:none}
   line-height:1;transition:background .18s,color .18s;
 }
 .storefront .nx35-category-expand .nx47-icon {
-  display:block;margin:0;transform:none;
+  display:block;margin:0;vertical-align:middle;transform:none;
 }
 .storefront .nx35-category-item:hover>.nx35-category-item-row .nx35-category-expand,.storefront .nx35-category-expand:hover,.storefront .nx35-category-expand:focus-visible {color:#513dc2;background:#e9e2ff;}
 .storefront .nx35-category-expand:focus-visible {outline:2px solid #755ce3;outline-offset:1px;}
@@ -6281,7 +6281,7 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 /* Phase 57 — readable operations tables, delivery sidebar and minimal media gallery. */
 .nx46-recent-products a,.nx46-recent-products a>div {min-width:0;max-width:100%}
 .nx46-recent-products a>div:nth-child(2) {flex:1 1 0;overflow:hidden}
-.nx46-recent-products strong {display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal!important;text-overflow:ellipsis;overflow-wrap:anywhere;line-height:1.45;max-width:100%}
+.nx46-recent-products strong {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal!important;text-overflow:ellipsis;overflow-wrap:anywhere;line-height:1.45;max-width:100%}
 .nx46-recent-products small {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nx46-recent-products .nx47-icon {flex:0 0 auto;margin-left:auto}
 .nx46-recent-products .nx46-pill{flex:0 0 auto}
@@ -6406,7 +6406,7 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .storefront .nx62-recent-stage .nx61-card-actions{right:9px;top:9px;opacity:0;transform:translateX(5px)}
 .storefront .nx62-recent-card:hover .nx61-card-actions,.storefront .nx62-recent-card:focus-within .nx61-card-actions{opacity:1;transform:none;pointer-events:auto}
 .storefront .nx62-recent-card .nx48-recent-copy{display:flex!important}
-.storefront .nx62-recent-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;color:#1a2647;text-decoration:none;font-size:.9rem;line-height:1.4;font-weight:760}
+.storefront .nx62-recent-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#1a2647;text-decoration:none;font-size:.9rem;line-height:1.4;font-weight:760}
 .storefront .nx62-recent-name:hover{color:#624ac9}
 /* Admin footer content editor */
 .nx62-footer-editor{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.8fr);align-items:start;gap:24px;padding:25px!important}
@@ -6835,7 +6835,7 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .storefront .nx69-compare-image img{width:100%;height:100%;object-fit:contain;transition:transform .3s}
 .storefront .nx69-compare-image:hover img{transform:scale(1.05)}
 .storefront .nx69-compare-category{text-transform:uppercase;font-size:.66rem;letter-spacing:.075em;font-weight:800;color:#654dd0}
-.storefront .nx69-compare-product-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden;line-height:1.4;font-size:.91rem;font-weight:800;text-decoration:none}
+.storefront .nx69-compare-product-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;line-height:1.4;font-size:.91rem;font-weight:800;text-decoration:none}
 .storefront .nx69-compare-price{font-size:1.08rem;color:#142244;font-variant-numeric:tabular-nums}
 .storefront .nx69-compare-choose{display:inline-flex;justify-content:center;align-items:center;min-height:36px;padding:8px 13px;border-radius:10px;background:#6048da;color:white;font-size:.8rem;font-weight:850;text-align:center;text-decoration:none;transition:background .2s,transform .2s}
 .storefront .nx69-compare-choose:hover{background:#4931b2;transform:translateY(-2px)}
@@ -7008,7 +7008,7 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .admin-shell .nx71-inventory-health{width:100%;min-width:0}
 .admin-shell .nx71-inventory-health a{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;min-width:0;padding:13px 0}
 .admin-shell .nx71-stock-detail{min-width:0;width:100%;max-width:100%;overflow:hidden}
-.admin-shell .nx71-stock-detail strong{display:-webkit-box;line-clamp:2;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;overflow-wrap:anywhere;line-height:1.44;text-decoration:none}
+.admin-shell .nx71-stock-detail strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;overflow-wrap:anywhere;line-height:1.44;text-decoration:none}
 .admin-shell .nx71-stock-detail small{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#67718b;font-size:.74rem}
 .admin-shell .nx71-stock-quantity{font-size:.76rem;font-weight:850;line-height:1.1;border-radius:999px;padding:8px 11px;white-space:nowrap;text-align:center;justify-self:end}
 .admin-shell .nx71-stock-quantity.is-out{color:#ad1438;background:#ffedf0}

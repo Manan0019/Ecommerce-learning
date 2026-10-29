@@ -2,6 +2,8 @@ import { Button, IconButton } from "../ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useCallback, useEffect, useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
+import PromotionBannerCopy from "./PromotionBannerCopy";
+import {promotionShadeStyle} from "../../services/promotionTextStyle";
 import { Link } from "react-router-dom";
 import { getBanners } from "../../services/bannerService";
 import { apiAssetUrl } from "../../services/apiClient";
@@ -15,13 +17,13 @@ function PromotionCard({ banner, primary = false, priority = false }) {
     <span className="nx37-promotion-image-frame">
       <img src={apiAssetUrl(banner.imageUrl)} alt={imageOnly ? banner.title : ""} loading={priority ? "eager" : "lazy"} decoding="async" />
     </span>
-    {!imageOnly && <span className="nx37-promotion-copy"><strong>{banner.title}</strong>{banner.subtitle && <span>{banner.subtitle}</span>}<em>Explore offer <UiIcon name="chevron-right" size={17}/></em></span>}
+    {!imageOnly && <PromotionBannerCopy banner={banner}/>}
     {imageOnly && <span className="sr-only">{banner.title}</span>}
   </>;
   const cls = `nx37-promotion-card${primary ? " is-primary" : ""}${imageOnly ? " is-image-only" : " has-overlay"}`;
   return external
-    ? <a className={cls} href={banner.linkUrl} target="_blank" rel="noopener noreferrer" aria-label={banner.title}>{content}</a>
-    : <Link className={cls} to={banner.linkUrl} aria-label={banner.title}>{content}</Link>;
+    ? <a style={promotionShadeStyle(banner.textStyle)} className={cls} href={banner.linkUrl} target="_blank" rel="noopener noreferrer" aria-label={banner.title}>{content}</a>
+    : <Link style={promotionShadeStyle(banner.textStyle)} className={cls} to={banner.linkUrl} aria-label={banner.title}>{content}</Link>;
 }
 
 /** 1–6 promotions at once on desktop, one active image on phones.

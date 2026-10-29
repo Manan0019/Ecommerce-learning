@@ -36,7 +36,7 @@ import {admin as adminDeliveryRoutes,delivery as deliveryRoutes,notificationRout
 const app = express();
 app.disable("x-powered-by");
 if(process.env.TRUST_PROXY === "1") app.set("trust proxy", 1);
-const PORT = Number(process.env.PORT) || 4000;
+const PORT = Number(process.env.PORT) || 4001;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
