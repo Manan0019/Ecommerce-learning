@@ -105,40 +105,9 @@
 .nx-ui-empty p { max-width: 440px; margin: 0; font: var(--nx-body-weight) var(--nx-body-font)/1.5 var(--nx-font-family); color: var(--nx-muted); }
 .nx-ui-card { padding: var(--nx-card-padding); border: 1px solid var(--nx-control-border); border-radius: var(--nx-card-radius); background: var(--nx-surface); box-shadow: 0 4px 18px #1b164706; }
 .nx-ui-card--subtle { background: var(--nx-surface-subtle); }
-/* Shared password control for customer, administrator and delivery sign-in. */
-.nx-ui-field .auth-password-control { position: relative; display: block; width: 100%; min-width: 0; }
-.auth-password-control > .nx-ui-input { width: 100%; padding-inline-end: 58px; }
-.auth-password-control > button.auth-password-toggle {
-  position: absolute; inset-inline-end: 6px; top: 50%;
-  transform: translateY(-50%); display: grid; place-items: center;
-  width: 42px; height: 42px; min-width: 42px; min-height: 42px;
-  border: 1px solid transparent; border-radius: 11px;
-  background: transparent; color: #5a46c0; padding: 0; margin: 0;
-  cursor: pointer; box-shadow: none; overflow: hidden;
-  transition: background-color var(--nx-motion-fast) var(--nx-ease),
-    border-color var(--nx-motion-fast) var(--nx-ease), color var(--nx-motion-fast) var(--nx-ease),
-    box-shadow var(--nx-motion-fast) var(--nx-ease);
-}
-.auth-password-control > button.auth-password-toggle:is(:hover,:focus-visible) {
-  background: #f1ecff; border-color: #ddd5ff; color: #442ec5;
-}
-.auth-password-control > button.auth-password-toggle:focus-visible {
-  outline: 2px solid var(--nx-accent); outline-offset: 1px;
-}
-.auth-password-toggle .auth-password-icon {
-  position: absolute; inset: 0; display: grid; place-items: center;
-  transition: opacity var(--nx-motion) var(--nx-ease),
-    transform var(--nx-motion) var(--nx-ease);
-}
-.auth-password-toggle .auth-password-icon--show { opacity: 1; transform: scale(1) rotate(0); }
-.auth-password-toggle .auth-password-icon--hide { opacity: 0; transform: scale(.7) rotate(-12deg); }
-.auth-password-toggle[data-visible="true"] .auth-password-icon--show { opacity: 0; transform: scale(.7) rotate(12deg); }
-.auth-password-toggle[data-visible="true"] .auth-password-icon--hide { opacity: 1; transform: scale(1) rotate(0); }
-.auth-password-toggle:is(:hover,:focus-visible) .auth-password-icon { filter: drop-shadow(0 1px 2px #8d74df44); }
-@media (prefers-reduced-motion: reduce) {
-  .auth-password-toggle, .auth-password-toggle .auth-password-icon { transition: none !important; }
-}
-
+.nx-ui-field .auth-password-control { display: flex; align-items: center; gap: var(--nx-icon-gap); }
+.auth-password-control > .nx-ui-input { padding-right: var(--nx-control-padding); }
+.auth-password-control > .nx-ui-button { position: static; transform: none; }
 .nx24-jump { display: flex; align-items: center; gap: var(--nx-icon-gap); }
 .nx24-jump .nx-ui-select { min-width: 76px; }
 .nx-ui-table .nx-ui-actions { min-width: 0; }
@@ -233,4 +202,55 @@
 .nx-ui-field > .nx-ui-search-field {flex:0 0 auto;width:100%;height:var(--nx-control-height);min-height:var(--nx-control-height);}
 @media(max-width:650px) {
   .nx-ui-filter-actions {flex-wrap:wrap;gap:8px;}
+}
+
+/* Shared multi-select: checkbox options + removable chips, no modifier keys needed. */
+.nx-ui-multiselect { min-width:0; position:relative; align-self:start; }
+.nx-ui-multiselect .nx-ui-multi-trigger.nx-ui-button {
+  width:100%; min-width:0; align-self:stretch; height:var(--nx-control-height);
+  padding:0 var(--nx-control-padding); justify-content:space-between; gap:var(--nx-icon-gap);
+  --nx-button-bg:var(--nx-surface); --nx-button-ink:var(--nx-ink);
+  --nx-button-border:var(--nx-control-border); font-weight:var(--nx-control-weight);
+  text-align:left; box-shadow:none;
+}
+.nx-ui-multiselect .nx-ui-multi-trigger.nx-ui-button:is(:hover,:focus-visible,[aria-expanded='true']) {
+  --nx-button-border:var(--nx-accent); --nx-button-bg:var(--nx-surface);
+  --nx-button-ink:var(--nx-ink);
+  box-shadow:var(--nx-focus-ring); transform:none;
+}
+.nx-ui-multi-value { min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.nx-ui-multi-placeholder { min-width:0; flex:1; color:var(--nx-placeholder); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.nx-ui-multi-trigger-trailing {display:flex;align-items:center;flex:0 0 auto;gap:8px;color:var(--nx-accent);}
+.nx-ui-multi-count {display:grid;place-items:center;min-width:22px;height:22px;border-radius:99px;padding:0 5px;background:#efebff;font-size:11px;font-weight:700;}
+.nx-ui-multi-chevron {transition:transform var(--nx-motion) var(--nx-ease);}
+.nx-ui-multi-chevron.is-open {transform:rotate(180deg);}
+.nx-ui-multi-chips {display:flex;flex-wrap:wrap;gap:6px;min-width:0;}
+.nx-ui-multi-chip.nx-ui-button:not(.nx-ui-button--plain) {
+  --nx-button-bg:#f4f1ff;--nx-button-border:#d9cefa;--nx-button-ink:#5139b5;
+  min-height:30px;height:auto;padding:5px 8px 5px 10px;border-radius:9px;
+  max-width:100%;font-size:12px;gap:7px;white-space:normal;text-align:left;align-self:auto;
+}
+.nx-ui-multi-chip span {overflow-wrap:anywhere;}
+.nx-ui-multi-chip svg {flex-shrink:0;}
+.nx-ui-multi-chip.nx-ui-button:not(.nx-ui-button--plain):is(:hover,:focus-visible) {
+  --nx-button-bg:#e9e2ff;--nx-button-border:#a895ee;--nx-button-ink:#4830ad;
+  transform:none;
+}
+.nx-ui-multi-panel {display:flex;flex-direction:column;gap:10px;padding:10px;border:1px solid var(--nx-control-border);border-radius:var(--nx-control-radius);background:var(--nx-surface);min-width:0;box-shadow:0 8px 22px #3b2e8612;}
+.nx-ui-multiselect .nx-ui-multi-search {width:100%;flex:0 0 auto;min-height:var(--nx-control-height-sm);height:var(--nx-control-height-sm);}
+.nx-ui-multi-search .nx-ui-search-input {height:calc(var(--nx-control-height-sm) - 2px);}
+.nx-ui-multi-tools {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;color:var(--nx-muted);font-size:12px;}
+.nx-ui-multi-tools > div {display:flex;align-items:center;gap:2px;}
+.nx-ui-multiselect .nx-ui-multi-tools .nx-ui-button:not(.nx-ui-button--plain) {min-height:30px;padding:4px 7px;align-self:auto;font-size:12px;}
+.nx-ui-multi-options {display:grid;gap:3px;max-height:192px;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px;}
+.nx-ui-multi-option {display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border-radius:8px;cursor:pointer;font-size:var(--nx-control-font);font-weight:var(--nx-control-weight);color:var(--nx-ink);transition:background-color var(--nx-motion) var(--nx-ease);}
+.nx-ui-multi-option:hover,.nx-ui-multi-option:focus-within {background:#f4f1ff;}
+.nx-ui-multi-option > span {flex:1;min-width:0;overflow-wrap:anywhere;}
+.nx-ui-multi-option > .nx-ui-choice {flex-shrink:0;margin:0;}
+.nx-ui-multi-option-check {color:var(--nx-accent);flex-shrink:0;}
+.nx-ui-multi-empty {padding:14px 8px;margin:0;color:var(--nx-muted);font:var(--nx-control-weight) var(--nx-helper-font)/1.5 var(--nx-font-family);}
+.nx-ui-multi-footer {display:flex;justify-content:flex-end;border-top:1px solid var(--nx-control-border);padding-top:10px;}
+.nx-ui-multiselect .nx-ui-multi-footer .nx-ui-button:not(.nx-ui-button--plain) {min-height:var(--nx-control-height-sm);padding:6px 16px;}
+@media (prefers-reduced-motion:reduce) {
+  .nx-ui-multi-option,.nx-ui-multi-chevron {transition:none;}
 }

@@ -119,6 +119,24 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .nx-editor-tabs small { display: block; margin-top: 4px; font-size: .67rem; font-weight: 500; line-height: 1.35; }
 .nx-editor-detail-grid { display: grid; grid-template-columns: minmax(0,1.55fr) minmax(240px,.65fr); align-items: start; gap: 18px; }
 .nx-cover-panel { display: grid; gap: 12px; }
+/* Keep the entire catalogue-cover card alongside long product-edit forms.
+   The modal body (.nx-modal-body) is the scroll container; sticky must live
+   on the grid item itself, not on its image or an extra nested wrapper. */
+@media (min-width: 1101px) {
+  .nx-editor-detail-grid > .nx-cover-panel {
+    position: sticky;
+    top: 12px;
+    align-self: start;
+    min-width: 0;
+    max-height: calc(92dvh - 155px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .nx-editor-detail-grid > .nx-cover-panel .nx-cover-preview {
+    max-height: clamp(160px, 27dvh, 280px);
+  }
+}
 .nx-cover-panel h2 { font-size: 1.12rem; margin: 0; }
 .nx-cover-panel p { color: #748196; font-size: .81rem; line-height: 1.5; margin: 0; }
 .nx-cover-preview { width: 100%; aspect-ratio: 1/1; display: grid; place-items: center; background: #f7f8fc; border: 1px dashed #e2e5ef; border-radius: 13px; overflow: hidden; }

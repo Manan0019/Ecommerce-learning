@@ -1,4 +1,4 @@
-import { Checkbox, FormField, Select, TextField } from "../ui/index";
+import { Checkbox, FormField, MultiSelect, Select, TextField } from "../ui/index";
 
 function SpecificationInput({ field, value, onChange, disabled }) {
   const id = `specification-${field.key}`;
@@ -11,14 +11,9 @@ function SpecificationInput({ field, value, onChange, disabled }) {
   }
 
   if (field.type === "multiSelect") {
-    return <FormField htmlFor={id}>{field.label}{field.unit ? ` (${field.unit})` : ""}
-      <Select id={id} multiple value={Array.isArray(value) ? value : []} disabled={disabled}
-        onChange={(event) => onChange(field.key,
-          [...event.target.selectedOptions].map((option) => option.value))}>
-        {field.options.map((option) => <option value={option} key={option}>{option}</option>)}
-      </Select>
-      <small>Hold Ctrl or Command to select multiple values.</small>
-    </FormField>;
+    return <MultiSelect id={id} label={`${field.label}${field.unit ? ` (${field.unit})` : ""}`}
+      options={field.options} value={Array.isArray(value) ? value : []} disabled={disabled}
+      onChange={(next) => onChange(field.key, next)} />;
   }
 
   if (field.type === "select") {

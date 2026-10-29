@@ -1,0 +1,45 @@
+/* Phase 90: Product buying guides. Only layout is specialized; controls use shared UI primitives. */
+.nx90-guide-editor{border:1px solid var(--nx-border,#dedbf5);border-radius:18px;background:var(--nx-surface,#fff);margin:20px 0;overflow:hidden}
+.nx90-guide-editor>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 22px;cursor:pointer;color:var(--nx-ink,#171c38)}
+.nx90-guide-editor>summary::-webkit-details-marker{display:none}
+.nx90-guide-editor>summary span{display:grid;gap:6px}
+.nx90-guide-editor>summary strong{font-size:1.05rem}
+.nx90-guide-editor>summary small,.nx90-guide-edit-group p,.nx90-guide-note{color:var(--nx-muted,#63718d);font-size:.88rem;line-height:1.55}
+.nx90-guide-editor[open]>summary{border-bottom:1px solid #e9e5fa}
+.nx90-guide-editor>summary svg,.nx90-faq-list summary svg{transition:transform var(--nx-duration,200ms) ease}
+.nx90-guide-editor[open]>summary svg,.nx90-faq-list details[open] summary svg{transform:rotate(180deg)}
+.nx90-guide-editor-body{display:grid;gap:18px;padding:22px}
+.nx90-guide-note{margin:0;padding:12px 15px;background:#f6f4ff;border-radius:12px}
+.nx90-guide-edit-group{display:grid;gap:12px;padding:16px;border:1px solid #e9e5fa;border-radius:14px;min-width:0}
+.nx90-guide-edit-group h3{margin:0;font-size:1rem}
+.nx90-guide-edit-group p{margin:0}
+.nx90-guide-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nx90-guide-actions{display:flex;flex-wrap:wrap;gap:8px}
+.nx90-chart-edit-scroll,.nx90-size-scroll{overflow-x:auto;max-width:100%}
+.nx90-chart-edit-grid{display:grid;grid-template-columns:repeat(var(--nx90-chart-cols),minmax(110px,1fr));min-width:max-content;gap:8px}
+.nx90-chart-edit-grid input{min-width:110px;width:100%}
+.nx90-model-input{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.nx90-model-input>input{flex:1 1 220px}
+.nx90-model-list{display:flex;gap:8px;flex-wrap:wrap}
+.nx90-model-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 7px 4px 12px;background:#f4f2fd;border-radius:10px;font-size:.86rem}
+.nx90-model-tag button{min-height:28px;min-width:28px;padding:3px}
+.nx90-faq-edit{display:grid;gap:10px;padding:15px;background:#faf9ff;border-radius:12px}
+.nx90-faq-edit>button{justify-self:start}
+.nx90-buying-guide{margin:32px auto;max-width:1250px}
+.nx90-guide-block{margin:14px 0;padding:22px 24px;border:1px solid #e6e4f5;border-radius:18px;background:#fff;box-shadow:0 10px 30px rgba(32,33,75,.04)}
+.nx90-guide-block h3{margin:0 0 13px;color:#151c3b;font-size:1.15rem}
+.nx90-guide-block p{margin:8px 0;line-height:1.7;white-space:pre-wrap;color:#4c5571}
+.nx90-size-scroll table{width:100%;border-collapse:collapse;text-align:left;min-width:360px}
+.nx90-size-scroll th,.nx90-size-scroll td{padding:12px 14px;border-bottom:1px solid #e9e7f3}
+.nx90-size-scroll th{background:#f6f4fc;color:#33325c;font-weight:700}
+.nx90-guide-fineprint{font-size:.88rem}
+.nx90-compatibility-list{display:flex;flex-wrap:wrap;gap:10px;list-style:none;padding:0;margin:12px 0}
+.nx90-compatibility-list li{display:flex;gap:7px;align-items:center;background:#f1f8f7;border-radius:10px;padding:8px 12px;color:#185c55}
+.nx90-guide-caution{padding:12px 14px;background:#fff8ed;border-radius:10px}
+.nx90-faq-list{display:grid;gap:10px}
+.nx90-faq-list details{border:1px solid #e7e4f5;border-radius:12px;overflow:hidden}
+.nx90-faq-list summary{cursor:pointer;list-style:none;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;font-weight:650}
+.nx90-faq-list summary::-webkit-details-marker{display:none}
+.nx90-faq-list details>p{margin:0;padding:0 18px 18px}
+@media(max-width:640px){.nx90-guide-editor-body{padding:14px}.nx90-guide-editor>summary,.nx90-guide-block{padding:16px}.nx90-model-input{align-items:stretch}.nx90-model-input>button{width:100%}}
+@media(prefers-reduced-motion:reduce){.nx90-guide-editor>summary svg,.nx90-faq-list summary svg{transition:none}}

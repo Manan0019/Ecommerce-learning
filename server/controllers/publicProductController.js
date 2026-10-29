@@ -53,6 +53,7 @@ function asPublicProduct(product) {
     brand: product.brand,
     model: product.model,
     specifications: product.specifications || {},
+    buyingGuide: product.buying_guide || {},
     price: product.price,
     mrp: product.mrp,
     stock: product.stock,
@@ -393,7 +394,7 @@ export async function getProduct(req, res) {
   }
   try {
     const { rows } = await pool.query(`
-      SELECT ${selectFields}
+      SELECT ${selectFields}, product.buying_guide
       FROM products AS product
       JOIN categories AS category ON category.id = product.category_id
       ${pricingJoin}

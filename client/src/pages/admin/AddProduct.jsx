@@ -17,6 +17,7 @@ import ProductSpecificationFields from "../../components/admin/ProductSpecificat
 import { updatePricingDraft } from "../../components/admin/variantPricing";
 import VariantPriceFields from "../../components/admin/VariantPriceFields";
 import CategoryPicker from "../../components/admin/CategoryPicker";
+import ProductBuyingGuideEditor from "../../components/admin/ProductBuyingGuideEditor";
 
 export default function AddProduct() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function AddProduct() {
   const { categories, categoriesLoading, categoriesError } = useActiveCategories();
   const [form, setForm] = useState({ name: "", brand: "", model: "", description: "", shortDescription:"", categoryId: "", mrp: "", price: "", stock: "", lowStockThreshold:"5",gstPercent:"",pricingMode:"price" });
   const [specifications, setSpecifications] = useState({});
+  const [buyingGuide, setBuyingGuide] = useState({});
   const specification = useSpecificationDefinition(form.categoryId);
   const [image, setImage] = useState(null);
   const [queuedMedia, setQueuedMedia] = useState([]);
@@ -98,6 +100,7 @@ export default function AddProduct() {
     const parent = anchorSku ? { ...form, mrp: anchorSku.mrp, price: anchorSku.price, stock: "0" } : form;
     Object.entries(parent).filter(([key])=>!["discount","pricingMode"].includes(key)).forEach(([key, value]) => formData.append(key, value));
     formData.append("specifications", JSON.stringify(specifications));
+    formData.append("buyingGuide", JSON.stringify(buyingGuide));
     formData.append("shortDescription", form.shortDescription.trim());
     formData.append("image", image);
     setLoading(true);
@@ -172,7 +175,7 @@ export default function AddProduct() {
           setCreatedProduct(null); setSavedPanel(null); setQueuedMedia([]); setFeatured(false);
           setUploadReport(""); setVariantDrafts([]); setVariantFailures([]);
           setForm({ name:"", brand:"", model:"", description:"", categoryId:"", mrp:"", price:"", stock:"", lowStockThreshold:"5",gstPercent:"", pricingMode:"price" });
-          setSpecifications({}); setImage(null); formRef.current?.reset();
+          setSpecifications({}); setBuyingGuide({}); setImage(null); formRef.current?.reset();
         }}>Create another product</Button>
       </div>
       {savedPanel && <Modal title={`Product #${createdProduct.id} · ${savedPanel === "gallery" ? "Gallery" : savedPanel === "variants" ? "SKUs" : "Details"}`}
@@ -203,6 +206,7 @@ export default function AddProduct() {
         <ProductSpecificationFields definition={specification.definition} specifications={specifications}
           onChange={updateSpecification} loading={specification.loading} />
         {specification.error && <p className="admin-alert" role="alert">{specification.error}</p>}
+        <ProductBuyingGuideEditor value={buyingGuide} onChange={setBuyingGuide} categoryName={categories.find(category=>String(category.id)===String(form.categoryId))?.name||""}/>
         <FileUploadField label="Product cover image" required selection={image?.name||''} onChange={(event) => setImage(event.target.files?.[0] || null)}/>
         <section className="admin-media-draft" aria-label="New product gallery">
           <h2>Gallery and videos</h2>

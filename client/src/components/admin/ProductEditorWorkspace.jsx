@@ -12,6 +12,7 @@ import ProductMediaManager from "./ProductMediaManager";
 import ProductVariantsManager from "./ProductVariantsManager";
 import VariantPriceFields from "./VariantPriceFields";
 import CategoryPicker from "./CategoryPicker";
+import ProductBuyingGuideEditor from "./ProductBuyingGuideEditor";
 import { updatePricingDraft } from "./variantPricing";
 import { getVariants } from "../../services/variantService";
 
@@ -28,6 +29,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
   const { categories, categoriesLoading, categoriesError } = useActiveCategories();
   const [form, setForm] = useState(null);
   const [specifications, setSpecifications] = useState({});
+  const [buyingGuide, setBuyingGuide] = useState({});
   const definition = useSpecificationDefinition(form?.categoryId);
   const [imageUrl, setImageUrl] = useState("");
   const [featured, setFeatured] = useState(false);
@@ -53,6 +55,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
           description: product.description || "", shortDescription:product.shortDescription || "", categoryId: String(product.categoryId),
           mrp: String(product.mrp ?? product.price), price: String(product.price), stock: String(product.stock), lowStockThreshold:String(product.lowStockThreshold ?? 5), gstPercent:product.gstPercent==null?"":String(product.gstPercent), pricingMode: "price" });
         setSpecifications(product.specifications || {});
+        setBuyingGuide(product.buyingGuide || {});
         setImageUrl(product.imageUrl || "");
         setFeatured(Boolean(product.isFeatured));
         setSaleEnabled(Boolean(product.showSaleBadge));
@@ -78,7 +81,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
     if (!form.categoryId) { setError("Select a valid category or subcategory."); return; }
     setSaving(true); setError(""); setMessage("");
     try {
-      await updateProduct(productId, { ...form, stock: Number(form.stock), specifications });
+      await updateProduct(productId, { ...form, stock: Number(form.stock), specifications, buyingGuide });
       setMessage("Product details saved. You can continue with SKUs or gallery in the tabs above.");
       onSaved?.();
     } catch (failure) {
@@ -155,6 +158,7 @@ export default function ProductEditorWorkspace({ productId, onSaved, initialTab 
           <ProductSpecificationFields definition={definition.definition} specifications={specifications}
             onChange={(key,value) => setSpecifications(old => ({ ...old, [key]: value }))} loading={definition.loading}/>
           {(categoriesError || definition.error) && <p className="admin-alert" role="alert">{categoriesError || definition.error}</p>}
+          <ProductBuyingGuideEditor value={buyingGuide} onChange={setBuyingGuide} categoryName={categories.find(category=>String(category.id)===String(form.categoryId))?.name||""}/>
           <div className="nx-sticky-actions"><Button variant="primary"  type="submit" disabled={saving}>{saving ? "Saving…" : "Save product details"}</Button></div>
         </form>
       </Card>
