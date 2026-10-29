@@ -1,19 +1,19 @@
-import { Button, CountBadge, EntitySubtitle, EntityTitle, FormField, IconButton, SearchField } from "../ui/index";
+import { Button, CountBadge, FormField, IconButton, SearchField } from "../ui/index";
 
 import { useEffect, useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
-import CategoryMiniArtwork from "../customer/CategoryMiniArtwork";
 import { Link, useNavigate } from "react-router-dom";
 import { SITE_NAME } from "../../config/site";
 import BrandLogo from "../common/BrandLogo";
 import CategoryMegaMenu from "./CategoryMegaMenu";
 import NotificationBell from "../common/NotificationBell";
 import { useCart } from "../../hooks/useCart";
-import { apiAssetUrl } from "../../services/apiClient";
 import { getCurrentUser, logout as endSession } from "../../services/authService";
 import { getProductSuggestions } from "../../services/productService";
 import { getCategories } from "../../services/categoryService";
 import {getStorefrontCopy} from "../../services/storefrontCopyService";
+import SmartSearchPanel from "../search/SmartSearchPanel";
+import { readRecentSearches, rememberSearch, clearRecentSearches } from "../../services/searchHistory";
 
 
 function HeartIcon() {
@@ -29,6 +29,7 @@ export default function StoreHeader() {
   const navigate = useNavigate();
   const profileRef = useRef(null);
   const searchRef = useRef(null);
+  const suggestionRef = useRef(null);
   const [user, setUser] = useState(null);
   const [compareCount, setCompareCount] = useState(() => { try { return JSON.parse(localStorage.getItem('nexora_comparisons_v1')||'[]').length; } catch { return 0; } });
   useEffect(() => { const sync = () => { try { setCompareCount(JSON.parse(localStorage.getItem('nexora_comparisons_v1')||'[]').length); } catch { setCompareCount(0); } }; window.addEventListener('nexora:compare-changed',sync); window.addEventListener('storage',sync); return () => {window.removeEventListener('nexora:compare-changed',sync);window.removeEventListener('storage',sync);}; }, []);
@@ -39,6 +40,8 @@ export default function StoreHeader() {
   const [suggestions, setSuggestions] = useState({ products: [], categories: [] });
   const [categoryArtwork, setCategoryArtwork] = useState({});
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const searchScope = user?.id ? `user-${user.id}` : 'guest';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -88,31 +91,58 @@ export default function StoreHeader() {
     return () => controller.abort();
   }, []);
 
-  // Suggestions are real active database records; stale requests are cancelled.
+  // Debounce and cancel stale results. Empty searches show featured catalogue picks.
   useEffect(() => {
+    if (!searchFocused) return;
     const clean = query.trim();
-    if (clean.length < 2) return;
+    if (clean.length === 1) return;
     const controller = new AbortController();
     const task = setTimeout(() => {
       getProductSuggestions(clean, controller.signal)
-        .then(data => { if (!controller.signal.aborted) { setSuggestions({ products: data.products || [], categories: data.categories || [] }); setSuggestionsLoading(false); } })
-        .catch(() => { if (!controller.signal.aborted) { setSuggestions({ products: [], categories: [] }); setSuggestionsLoading(false); } });
-    }, 230);
+        .then(data => { if (!controller.signal.aborted) {
+          setSuggestions({products:data.products || [], categories:data.categories || []});
+          setSuggestionsLoading(false);
+        }})
+        .catch(() => { if (!controller.signal.aborted) {
+          setSuggestions({products:[],categories:[]});setSuggestionsLoading(false);
+        }});
+    }, clean ? 220 : 0);
     return () => { clearTimeout(task); controller.abort(); };
-  }, [query]);
+  }, [query,searchFocused]);
 
   function chooseSuggestion() {
+    if (query.trim()) setRecentSearches(rememberSearch(query, undefined, searchScope));
     setSearchFocused(false);
-    setQuery("");
+    setQuery('');
     setMobileOpen(false);
   }
 
-  function submitSearch(event) {
-    event.preventDefault();
-    const cleanQuery = query.trim();
-    navigate(cleanQuery ? `/products?q=${encodeURIComponent(cleanQuery)}` : "/products");
+  function submitTerm(term) {
+    const clean = term.trim();
+    if (clean.length >= 2) setRecentSearches(rememberSearch(clean, undefined, searchScope));
+    navigate(clean ? `/products?q=${encodeURIComponent(clean)}` : '/products');
     setSearchFocused(false);
     setMobileOpen(false);
+  }
+  function submitSearch(event) {
+    event.preventDefault();
+    submitTerm(query);
+  }
+  function handleSearchKeyDown(event) {
+    if (event.key === 'Escape') { setSearchFocused(false); event.currentTarget.blur();return; }
+    if (event.key === 'ArrowDown' && searchFocused) {
+      const first = suggestionRef.current?.querySelector('a,button');
+      if (first) { event.preventDefault();first.focus(); }
+    }
+  }
+  function handleSuggestionKeys(event) {
+    if (event.key === 'Escape') {setSearchFocused(false);searchRef.current?.querySelector('input')?.focus();return;}
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    const links = [...suggestionRef.current?.querySelectorAll('a,button') || []];
+    const index = links.indexOf(document.activeElement);
+    if (index < 0) return;
+    event.preventDefault();
+    links[(index + (event.key === 'ArrowDown' ? 1 : -1) + links.length) % links.length]?.focus();
   }
 
   async function logout() {
@@ -153,22 +183,13 @@ export default function StoreHeader() {
         <form className="nav-search nx-nav-search" role="search" onSubmit={submitSearch} ref={searchRef} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setSearchFocused(false); }}>
           <FormField className="sr-only" htmlFor="nav-search-input">Search products</FormField>
           <SearchField id="nav-search-input" placeholder="Search products, brands and collections" value={query}
-            onFocus={() => setSearchFocused(true)} onKeyDown={event => { if (event.key === "Escape") { setSearchFocused(false); event.currentTarget.blur(); } }} onChange={(event) => { setQuery(event.target.value); setSuggestionsLoading(event.target.value.trim().length >= 2); }} autoComplete="off" aria-autocomplete="list" aria-controls="nx-search-suggestions" aria-expanded={searchFocused && query.trim().length >= 2} />
+            onFocus={() => {setSearchFocused(true); setRecentSearches(readRecentSearches(undefined, searchScope));setSuggestionsLoading(query.trim().length !== 1);}} onKeyDown={handleSearchKeyDown} onChange={(event) => { setQuery(event.target.value); setSuggestionsLoading(event.target.value.trim().length !== 1); }} autoComplete="off" aria-autocomplete="list" aria-controls="nx-search-suggestions" aria-expanded={searchFocused && query.trim().length !== 1} />
           <Button variant="primary" type="submit" className="nx-store-search-submit" aria-label="Search products" title="Search products"><UiIcon name="right" size={20}/></Button>
-          {searchFocused && query.trim().length >= 2 && <div className="nx-search-suggestions" id="nx-search-suggestions" role="region" aria-label="Search suggestions">
-            <div className="nx-search-suggestion-heading">Search suggestions</div>
-            {suggestionsLoading && <p className="nx-search-empty">Finding matches…</p>}
-            {!suggestionsLoading && suggestions.categories.length > 0 && <div className="nx-search-group">
-              <span>Categories</span>{suggestions.categories.map(c => <Link onClick={chooseSuggestion} key={`c-${c.id}`} to={`/categories/${encodeURIComponent(c.slug)}`}><CategoryMiniArtwork category={categoryArtwork[c.slug] || c} className="nx49-search-category-icon"/><span className="nx47-search-category">{c.name}<small>Collection</small></span></Link>)}
-            </div>}
-            {!suggestionsLoading && suggestions.products.length > 0 && <div className="nx-search-group"><span>Products</span>
-              {suggestions.products.map(p => <EntityTitle as={Link} key={`p-${p.cardKey || p.id}`} to={`/products/${p.id}${p.selectedVariantId ? `?variant=${encodeURIComponent(p.selectedVariantId)}` : ""}`} onClick={chooseSuggestion}>
-                {p.imageUrl ? <img src={apiAssetUrl(p.imageUrl)} alt="" /> : <span className="nx-search-placeholder"><UiIcon name="bag" size={18}/></span>}
-                <span className="nx-search-result-label">{p.name}<EntitySubtitle>{p.brand || p.category}</EntitySubtitle></span>
-              </EntityTitle>)}
-            </div>}
-            {!suggestionsLoading && !suggestions.products.length && !suggestions.categories.length && <p className="nx-search-empty">No direct matches. Try a different product or brand.</p>}
-            <Button variant="primary" type="submit" className="nx-search-view-all"><span>View all results for “{query.trim()}”</span><span className="nx49-suggestion-action"><UiIcon name="chevron-right" size={16}/></span></Button>
+          {searchFocused && query.trim().length !== 1 && <div onKeyDown={handleSuggestionKeys} className="nx-smart-search-keyboard">
+            <SmartSearchPanel panelRef={suggestionRef} query={query} loading={suggestionsLoading} suggestions={suggestions}
+              recent={recentSearches} categoryArtwork={categoryArtwork} onChoose={chooseSuggestion}
+              onClearRecent={() => setRecentSearches(clearRecentSearches(undefined, searchScope))}
+              onRecent={term => {setQuery(term);submitTerm(term);}} onSearchAll={() => submitTerm(query)}/>
           </div>}
         </form>
       </div>

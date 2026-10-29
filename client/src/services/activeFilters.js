@@ -4,6 +4,7 @@ export function activeCatalogueFilters(params, facets = []) {
   const query = params.get("q");
   if (query) chips.push({ key: "q", label: `Search: ${query}` });
   if (params.get("inStock") === "true") chips.push({ key: "inStock", label: "In stock" });
+  if (params.get("minRating")) chips.push({ key: "minRating", label: `${params.get("minRating")} stars & up` });
   const min = params.get("minPrice");
   const max = params.get("maxPrice");
   if (min) chips.push({ key: "minPrice", label: `From ₹${Number(min).toLocaleString("en-IN")}` });

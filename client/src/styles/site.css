@@ -3660,18 +3660,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .storefront .hero-section .hero-copy .button-primary { color: #352db0; background: #fff; border-color: #fff; }
 /* Search suggestions anchored to the existing navbar search form. */
 .nav-search.nx-nav-search { position: relative; overflow: visible; }
-.nx-search-suggestions { position: absolute; z-index: 90; top: calc(100% + 10px); left: 0; width: min(470px, 92vw); max-height: min(65vh, 520px); overflow-y: auto; background: #fff; border: 1px solid #e2e5f0; box-shadow: 0 26px 70px rgba(20,24,57,.17); border-radius: 17px; color: #1a2741; padding: 12px; text-align: left; }
-.nx-search-suggestion-heading { text-transform: uppercase; letter-spacing: .08em; font-size: .7rem; font-weight: 850; padding: 7px 10px 11px; color: #7d869b; }
-.nx-search-group { display: grid; gap: 4px; margin-bottom: 9px; }
-.nx-search-group > span { padding: 7px 10px; font-size: .7rem; font-weight: 850; color: #6359ca; text-transform: uppercase; letter-spacing: .04em; }
-.nx-search-group a { min-height: 50px; display: flex; align-items: center; gap: 12px; color: #202c47; text-decoration: none; border-radius: 10px; padding: 7px 10px; font-weight: 750; font-size: .85rem; }
-.nx-search-group a:hover,.nx-search-group a:focus-visible { background: #f3f2ff; outline-color: #6359ca; }
-.nx-search-group img,.nx-search-placeholder { width: 44px; height: 44px; object-fit: contain; border-radius: 8px; background: #f2f4f8; flex-shrink: 0; }
-.nx-search-placeholder { display: grid; place-items: center; }
-.nx-search-group small { display: block; color: #69748c; font-weight: 500; margin-top: 2px; }
-.nx-search-view-all { color: #5046c7; border: 0; border-radius: 9px; padding: 12px; font-weight: 800; width: 100%; background: #f2f1ff; text-align: left; cursor: pointer; }
-.nx-search-view-all:hover { background: #e7e4ff; }
-.nx-search-empty { color: #68758f; font-size: .84rem; padding: 10px; margin: 0; }
 /* Dedicated category discovery page */
 .nx-categories-page { width: min(1240px, calc(100% - 48px)); margin: 0 auto; padding: 68px 0 100px; min-height: 68vh; }
 .nx-page-intro,.nx15-page-intro { max-width: 800px; margin-bottom: 40px; }
@@ -3781,7 +3769,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .nx15-cta { display: grid; padding: 30px; }
   .nx15-content-page,.nx-categories-page { width: min(100% - 30px, 1220px); padding-top: 40px; }
   .nx15-content-page h1 { font-size: 2.6rem; }
-  .nx-search-suggestions { left: 0; max-width: 95vw; }
 }
 @media(max-width:480px) {
   .nx-category-landing-grid { grid-template-columns: 1fr; }
@@ -5526,7 +5513,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   stroke-width: 1.85;
 }
 /* Suggestions line up with the focus-ring edge rather than the inset input. */
-.storefront .nx34-header .nx-search-suggestions { left: 0; right: 0; }
 
 /* Shorten the overly large gap between the hero promotions and first catalogue row. */
 .storefront main > .nx37-promotion-home { margin-bottom: 0; }
@@ -5763,13 +5749,6 @@ a .nx47-icon,button .nx47-icon {pointer-events:none}
 .storefront .nx34-header .nx-nav-search input[type=search] {min-width:0;}
 .storefront .nx34-header .nx-nav-search .nx47-search-submit {flex:0 0 40px;width:40px;height:40px;padding:8px;display:grid;place-items:center;border-radius:50%;color:#1c2450;line-height:1}
 .storefront .nx34-header .nx-nav-search .nx47-search-submit .nx47-icon {height:21px;width:21px;display:block;stroke:#20284a;stroke-width:2.2}
-.storefront .nx34-header .nx-nav-search .nx-search-suggestions {position:absolute;top:calc(100% + 9px);left:0!important;right:auto!important;width:min(510px,calc(100vw - 32px));min-width:min(100%,330px);max-width:none;max-height:min(60vh,470px);overflow-y:auto;overflow-x:hidden;display:block;border-radius:18px;z-index:8000;padding:12px;box-shadow:0 20px 56px rgba(24,20,69,.19);}
-.storefront .nx-search-suggestions .nx-search-view-all {box-sizing:border-box;display:flex!important;align-items:center;justify-content:space-between;gap:15px;position:static!important;transform:none!important;width:100%!important;min-height:44px;height:auto!important;padding:11px 14px!important;border-radius:12px!important;text-align:left;white-space:normal;font-size:.81rem;line-height:1.35;}
-.storefront .nx-search-view-all span {flex:1;min-width:0;overflow-wrap:anywhere}
-.storefront .nx-search-group a {width:100%;min-width:0;display:flex!important;align-items:center;gap:11px;white-space:normal}
-.storefront .nx47-search-category,.storefront .nx-search-result-label {min-width:0;flex:1;overflow-wrap:anywhere;line-height:1.4}
-.storefront .nx-search-group small {color:#72768e;display:block;font-weight:500}
-@media(max-width:860px){.storefront .nx34-header .nx-nav-search .nx-search-suggestions {width:100%;min-width:0;max-height:min(48vh,380px)}}
 /* Full-bleed promotions. Covers entire tile, cropping edges when source aspect ratios differ. */
 .storefront .nx37-promotion-card.is-image-only .nx37-promotion-image-frame,.storefront .nx37-promotion-card.is-image-only .nx37-promotion-image-frame>img {position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;border-radius:inherit}
 .storefront .nx37-promotion-card.is-image-only .nx37-promotion-image-frame>img {object-fit:cover!important;object-position:center!important;opacity:1;filter:none;transition:transform .32s ease}
@@ -5830,9 +5809,6 @@ a .nx47-icon,button .nx47-icon {pointer-events:none}
 .storefront .nx34-header .nx-nav-search .nx47-search-submit {width:39px;min-width:39px;height:39px;flex:0 0 39px;background:#f0edff;color:#513cc5;border-radius:12px;box-shadow:none;transition:background .18s,transform .18s}
 .storefront .nx34-header .nx-nav-search .nx47-search-submit:hover {background:#e2dbff;transform:none}
 .storefront .nx34-header .nx-nav-search .nx47-search-submit .nx47-icon {stroke:#5140be}
-.storefront .nx34-header .nx-nav-search .nx-search-suggestions {top:calc(100% + 9px)!important;left:0!important;right:auto!important;width:min(100%,560px)!important;min-width:min(100%,340px);max-width:calc(100vw - 30px)!important;padding:13px!important;border-radius:16px!important}
-.storefront .nx-search-suggestions .nx-search-view-all {display:flex!important;justify-content:space-between!important;align-items:center!important;min-height:44px!important;line-height:1.35!important;font-size:.83rem!important;white-space:normal!important;border-radius:11px!important}
-.storefront .nx-search-suggestions .nx-search-view-all .nx47-icon {flex:0 0 18px}
 
 /* The catalogue's hero uses the header search — never render a second search field. */
 .storefront .catalogue-page .catalogue-hero {display:flex;align-items:end;justify-content:space-between;gap:15px;padding:clamp(24px,3vw,40px) 0 24px;margin:0}
@@ -5914,17 +5890,7 @@ a .nx47-icon,button .nx47-icon {pointer-events:none}
 .storefront .nx49-category-mini img { display:block; width:100%; height:100%; object-fit:contain; padding:2px; }
 .storefront .nx49-category-initial {font-size:.9rem; font-weight:850; line-height:1; }
 
-/* Use actual uploaded menu icons for category suggestions. Keep the row readable. */
-.storefront .nx-search-group .nx49-search-category-icon { width:36px;height:36px;min-width:36px;flex-basis:36px; }
-.storefront .nx-search-group .nx49-search-category-icon img {width:100%;height:100%;object-fit:contain;border-radius:0;background:transparent;}
-.storefront .nx-search-group a {align-items:center;min-height:52px;}
-.storefront .nx-search-suggestions .nx-search-view-all .nx49-suggestion-action {
-  display:grid;place-items:center;width:29px;height:29px;flex:0 0 29px;
-  background:#f1edff;border:1px solid #e7e0ff;border-radius:9px;color:#5640c6;
-}
-.storefront .nx-search-suggestions .nx-search-view-all .nx49-suggestion-action .nx47-icon {
-  display:block;width:16px;height:16px;transform:none;
-}
+/* Smart search suggestion visuals are owned by commerce/smart-search.css. */
 
 /* The collection tiles use the category's small icon, not a repeated shopping bag. */
 .storefront .nx48-department .nx49-category-mini.nx48-department-icon {
@@ -8853,4 +8819,207 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .admin-shell .nx62-ticker-row > .nx-ui-button--danger:not(:disabled):is(:hover,:focus-visible) {
   --nx-button-bg:#be123c;--nx-button-border:#be123c;--nx-button-ink:#fff;
   background:#be123c;color:#fff;border-color:#be123c;filter:none;box-shadow:0 0 0 3px #fa71853d;
+}
+
+/* Promotion typography editor and storefront overlay — dedicated shared rules.
+ * Kept after design-system.css to avoid specificity arms races with legacy styles. */
+.nx-promo-editor {margin:20px 0;border:1px solid #e4ddfa;border-radius:18px;padding:18px;background:#faf9ff;min-width:0}
+.nx-promo-editor-disclosure{min-width:0;width:100%}
+.nx-promo-editor-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;list-style:none;border-radius:12px;padding:4px 2px;outline-offset:4px}
+.nx-promo-editor-summary::-webkit-details-marker{display:none}
+.nx-promo-editor-summary-copy{display:grid;gap:4px;min-width:0}
+.nx-promo-editor-summary-copy strong{font-size:1.05rem;font-weight:800;color:#231c4b}
+.nx-promo-editor-summary-copy small{font-size:.82rem;font-weight:500;color:#67617d;line-height:1.4}
+.nx-promo-editor-chevron{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;color:#5543dc;border:1px solid #dfd8fa;border-radius:11px;background:#fff;transition:background .2s ease,transform .2s ease,color .2s ease}
+.nx-promo-editor-summary:hover .nx-promo-editor-chevron{background:#eeeaff;color:#4832c8}
+.nx-promo-editor-disclosure[open] .nx-promo-editor-chevron svg{transform:rotate(180deg)}
+.nx-promo-editor-chevron svg{transition:transform .2s ease}
+.nx-promo-editor-summary:focus-visible{outline:2px solid #6548ee}
+.nx-promo-editor-body{border-top:1px solid #e5def9;margin-top:16px;padding-top:16px;min-width:0}
+.nx-promo-editor-body>p{font-size:.86rem;line-height:1.6;color:#615e79;margin:4px 0 16px}
+.nx-promo-preview{position:relative;width:100%;aspect-ratio:16/7;overflow:hidden;border-radius:16px;background:linear-gradient(135deg,#3e315e,#9990c9);isolation:isolate;container-type:inline-size}
+.nx-promo-preview>img{display:block;width:100%;height:100%;object-fit:cover}
+.nx-promo-preview-placeholder{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:#fff;font-weight:650}
+.nx-promo-preview-layer{position:absolute;inset:0;pointer-events:none}
+.nx-promo-preview-layer::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(15,15,33,var(--nx-promo-overlay-opacity,.75)),rgba(15,15,33,0))}
+.nx-promo-preview-layer:not(.nx-promo-preview-custom)::before{background:linear-gradient(90deg,rgba(15,15,33,.77),rgba(15,15,33,.1))}
+.nx-promo-preview .nx37-promotion-copy{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:9px;padding:clamp(12px,3vw,32px);max-width:90%;color:#fff}
+.nx-promo-preview .nx37-promotion-copy strong{font-size:clamp(21px,5cqw,46px);line-height:1.1;color:#fff}
+.nx-promo-preview .nx37-promotion-copy span{font-size:clamp(13px,2.4cqw,18px);color:#f1edff}
+.nx-promo-preview .nx37-promotion-copy em{font-size:13px;color:#fff;font-style:normal}
+.nx-promo-preview-hint{font-size:.76rem;color:#77718b;margin:8px 0 16px}
+.nx-promo-editor-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0}
+.nx-promo-controls-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;margin:18px 0}
+.nx-promo-controls-grid .nx-ui-field,.nx-promo-controls-grid label{min-width:0}
+.nx-promo-color-pair{display:flex;align-items:center;gap:8px}
+.nx-promo-color-pair>input[type=color]{height:42px;width:50px;flex:0 0 50px;padding:4px;border:1px solid #d9d5ec;border-radius:10px;background:#fff;cursor:pointer}
+.nx-promo-color-pair .nx-ui-input{flex:1;min-width:0}
+.nx-promo-toggles{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0 4px}
+/* Shared custom text rendering across the banner preview and published storefront. */
+.storefront .nx37-promotion-card{container-type:inline-size}
+.storefront .nx37-promotion-card.has-overlay:has(.nx-promo-custom-copy)::before{background:linear-gradient(90deg,rgba(14,17,37,var(--nx-promo-overlay-opacity,.55)),rgba(14,17,37,0))}
+.storefront .nx37-promotion-card .nx37-promotion-copy.nx-promo-custom-copy,
+.nx-promo-preview .nx37-promotion-copy.nx-promo-custom-copy{position:absolute;inset:auto;display:flex;flex-direction:column;justify-content:center;gap:clamp(4px,1cqw,11px);padding:0;box-sizing:border-box;min-width:0;min-height:0;overflow-wrap:anywhere}
+.storefront .nx37-promotion-card .nx37-promotion-copy.nx-promo-custom-copy strong,
+.nx-promo-preview .nx37-promotion-copy.nx-promo-custom-copy strong{font-size:clamp(13px,5.4cqw,var(--nx-promo-title-size));line-height:1.12;font-weight:var(--nx-promo-title-weight);color:var(--nx-promo-title-color);letter-spacing:var(--nx-promo-letter-spacing);text-transform:var(--nx-promo-title-transform);text-shadow:var(--nx-promo-text-shadow);white-space:normal}
+.storefront .nx37-promotion-card .nx37-promotion-copy.nx-promo-custom-copy .nx-promo-subtitle,
+.nx-promo-preview .nx37-promotion-copy.nx-promo-custom-copy .nx-promo-subtitle{display:block;overflow:visible;-webkit-line-clamp:unset;-webkit-box-orient:initial;line-height:1.38;font-size:clamp(11px,2.2cqw,var(--nx-promo-subtitle-size));font-weight:500;color:var(--nx-promo-subtitle-color);text-shadow:var(--nx-promo-text-shadow);white-space:normal}
+.storefront .nx37-promotion-card .nx37-promotion-copy.nx-promo-custom-copy .nx-promo-cta,
+.nx-promo-preview .nx37-promotion-copy.nx-promo-custom-copy .nx-promo-cta{display:inline-flex;align-items:center;justify-content:center;align-self:var(--nx-promo-button-align,flex-start);gap:5px;width:max-content;max-width:100%;padding:clamp(6px,.8cqw,10px) clamp(8px,1.5cqw,15px);border-radius:9px;background:var(--nx-promo-cta-background);color:var(--nx-promo-cta-color);font-size:clamp(10px,1.6cqw,13px);font-weight:750;text-shadow:none;white-space:normal}
+/* Alignment is controlled by the text block; centre/right CTA follows. */
+.nx-promo-custom-copy[style*="text-align: center"]{--nx-promo-button-align:center}
+.nx-promo-custom-copy[style*="text-align: right"]{--nx-promo-button-align:flex-end}
+@media(max-width:620px){.nx-promo-controls-grid{grid-template-columns:1fr}.nx-promo-preview{aspect-ratio:4/3}.nx-promo-editor{padding:12px}}
+@media(prefers-reduced-motion:reduce){.nx-promo-preview *{transition:none!important}}
+
+/* All promotion fields, including text styling, live in the same edit modal. */
+.nx-promo-style-status{font-size:.83rem;font-weight:650;color:#51486d}
+
+/* An image-only banner still exposes its text controls in the unified editor. */
+.nx-promo-image-only-notice{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;margin:14px 0;border:1px solid #d8cdfa;background:#f1edff;border-radius:12px;color:#241947}
+.nx-promo-image-only-notice>div{min-width:0;flex:1}
+.nx-promo-image-only-notice strong{display:block;font-size:.93rem;margin-bottom:5px}
+.nx-promo-image-only-notice p{margin:0;color:#534d72;font-size:.84rem;line-height:1.55}
+.nx-promo-image-only-notice .nx-ui-button{flex-shrink:0;white-space:normal;text-align:center}
+.nx17-banner-actions>.nx-ui-icon-button{display:inline-grid;place-items:center;width:42px;min-width:42px;height:42px;padding:0}
+@media(max-width:680px){.nx-promo-image-only-notice{flex-direction:column;align-items:stretch}}
+
+/* The disclosure stays accessible and instantaneous for reduced-motion users. */
+@media(prefers-reduced-motion:reduce){.nx-promo-editor-chevron,.nx-promo-editor-chevron svg{transition:none!important}}
+
+/* Nexora SmartSearchPanel. Single component-owned stylesheet, after shared UI tokens.
+   Other search fields retain the shared SearchField contract. */
+.storefront .nx34-header .nx-smart-search-keyboard {
+  position:absolute; inset-inline:0; top:calc(100% + 9px); z-index:8100;
+  min-width:0;
+}
+.storefront .nx34-header .nx-smart-search-keyboard .nx-smart-search {
+  position:static; display:flex; flex-direction:column; width:100%; max-width:none;
+  min-width:0; max-height:min(66dvh,465px); box-sizing:border-box;
+  padding:0; overflow:hidden; border:1px solid var(--nx-control-border);
+  border-radius:var(--nx-card-radius); background:var(--nx-surface); color:var(--nx-ink);
+  box-shadow:0 20px 52px #18123c24; text-align:left;
+  font-family:var(--nx-font-family);
+}
+.storefront .nx-smart-search .nx-smart-body {
+  flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden;
+  padding:12px 12px 4px; overscroll-behavior-y:contain;
+  scrollbar-color:#d4ccef transparent; scrollbar-width:thin;
+}
+.storefront .nx-smart-search .nx-smart-group {
+  padding:0 2px 12px; margin:0 0 9px; border-bottom:1px solid #eceaf5;
+}
+.storefront .nx-smart-search .nx-smart-group-heading {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  min-width:0; padding:0 5px 9px; color:var(--nx-ink);
+}
+.storefront .nx-smart-search .nx-smart-group-heading strong {
+  min-width:0; font:700 var(--nx-label-font)/1.3 var(--nx-font-family);
+}
+.storefront .nx-smart-search .nx-smart-clear-history.nx-ui-button {
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:auto; min-width:0; height:30px; min-height:30px; padding:5px 8px;
+  gap:5px; white-space:nowrap; border-radius:8px;
+  background:transparent; border-color:transparent; color:var(--nx-muted);
+  font:600 var(--nx-helper-font)/1.2 var(--nx-font-family); box-shadow:none;
+}
+.storefront .nx-smart-search .nx-smart-clear-history:hover,
+.storefront .nx-smart-search .nx-smart-clear-history:focus-visible {
+  background:#f3efff; color:var(--nx-accent); box-shadow:none;
+}
+.storefront .nx-smart-search .nx-smart-clear-history .nx47-icon { flex:0 0 13px; width:13px; height:13px; }
+.storefront .nx-smart-search .nx-smart-recents {
+  display:flex; flex-flow:row wrap; align-items:center; justify-content:flex-start;
+  min-width:0; max-width:100%; gap:8px; padding:0 5px;
+}
+/* A recent query is a chip, not a shrinking text column. Allow its label to
+   truncate when long; never break individual letters to satisfy flex sizing. */
+.storefront .nx-smart-search .nx-smart-recents > .nx-smart-recent.nx-ui-button {
+  display:inline-flex; flex:0 0 auto; align-items:center; justify-content:flex-start;
+  box-sizing:border-box; width:max-content; min-width:0; max-width:min(100%,260px);
+  min-height:35px; height:35px; padding:7px 11px;
+  gap:7px; border-radius:9px; border-color:#e6e1fa;
+  background:#f6f3ff; color:#4b3ab2; box-shadow:none;
+  font:600 var(--nx-helper-font)/1.35 var(--nx-font-family);
+  text-align:left; white-space:nowrap; word-break:normal; overflow-wrap:normal;
+}
+.storefront .nx-smart-search .nx-smart-recent:hover,
+.storefront .nx-smart-search .nx-smart-recent:focus-visible {
+  background:#eee8ff; border-color:#ae9bea; color:var(--nx-accent);
+}
+.storefront .nx-smart-search .nx-smart-recent .nx47-icon { flex:0 0 14px; width:14px; height:14px; }
+.storefront .nx-smart-search .nx-smart-recent > span {
+  display:block; flex:0 1 auto; min-width:0; max-width:100%;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  word-break:normal; overflow-wrap:normal;
+}
+.storefront .nx-smart-search .nx-search-group { display:grid; gap:2px; margin:0 0 10px; min-width:0; }
+.storefront .nx-smart-search .nx-search-group > span:first-child {
+  padding:5px 8px 6px; margin:0; color:var(--nx-muted);
+  font:750 10px/1.35 var(--nx-font-family); text-transform:uppercase; letter-spacing:.09em;
+}
+.storefront .nx-smart-search .nx-search-group a,
+.storefront .nx-smart-search .nx-search-group a.nx-ui-entity-title {
+  display:flex; align-items:center; gap:10px; width:100%; min-width:0;
+  min-height:49px; padding:6px 8px; margin:0;
+  border:1px solid transparent; border-radius:10px; background:transparent;
+  color:var(--nx-ink); text-decoration:none; white-space:normal;
+  font:650 var(--nx-label-font)/1.35 var(--nx-font-family);
+  transition:background-color var(--nx-motion) var(--nx-ease),border-color var(--nx-motion) var(--nx-ease),color var(--nx-motion) var(--nx-ease);
+}
+.storefront .nx-smart-search .nx-search-group a:hover,
+.storefront .nx-smart-search .nx-search-group a:focus-visible {
+  background:#f6f3ff; border-color:#eee7ff; color:var(--nx-accent);
+}
+.storefront .nx-smart-search .nx-search-group .nx49-search-category-icon,
+.storefront .nx-smart-search .nx-search-group img,
+.storefront .nx-smart-search .nx-search-placeholder {
+  display:grid; place-items:center; width:38px; height:38px; min-width:38px;
+  flex:0 0 38px; border-radius:10px; background:#f6f4fd; object-fit:contain;
+}
+.storefront .nx-smart-search .nx-search-group .nx49-search-category-icon img {
+  width:100%; height:100%; min-width:0; object-fit:contain; padding:2px; border-radius:inherit;
+}
+.storefront .nx-smart-search .nx47-search-category,
+.storefront .nx-smart-search .nx-search-result-label {
+  flex:1 1 auto; display:block; min-width:0; overflow-wrap:anywhere;
+}
+.storefront .nx-smart-search .nx-search-product-name { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; }
+.storefront .nx-smart-search .nx-search-group small,
+.storefront .nx-smart-search .nx-search-group .nx-ui-entity-subtitle {
+  display:block; margin-top:2px; color:var(--nx-muted);
+  font:450 var(--nx-helper-font)/1.3 var(--nx-font-family);
+}
+.storefront .nx-smart-search .nx-search-group a > .nx47-icon:last-child {
+  flex:0 0 15px; width:15px; height:15px; margin-left:auto; color:#9185c5;
+}
+.storefront .nx-smart-search .nx-search-empty { padding:14px 8px; margin:0; color:var(--nx-muted); font-size:var(--nx-label-font); }
+.storefront .nx-smart-search .nx-smart-footer {
+  flex:0 0 auto; padding:9px 12px 12px; border-top:1px solid #efedf6; background:var(--nx-surface);
+}
+.storefront .nx-smart-search .nx-search-view-all.nx-ui-button {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  width:100%; min-width:0; height:40px; min-height:40px;
+  padding:9px 12px; border-radius:10px; border-color:#e5dcff;
+  background:#f4f0ff; color:var(--nx-accent);
+  font:700 var(--nx-label-font)/1.25 var(--nx-font-family);
+  text-align:left; white-space:normal; box-shadow:none;
+}
+.storefront .nx-smart-search .nx-search-view-all:hover,
+.storefront .nx-smart-search .nx-search-view-all:focus-visible {
+  background:#eae3ff; border-color:#cdbdfa; color:#4831b5;
+}
+.storefront .nx-smart-search .nx-search-view-all span { min-width:0; flex:1 1 auto; overflow-wrap:anywhere; }
+.storefront .nx-smart-search .nx-search-view-all .nx47-icon { flex:0 0 16px; width:16px; height:16px; }
+@media(max-width:860px) {
+  .storefront .nx34-header .nx-smart-search-keyboard {left:0;right:0;}
+  .storefront .nx34-header .nx-smart-search-keyboard .nx-smart-search {max-height:min(58dvh,420px);}
+}
+@media(max-width:480px) {
+  .storefront .nx-smart-search .nx-smart-body {padding:9px 9px 2px;}
+  .storefront .nx-smart-search .nx-smart-footer {padding:8px 9px 10px;}
+  .storefront .nx-smart-search .nx-smart-group-heading {gap:5px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .storefront .nx-smart-search .nx-search-group a {transition:none;}
 }

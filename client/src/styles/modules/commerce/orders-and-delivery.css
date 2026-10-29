@@ -74,7 +74,6 @@
   stroke-width: 1.85;
 }
 /* Suggestions line up with the focus-ring edge rather than the inset input. */
-.storefront .nx34-header .nx-search-suggestions { left: 0; right: 0; }
 
 /* Shorten the overly large gap between the hero promotions and first catalogue row. */
 .storefront main > .nx37-promotion-home { margin-bottom: 0; }
@@ -311,13 +310,6 @@ a .nx47-icon,button .nx47-icon {pointer-events:none}
 .storefront .nx34-header .nx-nav-search input[type=search] {min-width:0;}
 .storefront .nx34-header .nx-nav-search .nx47-search-submit {flex:0 0 40px;width:40px;height:40px;padding:8px;display:grid;place-items:center;border-radius:50%;color:#1c2450;line-height:1}
 .storefront .nx34-header .nx-nav-search .nx47-search-submit .nx47-icon {height:21px;width:21px;display:block;stroke:#20284a;stroke-width:2.2}
-.storefront .nx34-header .nx-nav-search .nx-search-suggestions {position:absolute;top:calc(100% + 9px);left:0!important;right:auto!important;width:min(510px,calc(100vw - 32px));min-width:min(100%,330px);max-width:none;max-height:min(60vh,470px);overflow-y:auto;overflow-x:hidden;display:block;border-radius:18px;z-index:8000;padding:12px;box-shadow:0 20px 56px rgba(24,20,69,.19);}
-.storefront .nx-search-suggestions .nx-search-view-all {box-sizing:border-box;display:flex!important;align-items:center;justify-content:space-between;gap:15px;position:static!important;transform:none!important;width:100%!important;min-height:44px;height:auto!important;padding:11px 14px!important;border-radius:12px!important;text-align:left;white-space:normal;font-size:.81rem;line-height:1.35;}
-.storefront .nx-search-view-all span {flex:1;min-width:0;overflow-wrap:anywhere}
-.storefront .nx-search-group a {width:100%;min-width:0;display:flex!important;align-items:center;gap:11px;white-space:normal}
-.storefront .nx47-search-category,.storefront .nx-search-result-label {min-width:0;flex:1;overflow-wrap:anywhere;line-height:1.4}
-.storefront .nx-search-group small {color:#72768e;display:block;font-weight:500}
-@media(max-width:860px){.storefront .nx34-header .nx-nav-search .nx-search-suggestions {width:100%;min-width:0;max-height:min(48vh,380px)}}
 /* Full-bleed promotions. Covers entire tile, cropping edges when source aspect ratios differ. */
 .storefront .nx37-promotion-card.is-image-only .nx37-promotion-image-frame,.storefront .nx37-promotion-card.is-image-only .nx37-promotion-image-frame>img {position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;border-radius:inherit}
 .storefront .nx37-promotion-card.is-image-only .nx37-promotion-image-frame>img {object-fit:cover!important;object-position:center!important;opacity:1;filter:none;transition:transform .32s ease}

@@ -1,4 +1,4 @@
-import { Button, Checkbox, FormField } from "../ui/index";
+import { Button, Checkbox, FormField, Select } from "../ui/index";
 import { useState } from "react";
 import PriceRangeSlider from "./PriceRangeSlider";
 
@@ -72,6 +72,18 @@ function ProductFiltersContent({
             />
             <span>In stock only</span>
           </FormField>
+        </fieldset>
+        <fieldset className="filter-group">
+          <legend>Customer rating</legend>
+          <Select aria-label="Minimum customer rating" disabled={disabled}
+            value={params.get('minRating') || ''}
+            onChange={event => onFilterChange('minRating',event.target.value ? [event.target.value] : [])}>
+            <option value="">All ratings</option>
+            <option value="4">4 stars & up</option>
+            <option value="3">3 stars & up</option>
+            <option value="2">2 stars & up</option>
+          </Select>
+          <small className="filter-help">Only verified, approved customer reviews count.</small>
         </fieldset>
         <fieldset className="filter-group price-filter nx28-price-filter">
           <legend>Price range</legend>

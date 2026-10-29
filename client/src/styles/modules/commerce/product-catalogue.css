@@ -349,18 +349,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .storefront .hero-section .hero-copy .button-primary { color: #352db0; background: #fff; border-color: #fff; }
 /* Search suggestions anchored to the existing navbar search form. */
 .nav-search.nx-nav-search { position: relative; overflow: visible; }
-.nx-search-suggestions { position: absolute; z-index: 90; top: calc(100% + 10px); left: 0; width: min(470px, 92vw); max-height: min(65vh, 520px); overflow-y: auto; background: #fff; border: 1px solid #e2e5f0; box-shadow: 0 26px 70px rgba(20,24,57,.17); border-radius: 17px; color: #1a2741; padding: 12px; text-align: left; }
-.nx-search-suggestion-heading { text-transform: uppercase; letter-spacing: .08em; font-size: .7rem; font-weight: 850; padding: 7px 10px 11px; color: #7d869b; }
-.nx-search-group { display: grid; gap: 4px; margin-bottom: 9px; }
-.nx-search-group > span { padding: 7px 10px; font-size: .7rem; font-weight: 850; color: #6359ca; text-transform: uppercase; letter-spacing: .04em; }
-.nx-search-group a { min-height: 50px; display: flex; align-items: center; gap: 12px; color: #202c47; text-decoration: none; border-radius: 10px; padding: 7px 10px; font-weight: 750; font-size: .85rem; }
-.nx-search-group a:hover,.nx-search-group a:focus-visible { background: #f3f2ff; outline-color: #6359ca; }
-.nx-search-group img,.nx-search-placeholder { width: 44px; height: 44px; object-fit: contain; border-radius: 8px; background: #f2f4f8; flex-shrink: 0; }
-.nx-search-placeholder { display: grid; place-items: center; }
-.nx-search-group small { display: block; color: #69748c; font-weight: 500; margin-top: 2px; }
-.nx-search-view-all { color: #5046c7; border: 0; border-radius: 9px; padding: 12px; font-weight: 800; width: 100%; background: #f2f1ff; text-align: left; cursor: pointer; }
-.nx-search-view-all:hover { background: #e7e4ff; }
-.nx-search-empty { color: #68758f; font-size: .84rem; padding: 10px; margin: 0; }
 /* Dedicated category discovery page */
 .nx-categories-page { width: min(1240px, calc(100% - 48px)); margin: 0 auto; padding: 68px 0 100px; min-height: 68vh; }
 .nx-page-intro,.nx15-page-intro { max-width: 800px; margin-bottom: 40px; }
@@ -470,7 +458,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .nx15-cta { display: grid; padding: 30px; }
   .nx15-content-page,.nx-categories-page { width: min(100% - 30px, 1220px); padding-top: 40px; }
   .nx15-content-page h1 { font-size: 2.6rem; }
-  .nx-search-suggestions { left: 0; max-width: 95vw; }
 }
 @media(max-width:480px) {
   .nx-category-landing-grid { grid-template-columns: 1fr; }

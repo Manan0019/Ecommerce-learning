@@ -107,6 +107,7 @@ export async function listProducts(req, res) {
     const minPrice = priceValue(req.query.minPrice);
     const maxPrice = priceValue(req.query.maxPrice);
     const inStock = req.query.inStock === "true";
+    const minRating = req.query.minRating === undefined ? null : positiveInteger(req.query.minRating, 0, 5);
     const includePriceBounds = req.query.includePriceBounds === "true";
     if (req.query.includePriceBounds !== undefined && !["true", "false"].includes(req.query.includePriceBounds)) throw new Error("INVALID_PUBLIC_QUERY");
     const featured = req.query.featured === "true";
@@ -158,7 +159,7 @@ export async function listProducts(req, res) {
     const filterSchemas = new Map(
       definition ? definitionFields(definition).filter((item) => item.filter).map((item) => [item.key, item]) : []
     );
-    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock", "featured", "view", "includePriceBounds"]);
+    const baseKeys = new Set(["q", "category", "sort", "page", "limit", "minPrice", "maxPrice", "brand", "inStock", "featured", "view", "includePriceBounds", "minRating"]);
     const requestedFilters = [];
     const variantFilters = [];
     for (const [key, value] of Object.entries(req.query)) {
@@ -204,13 +205,26 @@ export async function listProducts(req, res) {
       )`);
     }
     if (inStock) where.push(availabilityPredicate(view));
+    if (minRating !== null) where.push(`(SELECT COALESCE(AVG(review.rating),0) FROM product_reviews review
+      WHERE review.product_id=product.id AND review.status='approved') >= ${parameter(minRating)}`);
     if (featured) where.push("product.is_featured = TRUE");
     let searchParameter = null;
+    let searchLikeParameter = null;
     if (q) {
       searchParameter = parameter(q);
       const escapedLike = q.replace(/[\\%_]/g, (match) => `\\${match}`);
       const likeParameter = parameter(`%${escapedLike}%`);
-      where.push(`(${searchDocument} @@ websearch_to_tsquery('simple'::regconfig, ${searchParameter}) OR product.name ILIKE ${likeParameter} ESCAPE '\\' OR product.brand ILIKE ${likeParameter} ESCAPE '\\' OR product.model ILIKE ${likeParameter} ESCAPE '\\'${view === "variants" ? ` OR chosen.sku ILIKE ${likeParameter} ESCAPE '\\' OR chosen.custom_title ILIKE ${likeParameter} ESCAPE '\\' OR chosen.attributes::text ILIKE ${likeParameter} ESCAPE '\\'` : ""})`);
+      searchLikeParameter = likeParameter;
+      // Keep exact/full-text matches first, but permit spelling mistakes in product,
+      // brand, model or category names. No personal search queries are stored server-side.
+      // pg_trgm is installed by migration 045.
+      const fuzzy = q.length >= 4 && q.length <= 60
+        ? ` OR word_similarity(lower(${searchParameter}), lower(product.name)) >= 0.42
+            OR word_similarity(lower(${searchParameter}), lower(coalesce(product.brand,''))) >= 0.46
+            OR word_similarity(lower(${searchParameter}), lower(coalesce(product.model,''))) >= 0.46
+            OR word_similarity(lower(${searchParameter}), lower(category.name)) >= 0.48`
+        : "";
+      where.push(`(${searchDocument} @@ websearch_to_tsquery('simple'::regconfig, ${searchParameter}) OR product.name ILIKE ${likeParameter} ESCAPE '\\' OR product.brand ILIKE ${likeParameter} ESCAPE '\\' OR product.model ILIKE ${likeParameter} ESCAPE '\\' OR category.name ILIKE ${likeParameter} ESCAPE '\\'${view === "variants" ? ` OR chosen.sku ILIKE ${likeParameter} ESCAPE '\\' OR chosen.custom_title ILIKE ${likeParameter} ESCAPE '\\' OR chosen.attributes::text ILIKE ${likeParameter} ESCAPE '\\'` : ""}${fuzzy})`);
     }
     if (req.query.brand !== undefined) {
       const brands = filterValues(req.query.brand).map((brand) => brand.toLowerCase());
@@ -283,7 +297,10 @@ export async function listProducts(req, res) {
     const safePage = pages === 0 ? 1 : Math.min(page, pages);
     const orderBy = {
       relevance: searchParameter
-        ? `ts_rank(${searchDocument}, websearch_to_tsquery('simple'::regconfig, ${searchParameter})) DESC, product.id DESC`
+        ? `CASE WHEN product.name ILIKE ${searchLikeParameter} ESCAPE '\\' THEN 1 ELSE 0 END DESC,
+           ts_rank(${searchDocument}, websearch_to_tsquery('simple'::regconfig, ${searchParameter})) DESC,
+           ${q.length >= 4 && q.length <= 60 ? `GREATEST(word_similarity(lower(${searchParameter}),lower(product.name)),word_similarity(lower(${searchParameter}),lower(coalesce(product.brand,''))),word_similarity(lower(${searchParameter}),lower(category.name))) DESC,` : ''}
+           product.id DESC`
         : "product.created_at DESC, product.id DESC",
       newest: "product.created_at DESC, product.id DESC",
       price_asc: `${view === "variants" ? "COALESCE(chosen.price,product.price)" : "pricing.effective_price"} ASC, product.id DESC${view === "variants" ? ", chosen.id ASC" : ""}`,
@@ -403,43 +420,67 @@ export async function getProduct(req, res) {
 }
 
 
-/** Small, bounded autocomplete. Active catalogue only; no fabricated results. */
+/** Bounded, typo-tolerant search suggestions. Only public active catalogue data. */
 export async function searchSuggestions(req, res) {
   try {
     const q = queryString(req.query.q, 80);
-    if (q.length < 2) return res.json({ products: [], categories: [] });
-    const term = `%${q.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
-    const prefix = `${q.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+    const escaped = q.replace(/[\\%_]/g, (char) => `\\${char}`);
+    const term = `%${escaped}%`;
+    const prefix = `${escaped}%`;
+    const discover = q.length < 2;
+    const fuzzy = q.length >= 4 && q.length <= 60;
     const [productResult, categoryResult] = await Promise.all([
-      pool.query(`
-        SELECT product.id, product.name, product.brand, product.image_url,
-               category.name AS category_name, category.slug AS category_slug
-        FROM products product
-        JOIN categories category ON category.id = product.category_id
-        WHERE product.is_active = TRUE AND category.is_active = TRUE
-          AND (product.name ILIKE $1 ESCAPE '\\' OR product.brand ILIKE $1 ESCAPE '\\' OR product.model ILIKE $1 ESCAPE '\\')
-        ORDER BY CASE WHEN product.name ILIKE $2 ESCAPE '\\' THEN 0 ELSE 1 END,
-                 product.name ASC, product.id DESC
-        LIMIT 6`, [term, prefix]),
-      pool.query(`SELECT id, name, slug FROM categories WHERE is_active = TRUE AND name ILIKE $1 ESCAPE '\\' ORDER BY name LIMIT 4`, [term])
+      pool.query(discover ? `
+        SELECT product.id,product.name,product.brand,product.image_url,
+               category.name AS category_name,category.slug AS category_slug
+        FROM products product JOIN categories category ON category.id=product.category_id
+        WHERE product.is_active=TRUE AND category.is_active=TRUE
+        ORDER BY product.is_featured DESC, product.created_at DESC, product.id DESC LIMIT 6
+      ` : `
+        SELECT product.id,product.name,product.brand,product.image_url,
+               category.name AS category_name,category.slug AS category_slug
+        FROM products product JOIN categories category ON category.id=product.category_id
+        WHERE product.is_active=TRUE AND category.is_active=TRUE
+          AND (product.name ILIKE $1 ESCAPE '\\' OR product.brand ILIKE $1 ESCAPE '\\'
+            OR product.model ILIKE $1 ESCAPE '\\' OR category.name ILIKE $1 ESCAPE '\\'
+            ${fuzzy ? `OR word_similarity(lower($3),lower(product.name)) >= 0.42
+            OR word_similarity(lower($3),lower(coalesce(product.brand,''))) >= 0.46
+            OR word_similarity(lower($3),lower(coalesce(product.model,''))) >= 0.46
+            OR word_similarity(lower($3),lower(category.name)) >= 0.48` : ''})
+        ORDER BY CASE WHEN product.name ILIKE $2 ESCAPE '\\' THEN 0
+                      WHEN product.name ILIKE $1 ESCAPE '\\' THEN 1
+                      WHEN category.name ILIKE $1 ESCAPE '\\' THEN 2 ELSE 3 END,
+                 ${fuzzy ? `GREATEST(word_similarity(lower($3),lower(product.name)),word_similarity(lower($3),lower(coalesce(product.brand,''))),word_similarity(lower($3),lower(category.name))) DESC,` : ''}
+                 product.is_featured DESC,product.name ASC,product.id DESC
+        LIMIT 6`, discover ? [] : fuzzy ? [term,prefix,q] : [term,prefix]),
+      pool.query(discover ? `
+        SELECT category.id,category.name,category.slug
+        FROM categories category WHERE category.is_active=TRUE
+        ORDER BY (SELECT COUNT(*) FROM products product WHERE product.category_id=category.id AND product.is_active=TRUE) DESC, category.name
+        LIMIT 4
+      ` : `SELECT id,name,slug FROM categories WHERE is_active=TRUE AND (
+          name ILIKE $1 ESCAPE '\\'${fuzzy ? ' OR word_similarity(lower($2),lower(name)) >= 0.48' : ''}
+        ) ORDER BY CASE WHEN name ILIKE $1 ESCAPE '\\' THEN 0 ELSE 1 END,name LIMIT 4`,
+        discover ? [] : fuzzy ? [term,q] : [term])
     ]);
-    const resultProducts = productResult.rows.map(r => ({ id: String(r.id), name: r.name, brand: r.brand, imageUrl: r.image_url, category: r.category_name }));
+    const resultProducts = productResult.rows.map(r => ({id:String(r.id),name:r.name,brand:r.brand,imageUrl:r.image_url,category:r.category_name}));
     let suggestedCards = resultProducts;
     if (resultProducts.length) {
       const ids = resultProducts.map(p => p.id);
-      const [variantRows, mediaRows] = await Promise.all([
+      const [variantRows,mediaRows] = await Promise.all([
         pool.query(`SELECT id,product_id,attributes,sku,mrp,price,stock,is_active FROM product_variants WHERE product_id=ANY($1::bigint[]) AND is_active=TRUE ORDER BY product_id,id`,[ids]),
         pool.query(`SELECT id,product_id,variant_id,option_key,option_value,media_type,media_url,sort_order,is_card_cover FROM product_media WHERE product_id=ANY($1::bigint[]) AND media_type='image' ORDER BY product_id,sort_order,id`,[ids])
       ]);
-      suggestedCards = makeStorefrontCards(resultProducts, variantRows.rows, mediaRows.rows).slice(0,6);
+      suggestedCards = makeStorefrontCards(resultProducts,variantRows.rows,mediaRows.rows).slice(0,6);
     }
     return res.json({
-      products: suggestedCards,
-      categories: categoryResult.rows.map(r => ({ id: String(r.id), name: r.name, slug: r.slug }))
+      products:suggestedCards,
+      categories:categoryResult.rows.map(r=>({id:String(r.id),name:r.name,slug:r.slug})),
+      discovery:discover
     });
   } catch (error) {
-    if (error.message === "INVALID_PUBLIC_QUERY") return res.status(400).json({ message: "Invalid search query." });
-    console.error("Product suggestions:", error);
-    return res.status(500).json({ message: "Search suggestions unavailable." });
+    if (error.message === 'INVALID_PUBLIC_QUERY') return res.status(400).json({message:'Invalid search query.'});
+    console.error('Product suggestions:',error);
+    return res.status(500).json({message:'Search suggestions unavailable.'});
   }
 }
