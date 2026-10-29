@@ -1,4 +1,4 @@
-import { saveCompareProduct } from '../../services/compareStorage';
+import CompareProductButton from "./CompareProductButton";
 import { Button, IconButton } from "../ui/index";
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -21,7 +21,7 @@ export default function StorefrontCardActions({product,detailUrl,showQuickAdd=tr
     <div className="nx61-card-actions" aria-label={`Quick actions for ${product.name}`}>
       <IconButton variant="secondary" type="button" title="Quick view" aria-label={`Quick view ${product.name}`} onClick={()=>setQuick(true)}><UiIcon name="eye" size={18}/></IconButton>
       <IconButton variant="secondary" type="button" title="Add to wishlist" aria-label={`Save ${product.name} to wishlist`} aria-pressed={saved} onClick={save}><UiIcon name="heart" size={18}/></IconButton>
-      <IconButton variant="secondary" type="button" title="Add to compare" aria-label={`Compare ${product.name}`} onClick={()=>setMessage(saveCompareProduct(product))}><UiIcon name="compare" size={18}/></IconButton>
+      <CompareProductButton compact product={product} onResult={setMessage}/>
     </div>
 
     {showQuickAdd && !needsOptions && Number(product.stock)>0 && <Button variant="secondary" className="nx61-quick-add" type="button" onClick={quickAdd}>

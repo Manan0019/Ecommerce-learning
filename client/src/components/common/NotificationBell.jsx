@@ -47,7 +47,7 @@ export default function NotificationBell(){
    {unread>0&&<CountBadge className="nx46-bell-count">{unread>99?'99+':unread}</CountBadge>}
   </Button>
   {open&&<div className="nx46-notification-panel" role="region" aria-label="Recent notifications">
-   <div className="nx46-notification-title"><strong>Notifications</strong><div className="nx70-bell-header-actions">{unread>0&&<Button variant="secondary" type="button" className="nx70-mark-all" disabled={markingAll} onClick={markAll}>{markingAll ? 'Saving…' : 'Mark all read'}</Button>}<IconButton variant="secondary" type="button" onClick={()=>setOpen(false)} aria-label="Close notifications" ><UiIcon name="x" size={16}/></IconButton></div></div>
+   <div className="nx46-notification-title"><strong>Notifications</strong><div className="nx70-bell-header-actions">{unread>0&&<Button variant="secondary" type="button" className="nx70-mark-all" disabled={markingAll} onClick={markAll}>{markingAll ? 'Saving…' : 'Mark all read'}</Button>}<IconButton variant="secondary" type="button" className="nx-ui-close-button" onClick={()=>setOpen(false)} aria-label="Close notifications" ><UiIcon name="x" size={16}/></IconButton></div></div>
    {error&&<p className="nx46-error" role="alert">{error}</p>}
    {!entries.length?<EmptyState icon="check-circle" title="All caught up" description="New notifications will appear here."/>:<div className="nx46-notification-list">{entries.map(n=><Button variant="plain" type="button" key={n.id} className={`${n.read_at?'is-read':'unread'} nx73-notification-${notificationKind(n.kind)}`} onClick={()=>visit(n)}><strong>{n.title}</strong><span>{n.message}</span><small>{new Date(n.created_at).toLocaleString('en-IN')}</small></Button>)}</div>}
   </div>}

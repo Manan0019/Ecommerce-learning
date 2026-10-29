@@ -1,4 +1,4 @@
-import { Button } from "../ui/index";
+import { Button, IconButton } from "../ui/index";
 import { useRef, useState } from "react";
 import UiIcon from "../common/UiIcon";
 import { apiAssetUrl } from "../../services/apiClient";
@@ -79,7 +79,7 @@ export default function ProductMediaGallery({ product, variantId = null, variant
       </div><Button variant="plain" type="button" className="nx57-thumbnail-scroll" aria-label="Scroll thumbnails right" onClick={()=>thumbsRef.current?.scrollBy({left:240,behavior:'smooth'})}><UiIcon name="chevron-right" size={17}/></Button>
     </div>}
     <dialog ref={zoomRef} className="nx29-image-dialog" aria-label={`${product.name} enlarged image`}>
-      <Button variant="plain" type="button" className="nx29-image-dialog-close" onClick={() => zoomRef.current?.close()} aria-label="Close enlarged image"><UiIcon name="x" size={18}/></Button>
+      <IconButton variant="plain" type="button" className="nx-ui-close-button nx-ui-close-button--overlay nx29-image-dialog-close" onClick={() => zoomRef.current?.close()} aria-label="Close enlarged image"><UiIcon name="x" size={18}/></IconButton>
       {current?.type === "image" && <img src={apiAssetUrl(current.url)} alt={product.name} />}
     </dialog>
   </div>;

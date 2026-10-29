@@ -4,6 +4,7 @@ import { rememberProduct } from "../../services/recentlyViewed";
 import UiIcon from "../../components/common/UiIcon";
 import AdminProductEditDialog from "../../components/admin/AdminProductEditDialog";
 import WishlistButton from "../../components/customer/WishlistButton";
+import CompareProductButton from "../../components/customer/CompareProductButton";
 import ProductReviews from "../../components/customer/ProductReviews";
 import ProductBuyingGuide from "../../components/customer/ProductBuyingGuide";
 import { useEffect, useRef, useState } from "react";
@@ -130,7 +131,10 @@ function ProductDetailsContent({ id,adminPreview=false }) {
               setVariantId(selected); setQuantity(1); setAdded(false);
               setSearchParams(previous => { const next = new URLSearchParams(previous); next.set("variant", selected); return next; }, {replace: true});
             }}/>
-          {!adminPreview&&<><WishlistButton productId={product.id} />
+          {!adminPreview&&<><div className="nx-detail-product-actions">
+            <WishlistButton productId={product.id} />
+            <CompareProductButton product={product} />
+          </div>
           <div className="purchase-panel">
             <FormField htmlFor="product-quantity">Quantity</FormField>
             <div className="purchase-row">
