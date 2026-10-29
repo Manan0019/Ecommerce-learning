@@ -20,3 +20,5 @@ export {default as MetricCard} from './MetricCard';
 export {default as EntityCell} from './EntityCell';
 export {default as Tabs, Tab} from './Tabs';
 export {default as MultiSelect} from './MultiSelect';
+export {default as QuantityStepper} from './QuantityStepper';
+export {default as CurrencyInput} from './CurrencyInput';

@@ -1,4 +1,4 @@
-import { Button, FormField, TextField } from "../../components/ui/index";
+import { Button, FormField, QuantityStepper } from "../../components/ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { rememberProduct } from "../../services/recentlyViewed";
 import UiIcon from "../../components/common/UiIcon";
@@ -134,19 +134,8 @@ function ProductDetailsContent({ id,adminPreview=false }) {
           <div className="purchase-panel">
             <FormField htmlFor="product-quantity">Quantity</FormField>
             <div className="purchase-row">
-              <div className="quantity-picker">
-                <Button variant="secondary" type="button" aria-label="Decrease quantity" disabled={quantity <= 1}
-                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</Button>
-                <TextField id="product-quantity" type="number" min="1" max={Math.min(99, effectiveStock)}
-                  value={quantity} disabled={!canBuy}
-                  onChange={(event) => {
-                    const next = Number(event.target.value);
-                    if (Number.isInteger(next) && next >= 1 && next <= Math.min(99, effectiveStock)) setQuantity(next);
-                  }} />
-                <Button variant="secondary" type="button" aria-label="Increase quantity"
-                  disabled={effectiveStock === 0 || quantity >= Math.min(99, effectiveStock)}
-                  onClick={() => setQuantity((value) => Math.min(effectiveStock, 99, value + 1))}>+</Button>
-              </div>
+              <QuantityStepper id="product-quantity" label="Quantity" value={quantity} onChange={setQuantity}
+                min={1} max={Math.min(99, effectiveStock)} disabled={!canBuy} editable/>
               <Button variant="primary" className="add-cart-button" type="button"
                 disabled={!canBuy} onClick={addProduct}>
                 {!canBuy ? "Out of stock" : "Add to cart"}

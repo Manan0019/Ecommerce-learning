@@ -1,4 +1,4 @@
-import { ClearFilters, Button, FormField, TextField } from "../ui/index";
+import { ClearFilters, Button, FormField, CurrencyInput } from "../ui/index";
 import { useId, useRef, useState } from "react";
 import {
   getSelectedPriceRange,
@@ -125,9 +125,7 @@ function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
     <div className="nx32-price-entry-row">
       {(["min", "max"]).map((handle) => <FormField className="nx32-price-entry" key={handle} htmlFor={handle === "min" ? minId : maxId}>
         <span>{handle === "min" ? "Min price" : "Max price"}</span>
-        <span className={`nx32-price-input-wrap${validation.errors[handle] ? " is-invalid" : ""}`}>
-          <span className="nx32-rupee" aria-hidden="true">₹</span>
-          <TextField
+        <CurrencyInput className={`nx32-price-input-wrap${validation.errors[handle] ? " is-invalid" : ""}`}
             id={handle === "min" ? minId : maxId}
             type="text"
             inputMode="numeric"
@@ -141,7 +139,6 @@ function PriceRangeControl({ bounds, params, onPriceChange, disabled }) {
             aria-invalid={Boolean(validation.errors[handle])}
             aria-describedby={validation.errors[handle] ? errorId : undefined}
           />
-        </span>
       </FormField>)}
     </div>
 

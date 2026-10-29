@@ -1,4 +1,4 @@
-import { EmptyState, EntityTitle, Button, IconButton } from "../../components/ui/index";
+import { EmptyState, EntityTitle, Button, IconButton, QuantityStepper } from "../../components/ui/index";
 import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import { useEffect, useState } from "react";
 import UiIcon from "../../components/common/UiIcon";
@@ -53,14 +53,10 @@ export default function CartPage() {
             {!item.available && <p role="alert" className="cart-warning">{item.reason || "Unavailable"}</p>}
             {item.availableStock !== undefined && <p className="stock-copy">{item.availableStock} available</p>}
             <div className="cart-item-actions">
-              <div className="quantity-picker compact-picker">
-                <Button variant="secondary" type="button" aria-label={`Decrease ${item.name || "item"} quantity`}
-                  onClick={() => item.quantity === 1 ? removeFromCart(item.productId,item.variantId) : updateQuantity(item.productId,item.quantity - 1,item.variantId)}>−</Button>
-                <span aria-live="polite">{item.quantity}</span>
-                <Button variant="secondary" type="button" aria-label={`Increase ${item.name || "item"} quantity`}
-                  disabled={!item.available || item.quantity >= 99 || item.quantity >= item.availableStock}
-                  onClick={() => updateQuantity(item.productId,item.quantity + 1,item.variantId)}>+</Button>
-              </div>
+              <QuantityStepper compact value={item.quantity} label={`${item.name || 'Item'} quantity`}
+                onChange={next => updateQuantity(item.productId,next,item.variantId)}
+                min={1} max={Math.max(1, Math.min(99, item.availableStock ?? 99))} increaseDisabled={!item.available}
+                onMinDecrement={() => removeFromCart(item.productId,item.variantId)} />
               <IconButton variant="danger" type="button" className="remove-button" title="Remove from cart" aria-label={`Remove ${item.name} from cart`} onClick={() => removeFromCart(item.productId,item.variantId)}><UiIcon name="trash" size={18}/></IconButton>
               {!item.available && item.productId && <Link className="text-link" to={`/products/${item.productId}`}>Review product options</Link>}
             </div>
