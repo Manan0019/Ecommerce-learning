@@ -30,6 +30,7 @@ import engagementRoutes from "./routes/engagementRoutes.js";
 import { razorpayWebhook } from "./controllers/razorpayController.js";
 import {startPaymentSweeper} from "./services/paymentReservationSweeper.js";
 import {startCustomerEmailOutbox} from "./services/customerEmailOutbox.js";
+import {startWishlistAlertWorker} from "./services/wishlistAlerts.js";
 
 import {admin as adminDeliveryRoutes,delivery as deliveryRoutes,notificationRoutes} from './routes/deliveryRoutes.js';
 
@@ -108,6 +109,7 @@ async function start() {
     httpServer.listen(PORT, () => console.log(`Express + Socket.IO running at http://localhost:${PORT}`));
     startPaymentSweeper();
     startCustomerEmailOutbox();
+    startWishlistAlertWorker();
   } catch (error) {
     console.error("Cannot start Express (database unavailable):", error);
     process.exitCode = 1;

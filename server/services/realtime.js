@@ -24,6 +24,8 @@ export async function broadcastOrderChange(orderId, areas=['orders','notificatio
   if (row) {
     broadcastUser(row.customer_id, areas.filter(a=>['orders','notifications','cart'].includes(a)));
     broadcastUser(row.executive_id,['delivery','finance','notifications']);
+    // Payment webhooks and background stock releases do not go through Express mutations.
+    import('./wishlistAlerts.js').then(m=>m.scheduleWishlistAlerts()).catch(err=>console.error('Wishlist alert scheduling:',err));
   }
 }
 export function createRealtimeServer(httpServer, {origin}) {
@@ -124,8 +126,11 @@ export function mutationRealtimeMiddleware(req,res,next){
           else if(req.session?.userId)broadcastUser(req.session.userId,plan.areas.filter(a=>['orders','delivery','finance','notifications'].includes(a)));
           if(plan.scope==='delivery'&&req.user?.role==='delivery')broadcastUser(req.user.id,['delivery','finance','notifications']);
           if(plan.stock){broadcastAreas(['catalog','inventory'],'public');broadcastAdmins(['inventory']);}
+          // Recheck saved products after committed inventory changes; background scan is the fallback.
+          import('./wishlistAlerts.js').then(m=>m.scheduleWishlistAlerts()).catch(err=>console.error('Wishlist alert scheduling:',err));
         }
         if(plan.scope==='admin'){
+          if(plan.areas.includes('catalog'))import('./wishlistAlerts.js').then(m=>m.scheduleWishlistAlerts()).catch(err=>console.error('Wishlist alert scheduling:',err));
           broadcastAdmins(plan.areas);
           for(const area of plan.areas.filter(a=>['catalog','promotions','branding','reviews'].includes(a)))broadcastArea(area);
         }

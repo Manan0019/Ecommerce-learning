@@ -1,3 +1,5 @@
+import WishlistAlertSettings from "../../components/customer/WishlistAlertSettings";
+import useRealtimeRevision from "../../hooks/useRealtimeRevision";
 import usePagination from '../../hooks/usePagination';
 import { Pagination, Button, EmptyState, EntityTitle } from "../../components/ui/index";
 
@@ -10,6 +12,7 @@ import { getWishlist, removeWishlist } from "../../services/wishlistService";
 
 export default function Wishlist() {
  const [products, setProducts] = useState([]);
+ const liveRevision=useRealtimeRevision(["wishlist","catalog","inventory"]);
  const [message, setMessage] = useState("");
  const [busyId, setBusyId] = useState(null);
  const [loading, setLoading] = useState(true);
@@ -28,7 +31,7 @@ export default function Wishlist() {
    finally { if (!controller.signal.aborted) setLoading(false); }
   }
   load(); return () => controller.abort();
- }, []);
+ }, [liveRevision]);
  async function remove(id) {
   setBusyId(id); setMessage("");
   try { await removeWishlist(id); setProducts((prev) => prev.filter((p) => p.id !== id)); }
@@ -44,9 +47,11 @@ export default function Wishlist() {
   {!loading && mode === "customer" && products.length === 0 && <EmptyState icon="heart" title="Your wishlist is empty" description="Tap the heart on a product to save it for later." action={<Button as={Link} variant="primary"  to="/products">Browse products</Button>}/>}
   <div className="wishlist-grid">{pager.items.map((p) => <article key={p.id} className="wishlist-card">
    <Link  to={`/products/${p.id}`}>{p.imageUrl && <img alt={p.name} src={apiAssetUrl(p.imageUrl)} loading="lazy"/>}<EntityTitle as="h2" size="lg">{p.name}</EntityTitle></Link>
-   <p>{p.category} · ₹{Number(p.price).toFixed(2)}</p>
+   <p>{p.category} · ₹{Number(p.price).toFixed(2)} {p.onSale&&<span className="nx91-wishlist-sale">On sale</span>}</p>
+   <p className="nx91-wishlist-stock">{p.available?"Available":"Out of stock"}</p>
    <Button variant="secondary" type="button" disabled={busyId === p.id} onClick={() => remove(p.id)}>Remove from wishlist</Button>
   </article>)}</div>
  <Pagination {...pager} label="saved products" onPageChange={pager.setPage}/>
+ {!loading&&mode==="customer"&&<WishlistAlertSettings/>}
  </CustomerLayout>;
 }
