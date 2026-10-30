@@ -8665,8 +8665,8 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 /* Common actions: no last action wrapping below the others. Tables that need
    horizontal space scroll within TableContainer rather than crushing buttons. */
 .admin-shell .admin-product-table {table-layout:fixed;min-width:980px;}
-.admin-shell .admin-product-table th:last-child,.admin-shell .admin-product-table td:last-child {width:250px;min-width:250px;}
-.admin-shell .admin-product-table .nx-ui-actions {display:grid;grid-template-columns:repeat(5,40px);gap:6px;justify-content:start;align-items:center;flex-wrap:nowrap;}
+.admin-shell .admin-product-table th:last-child,.admin-shell .admin-product-table td:last-child {width:284px;min-width:284px;}
+.admin-shell .admin-product-table .nx-ui-actions {display:grid;grid-template-columns:40px 40px 40px 54px 40px;gap:8px;justify-content:start;justify-items:center;align-items:center;flex-wrap:nowrap;max-width:none;width:max-content;}
 .admin-shell .admin-product-table .nx-ui-actions .nx-ui-icon-button {width:40px;min-width:40px;height:40px;min-height:40px;padding:0;}
 .admin-shell .admin-product-table .admin-product-cell {text-align:left;align-items:center;min-width:0;}
 .admin-shell .admin-product-table .nx-ui-entity-title {font-size:var(--nx-entity-font);line-height:1.45;}
@@ -9157,6 +9157,92 @@ button.nx53-orders-link{cursor:pointer;display:inline-flex;align-items:center;ga
 .admin-shell .nx62-ticker-row > .nx-ui-button--danger:not(:disabled):is(:hover,:focus-visible) {
   --nx-button-bg:#be123c;--nx-button-border:#be123c;--nx-button-ink:#fff;
   background:#be123c;color:#fff;border-color:#be123c;filter:none;box-shadow:0 0 0 3px #fa71853d;
+}
+
+/* Admin Manage Products / SALE toggle.
+   Shares the IconButton footprint and text tokens; only its semantic
+   on/off palette differs. No global icon, form or table overrides. */
+.admin-shell .nx91-sale-toggle.nx-ui-icon-button.nx-ui-button:not(.nx-ui-button--plain) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  min-width: 54px;
+  height: var(--nx-control-height);
+  min-height: var(--nx-control-height);
+  padding: 0 7px;
+  border: 1px solid #ded8f8;
+  border-radius: var(--nx-control-radius);
+  background: #f8f7ff;
+  color: #5b43cf;
+  --nx-button-bg: #f8f7ff;
+  --nx-button-border: #ded8f8;
+  --nx-button-ink: #5b43cf;
+  font: 800 var(--nx-helper-font)/1 var(--nx-font-family);
+  letter-spacing: .015em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
+  box-shadow: none;
+  transition: transform var(--nx-motion) var(--nx-ease),
+              background-color var(--nx-motion) var(--nx-ease),
+              border-color var(--nx-motion) var(--nx-ease),
+              box-shadow var(--nx-motion) var(--nx-ease),
+              color var(--nx-motion) var(--nx-ease);
+}
+.admin-shell .nx91-sale-toggle.nx-ui-icon-button > span[aria-hidden="true"] {
+  display: block;
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  line-height: 1;
+  letter-spacing: inherit;
+  transform: none;
+}
+.admin-shell .nx91-sale-toggle.nx-ui-icon-button:not([aria-pressed="true"]):is(:hover,:focus-visible):not(:disabled) {
+  --nx-button-bg: #eeeaff;
+  --nx-button-border: #bdb0f6;
+  --nx-button-ink: #4e37c1;
+  background: var(--nx-button-bg);
+  border-color: var(--nx-button-border);
+  color: var(--nx-button-ink);
+  box-shadow: 0 3px 12px #6247dc1c;
+  filter: none;
+}
+.admin-shell .nx91-sale-toggle.nx-ui-icon-button[aria-pressed="true"]:not(.nx-ui-button--plain) {
+  --nx-button-bg: #c91543;
+  --nx-button-border: #c91543;
+  --nx-button-ink: #fff;
+  background: var(--nx-button-bg);
+  border-color: var(--nx-button-border);
+  color: var(--nx-button-ink);
+  box-shadow: 0 3px 12px #c9154330;
+}
+.admin-shell .nx91-sale-toggle.nx-ui-icon-button[aria-pressed="true"]:is(:hover,:focus-visible):not(:disabled) {
+  --nx-button-bg: #aa1138;
+  --nx-button-border: #aa1138;
+  --nx-button-ink: #fff;
+  background: var(--nx-button-bg);
+  border-color: var(--nx-button-border);
+  color: #fff;
+  box-shadow: 0 6px 17px #aa11383b;
+  filter: none;
+}
+.admin-shell .nx91-sale-toggle.nx-ui-icon-button[aria-pressed="true"]:focus-visible {
+  outline-color: #c91543;
+}
+/* Older catalogue styles created a perpetual shimmer that visually distorted
+   the small SALE label. Keep the shared button hover lift, but no flashing. */
+.admin-shell .nx91-sale-toggle.nx-ui-icon-button::after {
+  content: none;
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell .nx91-sale-toggle.nx-ui-icon-button { transition: none; }
 }
 
 /* Promotion typography editor and storefront overlay — dedicated shared rules.

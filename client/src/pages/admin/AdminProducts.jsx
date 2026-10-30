@@ -34,7 +34,10 @@ export default function AdminProducts() {
   useEffect(() => {
     const controller = new AbortController();
     const timer=setTimeout(()=>{
-      setLoading(true);
+      // Preserve the rendered table while Socket.IO or an action refreshes its data.
+      // Unmounting it for a loading placeholder collapses the page height and
+      // makes the browser jump upward, notably after toggling a SALE badge.
+      // `loading` remains true only for this page's initial fetch.
       getAdminProducts(controller.signal,{page,q:query,status:filter,category:categoryFilter,brand:brandFilter,stock:stockFilter,sort}).then(data => {
         if (controller.signal.aborted) return;
         setProducts(data.products || []);setTotal(Number(data.total||0));setPage(current=>Math.min(current,Math.max(1,Math.ceil(Number(data.total||0)/10))));
